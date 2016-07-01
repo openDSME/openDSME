@@ -1,0 +1,10 @@
+Import('env')
+
+env.Append(CPPPATH=[Dir('.')])
+
+env.add_sources([
+'MAC_PIB.cc',
+'PHY_PIB.cc',
+'PIBHelper.cc'
+])
+

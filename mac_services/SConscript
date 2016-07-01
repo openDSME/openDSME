@@ -1,0 +1,7 @@
+Import('env')
+
+env.Append(CPPPATH=[Dir('.')])
+
+SConscript("mlme/SConscript")
+SConscript("mcps/SConscript")
+SConscript("pib/SConscript")

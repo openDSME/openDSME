@@ -1,0 +1,11 @@
+Import('env')
+
+env.Append(CPPPATH=[Dir('.')])
+
+env.add_sources([
+'MCPS.cc',
+
+'DATA.cc',
+'PURGE.cc'
+])
+

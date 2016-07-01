@@ -1,0 +1,14 @@
+Import('env')
+
+env.Append(CPPPATH=[Dir('.')])
+
+env.add_sources([
+'MLME.cc',
+
+'ASSOCIATE.cc',
+'DISASSOCIATE.cc',
+'DSME_GTS.cc',
+'POLL.cc',
+'SCAN.cc'
+])
+
