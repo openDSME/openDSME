@@ -310,8 +310,8 @@ GTS GTSHelper::getRandomFreeGTS() {
     uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
 
-    uint8_t initialSuperframeID = DSMEPlatform::getRandom() % numSuperFramesPerMultiSuperframe;
-    uint8_t initialSlotID = DSMEPlatform::getRandom() % numGTSlots;
+    uint8_t initialSuperframeID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numSuperFramesPerMultiSuperframe;
+    uint8_t initialSlotID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numGTSlots;
 
     return getNextFreeGTS(initialSuperframeID, initialSlotID);
 }

@@ -84,6 +84,8 @@ public:
     virtual void startTimer(uint32_t symbolCounterValue) = 0;
 
     virtual uint32_t getSymbolCounter() = 0;
+
+    virtual uint16_t getRandom() = 0;
 };
 
 } /* dsme */

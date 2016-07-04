@@ -118,7 +118,7 @@ void CAPLayer::startBackoffTimer() {
     uint8_t backoffExp = dsme.getMAC_PIB().macMinBE + NB;
     uint8_t maxBE = dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
-    uint16_t unitBackoffPeriods = DSMEPlatform::getRandom() % (1 << (uint16_t)backoffExp);
+    uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     uint16_t backoff = aUnitBackoffPeriod*(unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     uint32_t now = dsme.getPlatform().getSymbolCounter();

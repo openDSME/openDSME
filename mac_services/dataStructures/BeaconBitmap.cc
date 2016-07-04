@@ -114,8 +114,8 @@ int32_t BeaconBitmap::getNextFreeSlot() const {
     return -1;
 }
 
-int32_t BeaconBitmap::getRandomFreeSlot() const {
-    uint16_t start = DSMEPlatform::getRandom() % sdBitmap.length();
+int32_t BeaconBitmap::getRandomFreeSlot(uint16_t randomNumber) const {
+    uint16_t start = randomNumber % sdBitmap.length();
     for (uint16_t i = start; i < sdBitmap.length(); i++) {
         if (!sdBitmap.get(i)) {
             return i;

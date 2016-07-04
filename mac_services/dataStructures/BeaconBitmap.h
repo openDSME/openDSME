@@ -120,7 +120,7 @@ public:
      * Get index of random free slot in bitmap.
      * @return -1 if no slot found, valid index else
      */
-    int32_t getRandomFreeSlot() const;
+    int32_t getRandomFreeSlot(uint16_t randomNumber) const;
 
     /**
      * Count allocated slots

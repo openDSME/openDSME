@@ -202,7 +202,7 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
             LOG_INFO("Device is not associated, cannot reserve BEACON slot.");
         } else {
             // Lookup free slot within all neighbors and broadcast beacon allocation request
-            int32_t i = neighborOrOwnHeardBeacons.getRandomFreeSlot();
+            int32_t i = neighborOrOwnHeardBeacons.getRandomFreeSlot(dsme.getPlatform().getRandom());
             if (i >= 0) {
                 sendBeaconAllocationNotification(i);
             } else {

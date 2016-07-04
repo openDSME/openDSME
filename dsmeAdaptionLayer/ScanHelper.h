@@ -78,7 +78,7 @@ private:
     PanDescriptorList recordedPanDescriptors;
     scanCompleteDelegate_t scanCompleteDelegate;
 
-    MacStaticList<uint16, 8> heardCoordinators;
+    MacStaticList<uint16_t, 8> heardCoordinators;
     uint8_t passiveScanCounter;
 };
 

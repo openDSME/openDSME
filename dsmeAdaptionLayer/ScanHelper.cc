@@ -77,7 +77,7 @@ void ScanHelper::startScan() {
     channelList_t scanChannels;
     scanChannels.add(11);
 
-    uint16_t random_value = DSMEPlatform::getRandom() % 128;
+    uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
     if (((uint16_t)this->passiveScanCounter) > random_value) {
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
@@ -123,7 +123,7 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
             && heardCoordinators.getLength() < 2
             ) {
 
-        uint16_t random_value = DSMEPlatform::getRandom() % 3;
+        uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 3;
         if (random_value < 1) {
             mlme_sap::START::request_parameters request_params;
             request_params.panCoordinator = false;
