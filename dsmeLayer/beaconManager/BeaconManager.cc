@@ -263,9 +263,7 @@ void BeaconManager::handleBeaconRequest(DSMEMessage* msg) {
     if(!this->dsme.getDSMESettings().isCoordinator && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Received BEACON-REQUEST, turning into a coordinator now.");
         this->dsme.getDSMESettings().isCoordinator = true;
-        DSMEPlatform* platform = dynamic_cast<DSMEPlatform*>(&(this->dsme.getPlatform()));
-        DSME_ASSERT(platform);
-        platform->updateCoordinator();
+        this->dsme.getPlatform().updateVisual();
     }
 }
 

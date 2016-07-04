@@ -86,6 +86,8 @@ public:
     virtual uint32_t getSymbolCounter() = 0;
 
     virtual uint16_t getRandom() = 0;
+
+    virtual void updateVisual() = 0;
 };
 
 } /* dsme */

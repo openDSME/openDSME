@@ -141,6 +141,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
         dsme.getMAC_PIB().macPANId = msg->getHeader().getSrcPANId();
         dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
         dsme.getMAC_PIB().macAssociatedPANCoord = true;
+        this->dsme.getPlatform().updateVisual();
     } else {
         /* default in case of failure */
         dsme.getMAC_PIB().macPANId = 0xffff;

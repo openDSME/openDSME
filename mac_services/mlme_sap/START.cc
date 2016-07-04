@@ -65,6 +65,7 @@ void START::request(request_parameters &params) {
     } else {
         status = StartStatus::TRACKING_OFF;
     }
+    this->dsme.getPlatform().updateVisual();
 
     START_confirm_parameters confirm_params;
     confirm_params.status = status;

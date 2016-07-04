@@ -136,10 +136,6 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
             bool confirmed = this->dsmeAdaptionLayer.getMLME_SAP().getSTART().confirm(&confirm_params);
             DSME_ASSERT(confirmed);
             DSME_ASSERT(confirm_params.status == StartStatus::SUCCESS);
-
-            DSMEPlatform* platform = dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
-            DSME_ASSERT(platform);
-            platform->updateCoordinator();
         }
     }
 
