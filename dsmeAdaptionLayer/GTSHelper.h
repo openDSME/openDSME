@@ -64,7 +64,7 @@ public:
 
     void initialize();
 
-    void checkAndAllocateSingleGTS(uint16_t addr);
+    void checkAndAllocateSingleGTS(uint16_t address);
 
     void handleSlotEvent();
 
@@ -78,6 +78,8 @@ private:
     void handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters&);
 
     /* Helper methods */
+
+    void checkAndDeallocateSingeleGTS(uint16_t address);
 
     GTS getContiguousFreeGTS();
 
