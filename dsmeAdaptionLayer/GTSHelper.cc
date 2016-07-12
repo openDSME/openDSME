@@ -322,6 +322,7 @@ const char* printStatus(GTSStatus::GTS_Status status) {
 
 void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters &params) {
     LOG_INFO("GTS confirmation handled.");
+    LOG_INFO(printStatus(params.status));
 
     // TODO handle channel access failure! retransmission?
 
