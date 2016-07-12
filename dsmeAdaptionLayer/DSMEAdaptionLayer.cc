@@ -229,7 +229,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 // GTS slot not yet allocated
                 // TODO currently this is issued automatically when sending a packet,
                 // maybe implement this action at this position!
-                LOG_DEBUG("DROPPED: No GTS slot available");
+                LOG_DEBUG("DROPPED: No GTS are currently allocated");
             }
             else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
