@@ -250,8 +250,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
         }
         case EXPIRATION:
             // In this implementation EXPIRATION is only issued while no confirm is pending
-            DSME_ASSERT(!gtsConfirmPending)
-            ;
+            DSME_ASSERT(!gtsConfirmPending);
 
             // TODO is this required?
             //this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, DEALLOCATED);
@@ -260,8 +259,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             sendReply = false;
             break;
         default:
-            DSME_ASSERT(false)
-            ;
+            DSME_ASSERT(false);
             break;
     }
 
@@ -491,48 +489,48 @@ void GTSHelper::print(const char* name, const DSMESABSpecification &spec) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
     const uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
 
-    LOG_INFO_PREFIX
-;
-LOG_INFO_PURE("Slot allocation Bitmap[");
-LOG_INFO_PURE(spec.getSubBlockIndex());
-LOG_INFO_PURE("] (");
-LOG_INFO_PURE(name);
-LOG_INFO_PURE(")\n");
+    LOG_INFO_PREFIX;
+    LOG_INFO_PURE("Slot allocation Bitmap[");
+    LOG_INFO_PURE(spec.getSubBlockIndex());
+    LOG_INFO_PURE("] (");
+    LOG_INFO_PURE(name);
+    LOG_INFO_PURE(")\n");
 
-for (uint8_t c = 0; c < numChannels; c++) {
-    if (c < 10) {
-        LOG_INFO_PURE(" ");
+    for (uint8_t c = 0; c < numChannels; c++) {
+        if (c < 10) {
+            LOG_INFO_PURE(" ");
+        }
+        LOG_INFO_PURE((uint16_t )c);
+        LOG_INFO_PURE(": ");
+        for (uint8_t s = 0; s < numGTSlots; s++) {
+            LOG_INFO_PURE(subblock.get(c + s * numChannels));LOG_INFO_PURE(" ");
+        }LOG_INFO_PURE("\n");
     }
-    LOG_INFO_PURE((uint16_t )c);
-    LOG_INFO_PURE(": ");
-    for (uint8_t s = 0; s < numGTSlots; s++) {
-        LOG_INFO_PURE(subblock.get(c + s * numChannels));LOG_INFO_PURE(" ");
-    }LOG_INFO_PURE("\n");
-}
-return;
+    return;
 }
 
 void GTSHelper::print(const char* name, const DSMEAllocationCounterTable &act) {
-const uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
-const uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    const uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
+    const uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
 
-LOG_INFO_PREFIX
-;
-LOG_INFO_PURE("macDSMEACT (");
-LOG_INFO_PURE(name);
-LOG_INFO_PURE(")\n");
+    LOG_INFO_PREFIX;
+    LOG_INFO_PURE("macDSMEACT (");
+    LOG_INFO_PURE(name);
+    LOG_INFO_PURE(")\n");
 
-for (uint8_t m = 0; m < numSuperFramesPerMultiSuperframe; m++) {
-if (m < 10) {
-    LOG_INFO_PURE(" ");
-}
-LOG_INFO_PURE((uint16_t )m);
-LOG_INFO_PURE(": ");
-for (uint8_t s = 0; s < numGTSlots; s++) {
-    LOG_INFO_PURE(act.isAllocated(m, s));LOG_INFO_PURE(" ");
-}LOG_INFO_PURE("\n");
-}
-return;
+    for (uint8_t m = 0; m < numSuperFramesPerMultiSuperframe; m++) {
+        if (m < 10) {
+            LOG_INFO_PURE(" ");
+        }
+        LOG_INFO_PURE((uint16_t )m);
+        LOG_INFO_PURE(": ");
+        for (uint8_t s = 0; s < numGTSlots; s++) {
+            LOG_INFO_PURE(act.isAllocated(m, s));
+            LOG_INFO_PURE(" ");
+        }
+        LOG_INFO_PURE("\n");
+    }
+    return;
 }
 
 } /* dsme */

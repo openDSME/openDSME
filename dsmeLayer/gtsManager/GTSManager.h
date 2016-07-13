@@ -240,7 +240,6 @@ private:
      */
     bool sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst);
     bool checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabSpec, uint16_t addr, bool allChannels);
-    GTS GTSfromAbsoluteIndex(abs_slot_idx_t idx);
     unsigned getNumAllocatedGTS(bool direction);
     void sendNotify(GTSReplyNotifyCmd& reply, uint16_t sourceAddr, GTSManagement& man);
     bool isTimeoutPending();
