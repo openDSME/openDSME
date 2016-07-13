@@ -52,10 +52,9 @@
 namespace dsme {
 
 GTSManager::GTSManager(DSMELayer& dsme) :
-                        FSM<GTSManager,GTSEvent>(&GTSManager::stateIdle),
-                        dsme(dsme),
-                        actUpdater(dsme)
-                        {
+        DSMEBufferedFSM<GTSManager, GTSEvent, 4>(&GTSManager::stateIdle),
+        dsme(dsme),
+        actUpdater(dsme) {
 }
 
 void GTSManager::initialize() {
@@ -164,6 +163,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
+                    continue; // TODO: Remove when it works again!
                 }
 
                 LOG_DEBUG("slot to deallocate found!");
@@ -474,8 +474,33 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
  * Actions
  *****************************/
 
+static const char* signalToString(uint8_t signal) {
+    switch (signal) {
+        case GTSEvent::EMPTY_SIGNAL:
+            return "EMPTY_SIGNAL";
+        case GTSEvent::ENTRY_SIGNAL:
+            return "ENTRY_SIGNAL";
+        case GTSEvent::EXIT_SIGNAL:
+            return "EXIT_SIGNAL";
+        case GTSEvent::MLME_REQUEST_ISSUED:
+            return "MLME_REQUEST_ISSUED";
+        case GTSEvent::MLME_RESPONSE_ISSUED:
+            return "MLME_RESPONSE_ISSUED";
+        case GTSEvent::RESPONSE_CMD_FOR_ME:
+            return "RESPONSE_CMD_FOR_ME";
+        case GTSEvent::NOTIFY_CMD_FOR_ME:
+            return "NOTIFY_CMD_FOR_ME";
+        case GTSEvent::CFP_STARTED:
+            return "CFP_STARTED";
+        case GTSEvent::SEND_COMPLETE:
+            return "SEND_COMPLETE";
+        default:
+            return "UNKNOWN";
+    }
+}
+
 void GTSManager::actionReportBusyNotify(GTSEvent& event) {
-    LOG_DEBUG("busy");
+    LOG_DEBUG("BusyNotify on event '" << signalToString(event.signal) << "'");
     mlme_sap::DSME_GTS_confirm_parameters busyConfirm;
     busyConfirm.deviceAddress = event.deviceAddr;
     busyConfirm.managmentType = event.management.type;
@@ -487,7 +512,7 @@ void GTSManager::actionReportBusyNotify(GTSEvent& event) {
 }
 
 void GTSManager::actionReportBusyCommStatus(GTSEvent& event) {
-    LOG_DEBUG("busy");
+    LOG_DEBUG("BusyCommstatus on event '" << signalToString(event.signal) << "'");
     mlme_sap::COMM_STATUS_indication_parameters params;
     // TODO also fill other fields
     params.status = CommStatus::Comm_Status::TRANSACTION_OVERFLOW;
@@ -499,22 +524,13 @@ void GTSManager::actionReportBusyCommStatus(GTSEvent& event) {
  * External interfaces
  *****************************/
 
-bool GTSManager::handleMLMERequest(uint16_t deviceAddr, GTSManagement man, GTSRequestCmd cmd) {
-    GTSEvent e;
-    e.signal = GTSEvent::MLME_REQUEST_ISSUED;
-    e.deviceAddr = deviceAddr;
-    e.management = man;
-    e.requestCmd = cmd;
-    return dispatch(e);
+bool GTSManager::handleMLMERequest(uint16_t deviceAddr, GTSManagement &man, GTSRequestCmd &cmd) {
+    return dispatch(GTSEvent::MLME_REQUEST_ISSUED, deviceAddr, man, cmd);
 }
 
 bool GTSManager::handleMLMEResponse(GTSManagement man, GTSReplyNotifyCmd reply) {
-    GTSEvent e;
-    e.signal = GTSEvent::MLME_RESPONSE_ISSUED;
-    e.deviceAddr = reply.getDestinationAddress();
-    e.management = man;
-    e.replyNotifyCmd = reply;
-    return dispatch(e);
+    uint16_t destinationAddress = reply.getDestinationAddress();
+    return dispatch(GTSEvent::MLME_RESPONSE_ISSUED, destinationAddress, man, reply);
 }
 
 bool GTSManager::handleGTSRequest(DSMEMessage *msg) {
@@ -546,27 +562,25 @@ bool GTSManager::handleGTSRequest(DSMEMessage *msg) {
 }
 
 bool GTSManager::handleGTSResponse(DSMEMessage *msg) {
-    GTSEvent event;
-    event.deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
-    event.management.decapsulateFrom(msg);
-    event.replyNotifyCmd.decapsulateFrom(msg);
+    GTSManagement management;
+    GTSReplyNotifyCmd replyNotifyCmd;
+    management.decapsulateFrom(msg);
+    replyNotifyCmd.decapsulateFrom(msg);
 
-    if (event.replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
-        event.header = msg->getHeader();
-        event.signal = GTSEvent::RESPONSE_CMD_FOR_ME;
-        return dispatch(event);
+    if (replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
+        return dispatch(GTSEvent::RESPONSE_CMD_FOR_ME, msg, management, replyNotifyCmd);
     }
-    else if(event.management.status == GTSStatus::SUCCESS) {
+    else if(management.status == GTSStatus::SUCCESS) {
         // Response overheared -> Add to the SAB regardless of the current state
         DSMESlotAllocationBitmap &macDSMESAB = this->dsme.getMAC_PIB().macDSMESAB;
-        if (event.management.type == ManagementType::ALLOCATION) {
-            if (!checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, false)) {
+        if (management.type == ManagementType::ALLOCATION) {
+            if (!checkAndHandleGTSDuplicateAllocation(replyNotifyCmd.getSABSpec(), msg->getHeader().getSrcAddr().getShortAddress(), false)) {
                 // If there is no conflict, the device shall update macDSMESAB according to the DSMESABSpecification in this
                 // command frame to reflect the neighbor's newly allocated DSME-GTSs
-                macDSMESAB.addOccupiedSlots(event.replyNotifyCmd.getSABSpec());
+                macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
             }
-        } else if (event.management.type == ManagementType::DEALLOCATION) {
-            macDSMESAB.removeOccupiedSlots(event.replyNotifyCmd.getSABSpec());
+        } else if (management.type == ManagementType::DEALLOCATION) {
+            macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
         }
     }
     else {
@@ -578,31 +592,31 @@ bool GTSManager::handleGTSResponse(DSMEMessage *msg) {
 }
 
 bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
-    GTSEvent event;
-    event.header = msg->getHeader();
-    event.deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
-    event.management.decapsulateFrom(msg);
+    GTSManagement management;
 
-    if(event.management.type != ManagementType::ALLOCATION && event.management.type != ManagementType::DEALLOCATION) {
+
+    management.decapsulateFrom(msg);
+
+    if(management.type != ManagementType::ALLOCATION && management.type != ManagementType::DEALLOCATION) {
         return true;
     }
 
-    event.replyNotifyCmd.decapsulateFrom(msg);
+    GTSReplyNotifyCmd replyNotifyCmd;
+    replyNotifyCmd.decapsulateFrom(msg);
 
-    if (event.replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
-        event.signal = GTSEvent::NOTIFY_CMD_FOR_ME;
-        return dispatch(event);
+    if (replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
+        return dispatch(GTSEvent::NOTIFY_CMD_FOR_ME, msg, management, replyNotifyCmd);
     } else {
         // Notify overheared -> Add to the SAB regardless of the current state
         DSMESlotAllocationBitmap &macDSMESAB = this->dsme.getMAC_PIB().macDSMESAB;
-        if (event.management.type == ManagementType::ALLOCATION) {
-            if (!checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, false)) {
+        if (management.type == ManagementType::ALLOCATION) {
+            if (!checkAndHandleGTSDuplicateAllocation(replyNotifyCmd.getSABSpec(), msg->getHeader().getSrcAddr().getShortAddress(), false)) {
                 // If there is no conflict, the device shall update macDSMESAB according to the DSMESABSpecification in this
                 // command frame to reflect the neighbor's newly allocated DSME-GTSs
-                macDSMESAB.addOccupiedSlots(event.replyNotifyCmd.getSABSpec());
+                macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
             }
-        } else if (event.management.type == ManagementType::DEALLOCATION) {
-            macDSMESAB.removeOccupiedSlots(event.replyNotifyCmd.getSABSpec());
+        } else if (management.type == ManagementType::DEALLOCATION) {
+            macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
         }
     }
     return true;
@@ -624,9 +638,7 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
             }
         }
 
-        GTSEvent event;
-        event.signal = GTSEvent::CFP_STARTED;
-        return dispatch(event);
+        return dispatch(GTSEvent::CFP_STARTED);
     }
     else {
         return true;
@@ -634,47 +646,29 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
 }
 
 bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
-    GTSEvent event;
-    event.management.decapsulateFrom(msg);
+    GTSManagement management;
+    management.decapsulateFrom(msg);
 
-    switch (cmdId) {
-    case CommandFrameIdentifier::DSME_GTS_REQUEST:
-        event.requestCmd.decapsulateFrom(msg);
-        event.deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
-        break;
-    case CommandFrameIdentifier::DSME_GTS_REPLY:
-    case CommandFrameIdentifier::DSME_GTS_NOTIFY:
-        event.replyNotifyCmd.decapsulateFrom(msg);
-        event.deviceAddr = event.replyNotifyCmd.getDestinationAddress();
-        break;
-    default:
-        event.deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
-        break;
-    }
-
-    dsme.getPlatform().releaseMessage(msg);
-
-    if(event.management.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
+    bool returnStatus;
+    if (management.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         // Sending the duplicate allocation is not handled by the state machine, since
         // it is just a state-less notification (at least for our interpretation of the standard)
         LOG_DEBUG("DUPLICATED_ALLOCATION_NOTIFICATION sent");
-        return true;
-    }
-
-    if(msg != msgToSend) {
+        returnStatus = true;
+    } else if (msg != msgToSend) {
         // If the ACK was lost, but the message itself was delivered successfully,
         // the RESPONSE or NOTIFY might already have been handled properly.
         // Same holds if the current state is not sending (see there)
         // TODO What about the states of the receiver and the neighbours?
         LOG_DEBUG("Outdated message");
-        return true;
+        returnStatus = true;
+    } else {
+        LOG_DEBUG("GTSManager::onCSMASent " << status);
+        returnStatus = dispatch(GTSEvent::SEND_COMPLETE, msg, management, cmdId, status);
     }
 
-    LOG_DEBUG("GTSManager::onCSMASent " << status);
-    event.signal = GTSEvent::SEND_COMPLETE;
-    event.cmdId = cmdId;
-    event.dataStatus = status;
-    return dispatch(event);
+    dsme.getPlatform().releaseMessage(msg);
+    return returnStatus;
 }
 
 

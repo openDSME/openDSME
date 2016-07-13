@@ -45,7 +45,7 @@
 
 #include <stdint.h>
 
-#include "../../helper/DSMEFSM.h"
+#include "../../helper/DSMEBufferedFSM.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
@@ -64,6 +64,13 @@ class DSMELayer;
 
 class GTSEvent : public FSMEvent {
 public:
+    template <typename ...Args>
+    void fill(uint16_t signal, Args & ... args)
+    {
+        this->signal = signal;
+        fill(args...);
+    }
+
     enum : uint8_t {
         MLME_REQUEST_ISSUED = USER_SIGNAL_START,
         MLME_RESPONSE_ISSUED,
@@ -80,9 +87,52 @@ public:
     IEEE802154eMACHeader header;
     CommandFrameIdentifier cmdId;
     DataStatus::Data_Status dataStatus;
+
+private:
+    void fill(void){
+    }
+
+    void fill(DSMEMessage *&msg, GTSManagement &management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
+        switch (cmdId) {
+            case CommandFrameIdentifier::DSME_GTS_REQUEST:
+                this->requestCmd.decapsulateFrom(msg);
+                this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
+                break;
+            case CommandFrameIdentifier::DSME_GTS_REPLY:
+            case CommandFrameIdentifier::DSME_GTS_NOTIFY:
+                this->replyNotifyCmd.decapsulateFrom(msg);
+                this->deviceAddr = this->replyNotifyCmd.getDestinationAddress();
+                break;
+            default:
+                this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
+                break;
+        }
+        this->management = management;
+        this->cmdId = cmdId;
+        this->dataStatus = dataStatus;
+    }
+
+    void fill(uint16_t &deviceAddr, GTSManagement &management, GTSReplyNotifyCmd &replyNotifyCmd){
+        this->deviceAddr = deviceAddr;
+        this->management = management;
+        this->replyNotifyCmd = replyNotifyCmd;
+    }
+
+    void fill(uint16_t &deviceAddr, GTSManagement &management, GTSRequestCmd &requestCmd){
+        this->deviceAddr = deviceAddr;
+        this->management = management;
+        this->requestCmd = requestCmd;
+    }
+
+    void fill(DSMEMessage *&msg, GTSManagement &management, GTSReplyNotifyCmd &replyNotifyCmd) {
+        this->deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
+        this->header = msg->getHeader();
+        this->management = management;
+        this->replyNotifyCmd = replyNotifyCmd;
+    }
 };
 
-class GTSManager : private FSM<GTSManager, GTSEvent> {
+class GTSManager : private DSMEBufferedFSM<GTSManager, GTSEvent, 4> {
 public:
 
     GTSManager(DSMELayer& dsme);
@@ -99,7 +149,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the request, true otherwise
      */
-    bool handleMLMERequest(uint16_t deviceAddr, GTSManagement gtsManagement, GTSRequestCmd gtsRequestAllocationCmd);
+    bool handleMLMERequest(uint16_t deviceAddr, GTSManagement &gtsManagement, GTSRequestCmd &gtsRequestAllocationCmd);
 
     /*
      * Called on reception of a GTS-response from upper layer.
