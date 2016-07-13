@@ -251,15 +251,17 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
-    this->scanInProgress = false;
+
     if (panDescriptor != nullptr) {
         LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
                 << panDescriptor->coordAddress.getShortAddress() << ".");
         this->associationInProgress = true;
+        this->scanInProgress = false;
         this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
                 panDescriptor->channelNumber);
     } else {
-        LOG_INFO("Channel scan did not yield any PANs.");
+        LOG_INFO("Channel scan did not yield any PANs." << " Trying again!");
+        this->scanHelper.startScan();
     }
     return;
 }
