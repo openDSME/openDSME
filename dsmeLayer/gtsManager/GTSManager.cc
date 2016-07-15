@@ -163,7 +163,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
-                    continue; // TODO: Remove when it works again!
+                    //continue; // TODO: Remove when it works again!
                 }
 
                 LOG_DEBUG("slot to deallocate found!");
@@ -474,7 +474,7 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
  * Actions
  *****************************/
 
-static const char* signalToString(uint8_t signal) {
+const char* GTSManager::signalToString(uint8_t signal) {
     switch (signal) {
         case GTSEvent::EMPTY_SIGNAL:
             return "EMPTY_SIGNAL";
@@ -499,8 +499,37 @@ static const char* signalToString(uint8_t signal) {
     }
 }
 
+const char* GTSManager::stateToString(DSMEBufferedFSM<GTSManager, GTSEvent, 4>::state_t state) {
+    if(state == &GTSManager::stateIdle) {
+        return "IDLE";
+    } else if(state == &GTSManager::stateSending) {
+        return "SENDING";
+    } else if(state == &GTSManager::stateWaitForResponse) {
+        return "WAITFORRESPONSE";
+    } else if(state == &GTSManager::stateWaitForNotify) {
+        return "WAITFORNOTIFY";
+    } else {
+        return "UNKNOWN";
+    }
+}
+
 void GTSManager::actionReportBusyNotify(GTSEvent& event) {
-    LOG_DEBUG("BusyNotify on event '" << signalToString(event.signal) << "'");
+    LOG_DEBUG("BusyNotify on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
+
+    if (event.signal == GTSEvent::MLME_RESPONSE_ISSUED) {
+        DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+        event.replyNotifyCmd.prependTo(msg);
+
+        LOG_INFO(
+                "Sending a negative response to a GTS-REQUEST to " << event.replyNotifyCmd.getDestinationAddress() << " due to a TRANSACTION_OVERFLOW");
+        uint16_t destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
+        event.management.status = GTSStatus::DENIED;
+        if (!sendGTSCommand(msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress)) {
+            LOG_DEBUG("Could not send REPLY");
+            dsme.getPlatform().releaseMessage(msg);
+        }
+    }
+
     mlme_sap::DSME_GTS_confirm_parameters busyConfirm;
     busyConfirm.deviceAddress = event.deviceAddr;
     busyConfirm.managmentType = event.management.type;
@@ -512,7 +541,7 @@ void GTSManager::actionReportBusyNotify(GTSEvent& event) {
 }
 
 void GTSManager::actionReportBusyCommStatus(GTSEvent& event) {
-    LOG_DEBUG("BusyCommstatus on event '" << signalToString(event.signal) << "'");
+    LOG_DEBUG("BusyCommstatus on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
     mlme_sap::COMM_STATUS_indication_parameters params;
     // TODO also fill other fields
     params.status = CommStatus::Comm_Status::TRANSACTION_OVERFLOW;

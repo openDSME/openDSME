@@ -245,6 +245,9 @@ private:
     bool isTimeoutPending();
     void preparePendingConfirm(GTSEvent& event);
 
+    const char* signalToString(uint8_t signal);
+    const char* stateToString(DSMEBufferedFSM<GTSManager, GTSEvent, 4>::state_t state);
+
     DSMELayer& dsme;
     ACTUpdater actUpdater;
     uint8_t superframesInCurrentState;
