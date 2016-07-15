@@ -339,9 +339,14 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
         // TODO // if the ACK gets lost, the reply might be sent anyway, so we might be in SENDING_REQUEST
         // TODO DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REQUEST) || state == State::WAIT_FOR_REPLY);
 
+
         DSME_ASSERT(pendingConfirm.deviceAddress == params.deviceAddress);
-        DSME_ASSERT(pendingConfirm.managmentType == params.managmentType);
+//        DSME_ASSERT(pendingConfirm.managmentType == params.managmentType); //TODO: Put back in again?
+        if(pendingConfirm.managmentType != params.managmentType) {
+            return FSM_HANDLED;
+        }
         DSME_ASSERT(pendingConfirm.direction == params.direction);
+
 
         params.status = event.management.status;
 
