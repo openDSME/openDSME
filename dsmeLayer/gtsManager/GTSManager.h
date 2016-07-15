@@ -230,6 +230,7 @@ private:
     /**
      * Actions
      */
+    void actionSendImmediateNegativeResponse(GTSEvent& event);
     void actionReportBusyNotify(GTSEvent& event);
     void actionReportBusyCommStatus(GTSEvent& event);
     void actionProcessOverhearedResponse(GTSEvent& event);

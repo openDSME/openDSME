@@ -229,15 +229,15 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 // GTS slot not yet allocated
                 // TODO currently this is issued automatically when sending a packet,
                 // maybe implement this action at this position!
-                LOG_DEBUG("DROPPED: No GTS are currently allocated");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS are currently allocated");
             }
             else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
-                LOG_DEBUG("DROPPED: No ACK");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
             }
             else if(params.status == DataStatus::TRANSACTION_OVERFLOW){
                 // Queue is full
-                LOG_DEBUG("DROPPED: Queue full");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
             }
             else{
                 DSME_ASSERT(false); // TODO remove after testing

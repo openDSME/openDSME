@@ -73,11 +73,14 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
 
 void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
     LOG_DEBUG("ACTUpdater - disapproved");
-    if(management.type == ManagementType::DEALLOCATION) {
-        // TODO probably was not added before, maybe an "UNCONFIRMED" is required though?
-        this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED);
-    }
-    else {
+    if (management.type == ManagementType::DEALLOCATION) {
+        if (management.status == GTSStatus::DENIED) {
+            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::INVALID);
+        } else {
+            // TODO probably was not added before, maybe an "UNCONFIRMED" is required though?
+            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED);
+        }
+    } else {
         // No action required
     }
 }
