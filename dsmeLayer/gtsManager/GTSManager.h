@@ -239,7 +239,7 @@ private:
     /**
      * Internal helper
      */
-    bool sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst);
+    bool sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
     bool checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabSpec, uint16_t addr, bool allChannels);
     unsigned getNumAllocatedGTS(bool direction);
     void sendNotify(GTSReplyNotifyCmd& reply, uint16_t sourceAddr, GTSManagement& man);

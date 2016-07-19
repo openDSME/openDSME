@@ -209,6 +209,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
         actionReportBusyNotify(event);
         return FSM_HANDLED;
     case GTSEvent::MLME_RESPONSE_ISSUED:
+        actionSendImmediateNegativeResponse(event);
         actionReportBusyCommStatus(event);
         return FSM_HANDLED;
     case GTSEvent::RESPONSE_CMD_FOR_ME:
@@ -344,15 +345,15 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
         // DSME_ASSERT(pendingConfirm.managmentType == params.managmentType);
         // DSME_ASSERT(pendingConfirm.direction == params.direction);
         if(pendingConfirm.deviceAddress != params.deviceAddress) {
-            LOG_INFO("Wrong response handled! Got address " << params.deviceAddress << "instead of " << pendingConfirm.deviceAddress);
+            LOG_INFO("Wrong response handled! Got address " << params.deviceAddress << " instead of " << pendingConfirm.deviceAddress);
             return FSM_HANDLED;
         }
         if(pendingConfirm.managmentType != params.managmentType) {
-            LOG_INFO("Wrong response handled! Got type " << params.managmentType << "instead of " << pendingConfirm.managmentType);
+            LOG_INFO("Wrong response handled! Got type " << params.managmentType << " instead of " << pendingConfirm.managmentType);
             return FSM_HANDLED;
         }
         if(pendingConfirm.direction != params.direction) {
-            LOG_INFO("Wrong response handled! Got direction " << params.direction << "instead of " << pendingConfirm.direction);
+            LOG_INFO("Wrong response handled! Got direction " << params.direction << " instead of " << pendingConfirm.direction);
             return FSM_HANDLED;
         }
 
@@ -392,8 +393,12 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             else {
                 return transition(&GTSManager::stateSending);
             }
-        }
-        else {
+        } else if (event.management.status == GTSStatus::NO_DATA) { // misuse NO_DATA to signal that the destination was busy
+            //actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+            actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+            return transition(&GTSManager::stateIdle);
+        } else {
+            DSME_ASSERT(event.management.status == GTSStatus::DENIED);
             actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
             return transition(&GTSManager::stateIdle);
         }
@@ -541,8 +546,8 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
     LOG_INFO(
             "Sending a negative response to a GTS-REQUEST to " << event.replyNotifyCmd.getDestinationAddress() << " due to a TRANSACTION_OVERFLOW");
     uint16_t destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
-    event.management.status = GTSStatus::DENIED;
-    if (!sendGTSCommand(msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress)) {
+    event.management.status = GTSStatus::NO_DATA; // misuse NO_DATA to signal that the destination was busy
+    if (!sendGTSCommand(msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress, false)) {
         LOG_DEBUG("Could not send REPLY");
         dsme.getPlatform().releaseMessage(msg);
     }
@@ -782,7 +787,7 @@ bool GTSManager::isTimeoutPending() {
     return (superframesInCurrentState*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime);
 }
 
-bool GTSManager::sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst) {
+bool GTSManager::sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent) {
     man.prependTo(msg);
 
     MACCommand cmd;
@@ -799,7 +804,7 @@ bool GTSManager::sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFra
     // The DUPLICATED_ALLOCATION_NOTIFICATION will be sent regardless of the current state and expects no response.
     // For example a DISALLOW REPSPONE will only be sent during BUSY, but the fact that it do not expect a notify
     // is handled inside of the onCSMASent.
-    if(man.type != ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
+    if(reportOnSent && (man.type != ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION)) {
         cmdToSend = commandId;
         msgToSend = msg;
     }
