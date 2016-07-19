@@ -188,6 +188,7 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
             if(actit->getChannel() != gts.channel) {
                 LOG_DEBUG("Request arrived too late, time slot now used on other channel.");
                 //DSME_ASSERT(false);
+                continue;
             }
         }
 
