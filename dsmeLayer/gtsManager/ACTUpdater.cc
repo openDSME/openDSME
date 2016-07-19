@@ -75,7 +75,7 @@ void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& manag
     LOG_DEBUG("ACTUpdater - disapproved");
     if (management.type == ManagementType::DEALLOCATION) {
         if (management.status == GTSStatus::DENIED) {
-            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::INVALID);
+            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED); //TODO: was INVALID before, can lead to endless cycles
         } else {
             // TODO probably was not added before, maybe an "UNCONFIRMED" is required though?
             this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED);

@@ -153,6 +153,23 @@ void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification &subBl
     setACTState(subBlock, state, ignoredDirection, 0);
 }
 
+static const char* stateToString(ACTState state) {
+    switch (state) {
+        case VALID:
+            return "VALID";
+        case UNCONFIRMED:
+            return "UNCONFIRMED";
+        case INVALID:
+            return "INVALID";
+        case DEALLOCATED:
+            return "DEALLOCATED";
+        case REMOVED:
+            return "REMOVED";
+        default:
+            return "UNKNOWN STATE";
+    };
+}
+
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
@@ -182,7 +199,14 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
             }
         }
         else {
-            LOG_DEBUG("set slot " << (uint16_t)actit->getGTSlotID() << " " << (uint16_t)actit->getSuperframeID() << " " << (uint16_t)actit->getChannel());
+            LOG_DEBUG("set slot "
+                    << (uint16_t)actit->getGTSlotID()
+                    << " "
+                    << (uint16_t)actit->getSuperframeID()
+                    << " "
+                    << (uint16_t)actit->getChannel()
+                    << " to "
+                    << stateToString(state));
             DSME_ASSERT(actit->getChannel() == gts.channel);
             actit->setState(state);
         }
