@@ -342,17 +342,17 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
         if(pendingConfirm.deviceAddress != params.deviceAddress) {
             LOG_INFO("Wrong response handled! Got address " << params.deviceAddress << " instead of " << pendingConfirm.deviceAddress);
-            DSME_ASSERT(false);
+            //DSME_ASSERT(false);
             return FSM_HANDLED;
         }
         if(pendingConfirm.managmentType != params.managmentType) {
             LOG_INFO("Wrong response handled! Got type " << params.managmentType << " instead of " << pendingConfirm.managmentType);
-            DSME_ASSERT(false);
+            //DSME_ASSERT(false);
             return FSM_HANDLED;
         }
         if(pendingConfirm.direction != params.direction) {
             LOG_INFO("Wrong response handled! Got direction " << params.direction << " instead of " << pendingConfirm.direction);
-            DSME_ASSERT(false);
+            //DSME_ASSERT(false);
             return FSM_HANDLED;
         }
 
