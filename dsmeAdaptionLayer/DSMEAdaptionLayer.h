@@ -47,6 +47,8 @@
 #include "GTSHelper.h"
 #include "ScanHelper.h"
 
+#include "../helper/DSMERingbuffer.h"
+
 namespace dsme {
 
 class DSMELayer;
@@ -76,6 +78,12 @@ public:
     }
 
     gts_allocation_scheme allocationScheme;
+};
+
+struct DSMEAdaptionLayerBufferEntry {
+public:
+    DSMEMessage* message;
+    uint32_t initialSymbolCounter;
 };
 
 /**
@@ -108,7 +116,11 @@ public:
     DSMEAdaptionLayerSettings settings;
 
 private:
+    void sendMessageDown(DSMEMessage* msg);
+
     void receiveMessage(DSMEMessage* msg);
+
+    bool queueMessageIfPossible(DSMEMessage* msg);
 
     void handleDataIndication(mcps_sap::DATA_indication_parameters &params);
 
@@ -133,6 +145,8 @@ private:
 
     bool scanInProgress;
     bool associationInProgress;
+
+    DSMERingBuffer<DSMEAdaptionLayerBufferEntry, UPPER_LAYER_QUEUE_SIZE> retryBuffer;
 };
 
 } /* dsme */

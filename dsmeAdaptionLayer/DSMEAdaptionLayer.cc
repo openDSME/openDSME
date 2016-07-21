@@ -108,11 +108,28 @@ void DSMEAdaptionLayer::receiveMessage(DSMEMessage* msg) {
 }
 
 void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
+    sendMessageDown(msg);
+
+    if (this->retryBuffer.hasCurrent()) {
+        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
+        do {
+            DSMEMessage *currentMessage = this->retryBuffer.current()->message;
+            DSME_ASSERT(!currentMessage->currentlySending);
+
+            this->retryBuffer.advanceCurrent();
+            sendMessageDown(currentMessage);
+        } while (this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
+    }
+}
+
+void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg) {
     if (msg == nullptr) {
         /* '-> Error! */
         DSME_ASSERT(false);
         return;
     }
+    DSME_ASSERT(!msg->currentlySending);
+    msg->currentlySending = true;
 
     msg->getHeader().setSrcAddr(this->mac_pib->macExtendedAddress);
     IEEE802154MacAddress& dst = msg->getHeader().getDestAddr();
@@ -212,24 +229,64 @@ void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameter
     return;
 }
 
+bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
+    if (!this->retryBuffer.hasNext()) {
+        DSME_ASSERT(this->retryBuffer.hasCurrent());
+
+        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
+        if (oldestEntry->message == msg) {
+            this->retryBuffer.advanceCurrent();
+            DSME_ASSERT(this->retryBuffer.hasNext());
+            this->retryBuffer.next()->message = msg;
+            this->retryBuffer.next()->initialSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
+            return true;
+        }
+
+        if (!oldestEntry->message->currentlySending) {
+            uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
+            LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress()
+                    << ": Retry-Queue overflow ("
+                    << currentSymbolCounter - oldestEntry->initialSymbolCounter
+                    << " symbols old)");
+            dsme.getPlatform().releaseMessage(oldestEntry->message);
+            this->retryBuffer.advanceCurrent();
+        }
+    }
+    if (this->retryBuffer.hasNext()) {
+        this->retryBuffer.next()->message = msg;
+        this->retryBuffer.next()->initialSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
+        this->retryBuffer.advanceNext();
+        return true; /* Do NOT release current message yet */
+    }
+    return false;
+}
+
 void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &params) {
     LOG_INFO("Received DATA confirm from MCPS");
     DSMEMessage* msg = params.msduHandle;
+
+    DSME_ASSERT(msg->currentlySending);
+    msg->currentlySending = false;
+
     if(params.status != DataStatus::SUCCESS) {
         if(dsme.getDSMESettings().optimizations) {
             if(msg->firstTry) {
                 msg->firstTry = false;
-                sendMessage(msg);
+                sendMessageDown(msg);
                 return;
             }
         }
 
         if(params.gtsTX) { // otherwise failures are common...
             if(params.status == DataStatus::INVALID_GTS) {
+                if(queueMessageIfPossible(msg)) {
+                    return;
+                }
+
                 // GTS slot not yet allocated
                 // TODO currently this is issued automatically when sending a packet,
                 // maybe implement this action at this position!
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS are currently allocated");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS are currently allocated and upper layer queue full");
             }
             else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
