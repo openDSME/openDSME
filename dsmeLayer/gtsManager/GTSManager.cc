@@ -163,6 +163,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
+                    continue; // TODO: remove when expiration is fixed
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
                 }
 
