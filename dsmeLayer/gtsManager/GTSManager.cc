@@ -140,7 +140,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         return FSM_IGNORED;
 
     case GTSEvent::CFP_STARTED: {
-        LOG_DEBUG("SLOT event during IDLE");
         // check if a slot should be deallocated, only if no reply or notify is pending
         for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin();
                 it != dsme.getMAC_PIB().macDSMEACT.end(); it++) {
@@ -149,7 +148,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             DSME_ASSERT(it->getState() != DEALLOCATED);
             DSME_ASSERT(it->getState() != REMOVED);
 
-            LOG_DEBUG("check slot " << (uint16_t)it->getGTSlotID() << " " << (uint16_t)it->getSuperframeID() << " " << (uint16_t)it->getChannel());
+            //LOG_DEBUG("check slot " << (uint16_t)it->getGTSlotID() << " " << (uint16_t)it->getSuperframeID() << " " << (uint16_t)it->getChannel());
 
             // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
             //      The effect should be the same.
@@ -554,7 +553,7 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
 
 
 void GTSManager::actionReportBusyNotify(GTSEvent& event) {
-    LOG_DEBUG("BusyNotify on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
+    //LOG_DEBUG("BusyNotify on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
 
     mlme_sap::DSME_GTS_confirm_parameters busyConfirm;
     busyConfirm.deviceAddress = event.deviceAddr;
@@ -567,7 +566,7 @@ void GTSManager::actionReportBusyNotify(GTSEvent& event) {
 }
 
 void GTSManager::actionReportBusyCommStatus(GTSEvent& event) {
-    LOG_DEBUG("BusyCommstatus on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
+    //LOG_DEBUG("BusyCommstatus on event '" << signalToString(event.signal) << "' (" << stateToString(this->getState()) << ")");
 
     mlme_sap::COMM_STATUS_indication_parameters params;
     // TODO also fill other fields
@@ -681,7 +680,6 @@ bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
 bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
     if(slot == dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1) {
         superframesInCurrentState++;
-        LOG_DEBUG("superframe event");
 
         // also execute this during non-idle phases
         if(superframe == 0) {
@@ -719,7 +717,9 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
         LOG_DEBUG("Outdated message");
         returnStatus = true;
     } else {
-        LOG_DEBUG("GTSManager::onCSMASent " << status);
+        if(status != DataStatus::SUCCESS) {
+            LOG_DEBUG("GTSManager::onCSMASent transmission failure: " << status);
+        }
         returnStatus = dispatch(GTSEvent::SEND_COMPLETE, msg, management, cmdId, status);
     }
 
