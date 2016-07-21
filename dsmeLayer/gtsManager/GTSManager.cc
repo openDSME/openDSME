@@ -164,7 +164,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
-                    //continue; // TODO: Remove when it works again!
                 }
 
                 LOG_DEBUG("slot to deallocate found!");
