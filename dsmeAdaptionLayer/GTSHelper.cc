@@ -76,12 +76,13 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 
     LOG_INFO("Currently " << (uint16_t) numPacketsInQueue << " packets are queued for " << address << ".");
 
-    if (numAllocatedSlots == numPacketsInQueue + 1) {
-        LOG_INFO("Enough slots are already reserved.");
-        return;
-    } else if (numAllocatedSlots > numPacketsInQueue + 3) {
-        LOG_INFO("Possibly too many slots are reserved.");
-        checkAndDeallocateSingeleGTS(address);
+    if (numAllocatedSlots >= numPacketsInQueue + 1) {
+        if (numAllocatedSlots > numPacketsInQueue + 3) {
+            LOG_INFO("Possibly too many slots are reserved.");
+            checkAndDeallocateSingeleGTS(address);
+        } else {
+            LOG_INFO("Enough slots are already reserved.");
+        }
         return;
     }
 
