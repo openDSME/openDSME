@@ -270,8 +270,8 @@ inline void DynamicMultiMessageQueue<T, S, M>::addToFree(MessageQueueEntry<T> *e
     entry->value = nullptr;
 
     if (this->freeFront == nullptr || this->freeBack == nullptr) {
-        assert(this->freeFront == nullptr);
-        assert(this->freeBack == nullptr);
+        DSME_ASSERT(this->freeFront == nullptr);
+        DSME_ASSERT(this->freeBack == nullptr);
         this->freeFront = entry;
     } else {
         this->freeBack->next = entry;
