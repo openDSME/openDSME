@@ -44,7 +44,7 @@
 #define DSMERINGBUFFER_H
 
 #include <stdint.h>
-#include "../../dsme_platform.h"
+#include "../../dsme_atomic.h"
 
 namespace dsme {
 
