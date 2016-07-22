@@ -284,8 +284,6 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 }
 
                 // GTS slot not yet allocated
-                // TODO currently this is issued automatically when sending a packet,
-                // maybe implement this action at this position!
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS are currently allocated and upper layer queue full");
             }
             else if(params.status == DataStatus::NO_ACK) {
@@ -302,7 +300,6 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         }
         // TODO specialize!
         // TODO verify that Ack in GTS is always successful for simulation
-        // TODO implement retransmissions for GTS?
     }
     dsme.getPlatform().releaseMessage(params.msduHandle);
 }

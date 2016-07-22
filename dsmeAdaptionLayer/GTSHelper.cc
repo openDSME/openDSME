@@ -77,8 +77,11 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     LOG_INFO("Currently " << (uint16_t) numPacketsInQueue << " packets are queued for " << address << ".");
 
     if (numAllocatedSlots >= numPacketsInQueue + 1) {
-        if (numAllocatedSlots > numPacketsInQueue + 2) {
-            LOG_INFO("Possibly too many slots are reserved.");
+        if (numAllocatedSlots > numPacketsInQueue + 3) {
+            LOG_INFO("Possibly too many slots are reserved (1).");
+            checkAndDeallocateSingeleGTS(address);
+        } else if (numAllocatedSlots > numPacketsInQueue + 2 && numPacketsInQueue <= TOTAL_GTS_QUEUE_SIZE / 4) {
+            LOG_INFO("Possibly too many slots are reserved (2).");
             checkAndDeallocateSingeleGTS(address);
         } else {
             LOG_INFO("Enough slots are already reserved.");
@@ -158,7 +161,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     DSMEAllocationCounterTable::iterator toDeallocate;
     for (auto it = act.begin(); it != act.end(); ++it) {
         if (it->getDirection() == Direction::TX && it->getAddress() == address) {
-            if (it->getIdleCounter() > highestIdleCounter) {
+            if (it->getState() == ACTState::VALID && it->getIdleCounter() > highestIdleCounter) {
                 highestIdleCounter = it->getIdleCounter();
                 toDeallocate = it;
             }
