@@ -148,7 +148,11 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             DSME_ASSERT(it->getState() != DEALLOCATED);
             DSME_ASSERT(it->getState() != REMOVED);
 
-            //LOG_DEBUG("check slot " << (uint16_t)it->getGTSlotID() << " " << (uint16_t)it->getSuperframeID() << " " << (uint16_t)it->getChannel());
+            LOG_DEBUG("check slot "
+                    << (uint16_t)it->getGTSlotID()
+                    << " " << it->getSuperframeID()
+                    << " " << (uint16_t)it->getChannel()
+                    << " [" << it->getIdleCounter() << "]");
 
             // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
             //      The effect should be the same.

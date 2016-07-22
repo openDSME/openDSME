@@ -77,7 +77,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     LOG_INFO("Currently " << (uint16_t) numPacketsInQueue << " packets are queued for " << address << ".");
 
     if (numAllocatedSlots >= numPacketsInQueue + 1) {
-        if (numAllocatedSlots > numPacketsInQueue + 3) {
+        if (numAllocatedSlots > numPacketsInQueue + 2) {
             LOG_INFO("Possibly too many slots are reserved.");
             checkAndDeallocateSingeleGTS(address);
         } else {
@@ -126,8 +126,11 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     params.keySource = nullptr;
     params.keyIndex = 0;
 
-    LOG_INFO(
-            "Requesting slot " << preferredGTS.superframeID << "/" << preferredGTS.slotID << "/" << (uint16_t)preferredGTS.channel << " for transmission to " << params.deviceAddress << ".");
+    LOG_INFO("Requesting slot "
+            << preferredGTS.slotID
+            << " " << preferredGTS.superframeID
+            << " " << (uint16_t)preferredGTS.channel
+            << " for transmission to " << params.deviceAddress << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
     DSMESABSpecification::SABSubBlock& subBlock = params.dsmeSABSpecification.getSubBlock();
