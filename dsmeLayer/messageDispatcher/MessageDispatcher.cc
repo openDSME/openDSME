@@ -220,11 +220,18 @@ bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>
     DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
     DSME_ASSERT(destIt != neighborQueue.end());
 
+
+
     numUpperPacketsForGTS++;
 
     if (!neighborQueue.isQueueFull()) {
         /* push into queue */
         // TODO implement TRANSACTION_EXPIRED
+        uint16_t totalSize = 0;
+        for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
+            totalSize += it->queueSize;
+        }
+        LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
         return true;
     } else {

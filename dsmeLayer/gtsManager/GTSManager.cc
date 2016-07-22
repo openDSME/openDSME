@@ -152,7 +152,10 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     << (uint16_t)it->getGTSlotID()
                     << " " << it->getSuperframeID()
                     << " " << (uint16_t)it->getChannel()
-                    << " [" << it->getIdleCounter() << "]");
+                    << " [" << this->dsme.getMAC_PIB().macShortAddress
+                    << (const char*)((it->getDirection()==Direction::TX)?">":"<")
+                    << it->getAddress()
+                    << ", " << it->getIdleCounter() << "]");
 
             // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
             //      The effect should be the same.
@@ -166,7 +169,8 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
-                    continue; // TODO: remove when expiration is fixed
+                    //continue; // TODO: remove when expiration is fixed
+                    it->resetIdleCounter();
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
                 }
 
