@@ -160,7 +160,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
             //      The effect should be the same.
             if(it->getState() == INVALID || it->getState() == UNCONFIRMED || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
-            // TODO remove if(it->getState() == INVALID || it->getState() == UNCONFIRMED) {
 
                 if(it->getState() == INVALID) {
                     LOG_DEBUG("DEALLOCATE: Due to state INVALID");
@@ -169,12 +168,11 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
                 }
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
-                    //continue; // TODO: remove when expiration is fixed
                     it->resetIdleCounter();
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
+                } else {
+                    DSME_ASSERT(false);
                 }
-
-                LOG_DEBUG("slot to deallocate found!");
 
                 mlme_sap::DSME_GTS_indication_parameters params;
                 params.deviceAddress = it->getAddress();
