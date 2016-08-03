@@ -74,7 +74,8 @@ uint8_t PIBHelper::getFinalCAPSlot() const {
 }
 
 uint32_t PIBHelper::getSymbolsPerSlot() const {
-    return aBaseSlotDuration;
+    /* aBaseSlotDuration * 2^(SO) */
+    return aBaseSlotDuration * (1 << this->mac_pib.macSuperframeOrder);
 }
 
 uint8_t PIBHelper::getNumGTSlots() const {
