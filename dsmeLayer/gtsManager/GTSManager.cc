@@ -170,7 +170,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     it->resetIdleCounter();
                     LOG_DEBUG("DEALLOCATE: Due to expiration");
-                    continue;
                 } else {
                     DSME_ASSERT(false);
                 }
