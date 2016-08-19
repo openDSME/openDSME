@@ -82,6 +82,11 @@ void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superfra
 }
 
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {
+    if(state == ACTState::REMOVED) {
+        LOG_DEBUG("Slot to be REMOVED is not in ACT -> Do nothing.");
+        //DSME_ASSERT(false);
+        return true;
+    }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
     if(isAllocated(superframeID, gtSlotID)) {
@@ -172,6 +177,9 @@ static const char* stateToString(ACTState state) {
 
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
+    if(subBlock.getSubBlock().count(true) < 1) {
+        return;
+    }
     DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
 
     for (DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {

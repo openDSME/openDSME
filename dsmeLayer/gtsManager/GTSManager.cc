@@ -729,6 +729,8 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
         for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
             if(getState(i) == &GTSManager::stateWaitForNotify || getState(i) == &GTSManager::stateWaitForResponse) {
                 dispatch(i, GTSEvent::CFP_STARTED);
+            }
+            if(getState(i) != &GTSManager::stateIdle) {
                 allIdle = false;
             }
         }
