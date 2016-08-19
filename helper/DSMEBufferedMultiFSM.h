@@ -162,6 +162,8 @@ private:
                 exitEvent.setFsmId(fsmId);
                 r = (((C* )this)->*s)(exitEvent);
                 DSME_ASSERT(r != FSM_TRANSITION);
+
+                state = states[fsmId];
                 s = state;
 
                 /* call entry action of new state */

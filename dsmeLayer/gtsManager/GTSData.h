@@ -63,6 +63,7 @@ public:
     // For SENDING_RESPONSE and WAIT_FOR_NOTIFY, actually a COMM_STATUS is sent up, but saving the confirm params is helpful anyway
     mlme_sap::DSME_GTS_confirm_parameters pendingConfirm;
     GTSManagement pendingManagement;
+    uint16_t notifyPartnerAddress;
 };
 
 } /* dsme */

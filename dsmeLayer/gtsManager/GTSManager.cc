@@ -74,13 +74,13 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     DSME_ASSERT(fsmId == GTS_STATE_MULTIPLICITY);
 
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")" << "[" << (uint16_t)fsmId << "]");
     return FSM_HANDLED;
 }
 
 fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
     case GTSEvent::ENTRY_SIGNAL:
@@ -216,7 +216,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
     case GTSEvent::ENTRY_SIGNAL:
@@ -308,6 +308,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             else {
                 if(event.management.status == GTSStatus::SUCCESS) {
                     actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                    data[fsmId].notifyPartnerAddress = event.deviceAddr;
                     return transition(fsmId, &GTSManager::stateWaitForNotify);
                 }
                 else if(event.management.status == GTSStatus::DENIED) {
@@ -333,7 +334,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
     case GTSEvent::ENTRY_SIGNAL:
@@ -452,7 +453,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
     case GTSEvent::ENTRY_SIGNAL:
@@ -724,8 +725,16 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
             }
         }
 
+        bool allIdle = true;
+        for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+            if(getState(i) == &GTSManager::stateWaitForNotify || getState(i) == &GTSManager::stateWaitForResponse) {
+                dispatch(i, GTSEvent::CFP_STARTED);
+                allIdle = false;
+            }
+        }
+
         int8_t fsmId = getFsmIdIdle();
-        if(fsmId >= 0) {
+        if(allIdle && fsmId >= 0) {
             return dispatch(fsmId, GTSEvent::CFP_STARTED);
         } else {
             return false;
@@ -750,7 +759,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
         int8_t validFsmId = -1;
 
         for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-            if(data[i].msgToSend == msg) {
+            if(getState(i) == &GTSManager::stateSending && data[i].msgToSend == msg) {
                 validFsmId = i;
                 break;
             }
@@ -884,8 +893,6 @@ void GTSManager::preparePendingConfirm(GTSEvent& event) {
  *****************************/
 
 int8_t GTSManager::getFsmIdIdle() {
-    return 0;
-
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         if(getState(i) == &GTSManager::stateIdle) {
             return i;
@@ -895,8 +902,6 @@ int8_t GTSManager::getFsmIdIdle() {
 }
 
 int8_t GTSManager::getFsmIdForRequest() {
-    return 0;
-
     int8_t fsmId = getFsmIdIdle();
     if(fsmId < 0) {
         return this->dsme.getPlatform().getRandom() % GTS_STATE_MULTIPLICITY;
@@ -906,15 +911,32 @@ int8_t GTSManager::getFsmIdForRequest() {
 }
 
 int8_t GTSManager::getFsmIdForResponse(uint16_t destinationAddress) {
-    return 0;
+    int8_t fsmId = getFsmIdIdle();
+    if(fsmId < 0) {
+        return this->dsme.getPlatform().getRandom() % GTS_STATE_MULTIPLICITY;
+    } else {
+        return fsmId;
+    }
 }
 
 int8_t GTSManager::getFsmIdFromResponseForMe(DSMEMessage* msg) {
-    return 0;
+    uint16_t srcAddress = msg->getHeader().getSrcAddr().getShortAddress();
+    for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        if (getState(i) == &GTSManager::stateWaitForResponse && data[i].pendingConfirm.deviceAddress == srcAddress) {
+            return i;
+        }
+    }
+    return GTS_STATE_MULTIPLICITY;
 }
 
 int8_t GTSManager::getFsmIdFromNotifyForMe(DSMEMessage* msg) {
-    return 0;
+    uint16_t srcAddress = msg->getHeader().getSrcAddr().getShortAddress();
+    for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        if (getState(i) == &GTSManager::stateWaitForNotify && data[i].notifyPartnerAddress == srcAddress) {
+            return i;
+        }
+    }
+    return GTS_STATE_MULTIPLICITY;
 }
 
 
