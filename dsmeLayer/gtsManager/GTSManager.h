@@ -45,24 +45,27 @@
 
 #include <stdint.h>
 
-#include "../../helper/DSMEBufferedFSM.h"
-#include "../../mac_services/DSME_Common.h"
+#include "../../helper/DSMEBufferedMultiFSM.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../../mac_services/dataStructures/DSMESlotAllocationBitmap.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/mlme_sap/DSME_GTS.h"
 #include "../messages/GTSManagement.h"
 #include "../messages/GTSReplyNotifyCmd.h"
 #include "../messages/GTSRequestCmd.h"
 #include "../neighbors/NeighborQueue.h"
 #include "ACTUpdater.h"
+#include "GTSData.h"
+
+constexpr uint8_t GTS_STATE_MULTIPLICITY = 4;
 
 namespace dsme {
 
 class DSMELayer;
 
-class GTSEvent : public FSMEvent {
+class GTSEvent : public MultiFSMEvent {
 public:
     template <typename ...Args>
     void fill(uint16_t signal, Args & ... args)
@@ -132,7 +135,11 @@ private:
     }
 };
 
-class GTSManager : private DSMEBufferedFSM<GTSManager, GTSEvent, 4> {
+class GTSManager;
+
+typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, 4> GTSManagerFSM_t;
+
+class GTSManager : private GTSManagerFSM_t {
 public:
 
     GTSManager(DSMELayer& dsme);
@@ -222,6 +229,7 @@ private:
     /**
      * States
      */
+    fsmReturnStatus stateBusy(GTSEvent& event);
     fsmReturnStatus stateIdle(GTSEvent& event);
     fsmReturnStatus stateSending(GTSEvent& event);
     fsmReturnStatus stateWaitForResponse(GTSEvent& event);
@@ -239,26 +247,30 @@ private:
     /**
      * Internal helper
      */
-    bool sendGTSCommand(DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
+    bool sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
     bool checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabSpec, uint16_t addr, bool allChannels);
     unsigned getNumAllocatedGTS(bool direction);
     void sendNotify(GTSReplyNotifyCmd& reply, uint16_t sourceAddr, GTSManagement& man);
-    bool isTimeoutPending();
+    bool isTimeoutPending(uint8_t fsmId);
     void preparePendingConfirm(GTSEvent& event);
 
     const char* signalToString(uint8_t signal);
-    const char* stateToString(DSMEBufferedFSM<GTSManager, GTSEvent, 4>::state_t state);
+    const char* stateToString(GTSManagerFSM_t::state_t state);
+
+    /**
+     * FSM identification helpers
+     */
+
+    int8_t getFsmIdIdle();
+    int8_t getFsmIdForRequest();
+    int8_t getFsmIdForResponse(uint16_t destinationAddress);
+    int8_t getFsmIdFromResponseForMe(DSMEMessage* msg);
+    int8_t getFsmIdFromNotifyForMe(DSMEMessage* msg);
 
     DSMELayer& dsme;
     ACTUpdater actUpdater;
-    uint8_t superframesInCurrentState;
-    CommandFrameIdentifier cmdToSend; // Only valid in state SENDING
-    DSMEMessage *msgToSend; // Only valid in state SENDING
 
-    // Only valid in states SENDING_REQUEST, SENDING_RESPONSE, WAIT_FOR_REPLY and WAIT_FOR_NOTIFY
-    // For SENDING_RESPONSE and WAIT_FOR_NOTIFY, actually a COMM_STATUS is sent up, but saving the confirm params is helpful anyway
-    mlme_sap::DSME_GTS_confirm_parameters pendingConfirm;
-    GTSManagement pendingManagement;
+    GTSData data[GTS_STATE_MULTIPLICITY];
 };
 
 }
