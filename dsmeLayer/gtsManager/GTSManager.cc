@@ -828,6 +828,10 @@ bool GTSManager::isTimeoutPending(uint8_t fsmId) {
     // This is not enough, for example due to queuing of the reply and not considering the GTS times.
     // It was changed in the IEEE 802.15.4-2015 standard to macResponseWaitTime (see e.g. Figure 6-57).
     // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
+    LOG_DEBUG("superframesInCurrentState: " << data[fsmId].superframesInCurrentState << "("
+            << data[fsmId].superframesInCurrentState*(1 << dsme.getMAC_PIB().macSuperframeOrder) << "/"
+            << dsme.getMAC_PIB().macResponseWaitTime
+            << ")");
 
     return (data[fsmId].superframesInCurrentState*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime);
 }

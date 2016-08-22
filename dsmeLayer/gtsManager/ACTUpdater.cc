@@ -129,8 +129,9 @@ void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement&
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr);
-    }
-    else {
+    } else if(management.type == ManagementType::DEALLOCATION) {
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr);
+    } else {
         // No action required
     }
 }
