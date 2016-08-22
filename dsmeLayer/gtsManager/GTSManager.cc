@@ -150,8 +150,10 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             params.status = CommStatus::Comm_Status::TRANSACTION_OVERFLOW;
             this->dsme.getMLME_SAP().getCOMM_STATUS().notify_indication(params);
             return FSM_HANDLED;
-        }
-        else {
+        } else {
+            if (event.management.status == GTSStatus::SUCCESS) {
+                actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+            }
             return transition(fsmId, &GTSManager::stateSending);
         }
     }
@@ -397,7 +399,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                             DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
                         }
                     } else {
-                        //actUpdater.approved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                        actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
                     }
                 }
 
@@ -707,7 +709,6 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
 
         // also execute this during non-idle phases
         if (superframe == 0) {
-            // check if a slot should be deallocated, only if no reply or notify is pending
             for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
                     it++) {
                 // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3

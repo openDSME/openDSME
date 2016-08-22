@@ -71,8 +71,16 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
     // No action required
 }
 
-void ACTUpdater::approved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - approved");
+
+void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
+    LOG_DEBUG("ACTUpdater - approvavQueued");
+    if(management.type == ManagementType::ALLOCATION) {
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+    }
+}
+
+void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
+    LOG_DEBUG("ACTUpdater - approvalReceived");
     if(management.type == ManagementType::ALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
     }
