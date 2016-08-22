@@ -154,8 +154,6 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 }
 
 void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
-    DSME_ASSERT(!gtsConfirmPending);
-
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     uint16_t highestIdleCounter = 0;
     DSMEAllocationCounterTable::iterator toDeallocate;
@@ -294,8 +292,6 @@ void GTSHelper::sendDeallocationRequest(uint16_t address, Direction direction, D
     LOG_INFO("Deallocating slot with " << params.deviceAddress << ".");
 
     superframesSinceGtsRequestSent = 0;
-    gtsConfirmPending = true;
-    LOG_DEBUG("gtsConfirmPending = true");
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().request(params);
 
     return;
@@ -330,8 +326,10 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters &pa
 
     // TODO handle channel access failure! retransmission?
 
-    gtsConfirmPending = false;
-    LOG_DEBUG("gtsConfirmPending = false");
+    if(params.managmentType == ManagementType::ALLOCATION) {
+        gtsConfirmPending = false;
+        LOG_DEBUG("gtsConfirmPending = false");
+    }
     return;
 }
 

@@ -156,68 +156,77 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         }
     }
 
-    case GTSEvent::RESPONSE_CMD_FOR_ME:
-    case GTSEvent::NOTIFY_CMD_FOR_ME:
-    case GTSEvent::SEND_COMPLETE:
-        DSME_ASSERT(false);
-        return FSM_IGNORED;
+        case GTSEvent::RESPONSE_CMD_FOR_ME:
+        case GTSEvent::NOTIFY_CMD_FOR_ME:
+        case GTSEvent::SEND_COMPLETE:
+            DSME_ASSERT(false);
+            return FSM_IGNORED;
 
-    case GTSEvent::CFP_STARTED: {
-        // check if a slot should be deallocated, only if no reply or notify is pending
-        for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin();
-                it != dsme.getMAC_PIB().macDSMEACT.end(); it++) {
-            // Since no reply is pending, this slot should have been removed already and is no longer in the ACT
-            // This should be even the case for timeouts (NO_DATA indication for upper layer)
-            DSME_ASSERT(it->getState() != DEALLOCATED);
-            DSME_ASSERT(it->getState() != REMOVED);
+        case GTSEvent::CFP_STARTED: {
+            // check if a slot should be deallocated, only if no reply or notify is pending
+            for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
+                    it++) {
+                // Since no reply is pending, this slot should have been removed already and is no longer in the ACT
+                // This should be even the case for timeouts (NO_DATA indication for upper layer)
+                DSME_ASSERT(it->getState() != DEALLOCATED);
+                DSME_ASSERT(it->getState() != REMOVED);
 
-            LOG_DEBUG("check slot "
-                    << (uint16_t)it->getGTSlotID()
-                    << " " << it->getSuperframeID()
-                    << " " << (uint16_t)it->getChannel()
-                    << " [" << this->dsme.getMAC_PIB().macShortAddress
-                    << (const char*)((it->getDirection()==Direction::TX)?">":"<")
-                    << it->getAddress()
-                    << ", " << it->getIdleCounter() << "]");
+                LOG_DEBUG("check slot "
+                        << (uint16_t)it->getGTSlotID()
+                        << " " << it->getSuperframeID()
+                        << " " << (uint16_t)it->getChannel()
+                        << " [" << this->dsme.getMAC_PIB().macShortAddress
+                        << (const char*)((it->getDirection()==Direction::TX)?">":"<")
+                        << it->getAddress()
+                        << ", " << it->getIdleCounter() << "]");
 
-            // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
-            //      The effect should be the same.
-            if(it->getState() == INVALID || it->getState() == UNCONFIRMED || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
+                // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
+                //      The effect should be the same.
+                if (it->getState() == INVALID || it->getState() == UNCONFIRMED
+                        || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
 
-                if(it->getState() == INVALID) {
-                    LOG_DEBUG("DEALLOCATE: Due to state INVALID");
+                    if (it->getState() == INVALID) {
+                        LOG_DEBUG("DEALLOCATE: Due to state INVALID");
+                    } else if (it->getState() == UNCONFIRMED) {
+                        bool pendingNotify = false;
+                        for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+                            if (getState(i) == &GTSManager::stateWaitForNotify) {
+                                pendingNotify = true;
+                            }
+                        }
+                        if (pendingNotify) {
+                            continue;
+                        }
+                        LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
+                    } else if (it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
+                        it->resetIdleCounter();
+                        LOG_DEBUG("DEALLOCATE: Due to expiration");
+                    } else {
+                        DSME_ASSERT(false);
+                    }
+
+                    mlme_sap::DSME_GTS_indication_parameters params;
+                    params.deviceAddress = it->getAddress();
+
+                    params.managmentType = EXPIRATION;
+                    params.direction = it->getDirection();
+                    params.prioritizedChannelAccess = Priority::LOW;
+                    params.numSlot = 1;
+
+                    uint8_t subBlockLengthBytes = dsme.getMAC_PIB().helper.getSubBlockLengthBytes();
+                    params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
+                    params.dsmeSABSpecification.setSubBlockIndex(it->getSuperframeID());
+                    params.dsmeSABSpecification.getSubBlock().fill(false);
+                    params.dsmeSABSpecification.getSubBlock().set(
+                            it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+
+                    this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
+                    break;
                 }
-                else if(it->getState() == UNCONFIRMED) {
-                    LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
-                }
-                else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
-                    it->resetIdleCounter();
-                    LOG_DEBUG("DEALLOCATE: Due to expiration");
-                } else {
-                    DSME_ASSERT(false);
-                }
-
-                mlme_sap::DSME_GTS_indication_parameters params;
-                params.deviceAddress = it->getAddress();
-
-                params.managmentType = EXPIRATION;
-                params.direction = it->getDirection();
-                params.prioritizedChannelAccess = Priority::LOW;
-                params.numSlot = 1;
-
-                uint8_t subBlockLengthBytes = dsme.getMAC_PIB().helper.getSubBlockLengthBytes();
-                params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
-                params.dsmeSABSpecification.setSubBlockIndex(it->getSuperframeID());
-                params.dsmeSABSpecification.getSubBlock().fill(false);
-                params.dsmeSABSpecification.getSubBlock().set(it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
-
-                this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
-                break;
             }
-        }
 
-        return FSM_HANDLED;
-    }
+            return FSM_HANDLED;
+        }
 
     default:
         DSME_ASSERT(false);
@@ -387,12 +396,9 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         } else {
                             DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
                         }
+                    } else {
+                        //actUpdater.approved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
                     }
-
-                    /* TODO do this after delivering the notify
-                     this->dsme.getMAC_PIB().macDSMEACT.addNewAllocations(event.replyNotifyCmd.getSABSpec(), event.management.direction, event.deviceAddr, ACTState::VALID);
-                     //this->dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(reply.getSABSpec()); //TODO Standard does not demand this.
-                     */
                 }
 
                 /* the requesting node has to notify its one hop neighbors */

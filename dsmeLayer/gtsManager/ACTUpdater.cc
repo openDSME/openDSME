@@ -71,6 +71,13 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
     // No action required
 }
 
+void ACTUpdater::approved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
+    LOG_DEBUG("ACTUpdater - approved");
+    if(management.type == ManagementType::ALLOCATION) {
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+    }
+}
+
 void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
     LOG_DEBUG("ACTUpdater - disapproved");
     if (management.type == ManagementType::DEALLOCATION) {
@@ -101,7 +108,7 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
     LOG_DEBUG("ACTUpdater - notifyDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr);
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
     }
     else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
@@ -140,8 +147,8 @@ void ACTUpdater::notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& man
 void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
     LOG_DEBUG("ACTUpdater - notifyReceived");
     if(management.type == ManagementType::ALLOCATION) {
-        // The message was received by me, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr);
+        // The receiver of the notify is not the requester, so invert the direction
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
     }
     else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, invert(management.direction), deviceAddr);

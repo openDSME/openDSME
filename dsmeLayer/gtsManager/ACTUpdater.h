@@ -61,6 +61,7 @@ public:
     void requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void requestNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);

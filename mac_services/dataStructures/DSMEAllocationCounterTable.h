@@ -84,6 +84,7 @@ struct ACTPosition {
 class DSMEAllocationCounterTable {
 public:
     typedef RBTree<ACTElement, ACTPosition>::iterator iterator;
+    typedef bool(*condition_t)(ACTState);
 
     DSMEAllocationCounterTable();
 
@@ -106,6 +107,7 @@ public:
     uint16_t getNumAllocatedTxGTS(uint16_t address);
 
     void setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress);
+    void setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition);
     void setACTStateIfExists(DSMESABSpecification &subBlock, ACTState state);
 
 private:
