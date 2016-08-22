@@ -116,11 +116,11 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
     LOG_DEBUG("ACTUpdater - notifyDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, [](ACTElement e){return e.getState() != ACTState::INVALID;});
     }
     else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, management.direction, deviceAddr);
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, management.direction, deviceAddr, true);
     }
 }
 
@@ -157,7 +157,7 @@ void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& ma
     LOG_DEBUG("ACTUpdater - notifyReceived");
     if(management.type == ManagementType::ALLOCATION) {
         // The receiver of the notify is not the requester, so invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, [](ACTElement e){return e.getState() != ACTState::INVALID;});
     }
     else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, invert(management.direction), deviceAddr);

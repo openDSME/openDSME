@@ -175,11 +175,11 @@ static const char* stateToString(ACTState state) {
     };
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress) {
-    setACTState(subBlock, state, direction, deviceAddress, [](ACTState b){return true;});
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress) {
+    setACTState(subBlock, state, direction, deviceAddress, [](ACTElement e){return true;}, checkAddress);
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition) {
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition, bool checkAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
@@ -202,6 +202,14 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
                 //DSME_ASSERT(false);
                 continue;
             }
+            if(checkAddress && actit->getAddress() != deviceAddress) {
+                LOG_DEBUG("Request arrived too late, time slot used towards other device.");
+                continue;
+            }
+            if(!condition(*actit)) {
+                LOG_DEBUG("Request arrived too late, time slot does not fulfill condition.");
+                continue;
+            }
         }
 
         if (actit != end() && state == REMOVED) {
@@ -218,21 +226,12 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
                 /* setACTStateIfExists(...) was called */
             }
         } else {
-            if(condition(actit->getState())) {
-                LOG_DEBUG("set slot "
-                        << (uint16_t)actit->getGTSlotID()
-                        << " " << (uint16_t)actit->getSuperframeID()
-                        << " " << (uint16_t)actit->getChannel()
-                        << " to " << stateToString(state));
-                actit->setState(state);
-            } else {
-                LOG_DEBUG("do not change slot "
-                        << (uint16_t)actit->getGTSlotID()
-                        << " " << (uint16_t)actit->getSuperframeID()
-                        << " " << (uint16_t)actit->getChannel()
-                        << " from " << stateToString(actit->getState())
-                        << " to " << stateToString(state));
-            }
+            LOG_DEBUG("set slot "
+                    << (uint16_t)actit->getGTSlotID()
+                    << " " << (uint16_t)actit->getSuperframeID()
+                    << " " << (uint16_t)actit->getChannel()
+                    << " to " << stateToString(state));
+            actit->setState(state);
         }
     }
 }
