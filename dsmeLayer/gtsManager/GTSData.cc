@@ -44,8 +44,9 @@
 
 namespace dsme {
 
-GTSData::GTSData()
-{
+GTSData::GTSData() :
+        notifyPartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS),
+        responsePartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS) {
 }
 
 } /* dsme */

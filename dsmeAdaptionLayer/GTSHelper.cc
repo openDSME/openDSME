@@ -257,7 +257,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
         }
         case EXPIRATION:
             // In this implementation EXPIRATION is only issued while no confirm is pending
-            DSME_ASSERT(!gtsConfirmPending);
+            //DSME_ASSERT(!gtsConfirmPending);
 
             // TODO is this required?
             //this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, DEALLOCATED);

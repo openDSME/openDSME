@@ -270,7 +270,7 @@ private:
     DSMELayer& dsme;
     ACTUpdater actUpdater;
 
-    GTSData data[GTS_STATE_MULTIPLICITY];
+    GTSData data[GTS_STATE_MULTIPLICITY + 1];
 };
 
 }
