@@ -92,7 +92,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     LOG_INFO("More slots have to be reserved.");
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
+    //uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
     uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
 
     /* select random or contiguous slot */
@@ -122,7 +122,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 
     params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
     params.dsmeSABSpecification.setSubBlockIndex(preferredGTS.superframeID);
-    macDSMESAB.getOccupiedSubBlock(params.dsmeSABSpecification, preferredGTS.superframeID * numGTSlots * numChannels);
+    macDSMESAB.getOccupiedSubBlock(params.dsmeSABSpecification, preferredGTS.superframeID);
 
     params.securityLevel = 0;
     params.keyIdMode = 0;
@@ -136,11 +136,10 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
             << " for transmission to " << params.deviceAddress << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
-    DSMESABSpecification::SABSubBlock& subBlock = params.dsmeSABSpecification.getSubBlock();
     for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); it++) {
         if (it->getSuperframeID() == preferredGTS.superframeID) {
             for (uint8_t channel = 0; channel < numChannels; channel++) {
-                subBlock.set(it->getGTSlotID() * numChannels + channel, true);
+                params.dsmeSABSpecification.getSubBlock().set(it->getGTSlotID() * numChannels + channel, true);
             }
         }
     }
