@@ -92,7 +92,6 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     LOG_INFO("More slots have to be reserved.");
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    //uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
     uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
 
     /* select random or contiguous slot */
@@ -123,14 +122,6 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
     params.dsmeSABSpecification.setSubBlockIndex(preferredGTS.superframeID);
     macDSMESAB.getOccupiedSubBlock(params.dsmeSABSpecification, preferredGTS.superframeID);
-
-    //TODO: LOGREMOVE
-    LOG_DEBUG("Forbidding in " << params.dsmeSABSpecification.getSubBlockIndex() << ":");
-    for(auto it = params.dsmeSABSpecification.getSubBlock().beginSetBits(); it != params.dsmeSABSpecification.getSubBlock().endSetBits(); ++it) {
-        uint16_t index = *it;
-        GTS slot = GTS::GTSfromAbsoluteIndex(index + params.dsmeSABSpecification.getSubBlockIndex() * 7 * 16,7,16,4);
-        LOG_DEBUG("I forbid because of neighbours " << (uint16_t)slot.slotID << " " << (uint16_t)slot.superframeID << " " << (uint16_t)slot.channel);
-    }
 
     params.securityLevel = 0;
     params.keyIdMode = 0;
@@ -216,14 +207,6 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
     switch (params.managmentType) {
         case ALLOCATION: {
-            //TODO: LOGREMOVE
-            LOG_DEBUG("Forbidden in " << params.dsmeSABSpecification.getSubBlockIndex() << ":");
-            for(auto it = params.dsmeSABSpecification.getSubBlock().beginSetBits(); it != params.dsmeSABSpecification.getSubBlock().endSetBits(); ++it) {
-                uint16_t index = *it;
-                GTS slot = GTS::GTSfromAbsoluteIndex(index + params.dsmeSABSpecification.getSubBlockIndex() * 7 * 16,7,16,4);
-                LOG_DEBUG("forbidden " << (uint16_t)slot.slotID << " " << (uint16_t)slot.superframeID << " " << (uint16_t)slot.channel);
-            }
-
             responseParams.dsmeSABSpecification.setSubBlockLengthBytes(params.dsmeSABSpecification.getSubBlockLengthBytes());
             responseParams.dsmeSABSpecification.setSubBlockIndex(params.dsmeSABSpecification.getSubBlockIndex());
 
