@@ -373,13 +373,20 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
 
         for (gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if (!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
-                for (gts.channel = 0; gts.channel < numChannels; gts.channel++) {
+                uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
+                gts.channel = startChannel;
+                for (uint8_t i = 0; i < numChannels; i++) {
                     if (!macDSMESAB.isOccupied(gts.absoluteIndex(numGTSlots, numChannels))) {
                         if (sabSpec == nullptr || !sabSpec->getSubBlock().get(gts.slotID * numChannels + gts.channel)) {
                             /* found one */
                             // LOG_INFO("Next free GTS is " << gts.superframeID << "/" << gts.slotID << "/" << (uint16_t)gts.channel << ".");
                             return gts;
                         }
+                    }
+
+                    gts.channel++;
+                    if(gts.channel == numChannels) {
+                        gts.channel = 0;
                     }
                 }
             }

@@ -59,7 +59,7 @@
 #include "ACTUpdater.h"
 #include "GTSData.h"
 
-constexpr uint8_t GTS_STATE_MULTIPLICITY = 1;
+constexpr uint8_t GTS_STATE_MULTIPLICITY = 4;
 
 namespace dsme {
 
