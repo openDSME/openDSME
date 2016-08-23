@@ -78,19 +78,22 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
+            return FSM_IGNORED;
         case GTSEvent::EXIT_SIGNAL:
+            DSME_ASSERT(false);
             return FSM_IGNORED;
         case GTSEvent::MLME_REQUEST_ISSUED:
             actionReportBusyNotify(event);
-            return FSM_HANDLED;
+            return FSM_IGNORED;
         case GTSEvent::MLME_RESPONSE_ISSUED:
             actionSendImmediateNegativeResponse(event);
             actionReportBusyCommStatus(event);
+            return FSM_HANDLED;
         case GTSEvent::SEND_COMPLETE:
             LOG_DEBUG("Outdated message");
             return FSM_IGNORED;
         default:
-            return FSM_HANDLED;
+            return FSM_IGNORED;
     }
 }
 
@@ -650,15 +653,14 @@ bool GTSManager::handleGTSResponse(DSMEMessage *msg) {
     }
     else if(management.status == GTSStatus::SUCCESS) {
         // Response overheared -> Add to the SAB regardless of the current state
-        DSMESlotAllocationBitmap &macDSMESAB = this->dsme.getMAC_PIB().macDSMESAB;
         if (management.type == ManagementType::ALLOCATION) {
             if (!checkAndHandleGTSDuplicateAllocation(replyNotifyCmd.getSABSpec(), msg->getHeader().getSrcAddr().getShortAddress(), false)) {
                 // If there is no conflict, the device shall update macDSMESAB according to the DSMESABSpecification in this
                 // command frame to reflect the neighbor's newly allocated DSME-GTSs
-                macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
+                this->dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
             }
         } else if (management.type == ManagementType::DEALLOCATION) {
-            macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
+            this->dsme.getMAC_PIB().macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
         }
     }
     else {
@@ -687,15 +689,14 @@ bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
         return dispatch(fsmId, GTSEvent::NOTIFY_CMD_FOR_ME, msg, management, replyNotifyCmd);
     } else {
         // Notify overheared -> Add to the SAB regardless of the current state
-        DSMESlotAllocationBitmap &macDSMESAB = this->dsme.getMAC_PIB().macDSMESAB;
         if (management.type == ManagementType::ALLOCATION) {
             if (!checkAndHandleGTSDuplicateAllocation(replyNotifyCmd.getSABSpec(), msg->getHeader().getSrcAddr().getShortAddress(), false)) {
                 // If there is no conflict, the device shall update macDSMESAB according to the DSMESABSpecification in this
                 // command frame to reflect the neighbor's newly allocated DSME-GTSs
-                macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
+                this->dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
             }
         } else if (management.type == ManagementType::DEALLOCATION) {
-            macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
+            this->dsme.getMAC_PIB().macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
         }
     }
     return true;

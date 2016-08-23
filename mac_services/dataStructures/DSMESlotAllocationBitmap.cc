@@ -42,6 +42,8 @@
 
 #include "DSMESlotAllocationBitmap.h"
 
+#include "dsme_platform.h"
+
 namespace dsme {
 
 DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() {
@@ -57,10 +59,26 @@ void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperfr
 // TODO slot occupation timeout?
 void DSMESlotAllocationBitmap::addOccupiedSlots(const DSMESABSpecification &subBlock) {
     occupied.setOperationJoin(subBlock.getSubBlock(), subBlock.getSubBlockIndex() * numGTSlots * numChannels);
+
+    //TODO: LOGREMOVE
+    DSMESABSpecification* sabToPrint = const_cast<DSMESABSpecification*>(&subBlock);
+    for(auto it = sabToPrint->getSubBlock().beginSetBits(); it != sabToPrint->getSubBlock().endSetBits(); ++it) {
+        uint16_t index = *it;
+        GTS slot = GTS::GTSfromAbsoluteIndex(index + subBlock.getSubBlockIndex() * 7 * 16,7,16,4);
+        LOG_DEBUG("SAB add " << (uint16_t)slot.slotID << " " << (uint16_t)slot.superframeID << " " << (uint16_t)slot.channel);
+    }
 }
 
 void DSMESlotAllocationBitmap::removeOccupiedSlots(const DSMESABSpecification &subBlock) {
     occupied.setOperationComplement(subBlock.getSubBlock(), subBlock.getSubBlockIndex() * numGTSlots * numChannels);
+
+    //TODO: LOGREMOVE
+    DSMESABSpecification* sabToPrint = const_cast<DSMESABSpecification*>(&subBlock);
+    for(auto it = sabToPrint->getSubBlock().beginSetBits(); it != sabToPrint->getSubBlock().endSetBits(); ++it) {
+        uint16_t index = *it;
+        GTS slot = GTS::GTSfromAbsoluteIndex(index + subBlock.getSubBlockIndex() * 7 * 16,7,16,4);
+        LOG_DEBUG("SAB rem " << (uint16_t)slot.slotID << " " << (uint16_t)slot.superframeID << " " << (uint16_t)slot.channel);
+    }
 }
 
 void DSMESlotAllocationBitmap::getOccupiedSubBlock(DSMESABSpecification &subBlock, uint16_t subBlockIndex) const {

@@ -103,7 +103,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
             numAllocatedTxSlots.insert(1, address);
         } else {
             (*numSlotIt)++;
-            LOG_INFO("Incrementing slot count for " << address << DECOUT << " (now at " << *numSlotIt << ".");
+            LOG_INFO("Incrementing slot count for " << address << DECOUT << " (now at " << *numSlotIt << ").");
         }
     } else {
         LOG_INFO("Slot marked for reception from " << address << ".");
@@ -222,6 +222,11 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
             if (deviceAddress != 0) {
                 bool added = add(gts.superframeID, gts.slotID, gts.channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
+                LOG_DEBUG("add slot "
+                        << (uint16_t)gts.slotID
+                        << " " << (uint16_t)gts.superframeID
+                        << " " << (uint16_t)gts.channel
+                        << " as " << stateToString(state));
             } else {
                 /* setACTStateIfExists(...) was called */
             }
