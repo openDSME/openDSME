@@ -87,7 +87,6 @@ public:
     bool isCoordinator;
     unsigned numMaxGTSAllocPerDevice;
     unsigned numMaxGTSAllocPerRequest;
-    unsigned maxGTSIdleCount;
     unsigned contentionWindow;
     unsigned commonChannel;
 
