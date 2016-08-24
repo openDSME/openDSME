@@ -193,13 +193,13 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     if (it->getState() == INVALID) {
                         LOG_DEBUG("DEALLOCATE: Due to state INVALID");
                     } else if (it->getState() == UNCONFIRMED) {
-                        bool pendingNotify = false;
+                        bool pendingAllocation = false;
                         for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-                            if (getState(i) == &GTSManager::stateWaitForNotify) {
-                                pendingNotify = true;
+                            if (getState(i) != &GTSManager::stateIdle) {
+                                pendingAllocation = true;
                             }
                         }
-                        if (pendingNotify) {
+                        if (pendingAllocation) {
                             continue;
                         }
                         LOG_DEBUG("DEALLOCATE: Due to state UNCONFIRMED");
