@@ -49,8 +49,8 @@
 constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 28;
 
-constexpr int16_t K_P_NEG = 48;
-constexpr int16_t K_I_NEG = 32;
+constexpr int16_t K_P_NEG = 74;
+constexpr int16_t K_I_NEG = 16;
 
 constexpr uint16_t SCALING = 128;
 
@@ -65,6 +65,8 @@ GTSController::GTSController(DSMEAdaptionLayer &dsmeAdaptionLayer) : dsmeAdaptio
 }
 
 void GTSController::registerIncomingMessage(uint16_t address) {
+    LOG_DEBUG("Controller-Incoming");
+
     iterator it = this->links.find(address);
     if(it == this->links.end()) {
         GTSControllerData data;
