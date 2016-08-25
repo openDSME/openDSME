@@ -51,6 +51,7 @@ namespace dsme {
 
 GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
         dsmeAdaptionLayer(dsmeAdaptionLayer),
+        gtsController(dsmeAdaptionLayer),
         gtsConfirmPending(false) {
 }
 
@@ -61,6 +62,55 @@ void GTSHelper::initialize() {
     return;
 }
 
+int16_t GTSHelper::decideGTSAllocation(uint16_t allocatedSlots, uint16_t packetsInQueue, uint16_t address) {
+    LOG_INFO("Currently " << allocatedSlots << " slots are allocated for " << address << ".");
+    LOG_INFO("Currently " << packetsInQueue << " packets are queued for " << address << ".");
+
+    if (allocatedSlots > packetsInQueue + 4) {
+        LOG_INFO("Possibly too many slots are reserved (1).");
+        return -1;
+    } else if (allocatedSlots > packetsInQueue + 3 && packetsInQueue <= TOTAL_GTS_QUEUE_SIZE / 4) {
+        LOG_INFO("Possibly too many slots are reserved (2).");
+        return -1;
+    }
+
+    if(allocatedSlots > 0 && allocatedSlots > packetsInQueue - 4) {
+        return 0;
+    }
+
+    LOG_INFO("More slots have to be reserved.");
+    return 1;
+}
+
+void GTSHelper::indicateIncomingMessage(uint16_t address) {
+    this->gtsController.registerIncomingMessage(address);
+}
+
+void GTSHelper::indicateOutgoingMessage(uint16_t address) {
+    this->gtsController.registerOutgoingMessage(address);
+}
+
+void GTSHelper::checkAllocationForPacket(uint16_t address) {
+    if (gtsConfirmPending) {
+        LOG_INFO("GTS allocation still active.");
+        return;
+    }
+
+    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
+    uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(address);
+    LOG_INFO("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
+    LOG_INFO("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
+
+    //int16_t diff = decideGTSAllocation(numAllocatedSlots, numPacketsInQueue, address);
+    int16_t diff = gtsController.getControl(address);
+
+    if(diff > 0 || numAllocatedSlots < 1) {
+        checkAndAllocateSingleGTS(address);
+    } else if(diff < 0 && numAllocatedSlots > 1) {
+        checkAndDeallocateSingeleGTS(address);
+    }
+}
+
 void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     if (gtsConfirmPending) {
         LOG_INFO("GTS allocation still active.");
@@ -69,27 +119,6 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
-
-    uint16_t numAllocatedSlots = macDSMEACT.getNumAllocatedTxGTS(address);
-    uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(address);
-    LOG_INFO("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
-
-    LOG_INFO("Currently " << (uint16_t) numPacketsInQueue << " packets are queued for " << address << ".");
-
-    if (numAllocatedSlots >= numPacketsInQueue + 1) {
-        if (numAllocatedSlots > numPacketsInQueue + 3) {
-            LOG_INFO("Possibly too many slots are reserved (1).");
-            checkAndDeallocateSingeleGTS(address);
-        } else if (numAllocatedSlots > numPacketsInQueue + 2 && numPacketsInQueue <= TOTAL_GTS_QUEUE_SIZE / 4) {
-            LOG_INFO("Possibly too many slots are reserved (2).");
-            checkAndDeallocateSingeleGTS(address);
-        } else {
-            LOG_INFO("Enough slots are already reserved.");
-        }
-        return;
-    }
-
-    LOG_INFO("More slots have to be reserved.");
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
     uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
@@ -475,6 +504,11 @@ void GTSHelper::findFreeSlots(DSMESABSpecification &requestSABSpec, DSMESABSpeci
 
 void GTSHelper::handleSlotEvent() {
     if (this->dsmeAdaptionLayer.getDSME().getCurrentSlot() == 0) {
+        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
+            this->gtsController.multisuperframeStartEvent();
+        }
+
+
         if (gtsConfirmPending) {
             superframesSinceGtsRequestSent++;
 

@@ -108,7 +108,7 @@ void DSMEAdaptionLayer::receiveMessage(DSMEMessage* msg) {
 }
 
 void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
-    sendMessageDown(msg);
+    sendMessageDown(msg, true);
 
     if (this->retryBuffer.hasCurrent()) {
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
@@ -117,12 +117,12 @@ void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
             DSME_ASSERT(!currentMessage->currentlySending);
 
             this->retryBuffer.advanceCurrent();
-            sendMessageDown(currentMessage);
+            sendMessageDown(currentMessage, false);
         } while (this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
     }
 }
 
-void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg) {
+void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
     if (msg == nullptr) {
         /* '-> Error! */
         DSME_ASSERT(false);
@@ -212,8 +212,12 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg) {
                 this->dsme.getMessageDispatcher().addNeighbor(dst);
             }
 
+            if(newMessage) {
+                gtsAllocationHelper.indicateIncomingMessage(dst.getShortAddress());
+            }
+
             LOG_INFO("GTS allocation check is required before message transmission.");
-            gtsAllocationHelper.checkAndAllocateSingleGTS(dst.getShortAddress());
+            gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
         } else {
             LOG_INFO("Preparing transmission in CAP.");
         }
@@ -272,7 +276,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         if(dsme.getDSMESettings().optimizations) {
             if(msg->firstTry) {
                 msg->firstTry = false;
-                sendMessageDown(msg);
+                sendMessageDown(msg, false);
                 return;
             }
         }
@@ -300,6 +304,10 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         }
         // TODO specialize!
         // TODO verify that Ack in GTS is always successful for simulation
+    }
+
+    if(params.gtsTX) {
+        gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
     }
     dsme.getPlatform().releaseMessage(params.msduHandle);
 }

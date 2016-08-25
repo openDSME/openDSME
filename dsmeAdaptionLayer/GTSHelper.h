@@ -47,6 +47,7 @@
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../mac_services/dataStructures/GTS.h"
 #include "../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "GTSController.h"
 
 namespace dsme {
 
@@ -64,7 +65,10 @@ public:
 
     void initialize();
 
-    void checkAndAllocateSingleGTS(uint16_t address);
+    void checkAllocationForPacket(uint16_t address);
+
+    void indicateIncomingMessage(uint16_t address);
+    void indicateOutgoingMessage(uint16_t address);
 
     void handleSlotEvent();
 
@@ -78,6 +82,10 @@ private:
     void handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters&);
 
     /* Helper methods */
+
+    int16_t decideGTSAllocation(uint16_t allocatedSlots, uint16_t packetsInQueue, uint16_t address);
+
+    void checkAndAllocateSingleGTS(uint16_t address);
 
     void checkAndDeallocateSingeleGTS(uint16_t address);
 
@@ -102,6 +110,8 @@ private:
 
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
+
+    GTSController gtsController;
 
     bool gtsConfirmPending;
     uint8_t superframesSinceGtsRequestSent;

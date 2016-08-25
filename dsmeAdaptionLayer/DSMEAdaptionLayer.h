@@ -116,7 +116,7 @@ public:
     DSMEAdaptionLayerSettings settings;
 
 private:
-    void sendMessageDown(DSMEMessage* msg);
+    void sendMessageDown(DSMEMessage* msg, bool newMessage);
 
     void receiveMessage(DSMEMessage* msg);
 
