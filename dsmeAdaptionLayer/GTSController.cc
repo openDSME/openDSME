@@ -46,11 +46,11 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
 
-constexpr int16_t K_P_POS = 24;
-//constexpr uint16_t T_N_POS = 64;
-constexpr uint16_t T_N_POS = 512;
-constexpr int16_t K_P_NEG = 128;
-constexpr uint16_t T_N_NEG = 256;
+constexpr int16_t K_P_POS = 0;
+constexpr int16_t K_I_POS = 28;
+
+constexpr int16_t K_P_NEG = 48;
+constexpr int16_t K_I_NEG = 32;
 
 constexpr uint16_t SCALING = 128;
 
@@ -92,23 +92,18 @@ void GTSController::multisuperframeStartEvent() {
         uint16_t y = d.messagesOutLastMultisuperframe;
 
         int16_t e = w - y;
+        int16_t &i = d.error_sum;
+        int16_t &u = d.control;
 
-        d.error_sum += e;
+        i += e;
 
-        int16_t u;
         if(e > 0) {
-            u = d.error_sum * SCALING / T_N_POS;
-            //u = K_P_POS * (e + d.error_sum * SCALING / T_N_POS) / SCALING;
+            u = (K_P_POS * e + K_I_POS * i) / SCALING;
         } else {
-            u = K_P_NEG * (e + d.error_sum * SCALING / T_N_NEG) / SCALING;
+            u = (K_P_NEG * e + K_I_NEG * i) / SCALING;
         }
 
-        //int16_t u = K_P * (e + d.error_sum / T_N);
-        //int16_t u = d.error_sum / T_N;
-
-        d.control = u;
-
-        LOG_DEBUG("Controller-Data->" << d.address << " w: " << w << "; y: " << y << "; e: " << e << "; u: " << u);
+        LOG_DEBUG("Controller-Data->" << d.address << " w: " << w << "; y: " << y << "; e: " << e << "; i: " << i << "; u: " << u);
 
         d.messagesInLastMultisuperframe = 0;
         d.messagesOutLastMultisuperframe = 0;
@@ -120,6 +115,26 @@ int16_t GTSController::getControl(uint16_t address) {
     DSME_ASSERT(it != this->links.end());
 
     return it->control;
+}
+
+static uint16_t abs(int16_t v) {
+    if(v > 0) {
+        return v;
+    } else {
+        return -v;
+    }
+}
+
+uint16_t GTSController::getPriorityLink() {
+    uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
+    int16_t control = 0;
+    for(GTSControllerData &d : this->links) {
+        if(abs(control) < abs(d.control)) {
+            control = d.control;
+            address = d.address;
+        }
+    }
+    return address;
 }
 
 } /* dsme */

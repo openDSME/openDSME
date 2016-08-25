@@ -83,8 +83,6 @@ private:
 
     /* Helper methods */
 
-    int16_t decideGTSAllocation(uint16_t allocatedSlots, uint16_t packetsInQueue, uint16_t address);
-
     void checkAndAllocateSingleGTS(uint16_t address);
 
     void checkAndDeallocateSingeleGTS(uint16_t address);

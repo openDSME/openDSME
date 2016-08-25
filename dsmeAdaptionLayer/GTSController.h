@@ -73,6 +73,8 @@ public:
 
     int16_t getControl(uint16_t address);
 
+    uint16_t getPriorityLink();
+
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
     RBTree<GTSControllerData, uint16_t> links;

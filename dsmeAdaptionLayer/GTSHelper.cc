@@ -62,32 +62,31 @@ void GTSHelper::initialize() {
     return;
 }
 
-int16_t GTSHelper::decideGTSAllocation(uint16_t allocatedSlots, uint16_t packetsInQueue, uint16_t address) {
-    LOG_INFO("Currently " << allocatedSlots << " slots are allocated for " << address << ".");
-    LOG_INFO("Currently " << packetsInQueue << " packets are queued for " << address << ".");
-
-    if (allocatedSlots > packetsInQueue + 4) {
-        LOG_INFO("Possibly too many slots are reserved (1).");
-        return -1;
-    } else if (allocatedSlots > packetsInQueue + 3 && packetsInQueue <= TOTAL_GTS_QUEUE_SIZE / 4) {
-        LOG_INFO("Possibly too many slots are reserved (2).");
-        return -1;
-    }
-
-    if(allocatedSlots > 0 && allocatedSlots > packetsInQueue - 4) {
-        return 0;
-    }
-
-    LOG_INFO("More slots have to be reserved.");
-    return 1;
-}
-
 void GTSHelper::indicateIncomingMessage(uint16_t address) {
     this->gtsController.registerIncomingMessage(address);
 }
 
 void GTSHelper::indicateOutgoingMessage(uint16_t address) {
     this->gtsController.registerOutgoingMessage(address);
+}
+
+
+void GTSHelper::handleSlotEvent() {
+    if (this->dsmeAdaptionLayer.getDSME().getCurrentSlot() == 0) {
+        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
+            this->gtsController.multisuperframeStartEvent();
+        }
+
+        uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+        uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
+        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+            uint16_t address = this->gtsController.getPriorityLink();
+            if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+                checkAllocationForPacket(address);
+            }
+        }
+    }
+    return;
 }
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
@@ -101,7 +100,6 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     LOG_INFO("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_INFO("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
-    //int16_t diff = decideGTSAllocation(numAllocatedSlots, numPacketsInQueue, address);
     int16_t diff = gtsController.getControl(address);
 
     if(diff > 0 || numAllocatedSlots < 1) {
@@ -112,11 +110,6 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
 }
 
 void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
-    if (gtsConfirmPending) {
-        LOG_INFO("GTS allocation still active.");
-        return;
-    }
-
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -172,7 +165,6 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
         }
     }
 
-    superframesSinceGtsRequestSent = 0;
     DSME_ASSERT(!gtsConfirmPending);
     gtsConfirmPending = true;
     LOG_DEBUG("gtsConfirmPending = true");
@@ -318,7 +310,6 @@ void GTSHelper::sendDeallocationRequest(uint16_t address, Direction direction, D
 
     LOG_INFO("Deallocating slot with " << params.deviceAddress << ".");
 
-    superframesSinceGtsRequestSent = 0;
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().request(params);
 
     return;
@@ -500,31 +491,6 @@ void GTSHelper::findFreeSlots(DSMESABSpecification &requestSABSpec, DSMESABSpeci
         }
     }
     return;
-}
-
-void GTSHelper::handleSlotEvent() {
-    if (this->dsmeAdaptionLayer.getDSME().getCurrentSlot() == 0) {
-        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
-            this->gtsController.multisuperframeStartEvent();
-        }
-
-
-        if (gtsConfirmPending) {
-            superframesSinceGtsRequestSent++;
-
-            // If gtsAllocationSent status was not reset (reply never received) for too long, reset it now
-            // TODO make this configurable or think of different handling
-            // TODO probably remove it since the MAC layer has this timeout, too
-            // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
-            if (superframesSinceGtsRequestSent * (1 << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macSuperframeOrder)
-                    > this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macResponseWaitTime * 2) {
-                LOG_WARN("gtsConfirmPending status was not reset for a long time -> reset");
-                DSME_ASSERT(false); // this should not happen since the MLME has a timeout itself!
-                gtsConfirmPending = false;
-                LOG_DEBUG("gtsConfirmPending = false");
-            }
-        }
-    }
 }
 
 void GTSHelper::print(const char* name, const DSMESABSpecification &spec) {

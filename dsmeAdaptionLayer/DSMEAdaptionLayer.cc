@@ -216,7 +216,6 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
                 gtsAllocationHelper.indicateIncomingMessage(dst.getShortAddress());
             }
 
-            LOG_INFO("GTS allocation check is required before message transmission.");
             gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
         } else {
             LOG_INFO("Preparing transmission in CAP.");
