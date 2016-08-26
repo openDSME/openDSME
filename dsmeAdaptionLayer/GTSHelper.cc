@@ -178,8 +178,8 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     gtsController.indicateChange(address, -1);
 
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
-    uint16_t highestIdleCounter = 0;
-    DSMEAllocationCounterTable::iterator toDeallocate;
+    int16_t highestIdleCounter = -1;
+    DSMEAllocationCounterTable::iterator toDeallocate = act.end();
     for (auto it = act.begin(); it != act.end(); ++it) {
         if (it->getDirection() == Direction::TX && it->getAddress() == address) {
             if (it->getState() == ACTState::VALID && it->getIdleCounter() > highestIdleCounter) {
@@ -189,7 +189,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         }
     }
 
-    if (highestIdleCounter != 0) {
+    if (toDeallocate != act.end()) {
         LOG_INFO("#Now deallocate " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << ".");
 
         DSMESABSpecification dsmeSABSpecification;

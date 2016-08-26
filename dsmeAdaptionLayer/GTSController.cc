@@ -50,13 +50,9 @@ constexpr int16_t K_P_POS =  0;
 constexpr int16_t K_I_POS = 30;
 constexpr int16_t K_D_POS = 26;
 
-constexpr int16_t K_P_NEG = 60;
-constexpr int16_t K_I_NEG = 8;
-constexpr int16_t K_D_NEG = 40;
-
-constexpr int16_t K_P = 68;
-constexpr int16_t K_I = 32;
-constexpr int16_t K_D = 30;
+constexpr int16_t K_P_NEG = 50;
+constexpr int16_t K_I_NEG = 30;
+constexpr int16_t K_D_NEG = 38;
 
 constexpr uint16_t SCALING = 128;
 
