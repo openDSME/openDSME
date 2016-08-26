@@ -122,6 +122,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
 
 void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
     sendMessageDown(msg, true);
+    sendRetryBuffer();
 }
 
 void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
