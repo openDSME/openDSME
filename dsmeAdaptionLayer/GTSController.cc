@@ -48,19 +48,27 @@
 
 constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 28;
+constexpr int16_t K_D_POS = 0;
 
 constexpr int16_t K_P_NEG = 74;
 constexpr int16_t K_I_NEG = 16;
+constexpr int16_t K_D_NEG = 48;
 
 constexpr uint16_t SCALING = 128;
 
 namespace dsme {
 
-GTSControllerData::GTSControllerData() : messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), control(1) {
+GTSControllerData::GTSControllerData() :
+        messagesInLastMultisuperframe(0),
+        messagesOutLastMultisuperframe(0),
+        error_sum(0),
+        last_error(0),
+        control(1) {
 
 }
 
-GTSController::GTSController(DSMEAdaptionLayer &dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer){
+GTSController::GTSController(DSMEAdaptionLayer &dsmeAdaptionLayer) :
+        dsmeAdaptionLayer(dsmeAdaptionLayer) {
 
 }
 
@@ -68,7 +76,7 @@ void GTSController::registerIncomingMessage(uint16_t address) {
     LOG_DEBUG("Controller-Incoming");
 
     iterator it = this->links.find(address);
-    if(it == this->links.end()) {
+    if (it == this->links.end()) {
         GTSControllerData data;
         data.address = address;
         data.messagesInLastMultisuperframe++;
@@ -88,27 +96,35 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 }
 
 void GTSController::multisuperframeStartEvent() {
-    for(GTSControllerData &d : this->links) {
+    for (GTSControllerData &data : this->links) {
 
-        uint16_t w = d.messagesInLastMultisuperframe;
-        uint16_t y = d.messagesOutLastMultisuperframe;
+        uint16_t w = data.messagesInLastMultisuperframe;
+        uint16_t y = data.messagesOutLastMultisuperframe;
 
         int16_t e = w - y;
-        int16_t &i = d.error_sum;
-        int16_t &u = d.control;
+        int16_t d = e - data.last_error;
+        int16_t &i = data.error_sum;
+        int16_t &u = data.control;
 
         i += e;
 
-        if(e > 0) {
-            u = (K_P_POS * e + K_I_POS * i) / SCALING;
+        if (e > 0) {
+            u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
         } else {
-            u = (K_P_NEG * e + K_I_NEG * i) / SCALING;
+            u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
         }
 
-        LOG_DEBUG("Controller-Data->" << d.address << " w: " << w << "; y: " << y << "; e: " << e << "; i: " << i << "; u: " << u);
+        LOG_DEBUG("Controller-Data->" << data.address
+                << "; w: " << w
+                << "; y: " << y
+                << "; e: " << e
+                << "; i: " << i
+                << "; d: " << d
+                << "; u: " << u);
 
-        d.messagesInLastMultisuperframe = 0;
-        d.messagesOutLastMultisuperframe = 0;
+        data.last_error = e;
+        data.messagesInLastMultisuperframe = 0;
+        data.messagesOutLastMultisuperframe = 0;
     }
 }
 
@@ -120,7 +136,7 @@ int16_t GTSController::getControl(uint16_t address) {
 }
 
 static uint16_t abs(int16_t v) {
-    if(v > 0) {
+    if (v > 0) {
         return v;
     } else {
         return -v;
@@ -130,8 +146,8 @@ static uint16_t abs(int16_t v) {
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
     int16_t control = 0;
-    for(GTSControllerData &d : this->links) {
-        if(abs(control) < abs(d.control)) {
+    for (GTSControllerData &d : this->links) {
+        if (abs(control) < abs(d.control)) {
             control = d.control;
             address = d.address;
         }

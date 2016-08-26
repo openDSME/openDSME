@@ -56,6 +56,7 @@ struct GTSControllerData {
     uint16_t messagesInLastMultisuperframe;
     uint16_t messagesOutLastMultisuperframe;
     int16_t error_sum;
+    int16_t last_error;
     int16_t control;
 };
 
