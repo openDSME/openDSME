@@ -98,10 +98,10 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     int16_t diff = gtsController.getControl(address);
 
     if(diff > 0 || numAllocatedSlots < 1) {
-        gtsController.indicateChange(address);
+        gtsController.indicateChange(address, 1);
         checkAndAllocateSingleGTS(address);
     } else if(diff < 0 && numAllocatedSlots > 1) {
-        gtsController.indicateChange(address);
+        gtsController.indicateChange(address, -1);
         checkAndDeallocateSingeleGTS(address);
     }
 }

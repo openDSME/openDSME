@@ -134,7 +134,6 @@ void GTSController::multisuperframeStartEvent() {
         data.last_error = e;
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
-        data.changed = false;
     }
 }
 
@@ -145,11 +144,11 @@ int16_t GTSController::getControl(uint16_t address) {
     return it->control;
 }
 
-void GTSController::indicateChange(uint16_t address) {
+void GTSController::indicateChange(uint16_t address, int16_t change) {
     iterator it = this->links.find(address);
     DSME_ASSERT(it != this->links.end());
 
-    it->changed = true;
+    it->control -= change;
     return;
 }
 
