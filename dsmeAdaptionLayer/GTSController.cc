@@ -46,13 +46,13 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
 
-constexpr int16_t K_P_POS = 10;
+constexpr int16_t K_P_POS =  0;
 constexpr int16_t K_I_POS = 30;
-constexpr int16_t K_D_POS = 25;
+constexpr int16_t K_D_POS = 26;
 
-constexpr int16_t K_P_NEG = 58;
-constexpr int16_t K_I_NEG = 16;
-constexpr int16_t K_D_NEG = 24;
+constexpr int16_t K_P_NEG = 60;
+constexpr int16_t K_I_NEG = 8;
+constexpr int16_t K_D_NEG = 40;
 
 constexpr int16_t K_P = 68;
 constexpr int16_t K_I = 32;
@@ -67,8 +67,7 @@ GTSControllerData::GTSControllerData() :
         messagesOutLastMultisuperframe(0),
         error_sum(0),
         last_error(0),
-        control(1),
-        changed(false){
+        control(1) {
 
 }
 
@@ -118,8 +117,6 @@ void GTSController::multisuperframeStartEvent() {
         } else {
             u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
         }
-
-        //u = (K_P * e + K_I * i + K_D * d) / SCALING;
 
         LOG_DEBUG_PREFIX;
         LOG_DEBUG_PURE("Controller-Data->" << data.address);

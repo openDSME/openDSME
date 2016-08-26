@@ -98,10 +98,8 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     int16_t diff = gtsController.getControl(address);
 
     if(diff > 0 || numAllocatedSlots < 1) {
-        gtsController.indicateChange(address, 1);
         checkAndAllocateSingleGTS(address);
     } else if(diff < 0 && numAllocatedSlots > 1) {
-        gtsController.indicateChange(address, -1);
         checkAndDeallocateSingeleGTS(address);
     }
 }
@@ -111,6 +109,8 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
         LOG_INFO("GTS allocation still active.");
         return;
     }
+
+    this->gtsController.indicateChange(address, 1);
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
@@ -175,6 +175,8 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 }
 
 void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
+    gtsController.indicateChange(address, -1);
+
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     uint16_t highestIdleCounter = 0;
     DSMEAllocationCounterTable::iterator toDeallocate;
