@@ -107,9 +107,7 @@ void DSMEAdaptionLayer::receiveMessage(DSMEMessage* msg) {
     return;
 }
 
-void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
-    sendMessageDown(msg, true);
-
+void DSMEAdaptionLayer::sendRetryBuffer() {
     if (this->retryBuffer.hasCurrent()) {
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
         do {
@@ -120,6 +118,10 @@ void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
             sendMessageDown(currentMessage, false);
         } while (this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
     }
+}
+
+void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
+    sendMessageDown(msg, true);
 }
 
 void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
@@ -214,9 +216,9 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
 
             if(newMessage) {
                 gtsAllocationHelper.indicateIncomingMessage(dst.getShortAddress());
+                gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
 
-            gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
         } else {
             LOG_INFO("Preparing transmission in CAP.");
         }

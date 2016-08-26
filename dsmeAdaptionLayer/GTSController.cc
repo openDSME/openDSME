@@ -46,13 +46,17 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
 
-constexpr int16_t K_P_POS = 0;
-constexpr int16_t K_I_POS = 28;
-constexpr int16_t K_D_POS = 0;
+constexpr int16_t K_P_POS = 10;
+constexpr int16_t K_I_POS = 30;
+constexpr int16_t K_D_POS = 25;
 
-constexpr int16_t K_P_NEG = 74;
+constexpr int16_t K_P_NEG = 58;
 constexpr int16_t K_I_NEG = 16;
-constexpr int16_t K_D_NEG = 48;
+constexpr int16_t K_D_NEG = 24;
+
+constexpr int16_t K_P = 68;
+constexpr int16_t K_I = 32;
+constexpr int16_t K_D = 30;
 
 constexpr uint16_t SCALING = 128;
 
@@ -63,7 +67,8 @@ GTSControllerData::GTSControllerData() :
         messagesOutLastMultisuperframe(0),
         error_sum(0),
         last_error(0),
-        control(1) {
+        control(1),
+        changed(false){
 
 }
 
@@ -114,17 +119,22 @@ void GTSController::multisuperframeStartEvent() {
             u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
         }
 
-        LOG_DEBUG("Controller-Data->" << data.address
-                << "; w: " << w
-                << "; y: " << y
-                << "; e: " << e
-                << "; i: " << i
-                << "; d: " << d
-                << "; u: " << u);
+        //u = (K_P * e + K_I * i + K_D * d) / SCALING;
+
+        LOG_DEBUG_PREFIX;
+        LOG_DEBUG_PURE("Controller-Data->" << data.address);
+        LOG_DEBUG_PURE("; w: " << (const char*)(w<0?"":" ") << w);
+        LOG_DEBUG_PURE("; y: " << (const char*)(y<0?"":" ") << y);
+        LOG_DEBUG_PURE("; e: " << (const char*)(e<0?"":" ") << e);
+        LOG_DEBUG_PURE("; i: " << (const char*)(i<0?"":" ") << i);
+        LOG_DEBUG_PURE("; d: " << (const char*)(d<0?"":" ") << d);
+        LOG_DEBUG_PURE("; u: " << (const char*)(u<0?"":" ") << u);
+        LOG_DEBUG_PURE(std::endl);
 
         data.last_error = e;
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
+        data.changed = false;
     }
 }
 
@@ -133,6 +143,14 @@ int16_t GTSController::getControl(uint16_t address) {
     DSME_ASSERT(it != this->links.end());
 
     return it->control;
+}
+
+void GTSController::indicateChange(uint16_t address) {
+    iterator it = this->links.find(address);
+    DSME_ASSERT(it != this->links.end());
+
+    it->changed = true;
+    return;
 }
 
 static uint16_t abs(int16_t v) {

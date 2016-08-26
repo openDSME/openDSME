@@ -90,11 +90,6 @@ void GTSHelper::handleSlotEvent() {
 }
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
-    if (gtsConfirmPending) {
-        LOG_INFO("GTS allocation still active.");
-        return;
-    }
-
     uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
     uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(address);
     LOG_INFO("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
@@ -103,13 +98,20 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     int16_t diff = gtsController.getControl(address);
 
     if(diff > 0 || numAllocatedSlots < 1) {
+        gtsController.indicateChange(address);
         checkAndAllocateSingleGTS(address);
     } else if(diff < 0 && numAllocatedSlots > 1) {
+        gtsController.indicateChange(address);
         checkAndDeallocateSingeleGTS(address);
     }
 }
 
 void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
+    if (gtsConfirmPending) {
+        LOG_INFO("GTS allocation still active.");
+        return;
+    }
+
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -347,6 +349,9 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters &pa
     if(params.managmentType == ManagementType::ALLOCATION) {
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
+        if(params.status == GTSStatus::SUCCESS) {
+            this->dsmeAdaptionLayer.sendRetryBuffer();
+        }
     }
     return;
 }

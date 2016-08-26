@@ -58,6 +58,7 @@ struct GTSControllerData {
     int16_t error_sum;
     int16_t last_error;
     int16_t control;
+    bool changed;
 };
 
 class GTSController {
@@ -73,6 +74,8 @@ public:
     void multisuperframeStartEvent();
 
     int16_t getControl(uint16_t address);
+
+    void indicateChange(uint16_t address);
 
     uint16_t getPriorityLink();
 

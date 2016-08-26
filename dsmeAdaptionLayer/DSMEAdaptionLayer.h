@@ -112,6 +112,8 @@ public:
 
     void setReceiveMessage(receiveCallback_t);
 
+    void sendRetryBuffer();
+
 public:
     DSMEAdaptionLayerSettings settings;
 
