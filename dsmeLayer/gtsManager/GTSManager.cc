@@ -712,9 +712,10 @@ bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
         if (superframe == 0) {
             for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
                     it++) {
-                // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
-                // TODO for TX this should be the link quality counter, but this is redundant
-                it->incrementIdleCounter(); // gets reset to zero on RX or TX
+                if (it->getDirection() == Direction::RX) {
+                    // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
+                    it->incrementIdleCounter(); // gets reset to zero on RX
+                }
             }
         }
 

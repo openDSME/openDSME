@@ -75,14 +75,15 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     // Prepare next slot
     // Switch to next slot channel and radio mode
 
+    DSMEAllocationCounterTable& act = dsme.getMAC_PIB().macDSMEACT;
+
     if (nextSlot == 0) {
         // next slot will be the beacon frame
         dsme.getPlatform().setChannelNumber(dsme.getDSMESettings().commonChannel);
+        currentACTElement = act.end();
     }
     else if (nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
         unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
-
-        DSMEAllocationCounterTable& act = dsme.getMAC_PIB().macDSMEACT;
         if (act.isAllocated(nextSuperframe, nextGTS)) {
             currentACTElement = act.find(nextSuperframe, nextGTS);
             DSME_ASSERT(currentACTElement != act.end());
@@ -100,6 +101,8 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         else {
             currentACTElement = act.end();
         }
+    } else {
+        currentACTElement = act.end();
     }
 
     return true;
@@ -174,7 +177,11 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
     }
 
     case IEEE802154eMACHeader::FrameType::DATA: {
-        createDataIndication(msg);
+        if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
+            handleGTSFrame(msg);
+        } else {
+            createDataIndication(msg);
+        }
         break;
     }
 
@@ -302,12 +309,12 @@ void MessageDispatcher::handleGTS() {
 }
 
 void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
-    IEEE802154eMACHeader macHdr;
-    macHdr.copyFrom(msg);
+    DSME_ASSERT(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end());
+
     numRxGtsFrames++;
     numUnusedRxGts--;
 
-    if (currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
+    if (currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
             && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
         // According to 5.1.10.5.3
         currentACTElement->resetIdleCounter();
@@ -367,7 +374,7 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
 
 
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg) {
-    DSME_ASSERT(lastSendGTSNeighbor !=  neighborQueue.end());
+    DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
     neighborQueue.popFront(lastSendGTSNeighbor);
     lastSendGTSNeighbor = neighborQueue.end();
@@ -379,21 +386,17 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage*
     params.gtsTX = true;
 
     switch (response) {
-    case AckLayerResponse::NO_ACK_REQUESTED:
-    case AckLayerResponse::ACK_SUCCESSFUL:
-        // According to 5.1.10.5.3
-        // TODO for TX this should be the link quality counter, but this is redundant
-        currentACTElement->resetIdleCounter();
-
-        params.status = DataStatus::SUCCESS;
-        break;
-    case AckLayerResponse::ACK_FAILED:
-        params.status = DataStatus::NO_ACK;
-        break;
-    case AckLayerResponse::SEND_FAILED:
-    default:
-        DSME_ASSERT(false)
-        ;
+        case AckLayerResponse::NO_ACK_REQUESTED:
+        case AckLayerResponse::ACK_SUCCESSFUL:
+            params.status = DataStatus::SUCCESS;
+            break;
+        case AckLayerResponse::ACK_FAILED:
+            currentACTElement->incrementIdleCounter();
+            params.status = DataStatus::NO_ACK;
+            break;
+        case AckLayerResponse::SEND_FAILED:
+        default:
+            DSME_ASSERT(false);
     }
 
     params.numBackoffs = 0;
