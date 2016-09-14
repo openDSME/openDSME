@@ -155,7 +155,7 @@ uint16_t DSMEAllocationCounterTable::getNumAllocatedTxGTS(uint16_t address) {
 
 void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification &subBlock, ACTState state) {
     Direction ignoredDirection = TX;
-    setACTState(subBlock, state, ignoredDirection, 0);
+    setACTState(subBlock, state, ignoredDirection, 0xFFFF);
 }
 
 static const char* stateToString(ACTState state) {
@@ -219,7 +219,7 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
 
         if (actit == end()) {
             /* '-> does not yet exist */
-            if (deviceAddress != 0) {
+            if (deviceAddress != 0xFFFF) {
                 bool added = add(gts.superframeID, gts.slotID, gts.channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
                 LOG_DEBUG("add slot "

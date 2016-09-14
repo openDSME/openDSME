@@ -65,7 +65,7 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
         phy_pib(phy_pib),
 
         macExtendedAddress(0, 0, 0, 0),
-        macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
+        macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTimeSymbols + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
         macAssociatedPANCoord(false),
         macAssociationPermit(false),
         macAutoRequest(false),

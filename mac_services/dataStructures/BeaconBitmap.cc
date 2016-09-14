@@ -44,8 +44,6 @@
 
 #include "BeaconBitmap.h"
 
-#include "../../../dsme_platform.h"
-
 namespace dsme {
 
 /* Function DEFINITIONS ******************************************************/
