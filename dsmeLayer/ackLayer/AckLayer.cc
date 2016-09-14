@@ -181,7 +181,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             if (pendingMessage->getHeader().hasSequenceNumber()) {
                 pendingMessage->getHeader().setSequenceNumber(this->nextSequenceNumber++);
             }
-            bool success = dsme.getPlatform().sendDirectButKeep(pendingMessage, internalDoneCallback);
+            bool success = dsme.getPlatform().sendCopyNow(pendingMessage, internalDoneCallback);
             DSME_ASSERT(success);
             return transition(&AckLayer::stateTx);
         }
