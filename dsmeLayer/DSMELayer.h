@@ -87,7 +87,6 @@ public:
     bool isCoordinator;
     unsigned numMaxGTSAllocPerDevice;
     unsigned numMaxGTSAllocPerRequest;
-    unsigned contentionWindow;
     unsigned commonChannel;
 
     bool optimizations;
