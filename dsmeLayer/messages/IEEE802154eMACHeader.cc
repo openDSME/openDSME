@@ -59,37 +59,37 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
 }
 
 Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameControl& fc) {
-    uint16_t fcs;
+    uint16_t fcf;
 
     if(serializer.getType() == SERIALIZATION) {
-        fcs = fc.frameType           << 0;
-        fcs |= fc.securityEnabled    << 3;
-        fcs |= fc.framePending       << 4;
-        fcs |= fc.ackRequest         << 5;
-        fcs |= fc.panIDCompression   << 6;
-        fcs |= fc.reserved           << 7;
-        fcs |= fc.seqNumSuppression  << 8;
-        fcs |= fc.ieListPresent      << 9;
-        fcs |= fc.dstAddrMode        << 10;
-        fcs |= fc.frameVersion       << 12;
-        fcs |= fc.srcAddrMode        << 14;
+        fcf = fc.frameType           << 0;
+        fcf |= fc.securityEnabled    << 3;
+        fcf |= fc.framePending       << 4;
+        fcf |= fc.ackRequest         << 5;
+        fcf |= fc.panIDCompression   << 6;
+        fcf |= fc.reserved           << 7;
+        fcf |= fc.seqNumSuppression  << 8;
+        fcf |= fc.ieListPresent      << 9;
+        fcf |= fc.dstAddrMode        << 10;
+        fcf |= fc.frameVersion       << 12;
+        fcf |= fc.srcAddrMode        << 14;
 
-        serializer << fcs;
+        serializer << fcf;
     }
     else {
-        serializer << fcs;
+        serializer << fcf;
 
-        fc.frameType         = IEEE802154eMACHeader::FrameType((fcs >> 0) & 0x7);
-        fc.securityEnabled   = (fcs >> 3) & 0x1;
-        fc.framePending      = (fcs >> 4) & 0x1;
-        fc.ackRequest        = (fcs >> 5) & 0x1;
-        fc.panIDCompression  = (fcs >> 6) & 0x1;
-        fc.reserved          = (fcs >> 7) & 0x1;
-        fc.seqNumSuppression = (fcs >> 8) & 0x1;
-        fc.ieListPresent     = (fcs >> 9) & 0x1;
-        fc.dstAddrMode       = AddrMode((fcs >> 10) & 0x3);
-        fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcs >> 12) & 0x3);
-        fc.srcAddrMode       = AddrMode((fcs >> 14) & 0x3);
+        fc.frameType         = IEEE802154eMACHeader::FrameType((fcf >> 0) & 0x7);
+        fc.securityEnabled   = (fcf >> 3) & 0x1;
+        fc.framePending      = (fcf >> 4) & 0x1;
+        fc.ackRequest        = (fcf >> 5) & 0x1;
+        fc.panIDCompression  = (fcf >> 6) & 0x1;
+        fc.reserved          = (fcf >> 7) & 0x1;
+        fc.seqNumSuppression = (fcf >> 8) & 0x1;
+        fc.ieListPresent     = (fcf >> 9) & 0x1;
+        fc.dstAddrMode       = AddrMode((fcf >> 10) & 0x3);
+        fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcf >> 12) & 0x3);
+        fc.srcAddrMode       = AddrMode((fcf >> 14) & 0x3);
     }
 
     return serializer;

@@ -356,43 +356,43 @@ Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameContro
 /* NEW FAST SERIALISATION **************************************************************/
 
 inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader::FrameControl& fc) {
-    uint8_t fcs_0, fcs_1;
+    uint8_t fcf_0, fcf_1;
 
-    fcs_0  = fc.frameType         << 0;
-    fcs_0 |= fc.securityEnabled   << 3;
-    fcs_0 |= fc.framePending      << 4;
-    fcs_0 |= fc.ackRequest        << 5;
-    fcs_0 |= fc.panIDCompression  << 6;
-    fcs_0 |= fc.reserved          << 7;
-    *(buffer++) = fcs_0;
+    fcf_0  = fc.frameType         << 0;
+    fcf_0 |= fc.securityEnabled   << 3;
+    fcf_0 |= fc.framePending      << 4;
+    fcf_0 |= fc.ackRequest        << 5;
+    fcf_0 |= fc.panIDCompression  << 6;
+    fcf_0 |= fc.reserved          << 7;
+    *(buffer++) = fcf_0;
 
-    fcs_1  = fc.seqNumSuppression << 0;
-    fcs_1 |= fc.ieListPresent     << 1;
-    fcs_1 |= fc.dstAddrMode       << 2;
-    fcs_1 |= fc.frameVersion      << 4;
-    fcs_1 |= fc.srcAddrMode       << 6;
-    *(buffer++) = fcs_1;
+    fcf_1  = fc.seqNumSuppression << 0;
+    fcf_1 |= fc.ieListPresent     << 1;
+    fcf_1 |= fc.dstAddrMode       << 2;
+    fcf_1 |= fc.frameVersion      << 4;
+    fcf_1 |= fc.srcAddrMode       << 6;
+    *(buffer++) = fcf_1;
 
     return buffer;
 }
 
 inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader::FrameControl& fc) {
-    uint8_t fcs_0, fcs_1;
+    uint8_t fcf_0, fcf_1;
 
-    fcs_0 = *(buffer++);
-    fc.frameType         = IEEE802154eMACHeader::FrameType((fcs_0 >> 0) & 0x7);
-    fc.securityEnabled   = (fcs_0 >> 3) & 0x1;
-    fc.framePending      = (fcs_0 >> 4) & 0x1;
-    fc.ackRequest        = (fcs_0 >> 5) & 0x1;
-    fc.panIDCompression  = (fcs_0 >> 6) & 0x1;
-    fc.reserved          = (fcs_0 >> 7) & 0x1;
+    fcf_0 = *(buffer++);
+    fc.frameType         = IEEE802154eMACHeader::FrameType((fcf_0 >> 0) & 0x7);
+    fc.securityEnabled   = (fcf_0 >> 3) & 0x1;
+    fc.framePending      = (fcf_0 >> 4) & 0x1;
+    fc.ackRequest        = (fcf_0 >> 5) & 0x1;
+    fc.panIDCompression  = (fcf_0 >> 6) & 0x1;
+    fc.reserved          = (fcf_0 >> 7) & 0x1;
 
-    fcs_1 = *(buffer++);
-    fc.seqNumSuppression = (fcs_1 >> 0) & 0x1;
-    fc.ieListPresent     = (fcs_1 >> 1) & 0x1;
-    fc.dstAddrMode       = AddrMode((fcs_1 >> 2) & 0x3);
-    fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcs_1 >> 4) & 0x3);
-    fc.srcAddrMode       = AddrMode((fcs_1 >> 6) & 0x3);
+    fcf_1 = *(buffer++);
+    fc.seqNumSuppression = (fcf_1 >> 0) & 0x1;
+    fc.ieListPresent     = (fcf_1 >> 1) & 0x1;
+    fc.dstAddrMode       = AddrMode((fcf_1 >> 2) & 0x3);
+    fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcf_1 >> 4) & 0x3);
+    fc.srcAddrMode       = AddrMode((fcf_1 >> 6) & 0x3);
     return buffer;
 }
 
