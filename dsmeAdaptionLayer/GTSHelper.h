@@ -70,7 +70,7 @@ public:
     void indicateIncomingMessage(uint16_t address);
     void indicateOutgoingMessage(uint16_t address);
 
-    void handleSlotEvent();
+    void handleStartOfCFP();
 
 private:
     /* MLME handlers */

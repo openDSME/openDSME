@@ -396,14 +396,11 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t
      * Calculate time in symbols to scan each channel
      * IEEE 802.15.4e-2012 6.2.10.1: [aBaseSuperframeDuration * (2^n + 1)]
      */
-    uint32_t time = 1;
-    for (uint8_t i = 0; i < scanDuration; i++) {
-        time *= 2;
-    }
-    time += 1;
-    time *= aBaseSuperframeDuration;
+    uint16_t superframes = 1;
+    superframes <<= scanDuration;
+    superframes += 1;
 
-    this->timeForEachChannel = time;
+    this->superframesForEachChannel = superframes;
 
     this->panDescriptorList.clear();
 
@@ -414,7 +411,7 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t
 
     this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
     this->sendEnhancedBeaconRequest();
-    this->dsme.getEventDispatcher().setupScanTimer(this->timeForEachChannel);
+    this->superframesLeftForScan = this->superframesForEachChannel;
     return;
 }
 
@@ -433,14 +430,11 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, channelList_t scanCh
      * Calculate time in symbols to scan each channel
      * IEEE 802.15.4e-2012 6.2.10.1: [aBaseSuperframeDuration * (2^n + 1)]
      */
-    uint32_t time = 1;
-    for (uint8_t i = 0; i < scanDuration; i++) {
-        time *= 2;
-    }
-    time += 1;
-    time *= aBaseSuperframeDuration;
+    uint16_t superframes = 1;
+    superframes <<= scanDuration;
+    superframes += 1;
 
-    this->timeForEachChannel = time;
+    this->superframesForEachChannel = superframes;
 
     this->panDescriptorList.clear();
 
@@ -450,13 +444,15 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, channelList_t scanCh
     this->currentScanChannelIndex = 0;
 
     this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
-    this->dsme.getEventDispatcher().setupScanTimer(this->timeForEachChannel);
-    return;
+    this->superframesLeftForScan = this->superframesForEachChannel;
 }
 
-void BeaconManager::dispatchScanTimer() {
+void BeaconManager::handleStartOfCFP() {
     if (this->scanning) {
-        switch (this->scanType) {
+        this->superframesLeftForScan--;
+
+        if (this->superframesLeftForScan == 0) {
+            switch (this->scanType) {
             case PASSIVE:
                 channelScanPassiveComplete();
                 break;
@@ -466,8 +462,10 @@ void BeaconManager::dispatchScanTimer() {
             default:
                 LOG_WARN("Event during unknown scan!");
                 break;
+            }
         }
     }
+
     return;
 }
 
@@ -476,7 +474,7 @@ void BeaconManager::scanCurrentChannel() {
 
     sendEnhancedBeaconRequest();
 
-    this->dsme.getEventDispatcher().setupScanTimer(this->timeForEachChannel);
+    this->superframesLeftForScan = this->superframesForEachChannel;
     return;
 }
 
@@ -487,7 +485,6 @@ void BeaconManager::channelScanPassiveComplete() {
     if (this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
-        this->dsme.getEventDispatcher().stopScanTimer();
 
         mlme_sap::SCAN_confirm_parameters params;
 
@@ -501,11 +498,13 @@ void BeaconManager::channelScanPassiveComplete() {
         params.status = ScanStatus::SUCCESS;
         params.scanType = this->scanType;
 
+        LOG_INFO("Notify confirm");
         this->dsme.getMLME_SAP().getSCAN().notify_confirm(params);
     } else {
+        LOG_INFO("Check next");
         this->currentScanChannelIndex++;
         this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
-        this->dsme.getEventDispatcher().setupScanTimer(this->timeForEachChannel);
+        this->superframesLeftForScan = this->superframesForEachChannel;
     }
     return;
 }
@@ -528,7 +527,6 @@ void BeaconManager::channelScanEnhancedActiveComplete() {
     if (this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
-        this->dsme.getEventDispatcher().stopScanTimer();
 
         mlme_sap::SCAN_confirm_parameters params;
 
@@ -547,7 +545,7 @@ void BeaconManager::channelScanEnhancedActiveComplete() {
         this->currentScanChannelIndex++;
         this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
         this->sendEnhancedBeaconRequest();
-        this->dsme.getEventDispatcher().setupScanTimer(this->timeForEachChannel);
+        this->superframesLeftForScan = this->superframesForEachChannel;
     }
     return;
 }

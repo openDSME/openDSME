@@ -73,7 +73,7 @@ public:
 
     void registerOutgoingMessage(uint16_t address);
 
-    void multisuperframeStartEvent();
+    void multisuperframeEvent();
 
     int16_t getControl(uint16_t address);
 

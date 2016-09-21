@@ -256,18 +256,16 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
     dsme.getPlatform().releaseMessage(msg);
 }
 
-void AssociationManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
-    if(slot == dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1) {
-        if(associationPending && associationSent) {
-            superframesSinceAssociationSent++;
-            // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
-            if(superframesSinceAssociationSent*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
-                associationPending = false;
-                mlme_sap::ASSOCIATE_confirm_parameters params;
-                params.assocShortAddress = 0xFFFF;
-                params.status = AssociationStatus::NO_DATA;
-                this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
-            }
+void AssociationManager::handleStartOfCFP(uint8_t superframe) {
+    if(associationPending && associationSent) {
+        superframesSinceAssociationSent++;
+        // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
+        if(superframesSinceAssociationSent*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
+            associationPending = false;
+            mlme_sap::ASSOCIATE_confirm_parameters params;
+            params.assocShortAddress = 0xFFFF;
+            params.status = AssociationStatus::NO_DATA;
+            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
         }
     }
 }

@@ -65,27 +65,22 @@ public:
     void setupACKTimer(uint32_t symbols);
     void stopACKTimer();
 
-    /**
-     * For time between switching channels while scanning
-     */
-    void setupScanTimer(uint32_t symbols);
-    void stopScanTimer();
-
     void timerInterrupt();
 
 private:
     DSMELayer& dsme;
     uint32_t lastSymCnt;
 
+    uint8_t prevSource;
+
     void dispatchEvents();
-    void setupTimer();
+    void setupTimer(uint8_t source);
 
     enum {
         NEXT_PRE_SLOT,
         NEXT_SLOT,
         CSMA_TIMER,
         ACK_TIMER,
-        SCAN_TIMER,
         TIMER_COUNT // always last element
     };
     // TODO data size

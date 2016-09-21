@@ -203,14 +203,13 @@ public:
     bool handleGTSNotify(DSMEMessage* msg);
 
     /**
-     * This shall be called at the start of every slot.
+     * This shall be called at the start of every CFP.
      *
-     * @param slot The new slot number
-     * @param superframe The new superframe number
+     * @param superframe The superframe number
      *
      * @return false if the GTSManager is busy and can not handle the event, true otherwise
      */
-    bool handleSlotEvent(uint8_t slot, uint8_t superframe);
+    bool handleStartOfCFP(uint8_t superframe);
 
     /**
      * Gets called when CSMA Message was sent down to the PHY

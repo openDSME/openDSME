@@ -269,6 +269,7 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             }
 
         case AckEvent::TIMER_FIRED:
+            dsme.getEventDispatcher().stopACKTimer();
             LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr " << pendingMessage->getHeader().getDestAddr().getShortAddress());
             externalDoneCallback(ACK_FAILED, pendingMessage);
             pendingMessage = nullptr; // owned by upper layer now

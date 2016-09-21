@@ -85,8 +85,6 @@ class DSMESettings {
 public:
     bool isPANCoordinator;
     bool isCoordinator;
-    unsigned numMaxGTSAllocPerDevice;
-    unsigned numMaxGTSAllocPerRequest;
     unsigned commonChannel;
 
     bool optimizations;
@@ -161,8 +159,8 @@ public:
         return beaconManager;
     }
 
-    void setSlotEventDelegate(Delegate<void()> delegate) {
-        slotEventDelegate = delegate;
+    void setStartOfCFPDelegate(Delegate<void()> delegate) {
+        startOfCFPDelegate = delegate;
     }
 
     const DSMESettings& getDSMESettings() const {
@@ -193,7 +191,7 @@ public:
         return messageDispatcher;
     }
 
-    void start(DSMESettings& dsmeSettings, DSMEPlatform* platform);
+    void start(DSMESettings& dsmeSettings, IDSMEPlatform* platform);
 
     void dispatchCCAResult(bool success) {
         messageDispatcher.dispatchCCAResult(success);
@@ -217,6 +215,8 @@ public:
     // TODO data size
     void beaconSentOrReceived(uint16_t SDIndex);
 
+    void handleStartOfCFP();
+
 protected:
     DSMESettings settings;
 
@@ -235,8 +235,8 @@ protected:
     AssociationManager associationManager;
 
     // TODO remove one or use better abstraction
-    Delegate<void()> slotEventDelegate;
-    Delegate<void(uint8_t slot, uint8_t superframe)> slotEventDelegateB;
+    Delegate<void()> startOfCFPDelegate;
+    //Delegate<void(uint8_t slot, uint8_t superframe)> slotEventDelegateB;
     // TODO size!
     uint16_t currentSlot;
     uint16_t currentSuperframe;

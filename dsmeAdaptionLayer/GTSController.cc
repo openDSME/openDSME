@@ -95,7 +95,7 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
     return;
 }
 
-void GTSController::multisuperframeStartEvent() {
+void GTSController::multisuperframeEvent() {
     for (GTSControllerData &data : this->links) {
 
         uint16_t w = data.messagesInLastMultisuperframe;

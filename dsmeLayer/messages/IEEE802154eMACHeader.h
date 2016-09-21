@@ -86,6 +86,10 @@ public:
     };
 
     IEEE802154eMACHeader() {
+        reset();
+    }
+
+    void reset() {
         // TODO find useful default values or make constructor private and DSMEMessage friend
         frameControl.frameType = DATA;
         frameControl.securityEnabled = 0;

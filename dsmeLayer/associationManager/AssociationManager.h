@@ -73,7 +73,7 @@ public:
      */
     void onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
-    void handleSlotEvent(uint8_t slot, uint8_t superframe);
+    void handleStartOfCFP(uint8_t superframe);
 
 private:
     DSMELayer& dsme;

@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "../../DSMEPlatform.h"
+#include "../../dsme_platform.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../mac_services/pib/dsme_mac_constants.h"
@@ -70,23 +70,20 @@ void GTSHelper::indicateOutgoingMessage(uint16_t address) {
     this->gtsController.registerOutgoingMessage(address);
 }
 
+void GTSHelper::handleStartOfCFP() {
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
+        this->gtsController.multisuperframeEvent();
+    }
 
-void GTSHelper::handleSlotEvent() {
-    if (this->dsmeAdaptionLayer.getDSME().getCurrentSlot() == 0) {
-        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
-            this->gtsController.multisuperframeStartEvent();
-        }
-
-        uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-        uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
-        if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-            uint16_t address = this->gtsController.getPriorityLink();
-            if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
-                checkAllocationForPacket(address);
-            }
+    // Check allocation at random superframe in multi-superframe
+    uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+        uint16_t address = this->gtsController.getPriorityLink();
+        if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+            checkAllocationForPacket(address);
         }
     }
-    return;
 }
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {

@@ -114,6 +114,8 @@ public:
 
     void sendRetryBuffer();
 
+    void startAssociation();
+
 public:
     DSMEAdaptionLayerSettings settings;
 

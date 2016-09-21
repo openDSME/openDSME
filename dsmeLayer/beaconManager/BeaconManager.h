@@ -89,7 +89,7 @@ public:
      */
     void startScanEnhancedActive(uint16_t scanDuration, channelList_t scanChannels);
 
-    void dispatchScanTimer();
+    void handleStartOfCFP();
 
     /**
      * Gets called when CSMA Message was sent down to the PHY
@@ -174,7 +174,8 @@ private:
     uint16_t storedMacPANId;
     uint8_t currentScanChannelIndex;
 
-    uint32_t timeForEachChannel;
+    uint16_t superframesForEachChannel;
+    uint16_t superframesLeftForScan;
 
 };
 

@@ -45,7 +45,6 @@
 
 #include <stdint.h>
 
-#include "../../dsme_platform.h"
 #include "../helper/DSMEDelegate.h"
 
 namespace dsme {
@@ -88,6 +87,8 @@ public:
     virtual uint16_t getRandom() = 0;
 
     virtual void updateVisual() = 0;
+
+    virtual void scheduleStartOfCFP() = 0;
 };
 
 } /* dsme */

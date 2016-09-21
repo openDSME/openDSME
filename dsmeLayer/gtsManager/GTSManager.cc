@@ -74,7 +74,7 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     DSME_ASSERT(fsmId == GTS_STATE_MULTIPLICITY);
 
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -99,7 +99,9 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")" << "[" << (uint16_t)fsmId << "]");
+    if(event.signal != GTSEvent::CFP_STARTED) {
+        LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")" << "[" << (uint16_t)fsmId << "]");
+    }
 
     switch(event.signal) {
     case GTSEvent::ENTRY_SIGNAL:
@@ -241,7 +243,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -344,7 +346,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -377,12 +379,12 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 return FSM_HANDLED;
             }
             if (data[fsmId].pendingConfirm.managmentType != params.managmentType) {
-                LOG_INFO("Wrong response handled! Got type " << params.managmentType << " instead of " << data[fsmId].pendingConfirm.managmentType);
+                LOG_INFO("Wrong response handled! Got type " << (int16_t)params.managmentType << " instead of " << (int16_t)data[fsmId].pendingConfirm.managmentType);
                 //DSME_ASSERT(false);
                 return FSM_HANDLED;
             }
             if (data[fsmId].pendingConfirm.direction != params.direction) {
-                LOG_INFO("Wrong response handled! Got direction " << params.direction << " instead of " << data[fsmId].pendingConfirm.direction);
+                LOG_INFO("Wrong response handled! Got direction " << (int16_t)params.direction << " instead of " << (int16_t)data[fsmId].pendingConfirm.direction);
                 //DSME_ASSERT(false);
                 return FSM_HANDLED;
             }
@@ -453,7 +455,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -702,35 +704,31 @@ bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
     return true;
 }
 
-bool GTSManager::handleSlotEvent(uint8_t slot, uint8_t superframe) {
-    if (slot == dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1) {
-        for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-            data[i].superframesInCurrentState++;
-        }
+bool GTSManager::handleStartOfCFP(uint8_t superframe) {
+    for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        data[i].superframesInCurrentState++;
+    }
 
-        // also execute this during non-idle phases
-        if (superframe == 0) {
-            for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
-                    it++) {
-                if (it->getDirection() == Direction::RX) {
-                    // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
-                    it->incrementIdleCounter(); // gets reset to zero on RX
-                }
+    // also execute this during non-idle phases
+    if (superframe == 0) {
+        for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
+                it++) {
+            if (it->getDirection() == Direction::RX) {
+                // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
+                it->incrementIdleCounter(); // gets reset to zero on RX
             }
         }
+    }
 
-        for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-            if (getState(i) == &GTSManager::stateWaitForNotify || getState(i) == &GTSManager::stateWaitForResponse) {
-                dispatch(i, GTSEvent::CFP_STARTED);
-            }
+    for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        if (getState(i) == &GTSManager::stateWaitForNotify || getState(i) == &GTSManager::stateWaitForResponse) {
+            dispatch(i, GTSEvent::CFP_STARTED);
         }
+    }
 
-        int8_t fsmId = getFsmIdIdle();
-        if (fsmId >= 0) {
-            return dispatch(fsmId, GTSEvent::CFP_STARTED);
-        } else {
-            return true;
-        }
+    int8_t fsmId = getFsmIdIdle();
+    if (fsmId >= 0) {
+        return dispatch(fsmId, GTSEvent::CFP_STARTED);
     } else {
         return true;
     }
@@ -758,7 +756,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
 
         if (validFsmId >= 0 && validFsmId < GTS_STATE_MULTIPLICITY) {
             if (status != DataStatus::SUCCESS) {
-                LOG_DEBUG("GTSManager::onCSMASent transmission failure: " << status);
+                LOG_DEBUG("GTSManager::onCSMASent transmission failure: " << (int16_t)status);
             }
             returnStatus = dispatch(validFsmId, GTSEvent::SEND_COMPLETE, msg, management, cmdId, status);
         } else {

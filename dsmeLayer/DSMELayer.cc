@@ -68,7 +68,7 @@ DSMELayer::DSMELayer() :
 DSMELayer::~DSMELayer() {
 }
 
-void DSMELayer::start(DSMESettings& dsmeSettings, DSMEPlatform* platform) {
+void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
     this->settings = dsmeSettings;
     this->platform = platform;
 
@@ -118,19 +118,26 @@ void DSMELayer::slotEvent(void) {
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
 
-    if(slotEventDelegate) {
-        slotEventDelegate();
-    }
-
-    gtsManager.handleSlotEvent(currentSlot, currentSuperframe);
-    associationManager.handleSlotEvent(currentSlot, currentSuperframe);
-
     /* handle slot */
     if (currentSlot == 0) {
         beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe);
+
+    if (currentSlot == getMAC_PIB().helper.getFinalCAPSlot() + 1) {
+        platform->scheduleStartOfCFP();
+    }
+}
+
+void DSMELayer::handleStartOfCFP() {
+    if(startOfCFPDelegate) {
+        startOfCFPDelegate();
+    }
+
+    gtsManager.handleStartOfCFP(currentSuperframe);
+    associationManager.handleStartOfCFP(currentSuperframe);
+    beaconManager.handleStartOfCFP();
 }
 
 void DSMELayer::beaconSentOrReceived(uint16_t SDIndex) {

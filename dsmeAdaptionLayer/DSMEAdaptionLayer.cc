@@ -67,7 +67,7 @@ void DSMEAdaptionLayer::initialize() {
     this->gtsAllocationHelper.initialize();
     this->scanHelper.initialize();
 
-    this->dsme.setSlotEventDelegate(DELEGATE(&GTSHelper::handleSlotEvent, gtsAllocationHelper));
+    this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
     this->mcps_sap->getDATA().confirm(DELEGATE(&DSMEAdaptionLayer::handleDataConfirm, *this));
     this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
@@ -121,8 +121,26 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
 }
 
 void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
+    LOG_INFO("Sending DATA message");
+
     sendMessageDown(msg, true);
     sendRetryBuffer();
+}
+
+void DSMEAdaptionLayer::startAssociation() {
+    if (!getMAC_PIB().macAssociatedPANCoord) {
+        LOG_INFO("Device is not associated with PAN.");
+        if (!this->associationInProgress) {
+            if (!this->scanInProgress) {
+                this->scanInProgress = true;
+                this->scanHelper.startScan();
+            } else {
+                LOG_INFO("Scan already in progress.");
+            }
+        } else {
+            LOG_INFO("Association already in progress.");
+        }
+    }
 }
 
 void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
@@ -138,18 +156,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
     IEEE802154MacAddress& dst = msg->getHeader().getDestAddr();
 
     if (!getMAC_PIB().macAssociatedPANCoord) {
-        LOG_INFO("Device is not associated with PAN.");
-        if (!this->associationInProgress) {
-            if (!this->scanInProgress) {
-                this->scanInProgress = true;
-                this->scanHelper.startScan();
-            } else {
-                LOG_INFO("Scan already in progress.");
-            }
-        } else {
-            LOG_INFO("Association already in progress.");
-        }
-
+        startAssociation();
         LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
         dsme.getPlatform().releaseMessage(msg);
         return;
@@ -161,7 +168,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
         }
     }
 
-    LOG_INFO("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
+    LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
 
     if (dst.getShortAddress() == this->mac_pib->macShortAddress) {
         /* '-> loopback */
@@ -268,7 +275,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
 }
 
 void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &params) {
-    LOG_INFO("Received DATA confirm from MCPS");
+    LOG_DEBUG("Received DATA confirm from MCPS");
     DSMEMessage* msg = params.msduHandle;
 
     DSME_ASSERT(msg->currentlySending);

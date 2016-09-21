@@ -123,13 +123,14 @@ void CAPLayer::startBackoffTimer() {
     uint16_t backoff = aUnitBackoffPeriod*(unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     uint32_t now = dsme.getPlatform().getSymbolCounter();
 
-    uint16_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, dsme.getMAC_PIB().helper.getSymbolsPerSlot()); // including backoff
-    uint16_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
+    uint32_t symbolsPerSlot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, symbolsPerSlot); // including backoff
+    uint32_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
     uint32_t CAPStart = now - symbolsSinceCAPStart;
 
     uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
-    uint8_t fullCAPs = backoffSinceCAPStart/(dsme.getMAC_PIB().helper.getFinalCAPSlot() * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - blockedEnd);
-    uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots()+1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot() + blockedEnd);
+    uint8_t fullCAPs = backoffSinceCAPStart/(dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
+    uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots()+1) * symbolsPerSlot + blockedEnd);
 
     backoffSinceCAPStart += fullCAPs * blockedSymbolsPerSuperframe;
 
