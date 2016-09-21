@@ -154,6 +154,7 @@ protected:
 private:
     /* HELPER METHODS FOR SCANNING */
     void scanCurrentChannel();
+    void setScanDuration(uint16_t scanDuration);
 
     /* CALLBACKS FOR SCANNING */
     void channelScanEnhancedActiveComplete();

@@ -381,6 +381,27 @@ bool BeaconManager::isScanning() {
     return this->scanning;
 }
 
+void BeaconManager::setScanDuration(uint16_t scanDuration) {
+    /*
+     * Calculate time to scan each channel
+     *  T_scan = aBaseSuperframeDuration * (2^n + 1) (IEEE 802.15.4e-2012 6.2.10.1)
+     *         = 16 * aBaseSlotDuration * (2^n + 1)
+     *
+     *  T_superframe = 16 * aBaseSlotDuration * 2^(SO)
+     *
+     *  S = T_scan / T_superframe = (2^n + 1) / (2^(SO))
+     *  2^(n-SO) < S < 2^(n-SO)+1
+     */
+    uint16_t superframes = 1;
+
+    // Scanning less than one superframe does not make any sense
+    if(scanDuration > this->dsme.getMAC_PIB().macSuperframeOrder) {
+        superframes = (1 << (scanDuration-this->dsme.getMAC_PIB().macSuperframeOrder)) + 1;
+    }
+
+    this->superframesForEachChannel = superframes;
+}
+
 void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t scanChannels) {
     DSME_ASSERT(!this->scanning);
     DSME_ASSERT(scanChannels.size() > 0);
@@ -392,15 +413,7 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t
     this->storedMacPANId = this->dsme.getMAC_PIB().macPANId;
     this->dsme.getMAC_PIB().macPANId = 0xffff;
 
-    /*
-     * Calculate time in symbols to scan each channel
-     * IEEE 802.15.4e-2012 6.2.10.1: [aBaseSuperframeDuration * (2^n + 1)]
-     */
-    uint16_t superframes = 1;
-    superframes <<= scanDuration;
-    superframes += 1;
-
-    this->superframesForEachChannel = superframes;
+    setScanDuration(scanDuration);
 
     this->panDescriptorList.clear();
 
@@ -426,15 +439,7 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, channelList_t scanCh
     this->storedMacPANId = this->dsme.getMAC_PIB().macPANId;
     this->dsme.getMAC_PIB().macPANId = 0xffff;
 
-    /*
-     * Calculate time in symbols to scan each channel
-     * IEEE 802.15.4e-2012 6.2.10.1: [aBaseSuperframeDuration * (2^n + 1)]
-     */
-    uint16_t superframes = 1;
-    superframes <<= scanDuration;
-    superframes += 1;
-
-    this->superframesForEachChannel = superframes;
+    setScanDuration(scanDuration);
 
     this->panDescriptorList.clear();
 
