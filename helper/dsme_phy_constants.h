@@ -2,7 +2,7 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * introduced in the IEEE 802.15.4e-2012 standard
+ * described in the IEEE 802.15.4-2015 standard
  *
  * Authors: Florian Meier <florian.meier@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
@@ -40,53 +40,23 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEEVENTDISPATCHER_H
-#define DSMEEVENTDISPATCHER_H
-
-#include <stdint.h>
-#include "../interfaces/IDSMEPlatform.h"
-#include "TimerMultiplexer.h"
+#ifndef PHY_CONSTANTS_H
+#define PHY_CONSTANTS_H
 
 namespace dsme {
 
-class DSMELayer;
+/*
+ * This file contains all PHY constants as defined in IEEE 802.15.4-2011, 9.2, Table 70
+ */
 
-enum EventTimers {
-    NEXT_PRE_SLOT,
-    NEXT_SLOT,
-    CSMA_TIMER,
-    ACK_TIMER,
-    TIMER_COUNT /* always last element */
-};
+/* The maximum PSDU size (in octets) the PHY shall be able to receive. */
+constexpr uint8_t aMaxPHYPacketSize = 127;
 
-class DSMEEventDispatcher;
+/* RX-to-TX or TX-to-RX turnaround time (in symbol periods), as defined in 8.2.1 and 8.2.2. */
+constexpr uint8_t aTurnaroundTimeSymbols = 12;
 
-typedef TimerMultiplexer<EventTimers, DSMEEventDispatcher, IDSMEPlatform, IDSMEPlatform> DSMETimerMultiplexer;
+constexpr uint8_t symbolDurationInMicroseconds = 16;
 
-class DSMEEventDispatcher : private DSMETimerMultiplexer {
-public:
-    DSMEEventDispatcher(DSMELayer& dsme);
-    void initialize();
+} /* dsme */
 
-    void timerInterrupt();
-
-    void setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
-    void setupCSMATimer(uint32_t absSymCnt);
-    void setupACKTimer();
-    void stopACKTimer();
-
-private:
-    DSMELayer& dsme;
-
-    void firePreSlotTimer(int32_t lateness);
-    void fireSlotTimer(int32_t lateness);
-    void fireCSMATimer(int32_t lateness);
-    void fireACKTimer(int32_t lateness);
-
-    ReadonlyTimerAbstraction<IDSMEPlatform> now;
-    WriteonlyTimerAbstraction<IDSMEPlatform> timer;
-};
-
-}
-
-#endif
+#endif /* PHY_CONSTANTS_H */

@@ -44,6 +44,7 @@
 #define MAC_CONSTANTS_H
 
 #include "../../../dsme_platform.h"
+#include "../../../openDSME/helper/dsme_phy_constants.h"
 
 namespace dsme {
 

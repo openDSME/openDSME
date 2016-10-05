@@ -84,21 +84,21 @@ void BeaconManager::initialize() {
     lastHeardBeaconTimestamp = 0;
 }
 
-void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe) {
+void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness) {
     if (isBeaconAllocated) {
         uint16_t currentSDIndex = currentSuperframe
                 + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if (currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
-            sendEnhancedBeacon();
+            sendEnhancedBeacon(lateness);
         }
     }
 }
 
-void BeaconManager::sendEnhancedBeacon() {
+void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(0); // TODO !!!
-    dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0); // TODO!!!
+    dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(lateness * symbolDurationInMicroseconds);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
     msg->getHeader().setDstAddr(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS);

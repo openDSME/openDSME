@@ -71,7 +71,7 @@ public:
     }
 
     // TODO data sizes
-    void superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe);
+    void superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness);
 
     // TODO data size
     uint16_t getNumHeardBeacons();
@@ -130,7 +130,7 @@ protected:
     /**
      * Send an enhanced Beacon directly
      */
-    void sendEnhancedBeacon();
+    void sendEnhancedBeacon(uint32_t lateness);
 
     /**
      * Send an enhanced Beacon request in scan primitive

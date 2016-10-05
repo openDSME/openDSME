@@ -87,7 +87,7 @@ void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
 
     /* start the timer initially */
     slotsSinceLastKnownBeaconIntervalStart = 0;
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
+    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
 }
 
 void DSMELayer::preSlotEvent(void) {
@@ -105,7 +105,7 @@ void DSMELayer::preSlotEvent(void) {
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe);
 }
 
-void DSMELayer::slotEvent(void) {
+void DSMELayer::slotEvent(int32_t lateness) {
     currentSlot = nextSlot;
     currentSuperframe = nextSuperframe;
     currentMultiSuperframe = nextMultiSuperframe;
@@ -114,13 +114,19 @@ void DSMELayer::slotEvent(void) {
         LOG_DEBUG(DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
     }
 
+    if(lateness > 20) {
+        LOG_INFO("lateness " << lateness);
+        ASSERT(false);
+    }
+
+
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
+    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
 
     /* handle slot */
     if (currentSlot == 0) {
-        beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe);
+        beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe, lateness);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe);
@@ -141,12 +147,10 @@ void DSMELayer::handleStartOfCFP() {
 }
 
 void DSMELayer::beaconSentOrReceived(uint16_t SDIndex) {
-    currentSlot = 0;
-    currentSuperframe = SDIndex % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    currentMultiSuperframe = SDIndex / getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    slotsSinceLastKnownBeaconIntervalStart = SDIndex * aNumSuperframeSlots;
+    /* When beacon processing takes too long, not the first slot of a superframe is scheduled, hence the "+ currentSlot" */
+    slotsSinceLastKnownBeaconIntervalStart = SDIndex * aNumSuperframeSlots + currentSlot;
 
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
+    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, currentSlot != nextSlot);
 }
 
 uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift) {

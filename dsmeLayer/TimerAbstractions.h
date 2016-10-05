@@ -40,53 +40,62 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEEVENTDISPATCHER_H
-#define DSMEEVENTDISPATCHER_H
+#ifndef TIMERABSTRACTIONS_H
+#define TIMERABSTRACTIONS_H
 
 #include <stdint.h>
-#include "../interfaces/IDSMEPlatform.h"
-#include "TimerMultiplexer.h"
 
 namespace dsme {
 
-class DSMELayer;
-
-enum EventTimers {
-    NEXT_PRE_SLOT,
-    NEXT_SLOT,
-    CSMA_TIMER,
-    ACK_TIMER,
-    TIMER_COUNT /* always last element */
-};
-
-class DSMEEventDispatcher;
-
-typedef TimerMultiplexer<EventTimers, DSMEEventDispatcher, IDSMEPlatform, IDSMEPlatform> DSMETimerMultiplexer;
-
-class DSMEEventDispatcher : private DSMETimerMultiplexer {
+template<typename T>
+class ReadonlyTimerAbstraction {
 public:
-    DSMEEventDispatcher(DSMELayer& dsme);
-    void initialize();
+    typedef uint32_t ((T::*getter_t)());
 
-    void timerInterrupt();
+    ReadonlyTimerAbstraction() :
+            getter_instance(nullptr),
+            getter(nullptr) {
+    }
 
-    void setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
-    void setupCSMATimer(uint32_t absSymCnt);
-    void setupACKTimer();
-    void stopACKTimer();
+    void initialize(T *instance, getter_t getter) {
+        this->getter_instance = instance;
+        this->getter = getter;
+    }
+
+    inline operator uint32_t() const {
+        return (getter_instance->*getter)();
+    }
 
 private:
-    DSMELayer& dsme;
-
-    void firePreSlotTimer(int32_t lateness);
-    void fireSlotTimer(int32_t lateness);
-    void fireCSMATimer(int32_t lateness);
-    void fireACKTimer(int32_t lateness);
-
-    ReadonlyTimerAbstraction<IDSMEPlatform> now;
-    WriteonlyTimerAbstraction<IDSMEPlatform> timer;
+    T *getter_instance;
+    getter_t getter;
 };
 
-}
+template<typename T>
+class WriteonlyTimerAbstraction {
+public:
+    typedef void (T::*setter_t)(uint32_t);
 
-#endif
+    WriteonlyTimerAbstraction() :
+            setter_instance(nullptr),
+            setter(nullptr) {
+    }
+
+    void initialize(T *instance, setter_t setter) {
+        setter_instance = instance;
+        this->setter = setter;
+    }
+
+    inline WriteonlyTimerAbstraction &operator=(uint32_t &value) {
+        (setter_instance->*setter)(value);
+        return (*this);
+    }
+
+private:
+    T *setter_instance;
+    setter_t setter;
+};
+
+} /* dsme */
+
+#endif /* TIMERABSTRACTIONS_H */

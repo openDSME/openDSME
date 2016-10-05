@@ -198,7 +198,7 @@ public:
     }
 
     void preSlotEvent(void);
-    void slotEvent(void);
+    void slotEvent(int32_t lateness);
 
     uint16_t getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift);
 

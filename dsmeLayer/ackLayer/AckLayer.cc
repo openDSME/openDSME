@@ -256,7 +256,7 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
 fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
     switch (event.signal) {
         case AckEvent::ENTRY_SIGNAL:
-            dsme.getEventDispatcher().setupACKTimer(dsme.getMAC_PIB().macAckWaitDuration);
+            dsme.getEventDispatcher().setupACKTimer();
             return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
             if (event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {

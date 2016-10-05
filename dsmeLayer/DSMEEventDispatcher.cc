@@ -47,119 +47,77 @@
 namespace dsme {
 
 DSMEEventDispatcher::DSMEEventDispatcher(DSMELayer& dsme) :
+        DSMETimerMultiplexer(this, now, timer),
         dsme(dsme) {
-    for (uint8_t i = 0; i < TIMER_COUNT; i++) {
-        symsUntil[i] = -1;
-    }
 }
 
 void DSMEEventDispatcher::initialize() {
-    lastSymCnt = dsme.getPlatform().getSymbolCounter();
+    this->now.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::getSymbolCounter);
+    this->timer.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::startTimer);
+
+    DSMETimerMultiplexer::_initialize();
 }
 
 void DSMEEventDispatcher::timerInterrupt() {
-    dispatchEvents();
-    setupTimer(0);
+    DSMETimerMultiplexer::_timerInterrupt();
 }
 
-void DSMEEventDispatcher::dispatchEvents() {
-    uint32_t currentSymCnt = dsme.getPlatform().getSymbolCounter();
+/********** Event Handlers **********/
 
-    // The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t).
-    int32_t symsSinceLastDispatch = (uint32_t) (currentSymCnt - lastSymCnt);
-
-    // TODO dispatch outside of IRQ context (e.g. TinyOS Tasklet concept)
-    // this should also hold for events not related to the timer (e.g. CCA)
-
-    // TODO reduce the number of timers, e.g. for less time critical timers check only in (pre-) slot events
-
-    // Execute events
-    if (0 < symsUntil[NEXT_PRE_SLOT] && symsUntil[NEXT_PRE_SLOT] <= symsSinceLastDispatch) {
-        dsme.preSlotEvent();
-    }
-
-    if (0 < symsUntil[NEXT_SLOT] && symsUntil[NEXT_SLOT] <= symsSinceLastDispatch) {
-        dsme.slotEvent();
-    }
-
-    if (0 < symsUntil[CSMA_TIMER] && symsUntil[CSMA_TIMER] <= symsSinceLastDispatch) {
-        dsme.getMessageDispatcher().dispatchCSMATimerEvent();
-    }
-
-    if (0 < symsUntil[ACK_TIMER] && symsUntil[ACK_TIMER] <= symsSinceLastDispatch) {
-        dsme.getAckLayer().dispatchTimer();
-    }
-
-    // Decrease times
-    for (uint8_t i = 0; i < TIMER_COUNT; i++) {
-        if (symsUntil[i] > 0) {
-            symsUntil[i] -= symsSinceLastDispatch;
-        }
-    }
-
-    lastSymCnt = currentSymCnt;
+void DSMEEventDispatcher::firePreSlotTimer(int32_t lateness) {
+    this->dsme.preSlotEvent();
 }
 
-void DSMEEventDispatcher::setupTimer(uint8_t source) {
-    int32_t symsUntilNextEvent = dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
+void DSMEEventDispatcher::fireSlotTimer(int32_t lateness) {
+    this->dsme.slotEvent(lateness);
+}
 
-    uint8_t nextEvent = -1;
+void DSMEEventDispatcher::fireCSMATimer(int32_t lateness) {
+    this->dsme.getMessageDispatcher().dispatchCSMATimerEvent();
+}
 
+void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
+    this->dsme.getAckLayer().dispatchTimer();
+}
+
+/********** Setup Methods **********/
+
+void DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot) {
+    uint32_t next_slot_time = (slotsSinceLastHeardBeacon + 1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot()
+            + ((uint32_t) (lastHeardBeaconSymbolCounter));
     dsme_atomicBegin();
-    for (uint8_t i = 0; i < TIMER_COUNT; i++) {
-        if (0 < symsUntil[i] && symsUntil[i] < symsUntilNextEvent) {
-            nextEvent = i;
-            symsUntilNextEvent = symsUntil[i];
-        }
-
+    DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
+    if(withinPreSlot) {
+        next_slot_time += dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     }
-
-    uint32_t timer = lastSymCnt + symsUntilNextEvent;
-    dsme.getPlatform().startTimer(timer);
-
-    uint32_t now = dsme.getPlatform().getSymbolCounter();
-    if(now > timer) {
-        LOG_INFO("nextEvent " << nextEvent << " source " << source << " prevSource " << prevSource);
-        LOG_INFO(now << " " << timer);
-        DSME_ASSERT(false);
-    }
-
-    prevSource = source;
-
+    DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
+    DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();
-}
-
-void DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon) {
-    dsme_atomicBegin();
-    symsUntil[NEXT_SLOT] = (slotsSinceLastHeardBeacon + 1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot()
-            - ((uint32_t) (lastSymCnt - lastHeardBeaconSymbolCounter));
-    symsUntil[NEXT_PRE_SLOT] = symsUntil[NEXT_SLOT] - PRE_EVENT_SHIFT;
-    dsme_atomicEnd();
-
-    setupTimer(1);
+    return;
 }
 
 void DSMEEventDispatcher::setupCSMATimer(uint32_t absSymCnt) {
     dsme_atomicBegin();
-    symsUntil[CSMA_TIMER] = absSymCnt - lastSymCnt;
-    DSME_ASSERT(symsUntil[CSMA_TIMER] >= 0);
+    DSMETimerMultiplexer::_startTimer<CSMA_TIMER>(absSymCnt, &DSMEEventDispatcher::fireCSMATimer);
+    DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();
-
-    setupTimer(2);
+    return;
 }
 
-void DSMEEventDispatcher::setupACKTimer(uint32_t symbols) {
+void DSMEEventDispatcher::setupACKTimer() {
     dsme_atomicBegin();
-    symsUntil[ACK_TIMER] = dsme.getPlatform().getSymbolCounter() + symbols - lastSymCnt;
+    DSMETimerMultiplexer::_startTimer<ACK_TIMER>(dsme.getPlatform().getSymbolCounter() + dsme.getMAC_PIB().macAckWaitDuration, &DSMEEventDispatcher::fireACKTimer);
+    DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();
-
-    setupTimer(3);
+    return;
 }
 
 void DSMEEventDispatcher::stopACKTimer() {
-    symsUntil[ACK_TIMER] = -1;
-
-    setupTimer(4);
+    dsme_atomicBegin();
+    DSMETimerMultiplexer::_stopTimer<ACK_TIMER>();
+    DSMETimerMultiplexer::_scheduleTimer();
+    dsme_atomicEnd();
+    return;
 }
 
-}
+} /* dsme */
