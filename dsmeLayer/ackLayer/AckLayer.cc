@@ -240,8 +240,6 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
                     // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to be set 5.3.11.5.2)
                     // unless an acknowledgment shall be sent from an upper layer (can not be interfered from the standard)
 
-                    dsme.getEventDispatcher().setupACKTimer(dsme.getMAC_PIB().macAckWaitDuration);
-
                     return transition(&AckLayer::stateWaitForAck);
                 } else {
                     externalDoneCallback(NO_ACK_REQUESTED, pendingMessage);
@@ -257,6 +255,9 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
 
 fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
     switch (event.signal) {
+        case AckEvent::ENTRY_SIGNAL:
+            dsme.getEventDispatcher().setupACKTimer(dsme.getMAC_PIB().macAckWaitDuration);
+            return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
             if (event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {
                 externalDoneCallback(ACK_SUCCESSFUL, pendingMessage);
