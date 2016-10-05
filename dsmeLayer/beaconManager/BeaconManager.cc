@@ -115,6 +115,8 @@ void BeaconManager::sendEnhancedBeacon() {
         dsme.beaconSentOrReceived(dsmePANDescriptor.getBeaconBitmap().getSDIndex());
     }
 
+    LOG_DEBUG("Send beacon");
+
     if (!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
         // message could not be sent
         dsme.getPlatform().releaseMessage(msg);

@@ -49,6 +49,8 @@
 
 namespace dsme {
 
+class DSMEMessage;
+
 class IDSMEPlatform {
 public:
     typedef Delegate<void(DSMEMessage* msg)> receive_delegate_t;

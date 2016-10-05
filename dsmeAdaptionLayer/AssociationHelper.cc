@@ -122,9 +122,6 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
 }
 
 void AssociationHelper::handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters &params) {
-    if (params.status == AssociationStatus::SUCCESS) {
-
-    }
     this->associationCompleteDelegate(params.status);
     return;
 }

@@ -264,7 +264,7 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
                 dsme.getEventDispatcher().stopACKTimer();
                 return transitionToIdle();
             } else {
-                // if sequence number does not match, ignore this ACK
+                /* '-> if sequence number does not match, ignore this ACK */
                 return FSM_HANDLED;
             }
 

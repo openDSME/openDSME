@@ -68,7 +68,6 @@ void ScanHelper::setScanCompleteDelegate(scanCompleteDelegate_t delegate) {
 void ScanHelper::startScan() {
     this->recordedPanDescriptors.clear();
 
-    LOG_INFO("Initiating scan.");
     mlme_sap::SCAN::request_parameters params;
 
     // TODO: Decide which channels to scan
@@ -79,8 +78,10 @@ void ScanHelper::startScan() {
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
     if (((uint16_t)this->passiveScanCounter) > random_value) {
+        LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
+        LOG_INFO("Initiating passive scan");
         params.scanType = ScanType::PASSIVE;
     }
     this->passiveScanCounter++;

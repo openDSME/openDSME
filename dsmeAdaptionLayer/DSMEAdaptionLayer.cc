@@ -308,7 +308,8 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
             }
             else{
-                DSME_ASSERT(false); // TODO remove after testing
+                // Should not occur
+                DSME_ASSERT(false);
             }
         }
         // TODO specialize!

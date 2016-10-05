@@ -89,8 +89,8 @@ void GTSHelper::handleStartOfCFP() {
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
     uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
     uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(address);
-    LOG_INFO("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
-    LOG_INFO("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
+    LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
+    LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
     int16_t diff = gtsController.getControl(address);
 

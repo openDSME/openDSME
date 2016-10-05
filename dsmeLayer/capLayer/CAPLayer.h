@@ -77,7 +77,6 @@ private:
 
     uint8_t NB;
     uint8_t NR;
-    uint8_t BE;
     uint8_t totalNBs;
 
     AckLayer::done_callback_t doneCallback;

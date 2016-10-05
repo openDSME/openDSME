@@ -161,7 +161,6 @@ fsmReturnStatus CAPLayer::gateBackoffIfPending() {
         NB = 0;
         NR = 0;
         totalNBs = 0;
-        BE = dsme.getMAC_PIB().macMinBE;
         startBackoffTimer();
         return transition(&CAPLayer::stateBackoff);
     }
@@ -201,13 +200,6 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::CCA_FAILURE) {
         NB++;
         totalNBs++;
-        uint8_t macMaxBE = dsme.getMAC_PIB().macMaxBE;
-        if(BE+1 < macMaxBE) {
-            BE = BE+1;
-        }
-        else {
-            BE = macMaxBE;
-        }
 
         if(NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
             popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
@@ -257,7 +249,6 @@ fsmReturnStatus CAPLayer::gateRetry() {
     else {
         NB = 0;
         NR++;
-        BE = dsme.getMAC_PIB().macMinBE;
         startBackoffTimer();
         return transition(&CAPLayer::stateBackoff);
     }

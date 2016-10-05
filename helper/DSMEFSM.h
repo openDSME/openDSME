@@ -108,9 +108,11 @@ public:
         state_t s = state;
         fsmReturnStatus r = (((C*)this)->*state)(event);
 
+        dsme_atomicBegin();
         while (r == FSM_TRANSITION) {
             /* call the exit action from last state */
-            ASSERT((((C*)this)->*s)(exitEvent) != FSM_TRANSITION);
+            fsmReturnStatus exitResult = (((C*)this)->*s)(exitEvent);
+            DSME_ASSERT(exitResult != FSM_TRANSITION);
             s = state;
 
             /* call entry action of new state */
@@ -118,6 +120,7 @@ public:
         }
 
         dispatchBusy = false;
+        dsme_atomicEnd();
         return true;
     }
 
