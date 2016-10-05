@@ -128,12 +128,19 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd &reply, IEEE8021
 }
 
 void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
+    if(!associationPending) {
+        // No association pending, for example because of an ACK timeout
+        return;
+    }
+
     AssociateReplyCmd reply;
     reply.decapsulateFrom(msg);
 
     mlme_sap::ASSOCIATE_confirm_parameters params;
     params.assocShortAddress = reply.getShortAddr();
     params.status = reply.getStatus();
+
+    associationPending = false;
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
@@ -202,6 +209,12 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {
  * Gets called when CSMA Message was sent down to the PHY
  */
 void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
+    if(!associationPending) {
+        // Already received a response
+        dsme.getPlatform().releaseMessage(msg);
+        return;
+    }
+
     mlme_sap::ASSOCIATE_confirm_parameters params;
     params.assocShortAddress = 0xFFFF;
 
