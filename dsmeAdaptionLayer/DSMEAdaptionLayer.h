@@ -92,7 +92,8 @@ public:
  */
 class DSMEAdaptionLayer {
 public:
-    typedef Delegate<void(DSMEMessage* msg)> receiveCallback_t;
+    typedef Delegate<void(DSMEMessage* msg)> indicationCallback_t;
+    typedef Delegate<void(DSMEMessage* msg, bool success)> confirmCallback_t;
 
     DSMEAdaptionLayer(DSMELayer&);
 
@@ -110,7 +111,9 @@ public:
 
     void sendMessage(DSMEMessage* msg);
 
-    void setReceiveMessage(receiveCallback_t);
+    void setIndicationCallback(indicationCallback_t);
+
+    void setConfirmCallback(confirmCallback_t);
 
     void sendRetryBuffer();
 
@@ -122,7 +125,7 @@ public:
 private:
     void sendMessageDown(DSMEMessage* msg, bool newMessage);
 
-    void receiveMessage(DSMEMessage* msg);
+    void receiveIndication(DSMEMessage* msg);
 
     bool queueMessageIfPossible(DSMEMessage* msg);
 
@@ -145,7 +148,8 @@ private:
     PHY_PIB* phy_pib;
     MAC_PIB* mac_pib;
 
-    receiveCallback_t callback_receiveMessage;
+    indicationCallback_t callback_indication;
+    confirmCallback_t callback_confirm;
 
     bool scanInProgress;
     bool associationInProgress;

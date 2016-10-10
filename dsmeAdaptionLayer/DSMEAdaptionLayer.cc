@@ -55,6 +55,7 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme) :
 
         scanInProgress(false),
         associationInProgress(false) {
+
 }
 
 void DSMEAdaptionLayer::initialize() {
@@ -95,14 +96,19 @@ DSMELayer& DSMEAdaptionLayer::getDSME() {
     return this->dsme;
 }
 
-void DSMEAdaptionLayer::setReceiveMessage(receiveCallback_t callback_receiveMessage) {
-    this->callback_receiveMessage = callback_receiveMessage;
+void DSMEAdaptionLayer::setIndicationCallback(indicationCallback_t callback_indication) {
+    this->callback_indication = callback_indication;
     return;
 }
 
-void DSMEAdaptionLayer::receiveMessage(DSMEMessage* msg) {
-    if (this->callback_receiveMessage) {
-        callback_receiveMessage(msg);
+void DSMEAdaptionLayer::setConfirmCallback(confirmCallback_t callback_confirm) {
+    this->callback_confirm = callback_confirm;
+    return;
+}
+
+void DSMEAdaptionLayer::receiveIndication(DSMEMessage* msg) {
+    if (this->callback_indication) {
+        callback_indication(msg);
     }
     return;
 }
@@ -173,7 +179,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
     if (dst.getShortAddress() == this->mac_pib->macShortAddress) {
         /* '-> loopback */
         LOG_INFO("Loopback message received.");
-        receiveMessage(msg);
+        receiveIndication(msg);
     } else {
         mcps_sap::DATA::request_parameters params;
 
@@ -238,7 +244,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
 
 void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameters &params) {
     LOG_INFO("Received DATA message from MCPS.");
-    receiveMessage(params.msdu);
+    receiveIndication(params.msdu);
     return;
 }
 
@@ -261,7 +267,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
                     << ": Retry-Queue overflow ("
                     << currentSymbolCounter - oldestEntry->initialSymbolCounter
                     << " symbols old)");
-            dsme.getPlatform().releaseMessage(oldestEntry->message);
+            callback_confirm(oldestEntry->message, false);
             this->retryBuffer.advanceCurrent();
         }
     }
@@ -319,7 +325,9 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
     if(params.gtsTX) {
         gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
     }
-    dsme.getPlatform().releaseMessage(params.msduHandle);
+
+
+    callback_confirm(params.msduHandle, params.status == DataStatus::SUCCESS);
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
