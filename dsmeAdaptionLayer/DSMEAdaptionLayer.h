@@ -93,7 +93,7 @@ public:
 class DSMEAdaptionLayer {
 public:
     typedef Delegate<void(DSMEMessage* msg)> indicationCallback_t;
-    typedef Delegate<void(DSMEMessage* msg, bool success)> confirmCallback_t;
+    typedef Delegate<void(DSMEMessage* msg, DataStatus::Data_Status dataStatus)> confirmCallback_t;
 
     DSMEAdaptionLayer(DSMELayer&);
 

@@ -267,7 +267,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
                     << ": Retry-Queue overflow ("
                     << currentSymbolCounter - oldestEntry->initialSymbolCounter
                     << " symbols old)");
-            callback_confirm(oldestEntry->message, false);
+            callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
         }
     }
@@ -327,7 +327,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
     }
 
 
-    callback_confirm(params.msduHandle, params.status == DataStatus::SUCCESS);
+    callback_confirm(params.msduHandle, params.status);
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
