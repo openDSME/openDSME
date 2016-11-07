@@ -454,7 +454,6 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &reques
 
     if (gtsDifferentAddresses) {
         // TODO handle multiple requests or also send (INVALID_PARAMETER)?!
-        //EV_ERROR << "DSME deallocateGTSlots: slots belong to different addresses!" << endl;
         //DSME_ASSERT(false); // TODO ?
         // TODO This could also mean that the slot is in use with another node, better DENIED?
         return GTSStatus::DENIED;
@@ -464,7 +463,6 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &reques
         result = GTSStatus::SUCCESS;
     } else {
         result = GTSStatus::DENIED;
-        //EV_WARN << "DSME deallocatedGTSlots: no allocated Slots were found (" << dest << ") -> DISAPPROVED" << endl;
     }
 
     return result;

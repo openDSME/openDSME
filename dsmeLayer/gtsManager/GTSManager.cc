@@ -137,11 +137,11 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         uint16_t destinationShortAddress;
 
         if (event.management.status == GTSStatus::SUCCESS) {
-            LOG_INFO("Sending a positive response to a GTS-REQUEST to " << event.replyNotifyCmd.getDestinationAddress());
+            LOG_INFO("Positive GTS response " << event.replyNotifyCmd.getDestinationAddress());
 
             destinationShortAddress = IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS;
         } else {
-            LOG_INFO("Sending a negative response to a GTS-REQUEST to " << event.replyNotifyCmd.getDestinationAddress());
+            LOG_INFO("Negative GTS response " << event.replyNotifyCmd.getDestinationAddress());
 
             destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
         }
@@ -566,7 +566,7 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
     event.replyNotifyCmd.prependTo(msg);
 
     LOG_INFO(
-            "Sending a negative response to a GTS-REQUEST to " << event.replyNotifyCmd.getDestinationAddress() << " due to a TRANSACTION_OVERFLOW");
+            "Negative GTS response " << event.replyNotifyCmd.getDestinationAddress() << " TRANSACTION_OVERFLOW");
     uint16_t destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
     event.management.status = GTSStatus::NO_DATA; // misuse NO_DATA to signal that the destination was busy
     if (!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress, false)) {
@@ -804,7 +804,7 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
     }
 
     if (duplicateFound) {
-        LOG_INFO("Duplicate allocation detected, informing originating device.");
+        LOG_INFO("Duplicate found");
         DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
         dupReq.prependTo(msg);
         GTSManagement man;
