@@ -54,7 +54,7 @@ template<typename T, typename K>
 class RBTree;
 
 template<typename T, typename K>
-class RBNode;
+struct RBNode;
 
 template<typename T, typename K>
 class RBTreeIterator {

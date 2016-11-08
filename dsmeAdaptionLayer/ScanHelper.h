@@ -50,8 +50,8 @@ namespace dsme {
 class DSMEAdaptionLayer;
 
 namespace mlme_sap {
-    class BEACON_NOTIFY_indication_parameters;
-    class SCAN_confirm_parameters;
+struct BEACON_NOTIFY_indication_parameters;
+struct SCAN_confirm_parameters;
 }
 
 class DSMEPANDescriptor;

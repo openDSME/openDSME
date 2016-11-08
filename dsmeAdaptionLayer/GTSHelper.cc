@@ -51,7 +51,7 @@ namespace dsme {
 
 GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
         dsmeAdaptionLayer(dsmeAdaptionLayer),
-        gtsController(dsmeAdaptionLayer),
+        gtsController(),
         gtsConfirmPending(false) {
 }
 

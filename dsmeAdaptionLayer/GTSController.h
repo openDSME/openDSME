@@ -67,7 +67,7 @@ class GTSController {
 public:
     typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
 
-    GTSController(DSMEAdaptionLayer &dsmeAdaptionLayer);
+    GTSController();
 
     void registerIncomingMessage(uint16_t address);
 
@@ -82,7 +82,6 @@ public:
     uint16_t getPriorityLink();
 
 private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
     RBTree<GTSControllerData, uint16_t> links;
 };
 

@@ -59,8 +59,8 @@ class MLME_SAP;
 
 namespace mcps_sap {
 class MCPS_SAP;
-class DATA_indication_parameters;
-class DATA_confirm_parameters;
+struct DATA_indication_parameters;
+struct DATA_confirm_parameters;
 }
 
 class MAC_PIB;

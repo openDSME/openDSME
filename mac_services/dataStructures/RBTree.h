@@ -53,7 +53,7 @@ namespace dsme {
 /* CLASSES *******************************************************************/
 
 template<typename T, typename K>
-class RBNode;
+struct RBNode;
 
 /*
  * generic implementation for an RB-Tree

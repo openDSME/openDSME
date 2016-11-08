@@ -67,9 +67,7 @@ GTSControllerData::GTSControllerData() :
 
 }
 
-GTSController::GTSController(DSMEAdaptionLayer &dsmeAdaptionLayer) :
-        dsmeAdaptionLayer(dsmeAdaptionLayer) {
-
+GTSController::GTSController() {
 }
 
 void GTSController::registerIncomingMessage(uint16_t address) {
