@@ -120,7 +120,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
 
     switch (macHdr.getFrameType()) {
     case IEEE802154eMACHeader::FrameType::BEACON: {
-        LOG_INFO("Received a BEACON from " << macHdr.getSrcAddr().getShortAddress() << ".");
+        LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << ".");
         this->dsme.getBeaconManager().handleBeacon(msg);
         this->dsme.getPlatform().releaseMessage(msg);
         break;
@@ -131,42 +131,42 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
         cmd.decapsulateFrom(msg);
         switch (cmd.getCmdId()) {
         case CommandFrameIdentifier::DSME_GTS_REQUEST:
-            LOG_INFO("Received a DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getGTSManager().handleGTSRequest(msg);
             break;
         case CommandFrameIdentifier::DSME_GTS_REPLY:
-            LOG_INFO("Received a DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getGTSManager().handleGTSResponse(msg);
             break;
         case CommandFrameIdentifier::DSME_GTS_NOTIFY:
-            LOG_INFO("Received a DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getGTSManager().handleGTSNotify(msg);
             break;
         case CommandFrameIdentifier::ASSOCIATION_REQUEST:
-            LOG_INFO("Received an ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getAssociationManager().handleAssociationRequest(msg);
             break;
         case CommandFrameIdentifier::ASSOCIATION_RESPONSE:
-            LOG_INFO("Received an ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getAssociationManager().handleAssociationReply(msg);
             break;
         case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION:
-            LOG_INFO("Received a DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getAssociationManager().handleDisassociationRequest(msg);
             break;
         case CommandFrameIdentifier::DATA_REQUEST:
             /* Not implemented */
             break;
         case CommandFrameIdentifier::DSME_BEACON_ALLOCATION_NOTIFICATION:
-            LOG_INFO("Received a DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getBeaconManager().handleBeaconAllocation(msg);
             break;
         case CommandFrameIdentifier::DSME_BEACON_COLLISION_NOTIFICATION:
-            LOG_INFO("Received a DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getBeaconManager().handleBeaconCollision(msg);
             break;
         case CommandFrameIdentifier::BEACON_REQUEST:
-            LOG_INFO("Received a BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+            LOG_INFO("BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
             dsme.getBeaconManager().handleBeaconRequest(msg);
             break;
         default:

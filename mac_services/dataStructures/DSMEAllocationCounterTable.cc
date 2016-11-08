@@ -198,16 +198,16 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification &subBlock, ACT
 
         if (actit != end()) {
             if(actit->getChannel() != gts.channel) {
-                LOG_DEBUG("Request arrived too late, time slot now used on other channel.");
+                LOG_DEBUG("Request too late, GTS" << "used on other channel");
                 //DSME_ASSERT(false);
                 continue;
             }
             if(checkAddress && actit->getAddress() != deviceAddress) {
-                LOG_DEBUG("Request arrived too late, time slot used towards other device.");
+                LOG_DEBUG("Request too late, GTS " << "used towards other device");
                 continue;
             }
             if(!condition(*actit)) {
-                LOG_DEBUG("Request arrived too late, time slot does not fulfill condition.");
+                LOG_DEBUG("Request too late, GTS " << "does not fulfill condition");
                 continue;
             }
         }
