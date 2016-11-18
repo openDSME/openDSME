@@ -56,7 +56,7 @@ public:
 
     // assumes queue is not full
     void push(C& element) {
-        ASSERT(size < MAX_SIZE);
+        DSME_ASSERT(size < MAX_SIZE);
 
         queue[next_back] = element;
         if(next_back == 0) {
@@ -70,13 +70,13 @@ public:
 
     // assumes queue is not empty
     void pop() {
-        ASSERT(size > 0);
+        DSME_ASSERT(size > 0);
         size--;
     }
 
     // assumes queue is not empty
     C& front() {
-        ASSERT(size > 0);
+        DSME_ASSERT(size > 0);
         return queue[(next_back+size)%MAX_SIZE];
     }
 
