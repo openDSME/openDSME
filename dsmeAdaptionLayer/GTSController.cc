@@ -120,7 +120,7 @@ void GTSController::multisuperframeEvent() {
         LOG_DEBUG_PURE("; i: " << (const char*)(i<0?"":" ") << i);
         LOG_DEBUG_PURE("; d: " << (const char*)(d<0?"":" ") << d);
         LOG_DEBUG_PURE("; u: " << (const char*)(u<0?"":" ") << u);
-        LOG_DEBUG_PURE(std::endl);
+        LOG_DEBUG("");
 
         data.last_error = e;
         data.messagesInLastMultisuperframe = 0;
