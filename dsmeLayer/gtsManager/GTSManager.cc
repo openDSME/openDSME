@@ -391,8 +391,6 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
             params.status = event.management.status;
 
-            this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(params);
-
             if (event.management.status == GTSStatus::SUCCESS) {
                 if (event.management.type == ALLOCATION) {
                     if (checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, true)) { // TODO issue #3
@@ -407,7 +405,11 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
                     }
                 }
+            }
 
+            this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(params);
+
+            if (event.management.status == GTSStatus::SUCCESS) {
                 /* the requesting node has to notify its one hop neighbors */
                 DSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);

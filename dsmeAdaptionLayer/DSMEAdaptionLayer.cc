@@ -233,6 +233,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
                 gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
 
+            LOG_INFO("Preparing transmission in CFP.");
         } else {
             LOG_INFO("Preparing transmission in CAP.");
         }
