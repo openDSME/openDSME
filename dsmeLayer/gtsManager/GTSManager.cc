@@ -74,7 +74,7 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     DSME_ASSERT(fsmId == GTS_STATE_MULTIPLICITY);
 
-    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateBusy) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -100,7 +100,7 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
 fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     if(event.signal != GTSEvent::CFP_STARTED) {
-        LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")" << "[" << (uint16_t)fsmId << "]");
+        LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateIdle) << ")" << "[" << (uint16_t)fsmId << "]");
     }
 
     switch(event.signal) {
@@ -243,7 +243,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateSending) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -346,7 +346,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForResponse) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -455,7 +455,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_INFO("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")" << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG("GTS Event handled: '" << signalToString(event.signal) << "' (" << stateToString(&GTSManager::stateWaitForNotify) << ")" << "[" << (uint16_t)fsmId << "]");
 
     switch (event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
