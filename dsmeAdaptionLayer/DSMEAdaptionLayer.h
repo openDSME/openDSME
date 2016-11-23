@@ -55,6 +55,7 @@ class DSMELayer;
 
 namespace mlme_sap {
 class MLME_SAP;
+struct SYNC_LOSS_indication_parameters;
 }
 
 namespace mcps_sap {

@@ -51,6 +51,7 @@
 #include "POLL.h"
 #include "SCAN.h"
 #include "START.h"
+#include "SYNC_LOSS.h"
 
 namespace dsme {
 class DSMELayer;

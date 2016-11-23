@@ -100,7 +100,7 @@ void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t current
         if(this->missedBeacons > aMaxLostBeacons) {
             mlme_sap::SYNC_LOSS_indication_parameters params;
             MAC_PIB &mac_pip = this->dsme.getMAC_PIB();
-            PHY_PIB &phy_pip = this-dsme.getPHY_PIB();
+            PHY_PIB &phy_pip = this->dsme.getPHY_PIB();
 
             params.lossReason = LossReason::BEACON_LOST;
             params.panId = mac_pip.macPANId;

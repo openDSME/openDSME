@@ -339,7 +339,7 @@ void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_
     if(params.lossReason == LossReason::BEACON_LOST) {
         LOG_INFO("Beacon tracking lost!");
     } else {
-        LOG_WARN("Tracking lost for unsupported reason: " << params.lossReason);
+        LOG_WARN("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
         ASSERT(false);
     }
 }
