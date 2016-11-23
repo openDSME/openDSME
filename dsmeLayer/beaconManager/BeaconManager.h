@@ -115,7 +115,8 @@ public:
 protected:
     DSMELayer& dsme;
 
-    bool isBeaconAllocationSent;bool isBeaconAllocated;
+    bool isBeaconAllocationSent;
+    bool isBeaconAllocated;
 
     uint32_t lastHeardBeaconTimestamp; // TODO size?
     uint32_t lastKnownBeaconIntervalStart;
@@ -126,6 +127,8 @@ protected:
     DSMEPANDescriptor dsmePANDescriptor;
 
     long numBeaconCollision;
+
+    uint8_t missedBeacons;
 
     /**
      * Send an enhanced Beacon directly
@@ -177,7 +180,6 @@ private:
 
     uint16_t superframesForEachChannel;
     uint16_t superframesLeftForScan;
-
 };
 
 } /* dsme */

@@ -69,6 +69,7 @@ public:
     POLL& getPOLL();
     SCAN& getSCAN();
     START& getSTART();
+    SYNC_LOSS& getSYNC_LOSS();
 
 private:
     DSMELayer& dsme;
@@ -81,6 +82,7 @@ private:
     POLL poll;
     SCAN scan;
     START start;
+    SYNC_LOSS sync_loss;
 };
 
 } /* mlme_sap */

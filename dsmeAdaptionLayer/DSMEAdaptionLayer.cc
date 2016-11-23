@@ -71,6 +71,9 @@ void DSMEAdaptionLayer::initialize() {
     this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
     this->mcps_sap->getDATA().confirm(DELEGATE(&DSMEAdaptionLayer::handleDataConfirm, *this));
+
+    this->mlme_sap->getSYNC_LOSS().indication(DELEGATE(&DSMEAdaptionLayer::handleSyncLossIndication, *this));
+
     this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     return;
@@ -328,6 +331,15 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
 
 
     callback_confirm(params.msduHandle, params.status);
+}
+
+void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
+    if(params.lossReason == LossReason::BEACON_LOST) {
+        LOG_INFO("Beacon tracking lost!");
+    } else {
+        LOG_WARN("Tracking lost for unsupported reason: " << params.lossReason);
+        ASSERT(false);
+    }
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {

@@ -52,6 +52,7 @@ namespace dsme {
 
 BeaconManager::BeaconManager(DSMELayer& dsme) :
         dsme(dsme),
+        missedBeacons(0),
         doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
         scanning(
         false) {
@@ -90,6 +91,27 @@ void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t current
                 + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if (currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
             sendEnhancedBeacon(lateness);
+        }
+    }
+
+    if(currentMultiSuperframe == 0 && currentSuperframe == 0) {
+        /* Increment the number of missed beacons. This gets reset whenever a beacon is received */
+        ++(this->missedBeacons);
+        if(this->missedBeacons > aMaxLostBeacons) {
+            mlme_sap::SYNC_LOSS_indication_parameters params;
+            MAC_PIB &mac_pip = this->dsme.getMAC_PIB();
+            PHY_PIB &phy_pip = this-dsme.getPHY_PIB();
+
+            params.lossReason = LossReason::BEACON_LOST;
+            params.panId = mac_pip.macPANId;
+            params.channelNumber = phy_pip.phyCurrentChannel;
+            params.channelPage = phy_pip.phyCurrentPage;
+            params.securityLevel = 0;
+            params.keyIdMode = 0;
+            params.keySource = nullptr;
+            params.keyIndex = 0;
+
+            this->dsme.getMLME_SAP().getSYNC_LOSS().notify_indication(params);
         }
     }
 }
@@ -164,6 +186,9 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
         LOG_INFO("Currently scanning for PANs -> discard.");
         return;
     }
+
+    /* Reset the number of missed beacons */
+    this->missedBeacons = 0;
 
     // TODO should this be done for every beacon or only for parent beacons?
     // TODO do this on lower layer to gain accuracy and include offset in calculation

@@ -90,5 +90,9 @@ START& MLME_SAP::getSTART() {
     return this->start;
 }
 
+SYNC_LOSS& MLME_SAP::getSYNC_LOSS() {
+    return this->sync_loss;
+}
+
 } /* mlme_sap */
 } /* dsme */
