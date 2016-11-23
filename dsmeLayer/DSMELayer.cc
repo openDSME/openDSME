@@ -197,9 +197,16 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
 
 void DSMELayer::startTrackingBeacons() {
     this->trackingBeacons = true;
+    return;
 }
+
 void DSMELayer::stopTrackingBeacons() {
     this->trackingBeacons = false;
+    return;
+}
+
+bool DSMELayer::isTrackingBeacons() {
+    return this->trackingBeacons;
 }
 
 
