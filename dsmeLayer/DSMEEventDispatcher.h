@@ -70,7 +70,8 @@ public:
 
     void timerInterrupt();
 
-    void setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
+    uint32_t setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
+    uint32_t setupSlotTimer(uint32_t lastSlotTime);
     void setupCSMATimer(uint32_t absSymCnt);
     void setupACKTimer();
     void stopACKTimer();

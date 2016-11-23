@@ -62,7 +62,9 @@ DSMELayer::DSMELayer() :
         currentMultiSuperframe(0),
         nextSlot(0),
         nextSuperframe(0),
-        nextMultiSuperframe(0) {
+        nextMultiSuperframe(0),
+        trackingBeacons(false),
+        lastSlotTime(0) {
 }
 
 DSMELayer::~DSMELayer() {
@@ -87,7 +89,7 @@ void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
 
     /* start the timer initially */
     slotsSinceLastKnownBeaconIntervalStart = 0;
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
+    this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
 }
 
 void DSMELayer::preSlotEvent(void) {
@@ -122,7 +124,11 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
+    if(this->trackingBeacons) {
+        this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
+    } else {
+        this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
+    }
 
     /* handle slot */
     if (currentSlot == 0) {
@@ -150,7 +156,7 @@ void DSMELayer::beaconSentOrReceived(uint16_t SDIndex) {
     /* When beacon processing takes too long, not the first slot of a superframe is scheduled, hence the "+ currentSlot" */
     slotsSinceLastKnownBeaconIntervalStart = SDIndex * aNumSuperframeSlots + currentSlot;
 
-    eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, currentSlot != nextSlot);
+    this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, currentSlot != nextSlot);
 }
 
 uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift) {
@@ -187,6 +193,13 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     // 6: (6 >= 2) && (6+2 <= 2*4-1) -> not ok
     // 7: (7 >= 2) && (7+2 <= 2*4-1) -> not ok
     // 8: (8 >= 2) && (8+2 <= 2*4-1) -> not ok
+}
+
+void DSMELayer::startTrackingBeacons() {
+    this->trackingBeacons = true;
+}
+void DSMELayer::stopTrackingBeacons() {
+    this->trackingBeacons = false;
 }
 
 

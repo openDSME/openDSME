@@ -82,9 +82,10 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 
 /********** Setup Methods **********/
 
-void DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot) {
+uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot) {
     uint32_t next_slot_time = (slotsSinceLastHeardBeacon + 1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot()
             + ((uint32_t) (lastHeardBeaconSymbolCounter));
+
     dsme_atomicBegin();
     DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
     if(withinPreSlot) {
@@ -93,7 +94,20 @@ void DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, 
     DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
     DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();
-    return;
+
+    return next_slot_time;
+}
+
+uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
+    uint32_t next_slot_time = lastSlotTime + dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+
+    dsme_atomicBegin();
+    DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
+    DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
+    DSMETimerMultiplexer::_scheduleTimer();
+    dsme_atomicEnd();
+
+    return next_slot_time;
 }
 
 void DSMEEventDispatcher::setupCSMATimer(uint32_t absSymCnt) {

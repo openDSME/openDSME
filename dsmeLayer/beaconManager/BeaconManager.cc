@@ -94,7 +94,7 @@ void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t current
         }
     }
 
-    if(currentMultiSuperframe == 0 && currentSuperframe == 0) {
+    if(this->dsme.getMAC_PIB().macAssociatedPANCoord && currentMultiSuperframe == 0 && currentSuperframe == 0) {
         /* Increment the number of missed beacons. This gets reset whenever a beacon is received */
         ++(this->missedBeacons);
         if(this->missedBeacons > aMaxLostBeacons) {
@@ -111,6 +111,7 @@ void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t current
             params.keySource = nullptr;
             params.keyIndex = 0;
 
+            this->dsme.stopTrackingBeacons();
             this->dsme.getMLME_SAP().getSYNC_LOSS().notify_indication(params);
         }
     }

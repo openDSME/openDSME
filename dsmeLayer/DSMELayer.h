@@ -217,6 +217,9 @@ public:
 
     void handleStartOfCFP();
 
+    void startTrackingBeacons();
+    void stopTrackingBeacons();
+
 protected:
     DSMESettings settings;
 
@@ -246,6 +249,9 @@ protected:
     uint16_t nextMultiSuperframe;
 
     uint16_t slotsSinceLastKnownBeaconIntervalStart;
+
+    bool trackingBeacons;
+    uint32_t lastSlotTime;
 
     /**
      * Called every slot to display node status in GUI
