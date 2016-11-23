@@ -236,6 +236,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
                 gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
 
+            LOG_INFO("Preparing transmission in CFP.");
         } else {
             LOG_INFO("Preparing transmission in CAP.");
         }
@@ -270,6 +271,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
                     << ": Retry-Queue overflow ("
                     << currentSymbolCounter - oldestEntry->initialSymbolCounter
                     << " symbols old)");
+            ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
         }
@@ -329,7 +331,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
     }
 
-
+    ASSERT(callback_confirm);
     callback_confirm(params.msduHandle, params.status);
 }
 

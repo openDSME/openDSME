@@ -116,7 +116,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     if(lateness > 20) {
         LOG_INFO("lateness " << lateness);
-        ASSERT(false);
+        DSME_ASSERT(false);
     }
 
 

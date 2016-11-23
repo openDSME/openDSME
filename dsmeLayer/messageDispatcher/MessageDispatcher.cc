@@ -95,7 +95,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             // statistic
             if (currentACTElement->getDirection() == RX) {
-                numUnusedRxGts++;   // gets decremented on actual reception
+                numUnusedRxGts++;   // gets PURGE.cc decremented on actual reception
             }
         }
         else {
@@ -351,7 +351,7 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
             case DATA_REQUEST:
             case DSME_ASSOCIATION_REQUEST:
             case DSME_ASSOCIATION_RESPONSE:
-                ASSERT(false);
+                DSME_ASSERT(false);
                 // TODO handle correctly
                 this->dsme.getPlatform().releaseMessage(msg);
                 break;

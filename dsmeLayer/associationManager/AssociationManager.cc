@@ -56,7 +56,7 @@ AssociationManager::AssociationManager(DSMELayer& dsme) :
 void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_sap::ASSOCIATE::request_parameters &params) {
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
-    ASSERT(!associationPending);
+    DSME_ASSERT(!associationPending);
 
     associationPending = true;
     associationSent = false;
@@ -225,7 +225,7 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
 
         switch(status) {
         case DataStatus::Data_Status::SUCCESS:
-            ASSERT(associationPending);
+            DSME_ASSERT(associationPending);
             associationSent = true;
             superframesSinceAssociationSent = 0;
             break;
@@ -262,7 +262,7 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
         case DataStatus::Data_Status::INVALID_ADDRESS:
         case DataStatus::Data_Status::INVALID_GTS:
         case DataStatus::Data_Status::ACK_RCVD_NODSN_NOSA:
-            ASSERT(false);
+            DSME_ASSERT(false);
         }
     }
 
