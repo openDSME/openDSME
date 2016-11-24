@@ -79,7 +79,8 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
     if (nextSlot == 0) {
         // next slot will be the beacon frame
-        dsme.getPlatform().setChannelNumber(dsme.getDSMESettings().commonChannel);
+        uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
+        dsme.getPlatform().setChannelNumber(commonChannel);
         currentACTElement = act.end();
     }
     else if (nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?

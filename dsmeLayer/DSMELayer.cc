@@ -49,14 +49,16 @@
 namespace dsme {
 
 DSMELayer::DSMELayer() :
-        capLayer(*this),
-        eventDispatcher(*this),
-        ackLayer(*this),
-        messageDispatcher(*this),
         platform(nullptr),
-        gtsManager(*this),
-        beaconManager(*this),
+        eventDispatcher(*this),
+
+        ackLayer(*this),
+        capLayer(*this),
         associationManager(*this),
+        beaconManager(*this),
+        gtsManager(*this),
+        messageDispatcher(*this),
+
         currentSlot(0),
         currentSuperframe(0),
         currentMultiSuperframe(0),
