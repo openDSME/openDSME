@@ -44,6 +44,7 @@
 #define TIMERMULTIPLEXER_H
 
 #include <stdint.h>
+#include "EventHistory.h"
 #include "TimerAbstractions.h"
 #include "dsme_platform.h"
 
@@ -75,8 +76,9 @@ protected:
     }
 
     template<T E>
-
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
+        this->history.addEvent(nextEventSymbolCounter, E);
+
         if (nextEventSymbolCounter < this->lastDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
@@ -84,6 +86,7 @@ protected:
                     << ", nextEvent: "<< nextEventSymbolCounter
                     << ", lastDispatch: " << this->lastDispatchSymbolCounter
                     << ", Event " << (uint16_t)E);
+            history.printEvents();
             DSME_ASSERT(false);
         }
 
@@ -156,6 +159,8 @@ private:
     R* instance;
     ReadonlyTimerAbstraction<G> &_NOW;
     WriteonlyTimerAbstraction<S> &_TIMER;
+
+    EventHistory<T, 8> history;
 };
 
 } /* dsme */
