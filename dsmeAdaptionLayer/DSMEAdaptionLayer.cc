@@ -167,7 +167,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
     if (!getMAC_PIB().macAssociatedPANCoord) {
         startAssociation();
         LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
-        dsme.getPlatform().releaseMessage(msg);
+        callback_confirm(msg, DataStatus::TRANSACTION_OVERFLOW);
         return;
     } else if (this->dsme.getDSMESettings().isCoordinator) {
         if (!associationHelper.isAssociatedDevice(dst)) {
