@@ -514,7 +514,9 @@ void GTSHelper::print(const char* name, const DSMESABSpecification &spec) {
         LOG_INFO_PURE((uint16_t )c);
         LOG_INFO_PURE(": ");
         for (uint8_t s = 0; s < numGTSlots; s++) {
-            LOG_INFO_PURE(subblock.get(c + s * numChannels));LOG_INFO_PURE(" ");
+        	  auto r = subblock.get(c + s * numChannels);
+            LOG_INFO_PURE(r);
+            LOG_INFO_PURE(" ");
         }LOG_INFO_PURE("\n");
     }
     return;
@@ -536,7 +538,8 @@ void GTSHelper::print(const char* name, const DSMEAllocationCounterTable &act) {
         LOG_INFO_PURE((uint16_t )m);
         LOG_INFO_PURE(": ");
         for (uint8_t s = 0; s < numGTSlots; s++) {
-            LOG_INFO_PURE(act.isAllocated(m, s));
+        	  auto r = act.isAllocated(m, s);
+            LOG_INFO_PURE(r);
             LOG_INFO_PURE(" ");
         }
         LOG_INFO_PURE("\n");
