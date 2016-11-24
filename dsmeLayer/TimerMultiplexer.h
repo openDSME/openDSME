@@ -77,7 +77,7 @@ protected:
     template<T E>
     inline void _startTimer(uint32_t absoluteTime, handler_t handler) {
         if (absoluteTime < this->lastSymCnt) {
-            LOG_INFO("absoluteTime: " << absoluteTime << " lastSymCnt: " << this->lastSymCnt << " E " << (uint16_t)E);
+            LOG_ERROR("absoluteTime: " << absoluteTime << " lastSymCnt: " << this->lastSymCnt << " E " << (uint16_t)E);
             DSME_ASSERT(false);
         }
 
