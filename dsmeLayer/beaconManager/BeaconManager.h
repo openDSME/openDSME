@@ -61,6 +61,10 @@ class BeaconManager {
 public:
     BeaconManager(DSMELayer& dsme);
 
+    void initialize();
+
+    void reset();
+
     /**
      * Called on reception of an EnhancedBeacon
      */
@@ -75,8 +79,6 @@ public:
 
     // TODO data size
     uint16_t getNumHeardBeacons();
-
-    void initialize();
 
     void handleBeacon(DSMEMessage* msg);
 

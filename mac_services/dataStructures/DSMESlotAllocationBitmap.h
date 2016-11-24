@@ -57,6 +57,11 @@ public:
     void initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels);
 
     /**
+     * Clears all entries
+     */
+    void clear();
+
+    /**
      * Get sub block for superframe
      */
     void getOccupiedSubBlock(DSMESABSpecification& subBlock, uint16_t subBlockIndex) const;

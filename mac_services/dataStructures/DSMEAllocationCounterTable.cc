@@ -64,6 +64,13 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::end() {
     return act.end();
 }
 
+void DSMEAllocationCounterTable::clear() {
+    while(this->act.size() != 0) {
+        DSMEAllocationCounterTable::iterator current = this->act.begin();
+        this->act.remove(current);
+    }
+}
+
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t superframeID, uint8_t gtSlotID) {
     ACTPosition pos;
     pos.superframeID = superframeID;
@@ -78,7 +85,8 @@ void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superfra
         LOG_INFO_PURE(">");
     } else {
         LOG_INFO_PURE("<");
-    }LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID+9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
+    }
+    LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID+9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
 }
 
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {

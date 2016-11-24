@@ -146,6 +146,8 @@ public:
 
     void initialize();
 
+    void reset();
+
     /*
      * For external calling from upper layer (over MLME.request).
      * Request for allocating  new GTSSlots to specified Address.

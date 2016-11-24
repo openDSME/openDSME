@@ -60,6 +60,9 @@ class DSMELayer;
 class AssociationManager {
 public:
     AssociationManager(DSMELayer& dsme);
+
+    void reset();
+
     void sendAssociationRequest(AssociateRequestCmd &associateRequestCmd, mlme_sap::ASSOCIATE::request_parameters &params);
     void handleAssociationRequest(DSMEMessage *msg);
     void sendAssociationReply(AssociateReplyCmd &reply, IEEE802154MacAddress &deviceAddress);

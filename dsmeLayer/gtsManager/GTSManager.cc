@@ -67,6 +67,19 @@ void GTSManager::initialize() {
     return;
 }
 
+void GTSManager::reset() {
+    dsme_atomicBegin();
+    for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        transition(i, &GTSManager::stateIdle);
+
+        this->data[i].msgToSend = nullptr;
+    }
+    dsme_atomicEnd();
+
+    this->dsme.getMAC_PIB().macDSMESAB.clear();
+    this->dsme.getMAC_PIB().macDSMEACT.clear();
+}
+
 /*****************************
  * States
  *****************************/

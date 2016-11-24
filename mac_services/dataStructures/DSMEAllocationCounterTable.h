@@ -94,6 +94,8 @@ public:
 
     iterator end();
 
+    void clear();
+
     iterator find(uint16_t superframeID, uint8_t gtSlotID);
 
     void printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address);

@@ -53,6 +53,16 @@ AssociationManager::AssociationManager(DSMELayer& dsme) :
         dsme(dsme) {
 }
 
+void AssociationManager::reset() {
+    this->dsme.getMAC_PIB().macPANId = 0xffff;
+    this->dsme.getMAC_PIB().macShortAddress = 0xffff;
+    this->dsme.getMAC_PIB().macAssociatedPANCoord = false;
+    this->dsme.getMAC_PIB().macCoordExtendedAddress = IEEE802154MacAddress::UNSPECIFIED;
+    this->dsme.getMAC_PIB().macCoordShortAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
+
+    this->dsme.getDSMESettings().isCoordinator = false;
+}
+
 void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_sap::ASSOCIATE::request_parameters &params) {
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
@@ -195,13 +205,8 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req,
         dsme.getPlatform().releaseMessage(msg);
     }
 
-    this->dsme.getMAC_PIB().macPANId = 0xffff;
-    this->dsme.getMAC_PIB().macShortAddress = 0xffff;
-    this->dsme.getMAC_PIB().macAssociatedPANCoord = false;
-    this->dsme.getMAC_PIB().macCoordExtendedAddress = IEEE802154MacAddress::UNSPECIFIED;
-    this->dsme.getMAC_PIB().macCoordShortAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
-
-    this->dsme.getDSMESettings().isCoordinator = false;
+    this->dsme.getBeaconManager().reset();
+    reset();
 }
 
 void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {

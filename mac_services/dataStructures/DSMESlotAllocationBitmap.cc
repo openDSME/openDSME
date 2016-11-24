@@ -57,6 +57,10 @@ void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperfr
     return;
 }
 
+void DSMESlotAllocationBitmap::clear() {
+    occupied.fill(false);
+}
+
 void DSMESlotAllocationBitmap::addOccupiedSlots(const DSMESABSpecification &subBlock) {
     occupied.setOperationJoin(subBlock.getSubBlock(), subBlock.getSubBlockIndex() * numGTSlots * numChannels);
     return;

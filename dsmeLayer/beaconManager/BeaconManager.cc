@@ -81,7 +81,22 @@ void BeaconManager::initialize() {
     }
 
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
-    //lastHeardBeaconSymbolCounter = dsme.getPlatform().getSymbolCounter();
+    lastHeardBeaconTimestamp = 0;
+}
+
+void BeaconManager::reset() {
+    isBeaconAllocated = dsme.getDSMESettings().isPANCoordinator;
+    isBeaconAllocationSent = false;
+
+    if (dsme.getDSMESettings().isPANCoordinator) {
+        dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
+        dsmePANDescriptor.getBeaconBitmap().fill(false);
+        dsmePANDescriptor.getBeaconBitmap().set(0, true);
+    } else if (dsme.getDSMESettings().isCoordinator) {
+        dsmePANDescriptor.getBeaconBitmap().fill(false);
+    }
+
+    lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
     lastHeardBeaconTimestamp = 0;
 }
 
