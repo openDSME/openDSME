@@ -190,8 +190,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
         } else {
             // should only happen in rare cases (e.g. resync)
             // normally the backoff is chosen large enough beforehand
-            // TODO test if this is the case
-            DSME_ASSERT(false);
+            // TODO check how often this really happens
             return transition(&CAPLayer::stateBackoff);
         }
     } else {
