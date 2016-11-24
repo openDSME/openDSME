@@ -194,6 +194,14 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req,
         // TODO
         dsme.getPlatform().releaseMessage(msg);
     }
+
+    this->dsme.getMAC_PIB().macPANId = 0xffff;
+    this->dsme.getMAC_PIB().macShortAddress = 0xffff;
+    this->dsme.getMAC_PIB().macAssociatedPANCoord = false;
+    this->dsme.getMAC_PIB().macCoordExtendedAddress = IEEE802154MacAddress::UNSPECIFIED;
+    this->dsme.getMAC_PIB().macCoordShortAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
+
+    this->dsme.getDSMESettings().isCoordinator = false;
 }
 
 void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {

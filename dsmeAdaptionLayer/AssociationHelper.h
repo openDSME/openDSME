@@ -63,6 +63,8 @@ public:
 
     void associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress coordAddress, uint8_t channel);
 
+    void disassociate();
+
     bool isAssociatedDevice(IEEE802154MacAddress address);
 
 private:

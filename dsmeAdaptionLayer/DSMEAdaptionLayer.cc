@@ -344,8 +344,8 @@ void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_
     }
 
     //TODO: start disassociation via MLME instead
-    getMAC_PIB().macAssociatedPANCoord = false;
-
+    this->associationHelper.disassociate();
+    return;
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {

@@ -92,6 +92,22 @@ void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE80
     this->dsmeAdaptionLayer.getMLME_SAP().getASSOCIATE().request(params);
     return;
 }
+void AssociationHelper::disassociate() {
+    mlme_sap::DISASSOCIATE::request_parameters params;
+    params.deviceAddrMode = SHORT_ADDRESS;
+    params.deviceAddress = this->dsmeAdaptionLayer.getMAC_PIB().macExtendedAddress;
+    params.devicePANId = this->dsmeAdaptionLayer.getMAC_PIB().macPANId;
+    params.disassociateReason = DEVICE_WISH_TO_LEAVE;
+    params.securityLevel = 0;
+    params.keyIdMode = 0;
+    params.keySource = nullptr;
+    params.keyIndex = 0;
+    params.txIndirect = false;
+
+    this->dsmeAdaptionLayer.getMLME_SAP().getDISASSOCIATE().request(params);
+    return;
+}
+
 
 bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
     // TODO check if device is associated to this coordinator.
