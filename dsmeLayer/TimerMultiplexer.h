@@ -75,11 +75,12 @@ protected:
     }
 
     template<T E>
+
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         if (nextEventSymbolCounter < this->lastDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
-            LOG_WARN("now:" << now
+            LOG_ERROR("now:" << now
                     << ", nextEvent: "<< nextEventSymbolCounter
                     << ", lastDispatch: " << this->lastDispatchSymbolCounter
                     << ", Event " << (uint16_t)E);
@@ -116,7 +117,7 @@ protected:
 
         uint32_t now = _NOW;
         if (timer <= now) {
-            LOG_INFO("now: " << now << " timer: " << timer);
+            LOG_ERROR("now: " << now << " timer: " << timer);
             DSME_ASSERT(false);
         }
 
