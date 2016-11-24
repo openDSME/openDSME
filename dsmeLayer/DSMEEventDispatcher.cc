@@ -47,13 +47,13 @@
 namespace dsme {
 
 DSMEEventDispatcher::DSMEEventDispatcher(DSMELayer& dsme) :
-        DSMETimerMultiplexer(this, now, timer),
+        DSMETimerMultiplexer(this, NOW, TIMER),
         dsme(dsme) {
 }
 
 void DSMEEventDispatcher::initialize() {
-    this->now.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::getSymbolCounter);
-    this->timer.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::startTimer);
+    this->NOW.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::getSymbolCounter);
+    this->TIMER.initialize(&(this->dsme.getPlatform()), &IDSMEPlatform::startTimer);
 
     DSMETimerMultiplexer::_initialize();
 }
@@ -99,6 +99,7 @@ uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCount
 }
 
 uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
+    /* this should only be used by the PAN-coordinator or when no beacon is currently being tracked */
     uint32_t next_slot_time = lastSlotTime + dsme.getMAC_PIB().helper.getSymbolsPerSlot();
 
     dsme_atomicBegin();
@@ -120,7 +121,8 @@ void DSMEEventDispatcher::setupCSMATimer(uint32_t absSymCnt) {
 
 void DSMEEventDispatcher::setupACKTimer() {
     dsme_atomicBegin();
-    DSMETimerMultiplexer::_startTimer<ACK_TIMER>(dsme.getPlatform().getSymbolCounter() + dsme.getMAC_PIB().macAckWaitDuration, &DSMEEventDispatcher::fireACKTimer);
+    uint32_t ackTimeout = dsme.getMAC_PIB().macAckWaitDuration + NOW;
+    DSMETimerMultiplexer::_startTimer<ACK_TIMER>(ackTimeout, &DSMEEventDispatcher::fireACKTimer);
     DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();
     return;

@@ -84,8 +84,8 @@ private:
     void fireCSMATimer(int32_t lateness);
     void fireACKTimer(int32_t lateness);
 
-    ReadonlyTimerAbstraction<IDSMEPlatform> now;
-    WriteonlyTimerAbstraction<IDSMEPlatform> timer;
+    ReadonlyTimerAbstraction<IDSMEPlatform> NOW;
+    WriteonlyTimerAbstraction<IDSMEPlatform> TIMER;
 };
 
 }
