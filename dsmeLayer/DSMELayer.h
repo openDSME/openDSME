@@ -81,12 +81,9 @@ class MCPS_SAP;
 
 class DSMEPlatform;
 
-class DSMESettings {
-public:
+struct DSMESettings {
     bool isPANCoordinator;
     bool isCoordinator;
-    unsigned commonChannel;
-
     bool optimizations;
 };
 
@@ -217,26 +214,26 @@ public:
 
     void handleStartOfCFP();
 
+    void startTrackingBeacons();
+    void stopTrackingBeacons();
+    bool isTrackingBeacons();
+
 protected:
     DSMESettings settings;
+    IDSMEPlatform* platform;
+    DSMEEventDispatcher eventDispatcher;
+    Delegate<void()> startOfCFPDelegate;
 
+    /* COMPONENTS OF THE DSMELAYER ----------------------------------------> */
+    AckLayer ackLayer;
     CAPLayer capLayer;
 
-    DSMEEventDispatcher eventDispatcher;
-
-    AckLayer ackLayer;
-
-    MessageDispatcher messageDispatcher;
-
-    IDSMEPlatform* platform;
-
-    GTSManager gtsManager;
-    BeaconManager beaconManager;
     AssociationManager associationManager;
+    BeaconManager beaconManager;
+    GTSManager gtsManager;
+    MessageDispatcher messageDispatcher;
+    /* <---------------------------------------- COMPONENTS OF THE DSMELAYER */
 
-    // TODO remove one or use better abstraction
-    Delegate<void()> startOfCFPDelegate;
-    //Delegate<void(uint8_t slot, uint8_t superframe)> slotEventDelegateB;
     // TODO size!
     uint16_t currentSlot;
     uint16_t currentSuperframe;
@@ -244,8 +241,10 @@ protected:
     uint16_t nextSlot;
     uint16_t nextSuperframe;
     uint16_t nextMultiSuperframe;
-
     uint16_t slotsSinceLastKnownBeaconIntervalStart;
+
+    bool trackingBeacons;
+    uint32_t lastSlotTime;
 
     /**
      * Called every slot to display node status in GUI

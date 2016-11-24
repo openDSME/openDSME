@@ -70,7 +70,8 @@ public:
 
     void timerInterrupt();
 
-    void setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
+    uint32_t setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
+    uint32_t setupSlotTimer(uint32_t lastSlotTime);
     void setupCSMATimer(uint32_t absSymCnt);
     void setupACKTimer();
     void stopACKTimer();
@@ -83,8 +84,8 @@ private:
     void fireCSMATimer(int32_t lateness);
     void fireACKTimer(int32_t lateness);
 
-    ReadonlyTimerAbstraction<IDSMEPlatform> now;
-    WriteonlyTimerAbstraction<IDSMEPlatform> timer;
+    ReadonlyTimerAbstraction<IDSMEPlatform> NOW;
+    WriteonlyTimerAbstraction<IDSMEPlatform> TIMER;
 };
 
 }

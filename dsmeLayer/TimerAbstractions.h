@@ -62,7 +62,7 @@ public:
         this->getter = getter;
     }
 
-    inline operator uint32_t() const {
+    inline operator uint32_t() const volatile {
         return (getter_instance->*getter)();
     }
 
@@ -86,9 +86,9 @@ public:
         this->setter = setter;
     }
 
-    inline WriteonlyTimerAbstraction &operator=(uint32_t &value) {
+    inline void operator=(uint32_t &value) volatile {
         (setter_instance->*setter)(value);
-        return (*this);
+        return;
     }
 
 private:

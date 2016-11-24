@@ -71,6 +71,9 @@ void DSMEAdaptionLayer::initialize() {
     this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
     this->mcps_sap->getDATA().confirm(DELEGATE(&DSMEAdaptionLayer::handleDataConfirm, *this));
+
+    this->mlme_sap->getSYNC_LOSS().indication(DELEGATE(&DSMEAdaptionLayer::handleSyncLossIndication, *this));
+
     this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     return;
@@ -330,6 +333,19 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
 
     ASSERT(callback_confirm);
     callback_confirm(params.msduHandle, params.status);
+}
+
+void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
+    if(params.lossReason == LossReason::BEACON_LOST) {
+        LOG_ERROR("Beacon tracking lost!");
+    } else {
+        LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
+        ASSERT(false);
+    }
+
+    //TODO: start disassociation via MLME instead
+    getMAC_PIB().macAssociatedPANCoord = false;
+
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {

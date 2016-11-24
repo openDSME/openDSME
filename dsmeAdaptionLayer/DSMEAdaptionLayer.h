@@ -55,6 +55,7 @@ class DSMELayer;
 
 namespace mlme_sap {
 class MLME_SAP;
+struct SYNC_LOSS_indication_parameters;
 }
 
 namespace mcps_sap {
@@ -132,6 +133,8 @@ private:
     void handleDataIndication(mcps_sap::DATA_indication_parameters &params);
 
     void handleDataConfirm(mcps_sap::DATA_confirm_parameters &params);
+
+    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params);
 
     void handleScanComplete(PANDescriptor* panDescriptor);
 
