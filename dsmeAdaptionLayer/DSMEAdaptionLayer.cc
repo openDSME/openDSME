@@ -337,11 +337,15 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
 
 void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
     if(params.lossReason == LossReason::BEACON_LOST) {
-        LOG_INFO("Beacon tracking lost!");
+        LOG_ERROR("Beacon tracking lost!");
     } else {
-        LOG_WARN("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
+        LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
         ASSERT(false);
     }
+
+    //TODO: start disassociation via MLME instead
+    getMAC_PIB().macAssociatedPANCoord = false;
+
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
