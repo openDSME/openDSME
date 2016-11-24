@@ -187,6 +187,12 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
         }
 
         case AckEvent::RECEIVE_REQUEST:
+            if(!dsme.getPlatform().isReceptionFromAckLayerPossible()) {
+                dsme.getPlatform().releaseMessage(pendingMessage);
+                pendingMessage = nullptr;
+                return transitionToIdle();
+            }
+
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to be set 5.3.11.5.2)
             if (pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
                 LOG_DEBUG("sending ACK");

@@ -74,6 +74,8 @@ public:
 
     virtual void setReceiveDelegate(receive_delegate_t receiveDelegate) = 0;
 
+    virtual bool isReceptionFromAckLayerPossible() = 0;
+
     virtual void handleReceivedMessageFromAckLayer(DSMEMessage* message) = 0;
 
     virtual DSMEMessage* getEmptyMessage() = 0;
