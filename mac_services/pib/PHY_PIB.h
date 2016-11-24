@@ -64,6 +64,10 @@ public:
     ~PHY_PIB();
 
     /* The RF channel to use for all following transmissions and receptions, 8.1.2. */
+    /* Though it is not clearly described in the standard, we assume this value shall not be changed during channel
+     * hopping or channel adaption. For example IEEE 802.15.4-2015 6.3.3.4 does only mention the channel of MLME-START
+     * shall be written to this value, so there seems to be no other way to store the common channel.
+     */
     uint8_t phyCurrentChannel;
 
     /* Each entry in the list consists of a channel page and a list of channel numbers supported for that channel page. */
