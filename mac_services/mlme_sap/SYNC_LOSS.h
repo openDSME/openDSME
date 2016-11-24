@@ -50,7 +50,7 @@ namespace dsme {
 namespace mlme_sap {
 
 struct SYNC_LOSS_indication_parameters {
-    LossReason lossReason;
+    LossReason::Loss_Reason lossReason;
     uint16_t panId;
     uint8_t channelNumber;
     uint8_t channelPage;

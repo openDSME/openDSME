@@ -145,14 +145,17 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
     if ((params.status == AssociationStatus::SUCCESS) || (params.status == AssociationStatus::FASTA_SUCCESSFUL)) {
-        dsme.getMAC_PIB().macPANId = msg->getHeader().getSrcPANId();
-        dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
-        dsme.getMAC_PIB().macAssociatedPANCoord = true;
+        this->dsme.getMAC_PIB().macPANId = msg->getHeader().getSrcPANId();
+        this->dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
+        this->dsme.getMAC_PIB().macAssociatedPANCoord = true;
+
+        this->dsme.startTrackingBeacons();
+
         this->dsme.getPlatform().updateVisual();
     } else {
         /* default in case of failure */
-        dsme.getMAC_PIB().macPANId = 0xffff;
-        dsme.getMAC_PIB().macShortAddress = 0xffff;
+        this->dsme.getMAC_PIB().macPANId = 0xffff;
+        this->dsme.getMAC_PIB().macShortAddress = 0xffff;
     }
 }
 

@@ -40,53 +40,59 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MLME_SAP_H_
-#define MLME_SAP_H_
+#ifndef EVENTHISTORY_H
+#define EVENTHISTORY_H
 
-#include "ASSOCIATE.h"
-#include "BEACON_NOTIFY.h"
-#include "COMM_STATUS.h"
-#include "DISASSOCIATE.h"
-#include "DSME_GTS.h"
-#include "POLL.h"
-#include "SCAN.h"
-#include "START.h"
-#include "SYNC_LOSS.h"
+#include <stdint.h>
+#include "dsme_platform.h"
 
 namespace dsme {
-class DSMELayer;
 
-namespace mlme_sap {
+template<typename T, uint8_t S>
+class EventHistory {
+    struct EventEntry {
+        uint32_t timestamp;
+        int16_t event;
+    };
 
-class MLME_SAP {
 public:
-    MLME_SAP(DSMELayer& dsme);
+    EventHistory() : head(0) {
+        for(uint8_t i = 0; i < S; ++i) {
+            history[i].timestamp = 0;
+            history[i].event = -1;
+        }
+    }
 
-    ASSOCIATE& getASSOCIATE();
-    BEACON_NOTIFY& getBEACON_NOTIFY();
-    COMM_STATUS& getCOMM_STATUS();
-    DISASSOCIATE& getDISASSOCIATE();
-    DSME_GTS& getDSME_GTS();
-    POLL& getPOLL();
-    SCAN& getSCAN();
-    START& getSTART();
-    SYNC_LOSS& getSYNC_LOSS();
+    void addEvent(uint32_t timestamp, T event) {
+        history[head].timestamp = timestamp;
+        history[head].event = (int16_t)event;
+
+        ++head;
+        if(head == S) {
+            head = 0;
+        }
+    }
+
+    void printEvents() {
+        uint8_t p = head + 1;
+
+        for(uint8_t i = 0; i < S; ++i) {
+            if (p == S) {
+                p = 0;
+            }
+
+            EventEntry entry = history[p];
+            LOG_ERROR("t: " << entry.timestamp << " e:" << entry.event);
+
+            ++p;
+        }
+    }
 
 private:
-    DSMELayer& dsme;
-
-    ASSOCIATE associate;
-    BEACON_NOTIFY beacon_notify;
-    COMM_STATUS comm_status;
-    DISASSOCIATE disassociate;
-    DSME_GTS dsme_gts;
-    POLL poll;
-    SCAN scan;
-    START start;
-    SYNC_LOSS sync_loss;
+    EventEntry history[S];
+    uint8_t head;
 };
 
-} /* mlme_sap */
 } /* dsme */
 
-#endif /* MLME_SAP_H_ */
+#endif /* EVENTHISTORY_H */

@@ -44,6 +44,7 @@
 #define TIMERMULTIPLEXER_H
 
 #include <stdint.h>
+#include "EventHistory.h"
 #include "TimerAbstractions.h"
 #include "dsme_platform.h"
 
@@ -57,16 +58,16 @@ protected:
 
     TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G> &now, WriteonlyTimerAbstraction<S> &timer) :
             instance(instance),
-            NOW(now),
-            TIMER(timer) {
+            _NOW(now),
+            _TIMER(timer) {
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            this->syms_until[i] = -1;
+            this->symbols_until[i] = -1;
             this->handlers[i] = nullptr;
         }
     }
 
     void _initialize() {
-        this->lastSymCnt = NOW;
+        this->lastDispatchSymbolCounter = _NOW;
     }
 
     void _timerInterrupt() {
@@ -75,20 +76,28 @@ protected:
     }
 
     template<T E>
-    inline void _startTimer(uint32_t absoluteTime, handler_t handler) {
-        if (absoluteTime < this->lastSymCnt) {
-            LOG_INFO("absoluteTime: " << absoluteTime << " lastSymCnt: " << this->lastSymCnt << " E " << (uint16_t)E);
+    inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
+        this->history.addEvent(nextEventSymbolCounter, E);
+
+        if (nextEventSymbolCounter < this->lastDispatchSymbolCounter) {
+            /* '-> an event was scheduled too far in the past */
+            uint32_t now = _NOW;
+            LOG_ERROR("now:" << now
+                    << ", nextEvent: "<< nextEventSymbolCounter
+                    << ", lastDispatch: " << this->lastDispatchSymbolCounter
+                    << ", Event " << (uint16_t)E);
+            history.printEvents();
             DSME_ASSERT(false);
         }
 
-        this->syms_until[E] = absoluteTime - this->lastSymCnt;
+        this->symbols_until[E] = nextEventSymbolCounter - this->lastDispatchSymbolCounter;
         this->handlers[E] = handler;
         return;
     }
 
     template<T E>
     inline void _stopTimer() {
-        this->syms_until[E] = -1;
+        this->symbols_until[E] = -1;
         return;
     }
 
@@ -96,22 +105,22 @@ protected:
         uint32_t symsUntilNextEvent = -1;
 
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (0 < this->syms_until[i] && static_cast<uint32_t>(this->syms_until[i]) < symsUntilNextEvent) {
-                symsUntilNextEvent = syms_until[i];
+            if (0 < this->symbols_until[i] && static_cast<uint32_t>(this->symbols_until[i]) < symsUntilNextEvent) {
+                symsUntilNextEvent = symbols_until[i];
             }
         }
 
-        uint32_t timer = this->lastSymCnt + symsUntilNextEvent;
+        uint32_t timer = this->lastDispatchSymbolCounter + symsUntilNextEvent;
 
-        uint32_t currentSymCnt = NOW;
+        uint32_t currentSymCnt = _NOW;
         if (timer < currentSymCnt + 2) {
             timer = currentSymCnt + 2;
         }
-        TIMER = timer;
+        _TIMER = timer;
 
-        uint32_t now = NOW;
+        uint32_t now = _NOW;
         if (timer <= now) {
-            LOG_INFO("now: " << now << " timer: " << timer);
+            LOG_ERROR("now: " << now << " timer: " << timer);
             DSME_ASSERT(false);
         }
 
@@ -120,36 +129,38 @@ protected:
 
 private:
     void dispatchEvents() {
-        uint32_t currentSymCnt = NOW;
+        uint32_t currentSymbolCounter = _NOW;
 
-        // The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t).
-        int32_t symsSinceLastDispatch = (uint32_t) (currentSymCnt - lastSymCnt);
+        /* The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t). */
+        int32_t symbolsSinceLastDispatch = (uint32_t) (currentSymbolCounter - this->lastDispatchSymbolCounter);
 
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (0 < this->syms_until[i] && this->syms_until[i] <= symsSinceLastDispatch) {
-                int32_t lateness = symsSinceLastDispatch - this->syms_until[i];
+            if (0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
+                int32_t lateness = symbolsSinceLastDispatch - this->symbols_until[i];
                 DSME_ASSERT(this->handlers[i] != nullptr);
                 (instance->*(this->handlers[i]))(lateness);
             }
         }
 
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (this->syms_until[i] > 0) {
-                this->syms_until[i] -= symsSinceLastDispatch;
+            if (this->symbols_until[i] > 0) {
+                this->symbols_until[i] -= symbolsSinceLastDispatch;
             }
         }
-        lastSymCnt = currentSymCnt;
+        this->lastDispatchSymbolCounter = currentSymbolCounter;
         return;
     }
 
 private:
-    uint32_t lastSymCnt;
-    int32_t syms_until[timer_t::TIMER_COUNT];
+    uint32_t lastDispatchSymbolCounter;
+    int32_t symbols_until[timer_t::TIMER_COUNT];
     handler_t handlers[timer_t::TIMER_COUNT];
 
     R* instance;
-    ReadonlyTimerAbstraction<G> &NOW;
-    WriteonlyTimerAbstraction<S> &TIMER;
+    ReadonlyTimerAbstraction<G> &_NOW;
+    WriteonlyTimerAbstraction<S> &_TIMER;
+
+    EventHistory<T, 8> history;
 };
 
 } /* dsme */

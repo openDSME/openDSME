@@ -71,6 +71,9 @@ void DSMEAdaptionLayer::initialize() {
     this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
     this->mcps_sap->getDATA().confirm(DELEGATE(&DSMEAdaptionLayer::handleDataConfirm, *this));
+
+    this->mlme_sap->getSYNC_LOSS().indication(DELEGATE(&DSMEAdaptionLayer::handleSyncLossIndication, *this));
+
     this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     return;
@@ -233,6 +236,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
                 gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
 
+            LOG_INFO("Preparing transmission in CFP.");
         } else {
             LOG_INFO("Preparing transmission in CAP.");
         }
@@ -267,6 +271,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
                     << ": Retry-Queue overflow ("
                     << currentSymbolCounter - oldestEntry->initialSymbolCounter
                     << " symbols old)");
+            ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
         }
@@ -326,8 +331,17 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
     }
 
-
+    ASSERT(callback_confirm);
     callback_confirm(params.msduHandle, params.status);
+}
+
+void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
+    if(params.lossReason == LossReason::BEACON_LOST) {
+        LOG_INFO("Beacon tracking lost!");
+    } else {
+        LOG_WARN("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
+        ASSERT(false);
+    }
 }
 
 void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
