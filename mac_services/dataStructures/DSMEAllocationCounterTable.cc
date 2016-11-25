@@ -69,6 +69,7 @@ void DSMEAllocationCounterTable::clear() {
         DSMEAllocationCounterTable::iterator current = this->act.begin();
         this->act.remove(current);
     }
+    this->bitmap.fill(false);
 }
 
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t superframeID, uint8_t gtSlotID) {
