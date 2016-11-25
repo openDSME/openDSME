@@ -82,8 +82,10 @@ private:
     DSMELayer& dsme;
     static constexpr uint16_t BROADCAST_PAN_ID = 0xffff;
 
-    bool associationPending = false;
-    bool associationSent = false;
+    bool actionPending = false;
+    bool messageSent = false;
+    CommandFrameIdentifier currentAction;
+
     uint8_t superframesSinceAssociationSent;
 };
 

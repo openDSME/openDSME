@@ -66,10 +66,11 @@ void AssociationManager::reset() {
 void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_sap::ASSOCIATE::request_parameters &params) {
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
-    DSME_ASSERT(!associationPending);
+    DSME_ASSERT(!actionPending);
+    currentAction = CommandFrameIdentifier::ASSOCIATION_REQUEST;
 
-    associationPending = true;
-    associationSent = false;
+    actionPending = true;
+    messageSent = false;
 
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     req.prependTo(msg);
@@ -89,9 +90,11 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_s
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
 
     if(!dsme.getMessageDispatcher().sendInCAP(msg)) {
-        associationPending = false;
+        actionPending = false;
         mlme_sap::ASSOCIATE_confirm_parameters params;
         params.assocShortAddress = 0xFFFF;
+
+        // TODO: This should be a TRANSACTION_OVERFLOW, but the standard does not support this
         params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
         this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
         dsme.getPlatform().releaseMessage(msg);
@@ -138,7 +141,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd &reply, IEEE8021
 }
 
 void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
-    if(!associationPending) {
+    if(!actionPending) {
         // No association pending, for example because of an ACK timeout
         return;
     }
@@ -150,7 +153,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
     params.assocShortAddress = reply.getShortAddr();
     params.status = reply.getStatus();
 
-    associationPending = false;
+    actionPending = false;
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
@@ -173,6 +176,11 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
  * Disassociation
  ****************************************************************************/
 void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req, mlme_sap::DISASSOCIATE::request_parameters &params) {
+    DSME_ASSERT(!actionPending);
+    currentAction = CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION;
+
+    actionPending = true;
+    messageSent = false;
 
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     req.prependTo(msg);
@@ -201,7 +209,12 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req,
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
 
     if(!dsme.getMessageDispatcher().sendInCAP(msg)) {
-        // TODO
+        actionPending = false;
+        mlme_sap::DISASSOCIATE_confirm_parameters params;
+
+        // TODO: This should be a TRANSACTION_OVERFLOW, but the standard does not support this
+        params.status = DisassociationStatus::CHANNEL_ACCESS_FAILURE;
+        this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(params);
         dsme.getPlatform().releaseMessage(msg);
     }
 }
@@ -222,72 +235,87 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {
  * Gets called when CSMA Message was sent down to the PHY
  */
 void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
-    if(!associationPending) {
+    if(!actionPending) {
         // Already received a response
         dsme.getPlatform().releaseMessage(msg);
         return;
     }
 
-    mlme_sap::ASSOCIATE_confirm_parameters params;
-    params.assocShortAddress = 0xFFFF;
+    mlme_sap::ASSOCIATE_confirm_parameters associate_params;
+    mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
+    associate_params.assocShortAddress = 0xFFFF;
 
-    if(cmdId == ASSOCIATION_REQUEST) {
-        if(status != DataStatus::Data_Status::SUCCESS) {
-            associationPending = false;
-        }
 
-        switch(status) {
+    DSME_ASSERT(this->currentAction == cmdId);
+
+    if(status != DataStatus::Data_Status::SUCCESS) {
+        actionPending = false;
+    }
+
+    switch(status) {
         case DataStatus::Data_Status::SUCCESS:
-            DSME_ASSERT(associationPending);
-            associationSent = true;
+            DSME_ASSERT(actionPending);
+            messageSent = true;
             superframesSinceAssociationSent = 0;
-            break;
+            dsme.getPlatform().releaseMessage(msg);
+            return;
         case DataStatus::Data_Status::TRANSACTION_OVERFLOW:
         case DataStatus::Data_Status::TRANSACTION_EXPIRED:
         case DataStatus::Data_Status::CHANNEL_ACCESS_FAILURE:
-            params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
+            disassociate_params.status = DisassociationStatus::CHANNEL_ACCESS_FAILURE;
             break;
         case DataStatus::Data_Status::COUNTER_ERROR:
-            params.status = AssociationStatus::COUNTER_ERROR;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::COUNTER_ERROR;
+            disassociate_params.status = DisassociationStatus::COUNTER_ERROR;
             break;
         case DataStatus::Data_Status::NO_ACK:
-            params.status = AssociationStatus::NO_ACK;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::NO_ACK;
+            disassociate_params.status = DisassociationStatus::NO_ACK;
             break;
         case DataStatus::Data_Status::INVALID_PARAMETER:
-            params.status = AssociationStatus::INVALID_PARAMETER;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::INVALID_PARAMETER;
+            disassociate_params.status = DisassociationStatus::INVALID_PARAMETER;
             break;
         case DataStatus::Data_Status::UNSUPPORTED_SECURITY:
-            params.status = AssociationStatus::UNSUPPORTED_SECURITY;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::UNSUPPORTED_SECURITY;
+            disassociate_params.status = DisassociationStatus::UNSUPPORTED_SECURITY;
             break;
         case DataStatus::Data_Status::UNAVAILABLE_KEY:
-            params.status = AssociationStatus::UNAVAILABLE_KEY;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::UNAVAILABLE_KEY;
+            disassociate_params.status = DisassociationStatus::UNAVAILABLE_KEY;
             break;
         case DataStatus::Data_Status::FRAME_TOO_LONG:
-            params.status = AssociationStatus::FRAME_TOO_LONG;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            associate_params.status = AssociationStatus::FRAME_TOO_LONG;
+            disassociate_params.status = DisassociationStatus::FRAME_TOO_LONG;
             break;
         case DataStatus::Data_Status::INVALID_ADDRESS:
         case DataStatus::Data_Status::INVALID_GTS:
         case DataStatus::Data_Status::ACK_RCVD_NODSN_NOSA:
             DSME_ASSERT(false);
-        }
     }
+
+    switch(cmdId) {
+        case CommandFrameIdentifier::ASSOCIATION_REQUEST:
+            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
+            break;
+        case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION:
+            this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
+            break;
+        default:
+            DSME_ASSERT(false);
+    }
+
 
     dsme.getPlatform().releaseMessage(msg);
 }
 
 void AssociationManager::handleStartOfCFP(uint8_t superframe) {
-    if(associationPending && associationSent) {
+    if(actionPending && messageSent) {
         superframesSinceAssociationSent++;
         // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
         if(superframesSinceAssociationSent*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
-            associationPending = false;
+            actionPending = false;
             mlme_sap::ASSOCIATE_confirm_parameters params;
             params.assocShortAddress = 0xFFFF;
             params.status = AssociationStatus::NO_DATA;
