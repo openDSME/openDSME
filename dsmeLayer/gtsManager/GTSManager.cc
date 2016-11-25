@@ -552,7 +552,8 @@ const char* GTSManager::signalToString(uint8_t signal) {
         case GTSEvent::SEND_COMPLETE:
             return "SEND_COMPLETE";
         default:
-            return "UNKNOWN";
+            DSME_ASSERT(false);
+            return nullptr;
     }
 }
 
@@ -568,7 +569,8 @@ const char* GTSManager::stateToString(GTSManagerFSM_t::state_t state) {
     } else if(state == &GTSManager::stateWaitForNotify) {
         return "WAITFORNOTIFY";
     } else {
-        return "UNKNOWN";
+        DSME_ASSERT(false);
+        return nullptr;
     }
 }
 
@@ -762,7 +764,10 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
         int8_t validFsmId = -1;
 
         for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-            if(getState(i) == &GTSManager::stateSending && data[i].msgToSend == msg) {
+            // Check which statemachine waits for this msg
+            if(data[i].msgToSend == msg) {
+                data[i].msgToSend = nullptr;
+                ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
                 validFsmId = i;
                 break;
             }
