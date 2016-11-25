@@ -58,6 +58,11 @@ void DSMEEventDispatcher::initialize() {
     DSMETimerMultiplexer::_initialize();
 }
 
+void DSMEEventDispatcher::reset() {
+    _reset();
+    return;
+}
+
 void DSMEEventDispatcher::timerInterrupt() {
     DSMETimerMultiplexer::_timerInterrupt();
 }

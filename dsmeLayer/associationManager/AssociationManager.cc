@@ -204,9 +204,6 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req,
         // TODO
         dsme.getPlatform().releaseMessage(msg);
     }
-
-    this->dsme.getBeaconManager().reset();
-    reset();
 }
 
 void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {

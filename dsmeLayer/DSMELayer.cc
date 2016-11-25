@@ -76,21 +76,50 @@ void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
     this->settings = dsmeSettings;
     this->platform = platform;
 
-    this->platform->setReceiveDelegate(DELEGATE(&MessageDispatcher::receive, messageDispatcher));
+    this->platform->setReceiveDelegate(DELEGATE(&MessageDispatcher::receive, this->messageDispatcher));
 
-    eventDispatcher.initialize();
-    gtsManager.initialize();
+    this->currentSlot = 0;
+    this->currentSuperframe = 0;
+    this->currentMultiSuperframe = 0;
+    this->slotsSinceLastKnownBeaconIntervalStart = 0;
 
-    currentSlot = 0;
-    currentSuperframe = 0;
-    currentMultiSuperframe = 0;
-    messageDispatcher.initialize();
+    this->eventDispatcher.initialize();
+    this->gtsManager.initialize();
+    this->messageDispatcher.initialize();
+    this->beaconManager.initialize();
 
-    ackLayer.setNextSequenceNumber(platform->getRandom());
-    beaconManager.initialize();
+    this->ackLayer.setNextSequenceNumber(platform->getRandom());
 
     /* start the timer initially */
-    slotsSinceLastKnownBeaconIntervalStart = 0;
+    this->lastSlotTime = this->eventDispatcher.setupSlotTimer(this->lastSlotTime);
+}
+
+void DSMELayer::reset() {
+    LOG_WARN("Performing a complete reset of the DSME MLME.");
+
+    dsme_atomicBegin();
+
+    /* stop all timers */
+    this->eventDispatcher.reset();
+
+    this->beaconManager.reset();
+    this->associationManager.reset();
+    this->gtsManager.reset();
+    this->messageDispatcher.reset();
+
+    this->capLayer.reset();
+
+    this->ackLayer.setNextSequenceNumber(this->platform->getRandom());
+
+    this->currentSlot = 0;
+    this->currentSuperframe = 0;
+    this->currentMultiSuperframe = 0;
+    this->slotsSinceLastKnownBeaconIntervalStart = 0;
+
+    dsme_atomicEnd();
+
+    /* restart slot timer */
+    this->lastSlotTime = this->platform->getSymbolCounter();
     this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
 }
 

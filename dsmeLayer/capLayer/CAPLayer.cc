@@ -53,6 +53,17 @@ CAPLayer::CAPLayer(DSMELayer& dsme) :
         doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
+void CAPLayer::reset() {
+    transition(&CAPLayer::stateIdle);
+    this->NB = 0;
+    this->totalNBs = 0;
+    this->NR = 0;
+
+    while( !this->queue.empty() ) {
+        this->queue.pop();
+    }
+}
+
 void CAPLayer::dispatchTimerEvent() {
     CSMAEvent e;
     e.signal = CSMAEvent::TIMER_FIRED;
@@ -171,7 +182,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return gateBackoffIfPending();
     } else {
         if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t )event.signal);
+            LOG_ERROR((uint16_t )event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;

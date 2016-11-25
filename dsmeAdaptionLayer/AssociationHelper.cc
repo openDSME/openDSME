@@ -54,11 +54,18 @@ AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
 void AssociationHelper::initialize() {
     this->dsmeAdaptionLayer.getMLME_SAP().getASSOCIATE().indication(DELEGATE(&AssociationHelper::handleASSOCIATION_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getASSOCIATE().confirm(DELEGATE(&AssociationHelper::handleASSOCIATION_confirm, *this));
+
+    this->dsmeAdaptionLayer.getMLME_SAP().getDISASSOCIATE().confirm(DELEGATE(&AssociationHelper::handleDISASSOCIATION_confirm, *this));
     return;
 }
 
 void AssociationHelper::setAssociationCompleteDelegate(associationCompleteDelegate_t delegate) {
     this->associationCompleteDelegate = delegate;
+    return;
+}
+
+void AssociationHelper::setDisassociationCompleteDelegate(disassociationCompleteDelegate_t delegate) {
+    this->disassociationCompleteDelegate = delegate;
     return;
 }
 
@@ -110,8 +117,7 @@ void AssociationHelper::disassociate() {
 
 
 bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
-    // TODO check if device is associated to this coordinator.
-    return true;
+    return this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord;
 }
 
 void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters &params) {
@@ -139,6 +145,11 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
 
 void AssociationHelper::handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters &params) {
     this->associationCompleteDelegate(params.status);
+    return;
+}
+
+void AssociationHelper::handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_confirm_parameters &params) {
+    this->disassociationCompleteDelegate(params.status);
     return;
 }
 

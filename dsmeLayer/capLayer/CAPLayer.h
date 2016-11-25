@@ -67,6 +67,8 @@ class CAPLayer : private FSM<CAPLayer, CSMAEvent> {
 public:
     CAPLayer(DSMELayer& dsme);
 
+    void reset();
+
     bool pushMessage(DSMEMessage* msg);
 
     void dispatchTimerEvent();

@@ -2,7 +2,7 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * introduced in the IEEE 802.15.4e-2012 standard
+ * described in the IEEE 802.15.4-2015 standard
  *
  * Authors: Florian Meier <florian.meier@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
@@ -40,55 +40,31 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEEVENTDISPATCHER_H
-#define DSMEEVENTDISPATCHER_H
+#include "RESET.h"
 
-#include <stdint.h>
-#include "../interfaces/IDSMEPlatform.h"
-#include "TimerMultiplexer.h"
+#include "../../dsmeLayer/DSMELayer.h"
 
 namespace dsme {
+namespace mlme_sap {
 
-class DSMELayer;
-
-enum EventTimers {
-    NEXT_PRE_SLOT,
-    NEXT_SLOT,
-    CSMA_TIMER,
-    ACK_TIMER,
-    TIMER_COUNT /* always last element */
-};
-
-class DSMEEventDispatcher;
-
-typedef TimerMultiplexer<EventTimers, DSMEEventDispatcher, IDSMEPlatform, IDSMEPlatform> DSMETimerMultiplexer;
-
-class DSMEEventDispatcher : private DSMETimerMultiplexer {
-public:
-    DSMEEventDispatcher(DSMELayer& dsme);
-    void initialize();
-    void reset();
-
-    void timerInterrupt();
-
-    uint32_t setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot);
-    uint32_t setupSlotTimer(uint32_t lastSlotTime);
-    void setupCSMATimer(uint32_t absSymCnt);
-    void setupACKTimer();
-    void stopACKTimer();
-
-private:
-    DSMELayer& dsme;
-
-    void firePreSlotTimer(int32_t lateness);
-    void fireSlotTimer(int32_t lateness);
-    void fireCSMATimer(int32_t lateness);
-    void fireACKTimer(int32_t lateness);
-
-    ReadonlyTimerAbstraction<IDSMEPlatform> NOW;
-    WriteonlyTimerAbstraction<IDSMEPlatform> TIMER;
-};
-
+RESET::RESET(DSMELayer& dsme) :
+        dsme(dsme) {
 }
 
-#endif
+void RESET::request(request_parameters &params) {
+    if(params.setDefaultPIB) {
+        LOG_ERROR("Resetting the PIB is currently not supported.");
+        DSME_ASSERT(false);
+    }
+
+    this->dsme.reset();
+
+    RESET_confirm_parameters confirm_params;
+    confirm_params.status = ResetStatus::SUCCESS;
+    this->notify_confirm(confirm_params);
+
+    return;
+}
+
+} /* mlme_sap */
+} /* dsme */

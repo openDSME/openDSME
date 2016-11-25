@@ -86,7 +86,7 @@ public:
         this->setter = setter;
     }
 
-    inline void operator=(uint32_t &value) volatile {
+    inline void operator=(uint32_t value) volatile {
         (setter_instance->*setter)(value);
         return;
     }

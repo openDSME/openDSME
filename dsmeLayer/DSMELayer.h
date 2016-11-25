@@ -98,6 +98,9 @@ public:
     DSMELayer();
     ~DSMELayer();
 
+    void start(DSMESettings& dsmeSettings, IDSMEPlatform* platform);
+    void reset();
+
     /* MAC SERVICES -------------------------------------------------------> */
 private:
     PHY_PIB *phy_pib;
@@ -187,8 +190,6 @@ public:
     MessageDispatcher& getMessageDispatcher() {
         return messageDispatcher;
     }
-
-    void start(DSMESettings& dsmeSettings, IDSMEPlatform* platform);
 
     void dispatchCCAResult(bool success) {
         messageDispatcher.dispatchCCAResult(success);

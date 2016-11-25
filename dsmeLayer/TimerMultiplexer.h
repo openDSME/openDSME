@@ -70,6 +70,17 @@ protected:
         this->lastDispatchSymbolCounter = _NOW;
     }
 
+    void _reset() {
+        this->lastDispatchSymbolCounter = _NOW;
+        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            this->symbols_until[i] = -1;
+            this->handlers[i] = nullptr;
+        }
+
+        _TIMER = _NOW - 1;
+        return;
+    }
+
     void _timerInterrupt() {
         dispatchEvents();
         _scheduleTimer();
@@ -108,6 +119,10 @@ protected:
             if (0 < this->symbols_until[i] && static_cast<uint32_t>(this->symbols_until[i]) < symsUntilNextEvent) {
                 symsUntilNextEvent = symbols_until[i];
             }
+        }
+
+        if(symsUntilNextEvent == -1) {
+            return;
         }
 
         uint32_t timer = this->lastDispatchSymbolCounter + symsUntilNextEvent;

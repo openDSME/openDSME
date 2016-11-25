@@ -58,12 +58,13 @@ public:
     MessageDispatcher(DSMELayer &dsme);
     ~MessageDispatcher();
 
+    void initialize(void);
+    void reset(void);
+
 private:
     DSMELayer &dsme;
 
 public:
-    void initialize(void);
-
     void sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg);
 
     void dispatchCSMATimerEvent();
@@ -160,9 +161,6 @@ protected:
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
     void createDataIndication(DSMEMessage* msg);
-
-    // empty all dsme gts queues
-    void flushGTSQueues(bool keepFront);
 };
 
 } /* dsme */

@@ -43,6 +43,7 @@
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
 #include "../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
+#include "../mac_services/mlme_sap/RESET.h"
 #include "DSMEAdaptionLayer.h"
 
 namespace dsme {
@@ -76,6 +77,7 @@ void DSMEAdaptionLayer::initialize() {
 
     this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
+    this->associationHelper.setDisassociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleDisassociationComplete, *this));
     return;
 }
 
@@ -271,7 +273,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
                     << ": Retry-Queue overflow ("
                     << currentSymbolCounter - oldestEntry->initialSymbolCounter
                     << " symbols old)");
-            ASSERT(callback_confirm);
+            DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
         }
@@ -331,19 +333,18 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
         gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
     }
 
-    ASSERT(callback_confirm);
+    DSME_ASSERT(callback_confirm);
     callback_confirm(params.msduHandle, params.status);
 }
 
 void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
     if(params.lossReason == LossReason::BEACON_LOST) {
-        LOG_ERROR("Beacon tracking lost!");
+        LOG_ERROR("Beacon tracking lost.");
     } else {
         LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
-        ASSERT(false);
+        DSME_ASSERT(false);
     }
 
-    //TODO: start disassociation via MLME instead
     this->associationHelper.disassociate();
     return;
 }
@@ -369,8 +370,32 @@ void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association
     if (status == AssociationStatus::SUCCESS) {
         LOG_INFO("Association completed successfully.");
     } else {
-        LOG_INFO("Association failed.");
+        LOG_ERROR("Association failed.");
     }
+    return;
+}
+
+void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
+    if (status == DisassociationStatus::SUCCESS) {
+        LOG_INFO("Disassociation completed successfully.");
+    } else {
+        LOG_ERROR("Disassociation failed.");
+    }
+
+    /*
+     * A disassociation is currently only started after loosing beacon tracking.
+     * Afterwards, reset the entire MLME.
+     */
+
+    mlme_sap::RESET::request_parameters params;
+    params.setDefaultPIB = false;
+
+    getMLME_SAP().getRESET().request(params);
+
+    mlme_sap::RESET_confirm_parameters confirm_params;
+    bool confirmed = getMLME_SAP().getRESET().confirm(&confirm_params);
+    DSME_ASSERT(confirmed);
+    DSME_ASSERT(confirm_params.status == ResetStatus::SUCCESS);
     return;
 }
 

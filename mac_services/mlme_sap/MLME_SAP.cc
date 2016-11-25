@@ -53,6 +53,7 @@ MLME_SAP::MLME_SAP(DSMELayer& dsme) :
         disassociate(dsme),
         dsme_gts(dsme),
         poll(dsme),
+        reset(dsme),
         scan(dsme),
         start(dsme) {
     this->dsme.setMLME(this);
@@ -80,6 +81,10 @@ DSME_GTS& MLME_SAP::getDSME_GTS() {
 
 POLL& MLME_SAP::getPOLL() {
     return this->poll;
+}
+
+RESET& MLME_SAP::getRESET() {
+    return this->reset;
 }
 
 SCAN& MLME_SAP::getSCAN() {

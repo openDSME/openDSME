@@ -140,6 +140,8 @@ private:
 
     void handleAssociationComplete(AssociationStatus::Association_Status status);
 
+    void handleDisassociationComplete(DisassociationStatus::Disassociation_Status status);
+
     DSMELayer& dsme;
 
     AssociationHelper associationHelper;

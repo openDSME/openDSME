@@ -47,10 +47,12 @@
 #include "../ConfirmBase.h"
 
 namespace dsme {
+class DSMELayer;
+
 namespace mlme_sap {
 
 struct RESET_confirm_parameters {
-    Reset_Status status;
+    ResetStatus::Reset_Status status;
 };
 
 /*
@@ -58,12 +60,16 @@ struct RESET_confirm_parameters {
  */
 class RESET : public ConfirmBase<RESET_confirm_parameters> {
 public:
+    RESET(DSMELayer& dsme);
 
     struct request_parameters {
         bool setDefaultPIB;
     };
 
-    void request(request_parameters);
+    void request(request_parameters&);
+
+private:
+    DSMELayer& dsme;
 
 };
 

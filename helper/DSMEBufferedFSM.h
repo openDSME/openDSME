@@ -126,7 +126,9 @@ private:
 
             while (r == FSM_TRANSITION) {
                 /* call the exit action from last state */
-                ASSERT((((C* )this)->*s)(exitEvent) != FSM_TRANSITION);
+                r = (((C* )this)->*s)(exitEvent);
+                DSME_ASSERT(r != FSM_TRANSITION);
+
                 s = state;
 
                 /* call entry action of new state */

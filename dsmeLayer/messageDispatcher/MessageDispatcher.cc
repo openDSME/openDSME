@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "MessageDispatcher.h"
+#include "./MessageDispatcher.h"
 
 #include "../messages/MACCommand.h"
 #include "../DSMELayer.h"
@@ -58,17 +58,43 @@ MessageDispatcher::MessageDispatcher(DSMELayer &dsme) :
 MessageDispatcher::~MessageDispatcher() {
 }
 
+void MessageDispatcher::initialize(void) {
+    currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
+    return;
+}
+
+void MessageDispatcher::reset(void) {
+    currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
+
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
+        while(! this->neighborQueue.isQueueEmpty(it)) {
+            DSMEMessage *msg = neighborQueue.popFront(it);
+            mcps_sap::DATA_confirm_parameters params;
+            params.msduHandle = msg;
+            params.Timestamp = 0;
+            params.RangingReceived = false;
+            params.gtsTX = true;
+            params.status = DataStatus::TRANSACTION_EXPIRED;
+            params.numBackoffs = 0;
+            params.dsn = msg->getHeader().getSequenceNumber();
+            params.AckPayload = nullptr;
+            this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+        }
+    }
+    while(this->neighborQueue.getNumNeighbors() > 0) {
+        NeighborQueue<MAX_NEIGHBORS>::iterator it = this->neighborQueue.begin();
+        this->neighborQueue.eraseNeighbor(it);
+    }
+
+    return;
+}
+
 void MessageDispatcher::dispatchCSMATimerEvent() {
     this->dsme.getCapLayer().dispatchTimerEvent();
 }
 
 void MessageDispatcher::dispatchCCAResult(bool success) {
     this->dsme.getCapLayer().dispatchCCAResult(success);
-}
-
-void MessageDispatcher::initialize(void) {
-    currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
-    return;
 }
 
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe) {
@@ -227,8 +253,6 @@ bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>
     DSME_ASSERT(!msg->getHeader().getDestAddr().isBroadcast());
     DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
     DSME_ASSERT(destIt != neighborQueue.end());
-
-
 
     numUpperPacketsForGTS++;
 

@@ -49,6 +49,7 @@
 #include "DISASSOCIATE.h"
 #include "DSME_GTS.h"
 #include "POLL.h"
+#include "RESET.h"
 #include "SCAN.h"
 #include "START.h"
 #include "SYNC_LOSS.h"
@@ -68,6 +69,7 @@ public:
     DISASSOCIATE& getDISASSOCIATE();
     DSME_GTS& getDSME_GTS();
     POLL& getPOLL();
+    RESET& getRESET();
     SCAN& getSCAN();
     START& getSTART();
     SYNC_LOSS& getSYNC_LOSS();
@@ -81,6 +83,7 @@ private:
     DISASSOCIATE disassociate;
     DSME_GTS dsme_gts;
     POLL poll;
+    RESET reset;
     SCAN scan;
     START start;
     SYNC_LOSS sync_loss;
