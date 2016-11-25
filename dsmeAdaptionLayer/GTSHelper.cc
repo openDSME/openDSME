@@ -62,6 +62,10 @@ void GTSHelper::initialize() {
     return;
 }
 
+void GTSHelper::reset() {
+    this->gtsConfirmPending = false;
+}
+
 void GTSHelper::indicateIncomingMessage(uint16_t address) {
     this->gtsController.registerIncomingMessage(address);
 }

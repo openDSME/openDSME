@@ -65,6 +65,8 @@ public:
 
     void initialize();
 
+    void reset();
+
     void checkAllocationForPacket(uint16_t address);
 
     void indicateIncomingMessage(uint16_t address);

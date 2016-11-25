@@ -47,8 +47,8 @@
 namespace dsme {
 namespace mcps_sap {
 
-PURGE::PURGE(DSMELayer& dsme) :
-        dsme(dsme) {
+PURGE::PURGE(DSMELayer& dsme) {
+    (void)dsme;
 }
 
 /* IEEE802.15.4-2011 6.3.4 */

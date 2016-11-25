@@ -70,7 +70,6 @@ public:
     void request(request_parameters&);
 
 private:
-    DSMELayer& dsme;
 };
 
 } /* mcps_sap */

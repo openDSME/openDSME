@@ -400,6 +400,8 @@ void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disas
     bool confirmed = getMLME_SAP().getRESET().confirm(&confirm_params);
     DSME_ASSERT(confirmed);
     DSME_ASSERT(confirm_params.status == ResetStatus::SUCCESS);
+
+    this->gtsAllocationHelper.reset();
     return;
 }
 
