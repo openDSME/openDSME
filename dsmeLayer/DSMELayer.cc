@@ -110,6 +110,7 @@ void DSMELayer::reset() {
     this->capLayer.reset();
 
     this->ackLayer.setNextSequenceNumber(this->platform->getRandom());
+    this->ackLayer.reset();
 
     this->currentSlot = 0;
     this->currentSuperframe = 0;

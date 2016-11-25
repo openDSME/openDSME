@@ -78,6 +78,8 @@ public:
 
     AckLayer(DSMELayer& dsme);
 
+    void reset();
+
     /**
      * Only waits for an acknowledgment if the AR bit in the frame control field is set.
      * @return true, if message was accepted and the doneCallback is pending
