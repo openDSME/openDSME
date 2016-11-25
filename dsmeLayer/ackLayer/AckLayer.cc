@@ -56,7 +56,7 @@ AckLayer::AckLayer(DSMELayer& dsme) :
 }
 
 void AckLayer::reset() {
-    transition(AckLayer::stateIdle);
+    transition(&AckLayer::stateIdle);
 }
 
 void AckLayer::setNextSequenceNumber(uint8_t nextSequenceNumber) {
