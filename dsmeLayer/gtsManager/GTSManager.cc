@@ -636,7 +636,7 @@ bool GTSManager::handleMLMERequest(uint16_t deviceAddr, GTSManagement &man, GTSR
     return dispatch(fsmId, GTSEvent::MLME_REQUEST_ISSUED, deviceAddr, man, cmd);
 }
 
-bool GTSManager::handleMLMEResponse(GTSManagement man, GTSReplyNotifyCmd reply) {
+bool GTSManager::handleMLMEResponse(GTSManagement &man, GTSReplyNotifyCmd &reply) {
     uint16_t destinationAddress = reply.getDestinationAddress();
     int8_t fsmId = getFsmIdForResponse(destinationAddress);
     return dispatch(fsmId, GTSEvent::MLME_RESPONSE_ISSUED, destinationAddress, man, reply);

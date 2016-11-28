@@ -169,7 +169,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the response, true otherwise
      */
-    bool handleMLMEResponse(GTSManagement gtsManagement, GTSReplyNotifyCmd gtsReply);
+    bool handleMLMEResponse(GTSManagement &gtsManagement, GTSReplyNotifyCmd &gtsReply);
 
 
     /**
