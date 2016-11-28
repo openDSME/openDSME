@@ -779,7 +779,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
             // Check which statemachine waits for this msg
             if(data[i].msgToSend == msg) {
                 data[i].msgToSend = nullptr;
-                ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
+                DSME_ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
                 validFsmId = i;
                 break;
             }
