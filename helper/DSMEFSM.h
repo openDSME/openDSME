@@ -102,6 +102,7 @@ public:
 
     bool dispatch(E& event) {
         bool wasBusy;
+
         dsme_atomicBegin();
         wasBusy = dispatchBusy;
         dispatchBusy = true;
@@ -114,7 +115,6 @@ public:
         state_t s = state;
         fsmReturnStatus r = (((C*)this)->*state)(event);
 
-        dsme_atomicBegin();
         while (r == FSM_TRANSITION) {
             /* call the exit action from last state, reuse the already processed 'event' to deliver this */
             event.signal = E::EXIT_SIGNAL;
@@ -127,9 +127,7 @@ public:
             event.signal = E::ENTRY_SIGNAL;
             r = (((C*)this)->*state)(event);
         }
-
         dispatchBusy = false;
-        dsme_atomicEnd();
         return true;
     }
 
