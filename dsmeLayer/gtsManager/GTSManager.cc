@@ -760,6 +760,8 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
     GTSManagement management;
     management.decapsulateFrom(msg);
 
+    LOG_INFO("oS");
+
     bool returnStatus;
     if (management.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         // Sending the duplicate allocation is not handled by the state machine, since

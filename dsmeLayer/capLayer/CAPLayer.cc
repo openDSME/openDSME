@@ -104,7 +104,7 @@ void CAPLayer::sendDone(enum AckLayerResponse response, DSMEMessage* msg) {
 }
 
 bool CAPLayer::pushMessage(DSMEMessage* msg) {
-    LOG_DEBUG("pushMessage " << (uint64_t)msg);
+    LOG_INFO("push " << (uint64_t)msg);
 
     if (queue.full()) {
         return false;
@@ -121,6 +121,7 @@ bool CAPLayer::pushMessage(DSMEMessage* msg) {
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
+    cometos::getCout() << "Ci" << (uint16_t)event.signal << cometos::endl;
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         NB = 0;
         NR = 0;
@@ -145,6 +146,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
+    cometos::getCout() << "Cb" << (uint16_t)event.signal << cometos::endl;
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         startBackoffTimer();
         return FSM_HANDLED;
@@ -170,6 +172,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
+    cometos::getCout() << "Cc" << (uint16_t)event.signal << cometos::endl;
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         dsme.getPlatform().startCCA();
         return FSM_HANDLED;
@@ -211,6 +214,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
+    cometos::getCout() << "Cs" << (uint16_t)event.signal << cometos::endl;
     if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
@@ -272,6 +276,8 @@ void CAPLayer::startBackoffTimer() {
     DSME_ASSERT(dsme.isWithinCAP(CAPStart + backoffSinceCAPStart, symbolsRequired()));
 
     dsme.getEventDispatcher().setupCSMATimer(CAPStart + backoffSinceCAPStart);
+
+    LOG_INFO(now << " " << (CAPStart + backoffSinceCAPStart));
 }
 
 bool CAPLayer::enoughTimeLeft() {
@@ -283,7 +289,7 @@ void CAPLayer::popMessage(DataStatus::Data_Status status) {
     DSMEMessage* msg = queue.front();
     queue.pop();
 
-    LOG_DEBUG("popMessage " << (uint64_t)msg);
+    LOG_INFO("pop " << (uint64_t)msg);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs);
 }
 
