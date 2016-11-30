@@ -64,6 +64,9 @@ void CAPLayer::reset() {
     }
 }
 
+/*****************************
+ * External interfaces
+ *****************************/
 void CAPLayer::dispatchTimerEvent() {
     CSMAEvent e;
     e.signal = CSMAEvent::TIMER_FIRED;
@@ -114,6 +117,127 @@ bool CAPLayer::pushMessage(DSMEMessage* msg) {
     }
 }
 
+/*****************************
+ * States
+ *****************************/
+fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
+    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        NB = 0;
+        NR = 0;
+        totalNBs = 0;
+
+        if(!queue.empty()) {
+            return transition(&CAPLayer::stateBackoff);
+        } else {
+            return FSM_HANDLED;
+        }
+    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
+        LOG_INFO("A CSMA message was pushed.");
+        DSME_ASSERT(!queue.empty());
+        return transition(&CAPLayer::stateBackoff);
+    } else {
+        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_ERROR((uint16_t )event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
+    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        startBackoffTimer();
+        return FSM_HANDLED;
+    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
+    } else if (event.signal == CSMAEvent::TIMER_FIRED) {
+        if (enoughTimeLeft()) {
+            return transition(&CAPLayer::stateCCA);
+        } else {
+            DSME_ASSERT(false);
+            // should only happen in rare cases (e.g. resync)
+            // normally the backoff is chosen large enough beforehand
+            // TODO check how often this really happens
+            return transition(&CAPLayer::stateBackoff);
+        }
+    } else {
+        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_INFO((uint16_t )event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
+    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        dsme.getPlatform().startCCA();
+        return FSM_HANDLED;
+    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
+    } else if (event.signal == CSMAEvent::CCA_FAILURE) {
+        NB++;
+        totalNBs++;
+        if (NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
+            popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
+            return transition(&CAPLayer::stateIdle);
+        } else {
+            return transition(&CAPLayer::stateBackoff);
+        }
+    } else if (event.signal == CSMAEvent::CCA_SUCCESS) {
+        if (!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
+            DSME_ASSERT(false);
+            // message could not be sent (another transmission or reception is active)
+            // should only happen in rare cases (e.g. resync)
+            // TODO check how often this really happens
+            if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
+                popMessage(DataStatus::Data_Status::NO_ACK);
+                return transition(&CAPLayer::stateIdle);
+            } else {
+                NB = 0;
+                NR++;
+                return transition(&CAPLayer::stateBackoff);
+            }
+        } else {
+            return transition(&CAPLayer::stateSending);
+        }
+    } else {
+        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_INFO((uint16_t )event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
+    if (event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
+    } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        popMessage(DataStatus::SUCCESS);
+        return transition(&CAPLayer::stateIdle);
+    } else if (event.signal == CSMAEvent::SEND_FAILED) {
+        /* check if a sending should by retries */
+        if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
+            popMessage(DataStatus::Data_Status::NO_ACK);
+            return transition(&CAPLayer::stateIdle);
+        } else {
+            NB = 0;
+            NR++;
+            return transition(&CAPLayer::stateBackoff);
+        }
+    } else {
+        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_INFO((uint16_t )event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+/*****************************
+ * Actions & Helpers
+ *****************************/
 uint16_t CAPLayer::symbolsRequired() {
     DSMEMessage* msg = queue.front();
     uint16_t symbols = 0;
@@ -161,118 +285,6 @@ void CAPLayer::popMessage(DataStatus::Data_Status status) {
 
     LOG_DEBUG("popMessage " << (uint64_t)msg);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs);
-}
-
-fsmReturnStatus CAPLayer::gateBackoffIfPending() {
-    fsmReturnStatus ret;
-    if (queue.empty()) {
-        ret = transition(&CAPLayer::stateIdle);
-    } else {
-        NB = 0;
-        NR = 0;
-        totalNBs = 0;
-        ret = transition(&CAPLayer::stateBackoff);
-    }
-    return ret;
-}
-
-fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
-    if (event.signal == CSMAEvent::MSG_PUSHED) {
-        LOG_INFO("A CSMA message was pushed.");
-        return gateBackoffIfPending();
-    } else {
-        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_ERROR((uint16_t )event.signal);
-            DSME_ASSERT(false);
-        }
-        return FSM_IGNORED;
-    }
-}
-
-fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
-    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        startBackoffTimer();
-        return FSM_HANDLED;
-    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
-        return FSM_IGNORED;
-    } else if (event.signal == CSMAEvent::TIMER_FIRED) {
-        if (enoughTimeLeft()) {
-            return transition(&CAPLayer::stateCCA);
-        } else {
-            // should only happen in rare cases (e.g. resync)
-            // normally the backoff is chosen large enough beforehand
-            // TODO check how often this really happens
-            return transition(&CAPLayer::stateBackoff);
-        }
-    } else {
-        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t )event.signal);
-            DSME_ASSERT(false);
-        }
-        return FSM_IGNORED;
-    }
-}
-
-fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
-    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        dsme.getPlatform().startCCA();
-        return FSM_HANDLED;
-    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
-        return FSM_IGNORED;
-    } else if (event.signal == CSMAEvent::CCA_FAILURE) {
-        NB++;
-        totalNBs++;
-        if (NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
-            popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
-            return gateBackoffIfPending();
-        } else {
-            return transition(&CAPLayer::stateBackoff);
-        }
-    } else if (event.signal == CSMAEvent::CCA_SUCCESS) {
-        //LOG_DEBUG("CSMA message sent");
-        if (!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
-            // message could not be sent (another transmission or reception is active)
-            // should only happen in rare cases (e.g. resync)
-            // TODO check how often this really happens
-            return gateRetry();
-        } else {
-            return transition(&CAPLayer::stateSending);
-        }
-    } else {
-        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t )event.signal);
-            DSME_ASSERT(false);
-        }
-        return FSM_IGNORED;
-    }
-}
-
-fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
-    if (event.signal == CSMAEvent::MSG_PUSHED) {
-        return FSM_IGNORED;
-    } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
-        popMessage(DataStatus::SUCCESS);
-        return gateBackoffIfPending();
-    } else if (event.signal == CSMAEvent::SEND_FAILED) {
-        return gateRetry();
-    } else {
-        if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t )event.signal);
-            DSME_ASSERT(false);
-        }
-        return FSM_IGNORED;
-    }
-}
-
-fsmReturnStatus CAPLayer::gateRetry() {
-    if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
-        popMessage(DataStatus::Data_Status::NO_ACK);
-        return gateBackoffIfPending();
-    } else {
-        NB = 0;
-        NR++;
-        return transition(&CAPLayer::stateBackoff);
-    }
 }
 
 } /* dsme */

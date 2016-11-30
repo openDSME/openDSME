@@ -91,7 +91,7 @@ public:
      */
     void startScanEnhancedActive(uint16_t scanDuration, channelList_t scanChannels);
 
-    void handleStartOfCFP();
+    void handleStartOfCFP(uint16_t currentSuperframe, uint16_t currentMultiSuperframe);
 
     /**
      * Gets called when CSMA Message was sent down to the PHY

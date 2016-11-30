@@ -78,7 +78,7 @@ void DSMEEventDispatcher::fireSlotTimer(int32_t lateness) {
 }
 
 void DSMEEventDispatcher::fireCSMATimer(int32_t lateness) {
-    this->dsme.getMessageDispatcher().dispatchCSMATimerEvent();
+    this->dsme.getCapLayer().dispatchTimerEvent();
 }
 
 void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {

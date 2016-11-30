@@ -192,7 +192,7 @@ public:
     }
 
     void dispatchCCAResult(bool success) {
-        messageDispatcher.dispatchCCAResult(success);
+        this->capLayer.dispatchCCAResult(success);
     }
 
     void preSlotEvent(void);

@@ -108,28 +108,6 @@ void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t current
             sendEnhancedBeacon(lateness);
         }
     }
-
-    if(this->dsme.isTrackingBeacons() && this->dsme.getMAC_PIB().macAssociatedPANCoord && currentMultiSuperframe == 0 && currentSuperframe == 0) {
-        /* Increment the number of missed beacons. This gets reset whenever a beacon is received */
-        ++(this->missedBeacons);
-        if(this->missedBeacons > aMaxLostBeacons) {
-            mlme_sap::SYNC_LOSS_indication_parameters params;
-            MAC_PIB &mac_pip = this->dsme.getMAC_PIB();
-            PHY_PIB &phy_pip = this->dsme.getPHY_PIB();
-
-            params.lossReason = LossReason::BEACON_LOST;
-            params.panId = mac_pip.macPANId;
-            params.channelNumber = phy_pip.phyCurrentChannel;
-            params.channelPage = phy_pip.phyCurrentPage;
-            params.securityLevel = 0;
-            params.keyIdMode = 0;
-            params.keySource = nullptr;
-            params.keyIndex = 0;
-
-            this->dsme.stopTrackingBeacons();
-            this->dsme.getMLME_SAP().getSYNC_LOSS().notify_indication(params);
-        }
-    }
 }
 
 void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
@@ -495,7 +473,7 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, channelList_t scanCh
     this->superframesLeftForScan = this->superframesForEachChannel;
 }
 
-void BeaconManager::handleStartOfCFP() {
+void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t currentMultiSuperframe) {
     if (this->scanning) {
         this->superframesLeftForScan--;
 
@@ -511,6 +489,28 @@ void BeaconManager::handleStartOfCFP() {
                 LOG_WARN("Event during unknown scan!");
                 break;
             }
+        }
+    }
+
+    if(this->dsme.isTrackingBeacons() && this->dsme.getMAC_PIB().macAssociatedPANCoord && currentMultiSuperframe == 0 && currentSuperframe == 0) {
+        /* Increment the number of missed beacons. This gets reset whenever a beacon is received */
+        ++(this->missedBeacons);
+        if(this->missedBeacons > aMaxLostBeacons) {
+            mlme_sap::SYNC_LOSS_indication_parameters params;
+            MAC_PIB &mac_pip = this->dsme.getMAC_PIB();
+            PHY_PIB &phy_pip = this->dsme.getPHY_PIB();
+
+            params.lossReason = LossReason::BEACON_LOST;
+            params.panId = mac_pip.macPANId;
+            params.channelNumber = phy_pip.phyCurrentChannel;
+            params.channelPage = phy_pip.phyCurrentPage;
+            params.securityLevel = 0;
+            params.keyIdMode = 0;
+            params.keySource = nullptr;
+            params.keyIndex = 0;
+
+            this->dsme.stopTrackingBeacons();
+            this->dsme.getMLME_SAP().getSYNC_LOSS().notify_indication(params);
         }
     }
 

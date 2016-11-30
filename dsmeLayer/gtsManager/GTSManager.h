@@ -169,7 +169,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the response, true otherwise
      */
-    bool handleMLMEResponse(GTSManagement gtsManagement, GTSReplyNotifyCmd gtsReply);
+    bool handleMLMEResponse(GTSManagement &gtsManagement, GTSReplyNotifyCmd &gtsReply);
 
 
     /**
@@ -267,6 +267,8 @@ private:
     int8_t getFsmIdForResponse(uint16_t destinationAddress);
     int8_t getFsmIdFromResponseForMe(DSMEMessage* msg);
     int8_t getFsmIdFromNotifyForMe(DSMEMessage* msg);
+
+    bool hasBusyFsm();
 
     DSMELayer& dsme;
     ACTUpdater actUpdater;

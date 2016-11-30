@@ -207,13 +207,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     if (it->getState() == INVALID) {
                         LOG_INFO("DEALLOCATE: Due to state INVALID");
                     } else if (it->getState() == UNCONFIRMED) {
-                        bool pendingAllocation = false;
-                        for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-                            if (getState(i) != &GTSManager::stateIdle) {
-                                pendingAllocation = true;
-                            }
-                        }
-                        if (pendingAllocation) {
+                        if (hasBusyFsm()) {
                             continue;
                         }
                         LOG_INFO("DEALLOCATE: Due to state UNCONFIRMED");
@@ -636,7 +630,7 @@ bool GTSManager::handleMLMERequest(uint16_t deviceAddr, GTSManagement &man, GTSR
     return dispatch(fsmId, GTSEvent::MLME_REQUEST_ISSUED, deviceAddr, man, cmd);
 }
 
-bool GTSManager::handleMLMEResponse(GTSManagement man, GTSReplyNotifyCmd reply) {
+bool GTSManager::handleMLMEResponse(GTSManagement &man, GTSReplyNotifyCmd &reply) {
     uint16_t destinationAddress = reply.getDestinationAddress();
     int8_t fsmId = getFsmIdForResponse(destinationAddress);
     return dispatch(fsmId, GTSEvent::MLME_RESPONSE_ISSUED, destinationAddress, man, reply);
@@ -779,7 +773,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
             // Check which statemachine waits for this msg
             if(data[i].msgToSend == msg) {
                 data[i].msgToSend = nullptr;
-                ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
+                DSME_ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
                 validFsmId = i;
                 break;
             }
@@ -961,6 +955,16 @@ int8_t GTSManager::getFsmIdFromNotifyForMe(DSMEMessage* msg) {
         }
     }
     return GTS_STATE_MULTIPLICITY;
+}
+
+bool GTSManager::hasBusyFsm() {
+    bool busyFsm = false;
+    for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        if (getState(i) != &GTSManager::stateIdle) {
+            busyFsm = true;
+        }
+    }
+    return busyFsm;
 }
 
 

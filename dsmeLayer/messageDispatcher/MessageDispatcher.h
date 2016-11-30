@@ -67,10 +67,6 @@ private:
 public:
     void sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg);
 
-    void dispatchCSMATimerEvent();
-
-    void dispatchCCAResult(bool success);
-
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
