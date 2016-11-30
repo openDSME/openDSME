@@ -89,14 +89,6 @@ void MessageDispatcher::reset(void) {
     return;
 }
 
-void MessageDispatcher::dispatchCSMATimerEvent() {
-    this->dsme.getCapLayer().dispatchTimerEvent();
-}
-
-void MessageDispatcher::dispatchCCAResult(bool success) {
-    this->dsme.getCapLayer().dispatchCCAResult(success);
-}
-
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe) {
     // Prepare next slot
     // Switch to next slot channel and radio mode
