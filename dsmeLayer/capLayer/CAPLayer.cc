@@ -118,6 +118,20 @@ bool CAPLayer::pushMessage(DSMEMessage* msg) {
 }
 
 /*****************************
+ * Choices
+ *****************************/
+fsmReturnStatus CAPLayer::choiceRebackoff() {
+    NB++;
+    totalNBs++;
+    if (NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
+        popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
+        return transition(&CAPLayer::stateIdle);
+    } else {
+        return transition(&CAPLayer::stateBackoff);
+    }
+}
+
+/*****************************
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
@@ -174,19 +188,16 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     cometos::getCout() << "Cc" << (uint16_t)event.signal << cometos::endl;
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        dsme.getPlatform().startCCA();
-        return FSM_HANDLED;
+        if(!dsme.getPlatform().startCCA()) {
+            return choiceRebackoff();
+        }
+        else {
+            return FSM_HANDLED;
+        }
     } else if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::CCA_FAILURE) {
-        NB++;
-        totalNBs++;
-        if (NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
-            popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
-            return transition(&CAPLayer::stateIdle);
-        } else {
-            return transition(&CAPLayer::stateBackoff);
-        }
+        return choiceRebackoff();
     } else if (event.signal == CSMAEvent::CCA_SUCCESS) {
         if (!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
             DSME_ASSERT(false);

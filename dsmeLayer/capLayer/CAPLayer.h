@@ -95,6 +95,8 @@ private:
     fsmReturnStatus stateSending(CSMAEvent& event);
 
     DSMEQueue<DSMEMessage*, CAP_QUEUE_SIZE> queue;
+
+    fsmReturnStatus choiceRebackoff();
 };
 
 }
