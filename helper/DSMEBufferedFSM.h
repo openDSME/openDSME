@@ -112,12 +112,6 @@ public:
 
 private:
 	void runUntilFinished() {
-        E entryEvent;
-        entryEvent.signal = FSMEvent::ENTRY_SIGNAL;
-        E exitEvent;
-        exitEvent.signal = FSMEvent::EXIT_SIGNAL;
-
-
         while (eventBuffer.hasCurrent()) {
             E *currentEvent = this->eventBuffer.current();
 
@@ -125,18 +119,21 @@ private:
             fsmReturnStatus r = (((C*) this)->*state)(*currentEvent);
 
             while (r == FSM_TRANSITION) {
-                /* call the exit action from last state */
-                r = (((C* )this)->*s)(exitEvent);
+                /* call the exit action from last state, reuse the already processed 'currentEvent' to deliver this */
+                currentEvent->signal = E::EXIT_SIGNAL;
+                r = (((C* )this)->*s)(*currentEvent);
                 DSME_ASSERT(r != FSM_TRANSITION);
 
                 s = state;
 
-                /* call entry action of new state */
-                r = (((C*) this)->*state)(entryEvent);
+                /* call entry action of new state, reuse the already processed 'currentEvent' to deliver this */
+                currentEvent->signal = E::ENTRY_SIGNAL;
+                r = (((C*) this)->*state)(*currentEvent);
             }
             this->eventBuffer.advanceCurrent();
         }
         dispatchBusy = false;
+        return;
 	}
 
 
@@ -144,7 +141,6 @@ private:
 	bool dispatchBusy;
 	DSMERingBuffer<E,S> eventBuffer;
 };
-
 
 } /* dsme */
 

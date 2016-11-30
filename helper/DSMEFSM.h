@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSME_FSM_H
-#define DSME_FSM_H
+#ifndef DSMEFSM_H
+#define DSMEFSM_H
 
 #include <stdint.h>
 #include "../../dsme_platform.h"
@@ -89,6 +89,17 @@ public:
 			state(initial), dispatchBusy(false) {
 	}
 
+    inline fsmReturnStatus transition(state_t next) {
+        dsme_atomicBegin();
+        state = next;
+        dsme_atomicEnd();
+        return FSM_TRANSITION;
+    }
+
+    const state_t& getState() {
+        return state;
+    }
+
     bool dispatch(E& event) {
         bool wasBusy;
         dsme_atomicBegin();
@@ -100,23 +111,21 @@ public:
             return false;
         }
 
-        E entryEvent;
-        entryEvent.signal = FSMEvent::ENTRY_SIGNAL;
-        E exitEvent;
-        exitEvent.signal = FSMEvent::EXIT_SIGNAL;
-
         state_t s = state;
         fsmReturnStatus r = (((C*)this)->*state)(event);
 
         dsme_atomicBegin();
         while (r == FSM_TRANSITION) {
-            /* call the exit action from last state */
-            fsmReturnStatus exitResult = (((C*)this)->*s)(exitEvent);
-            DSME_ASSERT(exitResult != FSM_TRANSITION);
+            /* call the exit action from last state, reuse the already processed 'event' to deliver this */
+            event.signal = E::EXIT_SIGNAL;
+            r = (((C* )this)->*s)(event);
+            DSME_ASSERT(r != FSM_TRANSITION);
+
             s = state;
 
-            /* call entry action of new state */
-            r = (((C*)this)->*state)(entryEvent);
+            /* call entry action of new state, reuse the already processed 'event' to deliver this */
+            event.signal = E::ENTRY_SIGNAL;
+            r = (((C*)this)->*state)(event);
         }
 
         dispatchBusy = false;
@@ -124,22 +133,11 @@ public:
         return true;
     }
 
-	inline fsmReturnStatus transition(state_t next) {
-        dsme_atomicBegin();
-		state = next;
-        dsme_atomicEnd();
-        return FSM_TRANSITION;
-	}
-
-	const state_t& getState() {
-		return state;
-	}
-
 private:
 	state_t state;
 	bool dispatchBusy;
 };
 
+} /* dsme */
 
-}
-#endif
+#endif /* DSMEFSM_H */
