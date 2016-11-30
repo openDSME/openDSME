@@ -175,13 +175,13 @@ void DSMELayer::slotEvent(int32_t lateness) {
 }
 
 void DSMELayer::handleStartOfCFP() {
-    if(startOfCFPDelegate) {
-        startOfCFPDelegate();
+    if(this->startOfCFPDelegate) {
+        this->startOfCFPDelegate();
     }
 
-    gtsManager.handleStartOfCFP(currentSuperframe);
-    associationManager.handleStartOfCFP(currentSuperframe);
-    beaconManager.handleStartOfCFP();
+    this->gtsManager.handleStartOfCFP(this->currentSuperframe);
+    this->associationManager.handleStartOfCFP(this->currentSuperframe);
+    this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
 void DSMELayer::beaconSentOrReceived(uint16_t SDIndex) {
