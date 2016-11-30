@@ -207,13 +207,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     if (it->getState() == INVALID) {
                         LOG_INFO("DEALLOCATE: Due to state INVALID");
                     } else if (it->getState() == UNCONFIRMED) {
-                        bool pendingAllocation = false;
-                        for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-                            if (getState(i) != &GTSManager::stateIdle) {
-                                pendingAllocation = true;
-                            }
-                        }
-                        if (pendingAllocation) {
+                        if (hasBusyFsm()) {
                             continue;
                         }
                         LOG_INFO("DEALLOCATE: Due to state UNCONFIRMED");
@@ -961,6 +955,16 @@ int8_t GTSManager::getFsmIdFromNotifyForMe(DSMEMessage* msg) {
         }
     }
     return GTS_STATE_MULTIPLICITY;
+}
+
+bool GTSManager::hasBusyFsm() {
+    bool busyFsm = false;
+    for (uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+        if (getState(i) != &GTSManager::stateIdle) {
+            busyFsm = true;
+        }
+    }
+    return busyFsm;
 }
 
 

@@ -268,6 +268,8 @@ private:
     int8_t getFsmIdFromResponseForMe(DSMEMessage* msg);
     int8_t getFsmIdFromNotifyForMe(DSMEMessage* msg);
 
+    bool hasBusyFsm();
+
     DSMELayer& dsme;
     ACTUpdater actUpdater;
 
