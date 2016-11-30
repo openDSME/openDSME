@@ -89,9 +89,6 @@ private:
     uint16_t symbolsRequired();
     void popMessage(DataStatus::Data_Status status);
 
-    fsmReturnStatus gateBackoffIfPending();
-    fsmReturnStatus gateRetry();
-
     fsmReturnStatus stateIdle(CSMAEvent& event);
     fsmReturnStatus stateBackoff(CSMAEvent& event);
     fsmReturnStatus stateCCA(CSMAEvent& event);
