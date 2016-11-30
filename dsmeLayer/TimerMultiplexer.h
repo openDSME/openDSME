@@ -82,15 +82,19 @@ protected:
     }
 
     void _timerInterrupt() {
+        dsme_atomicBegin();
+
         dispatchEvents();
         _scheduleTimer();
+
+        dsme_atomicEnd();
     }
 
     template<T E>
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         this->history.addEvent(nextEventSymbolCounter, E);
 
-        if (nextEventSymbolCounter < this->lastDispatchSymbolCounter) {
+        if (nextEventSymbolCounter <= this->lastDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
             LOG_ERROR("now:" << now
@@ -153,7 +157,7 @@ private:
             if (0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
                 int32_t lateness = symbolsSinceLastDispatch - this->symbols_until[i];
                 DSME_ASSERT(this->handlers[i] != nullptr);
-                (instance->*(this->handlers[i]))(lateness);
+                (this->instance->*(this->handlers[i]))(lateness);
             }
         }
 
@@ -167,14 +171,40 @@ private:
     }
 
 private:
+    /**
+     * The timestamp in symbols of the last call to dispatchEvents();
+     */
     uint32_t lastDispatchSymbolCounter;
+
+    /**
+     * Values >  0: timer is activated
+     * Values <= 0: timer has expired or is deactivated
+     */
     int32_t symbols_until[timer_t::TIMER_COUNT];
+
+    /**
+     * Stores handles to methods of a subclass that get called once their associated timer expires
+     */
     handler_t handlers[timer_t::TIMER_COUNT];
 
+    /**
+     * Handle to the instance of the TimerMultiplexer as the subclass which implements the handlers
+     */
     R* instance;
+
+    /**
+     * Reading this as uint32_t returns the current system's symbol counter
+     */
     ReadonlyTimerAbstraction<G> &_NOW;
+
+    /**
+     * Writing an uint32_t to this schedules a timer at the given symbol counter
+     */
     WriteonlyTimerAbstraction<S> &_TIMER;
 
+    /**
+     * For debuging only, records the last scheduled events
+     */
     EventHistory<T, 8> history;
 };
 
