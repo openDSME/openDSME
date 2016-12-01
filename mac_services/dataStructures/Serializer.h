@@ -88,7 +88,7 @@ public:
         return data;
     }
 
-    serialization_type_t getType() {
+    serialization_type_t getType() const {
         return type;
     }
 

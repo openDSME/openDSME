@@ -50,7 +50,9 @@
 namespace dsme {
 
 AssociationManager::AssociationManager(DSMELayer& dsme) :
-        dsme(dsme) {
+        dsme(dsme),
+        currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST),
+        superframesSinceAssociationSent(0) {
 }
 
 void AssociationManager::reset() {
@@ -200,7 +202,7 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req,
         msg->getHeader().setDstAddr(params.deviceAddress);
     } else {
         if (params.deviceAddrMode == AddrMode::SHORT_ADDRESS) {
-            msg->getHeader().setDstAddr(dsme.getMAC_PIB().macCoordShortAddress);
+            msg->getHeader().setDstAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macCoordShortAddress));
         } else {
             msg->getHeader().setDstAddr(dsme.getMAC_PIB().macCoordExtendedAddress);
         }

@@ -59,6 +59,7 @@ constexpr uint16_t SCALING = 128;
 namespace dsme {
 
 GTSControllerData::GTSControllerData() :
+        address(0xffff),
         messagesInLastMultisuperframe(0),
         messagesOutLastMultisuperframe(0),
         error_sum(0),
@@ -114,8 +115,8 @@ void GTSController::multisuperframeEvent() {
 
         LOG_DEBUG_PREFIX;
         LOG_DEBUG_PURE("Controller-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(w<0?"":" ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(y<0?"":" ") << y);
+        LOG_DEBUG_PURE("; w: " << (const char*)(       " ") << w);
+        LOG_DEBUG_PURE("; y: " << (const char*)(       " ") << y);
         LOG_DEBUG_PURE("; e: " << (const char*)(e<0?"":" ") << e);
         LOG_DEBUG_PURE("; i: " << (const char*)(i<0?"":" ") << i);
         LOG_DEBUG_PURE("; d: " << (const char*)(d<0?"":" ") << d);
@@ -154,7 +155,7 @@ static uint16_t abs(int16_t v) {
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
     int16_t control = 0;
-    for (GTSControllerData &d : this->links) {
+    for (const GTSControllerData &d : this->links) {
         if (abs(control) < abs(d.control)) {
             control = d.control;
             address = d.address;

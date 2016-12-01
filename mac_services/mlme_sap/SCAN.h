@@ -72,7 +72,7 @@ struct SCAN_confirm_parameters {
 class SCAN : public ConfirmBase<SCAN_confirm_parameters> {
 public:
 
-    SCAN(DSMELayer& dsme);
+    explicit SCAN(DSMELayer &dsme);
     struct request_parameters {
         ScanType scanType;
         channelList_t scanChannels;

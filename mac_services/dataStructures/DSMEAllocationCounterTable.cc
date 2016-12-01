@@ -46,7 +46,10 @@
 
 using namespace dsme;
 
-DSMEAllocationCounterTable::DSMEAllocationCounterTable() {
+DSMEAllocationCounterTable::DSMEAllocationCounterTable() :
+    numSuperFramesPerMultiSuperframe(0),
+    numGTSlots(0),
+    numChannels(0) {
 }
 
 void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {

@@ -59,7 +59,7 @@ class BeaconManager {
     friend class mlme_sap::SCAN;
 
 public:
-    BeaconManager(DSMELayer& dsme);
+    explicit BeaconManager(DSMELayer &dsme);
 
     void initialize();
 
@@ -70,7 +70,7 @@ public:
      */
     void handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr);
 
-    uint32_t getLastKnownBeaconIntervalStart() {
+    uint32_t getLastKnownBeaconIntervalStart() const {
         return lastKnownBeaconIntervalStart;
     }
 
@@ -78,18 +78,18 @@ public:
     void superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness);
 
     // TODO data size
-    uint16_t getNumHeardBeacons();
+    uint16_t getNumHeardBeacons() const;
 
     void handleBeacon(DSMEMessage* msg);
 
-    bool isScanning();
+    bool isScanning() const;
 
-    void startScanPassive(uint16_t scanDuration, channelList_t scanChannels);
+    void startScanPassive(uint16_t scanDuration, const channelList_t &scanChannels);
 
     /**
      * Starts an enhanced active scan (See IEEE 802.15.4e-2012 6.2.10.1)
      */
-    void startScanEnhancedActive(uint16_t scanDuration, channelList_t scanChannels);
+    void startScanEnhancedActive(uint16_t scanDuration, const channelList_t &scanChannels);
 
     void handleStartOfCFP(uint16_t currentSuperframe, uint16_t currentMultiSuperframe);
 

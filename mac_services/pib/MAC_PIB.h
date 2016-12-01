@@ -57,7 +57,7 @@ namespace dsme {
  */
 class MAC_PIB {
 public:
-    MAC_PIB(PHY_PIB&);
+    explicit MAC_PIB(PHY_PIB&);
 
     MAC_PIB() = delete;
     MAC_PIB(const MAC_PIB&) = delete;

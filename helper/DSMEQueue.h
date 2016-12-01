@@ -80,11 +80,11 @@ public:
         return queue[(next_back+size)%MAX_SIZE];
     }
 
-    bool empty() {
+    bool empty() const {
         return (size == 0);
     }
 
-    bool full() {
+    bool full() const {
         return (size >= MAX_SIZE);
     }
 

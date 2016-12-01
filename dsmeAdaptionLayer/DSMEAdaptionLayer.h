@@ -96,7 +96,7 @@ public:
     typedef Delegate<void(DSMEMessage* msg)> indicationCallback_t;
     typedef Delegate<void(DSMEMessage* msg, DataStatus::Data_Status dataStatus)> confirmCallback_t;
 
-    DSMEAdaptionLayer(DSMELayer&);
+    explicit DSMEAdaptionLayer(DSMELayer&);
 
     void initialize();
 

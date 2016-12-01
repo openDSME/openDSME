@@ -50,15 +50,15 @@ namespace dsme {
 
 class IEEE802154MacAddress {
 public:
-    IEEE802154MacAddress(const IEEE802154MacAddress& other);
+    IEEE802154MacAddress(const IEEE802154MacAddress &other);
 
-    IEEE802154MacAddress();
+    explicit IEEE802154MacAddress();
 
-    IEEE802154MacAddress(uint16_t shortPart);
+    explicit IEEE802154MacAddress(uint16_t shortPart);
 
-    IEEE802154MacAddress(const uint16_t* a);
+    explicit IEEE802154MacAddress(const uint16_t *a);
 
-    IEEE802154MacAddress(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4);
+    explicit IEEE802154MacAddress(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4);
 
     static const IEEE802154MacAddress UNSPECIFIED;
     static const uint16_t SHORT_BROADCAST_ADDRESS; // there is no extended broadcast address (IEEE 802.15.4-2011 5.1.6.2)
@@ -115,13 +115,12 @@ public:
     }
 
     bool isBroadcast() const {
-        return (*this) == SHORT_BROADCAST_ADDRESS;
+        return (*this) == IEEE802154MacAddress(SHORT_BROADCAST_ADDRESS);
     }
 
     // TODO should be determined via association
     void setShortAddress(uint16_t shortAddr) {
-        (*this) = SHORT_BROADCAST_ADDRESS;
-        addr[3] = shortAddr;
+        (*this) = IEEE802154MacAddress(shortAddr);
     }
 
     // TODO should be determined via association

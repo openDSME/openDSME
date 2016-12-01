@@ -50,9 +50,11 @@ namespace dsme {
 class DisassociationNotifyCmd: public DSMEMessageElement {
 public:
 
-    DisassociationNotifyCmd() {
+    DisassociationNotifyCmd() :
+        reason(DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {
     }
-    DisassociationNotifyCmd(DisassociateReason reason) :
+
+    explicit DisassociationNotifyCmd(DisassociateReason reason) :
             reason(reason) {
     }
 

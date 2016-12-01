@@ -54,20 +54,19 @@
 
 namespace dsme {
 
-class DSMEPANDescriptor : public DSMEMessageElement {
-public:
+struct DSMEPANDescriptor : public DSMEMessageElement {
     SuperframeSpecification superframeSpec;
     PendingAddresses pendingAddresses;
     DSMESuperframeSpecification dsmeSuperframeSpec;
     TimeSyncSpecification timeSyncSpec;
     BeaconBitmap beaconBitmap;
 
-public:
     BeaconBitmap& getBeaconBitmap() {
         return beaconBitmap;
     }
 
     DSMEPANDescriptor& operator=(const DSMEPANDescriptor &other) {
+        this->superframeSpec = other.superframeSpec;
         this->pendingAddresses = other.pendingAddresses;
         this->dsmeSuperframeSpec = other.dsmeSuperframeSpec;
         this->timeSyncSpec = other.timeSyncSpec;

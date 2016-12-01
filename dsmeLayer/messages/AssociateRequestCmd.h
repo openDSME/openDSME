@@ -49,13 +49,15 @@
 namespace dsme {
 class AssociateRequestCmd: public DSMEMessageElement {
 public:
-    AssociateRequestCmd() {
+    AssociateRequestCmd() :
+        capabilityInformation{0} {
     }
-    AssociateRequestCmd(CapabilityInformation capabilityInformation) :
+
+    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) :
             capabilityInformation(capabilityInformation) {
     }
 
-    CapabilityInformation getCapabilityInformation() {
+    const CapabilityInformation& getCapabilityInformation() const {
         return this->capabilityInformation;
     }
 

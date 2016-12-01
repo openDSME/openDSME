@@ -50,6 +50,9 @@ namespace dsme {
 CAPLayer::CAPLayer(DSMELayer& dsme) :
         FSM<CAPLayer, CSMAEvent>(&CAPLayer::stateIdle),
         dsme(dsme),
+        NB(0),
+        NR(0),
+        totalNBs(0),
         doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
@@ -135,7 +138,7 @@ fsmReturnStatus CAPLayer::choiceRebackoff() {
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
-    cometos::getCout() << "Ci" << (uint16_t)event.signal << cometos::endl;
+    LOG_INFO_PURE("Ci" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         NB = 0;
         NR = 0;
@@ -160,7 +163,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
-    cometos::getCout() << "Cb" << (uint16_t)event.signal << cometos::endl;
+    LOG_INFO_PURE("Cb" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         startBackoffTimer();
         return FSM_HANDLED;
@@ -186,7 +189,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
-    cometos::getCout() << "Cc" << (uint16_t)event.signal << cometos::endl;
+    LOG_INFO_PURE("Cc" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
@@ -225,7 +228,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
-    cometos::getCout() << "Cs" << (uint16_t)event.signal << cometos::endl;
+    LOG_INFO_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {

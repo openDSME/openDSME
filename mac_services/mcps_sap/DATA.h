@@ -115,7 +115,7 @@ struct DATA_indication_parameters {
 class DATA : public ConfirmBase<DATA_confirm_parameters>,
              public IndicationBase<DATA_indication_parameters> {
 public:
-    DATA(DSMELayer& dsme);
+    explicit DATA(DSMELayer &dsme);
 
     /*
      * IEEE 802.15.4-2011 6.3.1, Table 46,  IEEE 802.15.4e-2012 6.3.1, Table 46
@@ -155,7 +155,7 @@ public:
     void request(request_parameters&);
 
 private:
-    DSMELayer& dsme;
+    DSMELayer &dsme;
 };
 
 } /* mcps_sap */

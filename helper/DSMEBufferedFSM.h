@@ -106,7 +106,7 @@ public:
         return FSM_TRANSITION;
 	}
 
-	const state_t& getState() {
+	const state_t& getState() const {
 		return state;
 	}
 

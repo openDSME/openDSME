@@ -52,14 +52,17 @@ class DSMESABSpecification {
 public:
     typedef BitVector<MAX_GTSLOTS * MAX_CHANNELS * MAX_SAB_UNITS> SABSubBlock;
 
-    DSMESABSpecification(uint8_t subBlockLengthBytes) {
+    explicit DSMESABSpecification(uint8_t subBlockLengthBytes) :
+        subBlockIndex(0) {
         subBlock.initialize(subBlockLengthBytes * 8);
     }
 
-    DSMESABSpecification() {
+    explicit DSMESABSpecification() :
+        subBlockIndex(0) {
     }
 
-    DSMESABSpecification(SABSubBlock& bitVector) :
+    explicit DSMESABSpecification(SABSubBlock &bitVector) :
+        subBlockIndex(0),
         subBlock(bitVector) {
     }
 
@@ -90,12 +93,11 @@ public:
     // TODO do we really want this?
     DSMESABSpecification& operator=(const DSMESABSpecification& other) {
         this->subBlockIndex = other.subBlockIndex;
-        this->subBlock.setLength(other.subBlock.length(),false);
-        this->subBlock.copyFrom(other.subBlock,0);
+        this->subBlock = other.subBlock;
         return (*this);
     }
 
-    bool operator==(const DSMESABSpecification& other) {
+    bool operator==(const DSMESABSpecification& other) const {
         return (subBlockIndex == other.subBlockIndex) && (subBlock == other.subBlock);
     }
 
@@ -124,7 +126,7 @@ inline Serializer& operator<<(Serializer& serializer, DSMESABSpecification& b) {
         serializer << subBlockLength;
     }
     else {
-        uint8_t subBlockLength;
+        uint8_t subBlockLength = 0; /* unused value */
         serializer << subBlockLength;
         b.subBlock.setLength(subBlockLength*8);
     }

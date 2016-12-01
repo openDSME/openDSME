@@ -53,8 +53,10 @@ public:
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess) :
             type(type),
             direction(direction),
-            prioritizedChannelAccess(prioritizedChannelAccess) {
+            prioritizedChannelAccess(prioritizedChannelAccess),
+            status(GTSStatus::GTS_Status::SUCCESS) {
     }
+
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess,
             GTSStatus::GTS_Status status) :
             type(type),

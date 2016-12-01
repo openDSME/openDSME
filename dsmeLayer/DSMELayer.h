@@ -217,7 +217,7 @@ public:
 
     void startTrackingBeacons();
     void stopTrackingBeacons();
-    bool isTrackingBeacons();
+    bool isTrackingBeacons() const;
 
 protected:
     DSMESettings settings;

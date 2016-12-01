@@ -49,6 +49,12 @@
 namespace dsme {
 
 DSMELayer::DSMELayer() :
+        phy_pib(nullptr),
+        mac_pib(nullptr),
+        mcps_sap(nullptr),
+        mlme_sap(nullptr),
+
+        settings{false, false, false},
         platform(nullptr),
         eventDispatcher(*this),
 
@@ -65,6 +71,7 @@ DSMELayer::DSMELayer() :
         nextSlot(0),
         nextSuperframe(0),
         nextMultiSuperframe(0),
+        slotsSinceLastKnownBeaconIntervalStart(0),
         trackingBeacons(false),
         lastSlotTime(0) {
 }
@@ -237,7 +244,7 @@ void DSMELayer::stopTrackingBeacons() {
     return;
 }
 
-bool DSMELayer::isTrackingBeacons() {
+bool DSMELayer::isTrackingBeacons() const {
     return this->trackingBeacons;
 }
 

@@ -184,7 +184,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         case GTSEvent::CFP_STARTED: {
             // check if a slot should be deallocated, only if no reply or notify is pending
             for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
-                    it++) {
+                    ++it) {
                 // Since no reply is pending, this slot should have been removed already and is no longer in the ACT
                 // This should be even the case for timeouts (NO_DATA indication for upper layer)
                 DSME_ASSERT(it->getState() != DEALLOCATED);
@@ -734,7 +734,7 @@ bool GTSManager::handleStartOfCFP(uint8_t superframe) {
     // also execute this during non-idle phases
     if (superframe == 0) {
         for (DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
-                it++) {
+                ++it) {
             if (it->getDirection() == Direction::RX) {
                 // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
                 it->incrementIdleCounter(); // gets reset to zero on RX
@@ -811,11 +811,11 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
     bool duplicateFound = false;
 
     GTSRequestCmd dupReq;
-    dupReq.getSABSpec().setSubBlockLengthBytes(sabSpec.getSubBlockLengthBytes()); // = new DSME_GTSRequestCmd("gts-request-duplication");
+    dupReq.getSABSpec().setSubBlockLengthBytes(sabSpec.getSubBlockLengthBytes());
     dupReq.getSABSpec().setSubBlockIndex(sabSpec.getSubBlockIndex());
 
     for (DSMESABSpecification::SABSubBlock::iterator it = sabSpec.getSubBlock().beginSetBits(); it != sabSpec.getSubBlock().endSetBits();
-            it++) {
+            ++it) {
 
         DSMEAllocationCounterTable::iterator actElement = macDSMEACT.find(sabSpec.getSubBlockIndex(), (*it) / dsme.getMAC_PIB().helper.getNumChannels());
         if (actElement != macDSMEACT.end() && (allChannels || actElement->getChannel() == (*it) % dsme.getMAC_PIB().helper.getNumChannels())) {
@@ -840,7 +840,8 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
 
         // this request expects no reply, so do not use usual request command
         // also do not handle this via the state machine
-        if(!sendGTSCommand(-1, msg, man, CommandFrameIdentifier::DSME_GTS_REQUEST, addr)) {
+        uint8_t UNUSED_ANYWAY = 0;
+        if(!sendGTSCommand(UNUSED_ANYWAY, msg, man, CommandFrameIdentifier::DSME_GTS_REQUEST, addr)) {
             // TODO should this be signaled to the upper layer?
             LOG_INFO("Could not send DUPLICATED_ALLOCATION_NOTIFICATION");
             dsme.getPlatform().releaseMessage(msg);
@@ -870,9 +871,9 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& 
     cmd.setCmdId(commandId);
     cmd.prependTo(msg);
 
-    msg->getHeader().setDstAddr(dst);
+    msg->getHeader().setDstAddr(IEEE802154MacAddress(dst));
     msg->getHeader().setSrcAddrMode(AddrMode::SHORT_ADDRESS);
-    msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macShortAddress);
+    msg->getHeader().setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
     msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
@@ -881,7 +882,7 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& 
     // For example a DISALLOW REPSPONE will only be sent during BUSY, but the fact that it do not expect a notify
     // is handled inside of the onCSMASent.
     if(reportOnSent && (man.type != ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION)) {
-        DSME_ASSERT(fsmId >= 0 && fsmId < GTS_STATE_MULTIPLICITY);
+        DSME_ASSERT(fsmId < GTS_STATE_MULTIPLICITY);
         data[fsmId].cmdToSend = commandId;
         data[fsmId].msgToSend = msg;
     }

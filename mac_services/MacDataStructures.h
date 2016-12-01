@@ -50,7 +50,7 @@ namespace dsme {
 template<typename TK, typename TV>
 class MacTuple {
 public:
-    MacTuple(TK key, TV value) :
+    MacTuple(const TK &key, const TV &value) :
             key(key),
             value(value) {
     }
@@ -66,14 +66,14 @@ public:
             length(0) {
     }
 
-    MacStaticList(const MacStaticList &other) :
+    explicit MacStaticList(const MacStaticList &other) :
             length(other.length) {
         for (uint8_t i = 0; i < length; i++) {
             this->array[i] = other.array[i];
         }
     }
 
-    MacStaticList(uint8_t length) :
+    explicit MacStaticList(uint8_t length) :
             length(length) {
     }
 

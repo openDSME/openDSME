@@ -52,6 +52,9 @@ AckLayer::AckLayer(DSMELayer& dsme) :
         dsme(dsme),
         busy(false),
         pendingMessage(nullptr),
+        pendingSequenceNumber(0),
+        ackSeqNum(0),
+        nextSequenceNumber(0),
         internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 

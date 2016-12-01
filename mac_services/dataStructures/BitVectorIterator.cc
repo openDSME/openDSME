@@ -54,8 +54,7 @@ BitVectorIterator::BitVectorIterator(BitVectorBase* instance,
 BitVectorIterator::~BitVectorIterator() {
 }
 
-BitVectorIterator& BitVectorIterator::operator=(
-        const BitVectorIterator& other) {
+BitVectorIterator& BitVectorIterator::operator=(const BitVectorIterator &other) {
     this->instance = other.instance;
     this->position = other.position;
     this->value = other.value;

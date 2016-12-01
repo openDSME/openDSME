@@ -55,11 +55,11 @@ namespace dsme {
  * Represents a neighboring node in the network
  */
 struct Neighbor {
-    Neighbor(IEEE802154MacAddress address) :
+    explicit Neighbor(const IEEE802154MacAddress &address) :
             address(address) {
     }
 
-    Neighbor(const Neighbor& other) :
+    explicit Neighbor(const Neighbor &other) :
             address(other.address) {
     }
 

@@ -55,7 +55,7 @@ typedef MacStaticList<uint8_t, 16> channelList_t;
  */
 class PHY_PIB {
 public:
-    PHY_PIB(uint8_t phySHRDuration);
+    explicit PHY_PIB(uint8_t phySHRDuration);
 
     PHY_PIB() = delete;
     PHY_PIB(const PHY_PIB&) = delete;

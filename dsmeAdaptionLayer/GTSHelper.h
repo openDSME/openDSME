@@ -61,7 +61,7 @@ struct COMM_STATUS_indication_parameters;
 
 class GTSHelper {
 public:
-    GTSHelper(DSMEAdaptionLayer&);
+    explicit GTSHelper(DSMEAdaptionLayer&);
 
     void initialize();
 
@@ -101,12 +101,6 @@ private:
             uint16_t preferredSuperframe, uint8_t preferredSlot);
 
     void sendDeallocationRequest(uint16_t address, Direction direction, DSMESABSpecification& sabSpecification);
-
-    /* Debug methods */
-
-    void print(const char* name, const DSMESABSpecification &spec);
-
-    void print(const char* name, const DSMEAllocationCounterTable &act);
 
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;

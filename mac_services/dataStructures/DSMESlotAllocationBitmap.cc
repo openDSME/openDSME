@@ -46,7 +46,10 @@
 
 namespace dsme {
 
-DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() {
+DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() :
+        numSuperframesPerMultiSuperframe(0),
+        numGTSlots(0),
+        numChannels(0) {
 }
 
 void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {

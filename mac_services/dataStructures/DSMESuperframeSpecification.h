@@ -59,8 +59,11 @@ public:
     };
 
     DSMESuperframeSpecification() :
-            macChannelDiversityMode(CHANNEL_ADAPTION)
-    {
+            multiSuperframeOrder(0),
+            macChannelDiversityMode(CHANNEL_ADAPTION),
+            GACKFlag(false),
+            CAPReductionFlag(false),
+            deferredBeaconFlag(false) {
     }
 };
 

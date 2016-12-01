@@ -92,7 +92,7 @@ void GTSHelper::handleStartOfCFP() {
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
     uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
-    uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(address);
+    uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(IEEE802154MacAddress(address));
     LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
@@ -160,7 +160,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
             << " for transmission to " << params.deviceAddress << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
-    for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); it++) {
+    for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
         if (it->getSuperframeID() == preferredGTS.superframeID) {
             for (uint8_t channel = 0; channel < numChannels; channel++) {
                 params.dsmeSABSpecification.getSubBlock().set(it->getGTSlotID() * numChannels + channel, true);
@@ -435,7 +435,7 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &reques
     bool foundGts = false;
     bool gtsDifferentAddresses = false;
 
-    for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); it++) {
+    for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
         abs_slot_idx_t idx = it->getGTSlotID();
         idx *= numChannels;
         idx += it->getChannel();
@@ -495,58 +495,6 @@ void GTSHelper::findFreeSlots(DSMESABSpecification &requestSABSpec, DSMESABSpeci
             preferredSuperframe = gts.superframeID;
             preferredSlot = gts.slotID;
         }
-    }
-    return;
-}
-
-void GTSHelper::print(const char* name, const DSMESABSpecification &spec) {
-    const BitVector<MAX_GTSLOTS * MAX_CHANNELS * MAX_SAB_UNITS> &subblock = spec.getSubBlock();
-    const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    const uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
-
-    LOG_INFO_PREFIX;
-    LOG_INFO_PURE("Slot allocation Bitmap[");
-    LOG_INFO_PURE(spec.getSubBlockIndex());
-    LOG_INFO_PURE("] (");
-    LOG_INFO_PURE(name);
-    LOG_INFO_PURE(")\n");
-
-    for (uint8_t c = 0; c < numChannels; c++) {
-        if (c < 10) {
-            LOG_INFO_PURE(" ");
-        }
-        LOG_INFO_PURE((uint16_t )c);
-        LOG_INFO_PURE(": ");
-        for (uint8_t s = 0; s < numGTSlots; s++) {
-        	  auto r = subblock.get(c + s * numChannels);
-            LOG_INFO_PURE(r);
-            LOG_INFO_PURE(" ");
-        }LOG_INFO_PURE("\n");
-    }
-    return;
-}
-
-void GTSHelper::print(const char* name, const DSMEAllocationCounterTable &act) {
-    const uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
-    const uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-
-    LOG_INFO_PREFIX;
-    LOG_INFO_PURE("macDSMEACT (");
-    LOG_INFO_PURE(name);
-    LOG_INFO_PURE(")\n");
-
-    for (uint8_t m = 0; m < numSuperFramesPerMultiSuperframe; m++) {
-        if (m < 10) {
-            LOG_INFO_PURE(" ");
-        }
-        LOG_INFO_PURE((uint16_t )m);
-        LOG_INFO_PURE(": ");
-        for (uint8_t s = 0; s < numGTSlots; s++) {
-        	  auto r = act.isAllocated(m, s);
-            LOG_INFO_PURE(r);
-            LOG_INFO_PURE(" ");
-        }
-        LOG_INFO_PURE("\n");
     }
     return;
 }

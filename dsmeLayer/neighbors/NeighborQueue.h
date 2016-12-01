@@ -91,7 +91,7 @@ public:
      *
      * @return number of Neighbors
      */
-    neighbor_size_t getNumNeighbors();
+    neighbor_size_t getNumNeighbors() const;
 
     iterator findByAddress(const IEEE802154MacAddress& address);
 
@@ -106,7 +106,7 @@ public:
 
     void flushQueues(bool keepFront);
 
-    bool isQueueFull() {
+    bool isQueueFull() const {
         return queue.isFull();
     }
 
@@ -130,8 +130,7 @@ const typename NeighborQueue<N>::iterator NeighborQueue<N>::end() const {
 template<uint8_t N>
 void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
     if (neighbors.size() < N) {
-        neighbors.insert(NeighborListEntry<DSMEMessage>(neighbor),
-                neighbor.address);
+        neighbors.insert(NeighborListEntry<DSMEMessage>(neighbor), neighbor.address);
         return;
     } else {
         return;
@@ -148,13 +147,12 @@ void NeighborQueue<N>::eraseNeighbor(iterator& neighbor) {
 }
 
 template<uint8_t N>
-neighbor_size_t NeighborQueue<N>::getNumNeighbors() {
+neighbor_size_t NeighborQueue<N>::getNumNeighbors() const {
     return neighbors.size();
 }
 
 template<uint8_t N>
-typename NeighborQueue<N>::iterator NeighborQueue<N>::findByAddress(
-        const IEEE802154MacAddress& address) {
+typename NeighborQueue<N>::iterator NeighborQueue<N>::findByAddress(const IEEE802154MacAddress& address) {
     return neighbors.find(address);
 }
 
@@ -190,7 +188,7 @@ void NeighborQueue<N>::pushBack(iterator& neighbor, DSMEMessage* msg) {
 
 template<uint8_t N>
 void NeighborQueue<N>::flushQueues(bool keepFront) {
-    for (iterator i = neighbors.begin(); i != neighbors.end(); i++) {
+    for (iterator i = neighbors.begin(); i != neighbors.end(); ++i) {
         queue.flush(*i, keepFront);
     }
     return;

@@ -65,7 +65,7 @@ typedef TimerMultiplexer<EventTimers, DSMEEventDispatcher, IDSMEPlatform, IDSMEP
 
 class DSMEEventDispatcher : private DSMETimerMultiplexer {
 public:
-    DSMEEventDispatcher(DSMELayer& dsme);
+    explicit DSMEEventDispatcher(DSMELayer& dsme);
     void initialize();
     void reset();
 

@@ -56,6 +56,12 @@ MessageDispatcher::MessageDispatcher(DSMELayer &dsme) :
 }
 
 MessageDispatcher::~MessageDispatcher() {
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
+        while(! this->neighborQueue.isQueueEmpty(it)) {
+            DSMEMessage *msg = neighborQueue.popFront(it);
+            this->dsme.getPlatform().releaseMessage(msg);
+        }
+    }
 }
 
 void MessageDispatcher::initialize(void) {
@@ -286,7 +292,6 @@ bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
 
 
 void MessageDispatcher::handleGTS() {
-    static long numMissingAck = 0;
     if (currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
             && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
 
@@ -296,7 +301,7 @@ void MessageDispatcher::handleGTS() {
             // transmit from gtsQueue
             DSME_ASSERT(lastSendGTSNeighbor == neighborQueue.end());
 
-            lastSendGTSNeighbor = neighborQueue.findByAddress(currentACTElement->getAddress());
+            lastSendGTSNeighbor = neighborQueue.findByAddress(IEEE802154MacAddress(currentACTElement->getAddress()));
             if (neighborQueue.isQueueEmpty(lastSendGTSNeighbor)) {
                 lastSendGTSNeighbor = neighborQueue.end();
                 numUnusedTxGts++;
@@ -315,10 +320,6 @@ void MessageDispatcher::handleGTS() {
                 }
 
                 // statistics
-                // TODO ???
-                if (numTxGtsFrames > numRxAckFrames + numMissingAck) {
-                    numMissingAck++;
-                }
                 numTxGtsFrames++;
             }
         }

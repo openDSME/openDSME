@@ -54,6 +54,11 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme) :
         gtsAllocationHelper(*this),
         scanHelper(*this),
 
+        mcps_sap(nullptr),
+        mlme_sap(nullptr),
+        phy_pib(nullptr),
+        mac_pib(nullptr),
+
         scanInProgress(false),
         associationInProgress(false) {
 

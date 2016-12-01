@@ -57,6 +57,7 @@ protected:
     typedef void (R::*handler_t)(int32_t lateness);
 
     TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G> &now, WriteonlyTimerAbstraction<S> &timer) :
+            lastDispatchSymbolCounter(0),
             instance(instance),
             _NOW(now),
             _TIMER(timer) {

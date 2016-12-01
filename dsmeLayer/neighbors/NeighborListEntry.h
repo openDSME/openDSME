@@ -59,7 +59,7 @@ typedef uint8_t queue_size_t;
 template<typename T>
 struct NeighborListEntry: public Neighbor {
 public:
-    NeighborListEntry(Neighbor &neighbor);
+    explicit NeighborListEntry(Neighbor &neighbor);
     virtual ~NeighborListEntry();
 
     MessageQueueEntry<T> *messageFront;

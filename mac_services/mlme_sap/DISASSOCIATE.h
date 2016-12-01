@@ -77,7 +77,7 @@ struct DISASSOCIATE_confirm_parameters {
 class DISASSOCIATE : public IndicationBase<DISASSOCIATE_indication_parameters>,
                      public ConfirmBase<DISASSOCIATE_confirm_parameters> {
 public:
-    DISASSOCIATE(DSMELayer& dsme);
+    explicit DISASSOCIATE(DSMELayer &dsme);
     struct request_parameters {
         AddrMode deviceAddrMode;
         uint16_t devicePANId;

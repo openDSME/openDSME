@@ -65,17 +65,17 @@ class DSMELayer;
 
 class CAPLayer : private FSM<CAPLayer, CSMAEvent> {
 public:
-    CAPLayer(DSMELayer& dsme);
+    explicit CAPLayer(DSMELayer &dsme);
 
     void reset();
 
-    bool pushMessage(DSMEMessage* msg);
+    bool pushMessage(DSMEMessage *msg);
 
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
 
 private:
-    DSMELayer& dsme;
+    DSMELayer &dsme;
 
     uint8_t NB;
     uint8_t NR;
@@ -83,16 +83,16 @@ private:
 
     AckLayer::done_callback_t doneCallback;
 
-    void sendDone(enum AckLayerResponse response, DSMEMessage* msg);
+    void sendDone(enum AckLayerResponse response, DSMEMessage *msg);
     void startBackoffTimer();
     bool enoughTimeLeft();
     uint16_t symbolsRequired();
     void popMessage(DataStatus::Data_Status status);
 
-    fsmReturnStatus stateIdle(CSMAEvent& event);
-    fsmReturnStatus stateBackoff(CSMAEvent& event);
-    fsmReturnStatus stateCCA(CSMAEvent& event);
-    fsmReturnStatus stateSending(CSMAEvent& event);
+    fsmReturnStatus stateIdle(CSMAEvent &event);
+    fsmReturnStatus stateBackoff(CSMAEvent & vent);
+    fsmReturnStatus stateCCA(CSMAEvent &event);
+    fsmReturnStatus stateSending(CSMAEvent &event);
 
     DSMEQueue<DSMEMessage*, CAP_QUEUE_SIZE> queue;
 

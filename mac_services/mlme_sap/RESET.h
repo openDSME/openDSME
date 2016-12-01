@@ -60,7 +60,7 @@ struct RESET_confirm_parameters {
  */
 class RESET : public ConfirmBase<RESET_confirm_parameters> {
 public:
-    RESET(DSMELayer& dsme);
+    explicit RESET(DSMELayer &dsme);
 
     struct request_parameters {
         bool setDefaultPIB;

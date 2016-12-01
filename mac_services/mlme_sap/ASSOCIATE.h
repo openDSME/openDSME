@@ -85,7 +85,7 @@ struct ASSOCIATE_confirm_parameters {
 class ASSOCIATE : public IndicationBase<ASSOCIATE_indication_parameters>,
                   public ConfirmBase<ASSOCIATE_confirm_parameters> {
 public:
-    ASSOCIATE(DSMELayer& dsme);
+    explicit ASSOCIATE(DSMELayer &dsme);
 
     struct request_parameters {
         uint8_t channelNumber;

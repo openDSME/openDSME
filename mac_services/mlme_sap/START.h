@@ -64,7 +64,7 @@ struct START_confirm_parameters {
  */
 class START : public ConfirmBase<START_confirm_parameters> {
 public:
-    START(DSMELayer& dsme);
+    explicit START(DSMELayer &dsme);
 
     struct request_parameters {
         uint16_t panId;

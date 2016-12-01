@@ -57,7 +57,7 @@ public:
     typedef Delegate<void(AssociationStatus::Association_Status)> associationCompleteDelegate_t;
     typedef Delegate<void(DisassociationStatus::Disassociation_Status)> disassociationCompleteDelegate_t;
 
-    AssociationHelper(DSMEAdaptionLayer&);
+    explicit AssociationHelper(DSMEAdaptionLayer&);
 
     void initialize();
 

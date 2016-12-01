@@ -55,7 +55,7 @@ class DSMELayer;
 class MessageDispatcher {
 
 public:
-    MessageDispatcher(DSMELayer &dsme);
+    explicit MessageDispatcher(DSMELayer &dsme);
     ~MessageDispatcher();
 
     void initialize(void);
@@ -70,24 +70,24 @@ public:
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(DSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(DSMEMessage *msg, DataStatus::Data_Status status, uint8_t numBackoffs);
 
-    bool sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
+    bool sendInGTS(DSMEMessage *msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
 
-    bool sendInCAP(DSMEMessage* msg);
+    bool sendInCAP(DSMEMessage *msg);
 
-    void receive(DSMEMessage* msg);
+    void receive(DSMEMessage *msg);
 
     NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
         return neighborQueue;
     }
 
-    void addNeighbor(const IEEE802154MacAddress& address) {
+    void addNeighbor(const IEEE802154MacAddress &address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
     }
 
-    bool neighborExists(const IEEE802154MacAddress& address) {
+    bool neighborExists(const IEEE802154MacAddress &address) {
         return neighborQueue.findByAddress(address) != neighborQueue.end();
     }
 
@@ -139,7 +139,7 @@ protected:
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
-    void handleGTSFrame(DSMEMessage *);
+    void handleGTSFrame(DSMEMessage*);
 
     long numTxGtsFrames = 0;
     long numRxAckFrames = 0;
@@ -151,12 +151,12 @@ protected:
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
 
-    bool recordGtsUpdates;
+    bool recordGtsUpdates = false;
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
-    void createDataIndication(DSMEMessage* msg);
+    void createDataIndication(DSMEMessage *msg);
 };
 
 } /* dsme */

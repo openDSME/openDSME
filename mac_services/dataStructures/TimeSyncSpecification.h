@@ -48,6 +48,11 @@ namespace dsme {
 struct TimeSyncSpecification
 {
 public:
+    TimeSyncSpecification() :
+        beaconTimestamp(0),
+        beaconOffsetTimestamp(0) {
+    }
+
     void setBeaconTimestampMicroSeconds(uint64_t beaconTimestamp) {
         this->beaconTimestamp = beaconTimestamp;
     }
@@ -56,11 +61,11 @@ public:
         this->beaconOffsetTimestamp = beaconOffsetTimestamp;
     }
 
-    uint64_t getBeaconTimestampMicroSeconds() {
+    uint64_t getBeaconTimestampMicroSeconds() const {
         return beaconTimestamp;
     }
 
-    uint16_t getBeaconOffsetTimestampMicroSeconds() {
+    uint16_t getBeaconOffsetTimestampMicroSeconds() const {
         return beaconOffsetTimestamp;
     }
 

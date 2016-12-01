@@ -79,7 +79,7 @@ public:
 	/**
 	 * Created FSM is put into initial state
 	 */
-	DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) :
+	explicit DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) :
 			dispatchBusy(false) {
 	    for(uint8_t i = 0; i < N; i++) {
 	        states[i] = initial;
@@ -134,7 +134,7 @@ public:
         return FSM_TRANSITION;
 	}
 
-	const state_t& getState(int8_t fsmId) {
+	const state_t& getState(int8_t fsmId) const {
 	    DSME_ASSERT(fsmId >= 0 && fsmId < N);
 
 		return states[fsmId];

@@ -49,6 +49,7 @@ namespace dsme {
 /* CONSTRUCTORS & DESTRUCTOR *************************************************/
 
 BitVectorBase::BitVectorBase(uint8_t* byte_array) :
+        bitSize(0),
         byte_array(byte_array),
         endSetIterator(this, 0, true),
         endUnsetIterator(this, 0, false) {

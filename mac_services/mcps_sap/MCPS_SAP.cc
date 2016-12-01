@@ -63,7 +63,7 @@ PURGE& MCPS_SAP::getPURGE() {
     return this->purge;
 }
 
-uint8_t MCPS_SAP::getMessageCount(IEEE802154MacAddress addr) {
+uint8_t MCPS_SAP::getMessageCount(const IEEE802154MacAddress &addr) const {
     const NeighborQueue<MAX_NEIGHBORS>::iterator it = this->dsme.getMessageDispatcher().getNeighborQueue().findByAddress(addr);
     return this->dsme.getMessageDispatcher().getNeighborQueue().getPacketsInQueue(it);
 }

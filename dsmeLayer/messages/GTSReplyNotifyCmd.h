@@ -59,20 +59,26 @@ protected:
     DSMESABSpecification SABSpec;
 
 public:
-    GTSReplyNotifyCmd() {
-
+    GTSReplyNotifyCmd() :
+        destinationAddress(0),
+        channelOffset(0) {
     }
 
     //in channel hopping mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset,DSMESABSpecification SABSpec) :
-            destinationAddress(destinationAddress), channelOffset(
-                    channelOffset), SABSpec(SABSpec) {
+    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification &SABSpec) :
+        destinationAddress(destinationAddress),
+        channelOffset(channelOffset),
+        SABSpec(SABSpec) {
     }
+
     //in channel adaption mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, DSMESABSpecification SABSpec) :
-                destinationAddress(destinationAddress), SABSpec(SABSpec) {
-        }
-    uint16_t getDestinationAddress() {
+    GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification &SABSpec) :
+        destinationAddress(destinationAddress),
+        channelOffset(0),
+        SABSpec(SABSpec) {
+    }
+
+    uint16_t getDestinationAddress() const {
         return destinationAddress;
     }
 

@@ -55,16 +55,15 @@ DISASSOCIATE::DISASSOCIATE(DSMELayer& dsme) :
 void DISASSOCIATE::request(request_parameters &params) {
     DisassociationNotifyCmd disassociationCmd(params.disassociateReason);
     AssociationManager &associationManager = dsme.getAssociationManager();
-    if (params.txIndirect) {
-        //send directly
-        associationManager.sendDisassociationRequest(disassociationCmd, params);
-    } else {
-        //TODO add to list of pending transactions and remove call here
-        associationManager.sendDisassociationRequest(disassociationCmd, params);
-    }
+    associationManager.sendDisassociationRequest(disassociationCmd, params);
 
-    //s.83 in 2011
-
+    // TODO s.83 in 2011
+    //    if (params.txIndirect) {
+    //        //send directly
+    //        associationManager.sendDisassociationRequest(disassociationCmd, params);
+    //    } else {
+    //        //TODO add to list of pending transactions and remove call here
+    //    }
 }
 
 } /* mlme_sap */

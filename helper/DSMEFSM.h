@@ -57,12 +57,12 @@ public:
         USER_SIGNAL_START
     };
 
-    FSMEvent(uint8_t signal)
-    : signal(signal) {
+    explicit FSMEvent(uint8_t signal):
+            signal(signal) {
     }
 
-    FSMEvent()
-    : signal(EMPTY_SIGNAL) {
+    explicit FSMEvent():
+            signal(EMPTY_SIGNAL) {
     }
 
     uint8_t signal;
@@ -85,7 +85,7 @@ public:
 	/**
 	 * Created FSM is put into initial state
 	 */
-	FSM(const state_t& initial) :
+	explicit FSM(const state_t &initial) :
 			state(initial), dispatchBusy(false) {
 	}
 

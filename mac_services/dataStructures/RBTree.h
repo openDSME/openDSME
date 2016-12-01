@@ -106,7 +106,7 @@ public:
     /*
      * return number of elements in the RBTree
      */
-    tree_size_t size();
+    tree_size_t size() const;
 
     /*
      * return iterator to root
@@ -324,14 +324,13 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
      * sib: is sibling of node
      */
 
-    RBNode<T, K>* sib, *parent;
-    // the problem will maximal be move up to the root
+    /* the problem will at most move up to the root*/
     while (node->parent != nullptr) {
         /*
          * in each iteration sibling and parent have to be set to the actual value
          */
-        sib = sibling(node);
-        parent = node->parent;
+        RBNode<T, K> *sib = sibling(node);
+        RBNode<T, K> *parent = node->parent;
 
         /*
          * case 1: sibling of problem node is RED
@@ -575,7 +574,7 @@ RBNode<T, K>* RBTree<T, K>::findSwapNode(RBNode<T, K>* x) {
 }
 
 template<typename T, typename K>
-typename RBTree<T, K>::tree_size_t RBTree<T, K>::size() {
+typename RBTree<T, K>::tree_size_t RBTree<T, K>::size() const {
     return m_size;
 }
 

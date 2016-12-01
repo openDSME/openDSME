@@ -113,7 +113,7 @@ public:
         this->frameControl.srcAddrMode = srcAddrMode;
     }
 
-    AddrMode getSrcAddrMode() {
+    AddrMode getSrcAddrMode() const {
         return AddrMode(this->frameControl.srcAddrMode);
     }
 
@@ -121,7 +121,7 @@ public:
         this->srcPAN = srcPANId;
     }
 
-    uint16_t getSrcPANId() {
+    uint16_t getSrcPANId() const {
         return this->srcPAN;
     }
 
@@ -141,7 +141,7 @@ public:
         this->frameControl.dstAddrMode = dstAddrMode;
     }
 
-    AddrMode getDstAddrMode() {
+    AddrMode getDstAddrMode() const {
         return AddrMode(this->frameControl.dstAddrMode);
     }
 
@@ -149,7 +149,7 @@ public:
         this->dstPAN = dstPANId;
     }
 
-    uint16_t getDstPANId() {
+    uint16_t getDstPANId() const {
         return this->dstPAN;
     }
 
@@ -207,7 +207,7 @@ public:
         this->frameControl.securityEnabled = enabled;
     }
 
-    bool isSecurityEnabled() {
+    bool isSecurityEnabled() const {
         return this->frameControl.securityEnabled;
     }
 

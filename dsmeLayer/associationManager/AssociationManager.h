@@ -59,7 +59,7 @@ class DSMELayer;
 
 class AssociationManager {
 public:
-    AssociationManager(DSMELayer& dsme);
+    explicit AssociationManager(DSMELayer& dsme);
 
     void reset();
 

@@ -65,7 +65,7 @@ class BitVectorBase {
 public:
     typedef BitVectorIterator iterator;
 
-    BitVectorBase(uint8_t* byte_array);
+    explicit BitVectorBase(uint8_t *byte_array);
 
     void initialize(bit_vector_size_t bitSize, bool initial_fill = false);
 
@@ -120,6 +120,12 @@ public:
 
     BitVector(const BitVector& other) :
             BitVectorBase(array, other) {
+    }
+
+    BitVector& operator=(const BitVector &other) {
+        this->setLength(other.length(), false);
+        this->copyFrom(other, 0);
+        return *this;
     }
 
     bool setLength(bit_vector_size_t bitSize, bool initial_fill = false) {

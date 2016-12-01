@@ -89,6 +89,8 @@ private:
 
 public:
     DynamicMultiMessageQueue();
+    DynamicMultiMessageQueue(const DynamicMultiMessageQueue &) = delete;
+
     virtual ~DynamicMultiMessageQueue();
 
     /**
@@ -121,7 +123,7 @@ public:
      */
     void flush(NeighborListEntry<T>& neighbor, bool keepFront);
 
-    bool isFull() {
+    bool isFull() const {
         return full;
     }
 
@@ -225,11 +227,11 @@ T* DynamicMultiMessageQueue<T, S, M>::front(const NeighborListEntry<T>& neighbor
 
 template<typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bool keepFront) {
-    MessageQueueEntry<T> *entry = neighbor.messageFront, *temp;
+    MessageQueueEntry<T> *entry = neighbor.messageFront;
 
     if (keepFront && entry != nullptr) {
         /* keep existing first entry */
-        temp = entry;
+        MessageQueueEntry<T> *temp = entry;
         entry = entry->next;
         temp->next = nullptr;
 

@@ -49,17 +49,20 @@
 namespace dsme {
 class AssociateReplyCmd: public DSMEMessageElement {
 public:
-    AssociateReplyCmd() {
+    AssociateReplyCmd() :
+        shortAddr(0),
+        status(AssociationStatus::Association_Status::SUCCESS) {
     }
+
     AssociateReplyCmd(uint16_t shortAddr,  AssociationStatus::Association_Status status) :
             shortAddr(shortAddr), status(status) {
     }
 
-    uint16_t getShortAddr() {
+    uint16_t getShortAddr() const {
         return this->shortAddr;
     }
 
-    AssociationStatus::Association_Status getStatus(){
+    AssociationStatus::Association_Status getStatus() const{
         return this->status;
     }
 

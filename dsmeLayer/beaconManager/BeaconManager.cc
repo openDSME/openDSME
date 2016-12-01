@@ -52,10 +52,23 @@ namespace dsme {
 
 BeaconManager::BeaconManager(DSMELayer& dsme) :
         dsme(dsme),
+
+        isBeaconAllocationSent(false),
+        isBeaconAllocated(false),
+        lastHeardBeaconTimestamp(0),
+        lastKnownBeaconIntervalStart(0),
+
+        numBeaconCollision(0),
         missedBeacons(0),
         doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
-        scanning(
-        false) {
+
+        currentScanChannel(0),
+        scanning(false),
+        scanType(ScanType::ED),
+        storedMacPANId(0),
+        currentScanChannelIndex(0),
+        superframesForEachChannel(0),
+        superframesLeftForScan(0) {
 }
 
 void BeaconManager::initialize() {
@@ -117,7 +130,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(lateness * symbolDurationInMicroseconds);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
-    msg->getHeader().setDstAddr(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS);
+    msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
     msg->getHeader().setDstAddrMode(SHORT_ADDRESS);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::BEACON);
@@ -150,7 +163,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 
     //TODO Header IEEE802.15.4-2012 5.3.7.2.1 p.97
     msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
-    msg->getHeader().setDstAddr(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS);
+    msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
 
     msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
@@ -250,7 +263,7 @@ void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
 
     msg->getHeader().setFrameType(IEEE802154eMACHeader::COMMAND);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
-    msg->getHeader().setDstAddr(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS);
+    msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
     msg->getHeader().setDstAddrMode(SHORT_ADDRESS);
     msg->getHeader().setAckRequest(false);
 
@@ -333,7 +346,7 @@ void BeaconManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, D
     dsme.getPlatform().releaseMessage(msg);
 }
 
-uint16_t BeaconManager::getNumHeardBeacons() {
+uint16_t BeaconManager::getNumHeardBeacons() const {
     return heardBeacons.getAllocatedCount();
 }
 
@@ -398,7 +411,7 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
     }
 }
 
-bool BeaconManager::isScanning() {
+bool BeaconManager::isScanning() const {
     return this->scanning;
 }
 
@@ -423,7 +436,7 @@ void BeaconManager::setScanDuration(uint16_t scanDuration) {
     this->superframesForEachChannel = superframes;
 }
 
-void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t scanChannels) {
+void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, const channelList_t &scanChannels) {
     DSME_ASSERT(!this->scanning);
     DSME_ASSERT(scanChannels.size() > 0);
 
@@ -449,7 +462,7 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, channelList_t
     return;
 }
 
-void BeaconManager::startScanPassive(uint16_t scanDuration, channelList_t scanChannels) {
+void BeaconManager::startScanPassive(uint16_t scanDuration, const channelList_t &scanChannels) {
     DSME_ASSERT(!this->scanning);
     DSME_ASSERT(scanChannels.size() > 0);
 

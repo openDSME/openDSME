@@ -61,7 +61,7 @@ struct POLL_confirm_parameters {
 class POLL : public ConfirmBase<POLL_confirm_parameters> {
 public:
 
-    POLL(DSMELayer& dsme);
+    explicit POLL(DSMELayer &dsme);
     struct request_parameters {
         AddrMode coordAddrMode;
         uint16_t coordPANId;

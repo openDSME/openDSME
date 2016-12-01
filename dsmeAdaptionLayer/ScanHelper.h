@@ -54,13 +54,13 @@ struct BEACON_NOTIFY_indication_parameters;
 struct SCAN_confirm_parameters;
 }
 
-class DSMEPANDescriptor;
+struct DSMEPANDescriptor;
 
 class ScanHelper {
 public:
     typedef Delegate<void(PANDescriptor*)> scanCompleteDelegate_t;
 
-    ScanHelper(DSMEAdaptionLayer&);
+    explicit ScanHelper(DSMEAdaptionLayer&);
 
     void initialize();
 

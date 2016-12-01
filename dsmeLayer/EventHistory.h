@@ -73,7 +73,7 @@ public:
         }
     }
 
-    void printEvents() {
+    void printEvents() const {
         uint8_t p = head + 1;
 
         for(uint8_t i = 0; i < S; ++i) {

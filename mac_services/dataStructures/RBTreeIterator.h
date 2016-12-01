@@ -107,7 +107,7 @@ RBTreeIterator<T, K>::~RBTreeIterator() {
 }
 
 template<typename T, typename K>
-RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>& other) {
+RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K> &other) {
     this->instance = other.instance;
     this->currentNode = other.currentNode;
     return *this;

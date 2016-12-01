@@ -92,7 +92,7 @@ public:
     DataStatus::Data_Status dataStatus;
 
 private:
-    void fill(void){
+    static void fill(void){
     }
 
     void fill(DSMEMessage *&msg, GTSManagement &management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
@@ -142,7 +142,7 @@ typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, 4> GT
 class GTSManager : private GTSManagerFSM_t {
 public:
 
-    GTSManager(DSMELayer& dsme);
+    explicit GTSManager(DSMELayer &dsme);
 
     void initialize();
 
@@ -255,8 +255,8 @@ private:
     bool isTimeoutPending(uint8_t fsmId);
     void preparePendingConfirm(GTSEvent& event);
 
-    const char* signalToString(uint8_t signal);
-    const char* stateToString(GTSManagerFSM_t::state_t state);
+    static const char* signalToString(uint8_t signal);
+    static const char* stateToString(GTSManagerFSM_t::state_t state);
 
     /**
      * FSM identification helpers

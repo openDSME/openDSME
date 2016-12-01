@@ -53,12 +53,12 @@ namespace mcps_sap {
 
 class MCPS_SAP {
 public:
-    MCPS_SAP(DSMELayer& dsme);
+    explicit MCPS_SAP(DSMELayer & sme);
 
     DATA& getDATA();
     PURGE& getPURGE();
 
-    uint8_t getMessageCount(IEEE802154MacAddress addr);
+    uint8_t getMessageCount(const IEEE802154MacAddress &addr) const;
 
 private:
     DSMELayer& dsme;
