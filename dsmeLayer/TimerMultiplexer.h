@@ -117,7 +117,7 @@ protected:
     }
 
     void _scheduleTimer() {
-        uint32_t symsUntilNextEvent = -1;
+        uint32_t symsUntilNextEvent = UINT32_MAX;
 
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             if (0 < this->symbols_until[i] && static_cast<uint32_t>(this->symbols_until[i]) < symsUntilNextEvent) {
@@ -125,7 +125,7 @@ protected:
             }
         }
 
-        if(symsUntilNextEvent == -1) {
+        if(symsUntilNextEvent == UINT32_MAX) {
             return;
         }
 

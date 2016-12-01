@@ -82,7 +82,7 @@ public:
 
     virtual void releaseMessage(DSMEMessage* msg) = 0;
 
-    virtual void startCCA() = 0;
+    virtual bool startCCA() = 0;
 
     virtual void startTimer(uint32_t symbolCounterValue) = 0;
 
