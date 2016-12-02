@@ -98,6 +98,7 @@ void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
     this->ackLayer.setNextSequenceNumber(platform->getRandom());
 
     /* start the timer initially */
+    this->lastSlotTime = this->platform->getSymbolCounter();
     this->lastSlotTime = this->eventDispatcher.setupSlotTimer(this->lastSlotTime);
 }
 

@@ -68,7 +68,7 @@ PHY_PIB::PHY_PIB(uint8_t phySHRDuration) :
 
 PHY_PIB::~PHY_PIB() {
     for (uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
-        delete phyChannelsSupported[0];
+        delete phyChannelsSupported[i];
     }
 }
 

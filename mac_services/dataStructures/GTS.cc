@@ -79,7 +79,6 @@ GTS GTS::GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t nu
     uint16_t slotID = idx % numGTSlots;
     idx /= numGTSlots;
     uint16_t superframeID = idx % numSuperframesPerMultiSuperframe;
-    idx /= numSuperframesPerMultiSuperframe;
     return GTS(superframeID, slotID, channel);
 }
 
