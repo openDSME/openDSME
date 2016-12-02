@@ -46,6 +46,7 @@
 #include "../../../dsme_platform.h"
 #include "../neighbors/NeighborQueue.h"
 #include "../ackLayer/AckLayer.h"
+#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include <stdint.h>
 
 namespace dsme {

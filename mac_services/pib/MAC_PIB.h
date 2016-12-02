@@ -80,6 +80,14 @@ public:
      * The commencement time is described in 5.1.6.4.2.*/
     const uint16_t macAckWaitDuration;
 
+    /* Indication of whether the device is the PAN coordinator.
+     * TODO Not covered by the standard! */
+    bool macIsPANCoord;
+
+    /* Indication of whether the device is a coordinator.
+     * TODO Not covered by the standard! */
+    bool macIsCoord;
+
     /* Indication of whether the device is associated to the PAN through the PAN coordinator.
      * A value of TRUE indicates the device has associated through the PAN coordinator. Otherwise, the value is set to FALSE. */
     bool macAssociatedPANCoord;

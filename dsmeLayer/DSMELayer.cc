@@ -54,7 +54,6 @@ DSMELayer::DSMELayer() :
         mcps_sap(nullptr),
         mlme_sap(nullptr),
 
-        settings{false, false, false},
         platform(nullptr),
         eventDispatcher(*this),
 
@@ -79,8 +78,7 @@ DSMELayer::DSMELayer() :
 DSMELayer::~DSMELayer() {
 }
 
-void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
-    this->settings = dsmeSettings;
+void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->platform = platform;
 
     this->platform->setReceiveDelegate(DELEGATE(&MessageDispatcher::receive, this->messageDispatcher));
@@ -96,6 +94,12 @@ void DSMELayer::start(DSMESettings& dsmeSettings, IDSMEPlatform* platform) {
     this->beaconManager.initialize();
 
     this->ackLayer.setNextSequenceNumber(platform->getRandom());
+}
+
+void DSMELayer::start() {
+    if(getMAC_PIB().macIsPANCoord) {
+        getMAC_PIB().macIsCoord = true;
+    }
 
     /* start the timer initially */
     this->lastSlotTime = this->platform->getSymbolCounter();

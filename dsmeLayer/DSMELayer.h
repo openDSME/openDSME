@@ -81,12 +81,6 @@ class MCPS_SAP;
 
 class DSMEPlatform;
 
-struct DSMESettings {
-    bool isPANCoordinator;
-    bool isCoordinator;
-    bool optimizations;
-};
-
 /**
  * IEEE802.15.4
  * Deterministic and synchronous multi-channel extension
@@ -98,7 +92,8 @@ public:
     DSMELayer();
     ~DSMELayer();
 
-    void start(DSMESettings& dsmeSettings, IDSMEPlatform* platform);
+    void initialize(IDSMEPlatform* platform);
+    void start();
     void reset();
 
     /* MAC SERVICES -------------------------------------------------------> */
@@ -163,14 +158,6 @@ public:
         startOfCFPDelegate = delegate;
     }
 
-    const DSMESettings& getDSMESettings() const {
-        return settings;
-    }
-
-    DSMESettings& getDSMESettings() {
-        return settings;
-    }
-
     DSMEEventDispatcher& getEventDispatcher() {
         return eventDispatcher;
     }
@@ -220,7 +207,6 @@ public:
     bool isTrackingBeacons() const;
 
 protected:
-    DSMESettings settings;
     IDSMEPlatform* platform;
     DSMEEventDispatcher eventDispatcher;
     Delegate<void()> startOfCFPDelegate;

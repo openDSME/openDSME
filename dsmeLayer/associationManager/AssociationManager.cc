@@ -62,7 +62,7 @@ void AssociationManager::reset() {
     this->dsme.getMAC_PIB().macCoordExtendedAddress = IEEE802154MacAddress::UNSPECIFIED;
     this->dsme.getMAC_PIB().macCoordShortAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
 
-    this->dsme.getDSMESettings().isCoordinator = false;
+    this->dsme.getMAC_PIB().macIsCoord = false;
 }
 
 void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_sap::ASSOCIATE::request_parameters &params) {

@@ -116,11 +116,11 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
     //TODO CROSS-LAYER-CALLS, no interface for this information
     LOG_INFO("Checking whether to become a coordinator: "
             << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
-            << ", isCoordinator:" << this->dsmeAdaptionLayer.getDSME().getDSMESettings().isCoordinator
+            << ", isCoordinator:" << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
             << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength())
             << "." );
     if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
-            && !this->dsmeAdaptionLayer.getDSME().getDSMESettings().isCoordinator
+            && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
             && heardCoordinators.getLength() < 2
             ) {
 

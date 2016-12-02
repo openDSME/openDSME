@@ -56,11 +56,11 @@ void START::request(request_parameters &params) {
     StartStatus::Start_Status status;
 
     if (params.panCoordinator) {
-        this->dsme.getDSMESettings().isPANCoordinator = true;
+        this->dsme.getMAC_PIB().macIsPANCoord = true;
     }
 
-    if (this->dsme.getMAC_PIB().macAssociatedPANCoord || this->dsme.getDSMESettings().isPANCoordinator) {
-        this->dsme.getDSMESettings().isCoordinator = true;
+    if (this->dsme.getMAC_PIB().macAssociatedPANCoord || this->dsme.getMAC_PIB().macIsPANCoord) {
+        this->dsme.getMAC_PIB().macIsCoord = true;
         status = StartStatus::SUCCESS;
     } else {
         status = StartStatus::TRACKING_OFF;

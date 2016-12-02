@@ -44,6 +44,8 @@
 
 #include "../messages/MACCommand.h"
 #include "../DSMELayer.h"
+#include "../../mac_services/mcps_sap/DATA.h"
+#include "../../mac_services/mcps_sap/MCPS_SAP.h"
 
 namespace dsme {
 

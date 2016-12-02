@@ -81,15 +81,15 @@ void BeaconManager::initialize() {
             BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
             false);
 
-    isBeaconAllocated = dsme.getDSMESettings().isPANCoordinator;
+    isBeaconAllocated = false;
     isBeaconAllocationSent = false;
 
     // PAN Coordinator starts network with beacon
-    if (dsme.getDSMESettings().isPANCoordinator) {
+    if (dsme.getMAC_PIB().macIsPANCoord) {
         dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
         dsmePANDescriptor.getBeaconBitmap().fill(false);
         dsmePANDescriptor.getBeaconBitmap().set(0, true);
-    } else if (dsme.getDSMESettings().isCoordinator) {
+    } else if (dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
@@ -98,14 +98,14 @@ void BeaconManager::initialize() {
 }
 
 void BeaconManager::reset() {
-    isBeaconAllocated = dsme.getDSMESettings().isPANCoordinator;
+    isBeaconAllocated = false;
     isBeaconAllocationSent = false;
 
-    if (dsme.getDSMESettings().isPANCoordinator) {
+    if (dsme.getMAC_PIB().macIsPANCoord) {
         dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
         dsmePANDescriptor.getBeaconBitmap().fill(false);
         dsmePANDescriptor.getBeaconBitmap().set(0, true);
-    } else if (dsme.getDSMESettings().isCoordinator) {
+    } else if (dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
@@ -114,7 +114,7 @@ void BeaconManager::reset() {
 }
 
 void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness) {
-    if (isBeaconAllocated) {
+    if (isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
         uint16_t currentSDIndex = currentSuperframe
                 + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if (currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
@@ -135,7 +135,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::BEACON);
 
-    if (dsme.getDSMESettings().isPANCoordinator) {
+    if (dsme.getMAC_PIB().macIsPANCoord) {
         // TODO only for PAN coordinator or for all coordinators?
         // the PAN coordinator is the reference, so set the sent beacon as heard beacon to advance in time
         // TODO timing?
@@ -144,11 +144,12 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
         dsme.beaconSentOrReceived(dsmePANDescriptor.getBeaconBitmap().getSDIndex());
     }
 
-    LOG_DEBUG("Send beacon");
-
     if (!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
         // message could not be sent
         dsme.getPlatform().releaseMessage(msg);
+    }
+    else {
+        LOG_INFO("Beacon sent");
     }
 
     return;
@@ -183,7 +184,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 }
 
 void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr) {
-    if (dsme.getDSMESettings().isPANCoordinator) {
+    if (dsme.getMAC_PIB().macIsPANCoord) {
         /* '-> This function should not be called for PAN-coordinators */
         DSME_ASSERT(false);
     }
@@ -217,7 +218,7 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     heardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
-    if (dsme.getDSMESettings().isCoordinator) {
+    if (dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().set(descr.getBeaconBitmap().getSDIndex(), true);
     }
 
@@ -226,11 +227,11 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "
-            << "isCoordinator:" << dsme.getDSMESettings().isCoordinator
+            << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord
             << ", isBeaconAllocated:" << isBeaconAllocated
             << ", isBeaconAllocationSent:" << isBeaconAllocationSent
             << ".");
-    if (dsme.getDSMESettings().isCoordinator && !isBeaconAllocated && !isBeaconAllocationSent) {
+    if (dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
         LOG_INFO("Attempting to reserve slot for own BEACON.");
         if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
             LOG_INFO("Device is not associated, cannot reserve BEACON slot.");
@@ -294,9 +295,9 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
 
 void BeaconManager::handleBeaconRequest(DSMEMessage* msg) {
     //TODO
-    if(!this->dsme.getDSMESettings().isCoordinator && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
+    if(!this->dsme.getMAC_PIB().macIsCoord && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Received BEACON-REQUEST, turning into a coordinator now.");
-        this->dsme.getDSMESettings().isCoordinator = true;
+        this->dsme.getMAC_PIB().macIsCoord = true;
         this->dsme.getPlatform().updateVisual();
     }
 }
@@ -337,7 +338,7 @@ void BeaconManager::handleBeaconCollision(DSMEMessage* msg) {
 
 void BeaconManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     if(cmdId == DSME_BEACON_ALLOCATION_NOTIFICATION && status == DataStatus::SUCCESS) {
-        if (dsme.getDSMESettings().isCoordinator && isBeaconAllocationSent) {
+        if (dsme.getMAC_PIB().macIsCoord && isBeaconAllocationSent) {
             isBeaconAllocated = true;
             isBeaconAllocationSent = false;
         }
@@ -355,7 +356,7 @@ void BeaconManager::sendDone(enum AckLayerResponse result, DSMEMessage* msg) {
 }
 
 void BeaconManager::handleBeacon(DSMEMessage* msg) {
-    if (dsme.getDSMESettings().isPANCoordinator) {
+    if (dsme.getMAC_PIB().macIsPANCoord) {
         //* '-> do not handle beacon as PAN coordinator */
         LOG_INFO("A PAN-coordinator does not handle BEACONS -> discard");
         return;

@@ -43,6 +43,7 @@
 #include "DSMEAllocationCounterTable.h"
 
 #include "../../../dsme_platform.h"
+#include "GTS.h"
 
 using namespace dsme;
 

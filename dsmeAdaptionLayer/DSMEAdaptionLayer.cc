@@ -176,7 +176,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
         LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
         callback_confirm(msg, DataStatus::TRANSACTION_OVERFLOW);
         return;
-    } else if (this->dsme.getDSMESettings().isCoordinator) {
+    } else if (this->getMAC_PIB().macIsCoord) {
         if (!associationHelper.isAssociatedDevice(dst)) {
             LOG_INFO("Discarding message for " << dst.getShortAddress() << " because it is not associated.");
             dsme.getPlatform().releaseMessage(msg);
@@ -201,12 +201,14 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
         params.msduHandle = 0; //TODO
         params.ackTX = true;
 
+        /* TODO
         if(dsme.getDSMESettings().optimizations) {
             params.gtsTX = !msg->firstTry && !dst.isBroadcast();
         }
         else {
+        */
             params.gtsTX = !dst.isBroadcast();
-        }
+        //}
 
         params.indirectTX = false;
         params.securityLevel = 0;
@@ -300,6 +302,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
     msg->currentlySending = false;
 
     if(params.status != DataStatus::SUCCESS) {
+        /* TODO
         if(dsme.getDSMESettings().optimizations) {
             if(msg->firstTry) {
                 msg->firstTry = false;
@@ -307,6 +310,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 return;
             }
         }
+        */
 
         if(params.gtsTX) { // otherwise failures are common...
             if(params.status == DataStatus::INVALID_GTS) {

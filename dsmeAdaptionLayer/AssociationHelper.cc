@@ -42,6 +42,7 @@
 
 #include "../../dsme_platform.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
+#include "../mac_services/pib/MAC_PIB.h"
 #include "AssociationHelper.h"
 #include "DSMEAdaptionLayer.h"
 

@@ -46,6 +46,7 @@
 #include "../mac_services/pib/dsme_mac_constants.h"
 #include "DSMEAdaptionLayer.h"
 #include "GTSHelper.h"
+#include "../mac_services/mcps_sap/MCPS_SAP.h"
 
 namespace dsme {
 
