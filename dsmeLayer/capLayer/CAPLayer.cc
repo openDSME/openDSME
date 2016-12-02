@@ -107,7 +107,7 @@ void CAPLayer::sendDone(enum AckLayerResponse response, DSMEMessage* msg) {
 }
 
 bool CAPLayer::pushMessage(DSMEMessage* msg) {
-    LOG_INFO("push " << (uint64_t)msg);
+    LOG_DEBUG("push " << (uint64_t)msg);
 
     if (queue.full()) {
         return false;
@@ -138,7 +138,7 @@ fsmReturnStatus CAPLayer::choiceRebackoff() {
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
-    LOG_INFO_PURE("Ci" << (uint16_t)event.signal << LOG_ENDL);
+    LOG_DEBUG_PURE("Ci" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         NB = 0;
         NR = 0;
@@ -163,7 +163,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
-    LOG_INFO_PURE("Cb" << (uint16_t)event.signal << LOG_ENDL);
+    LOG_DEBUG_PURE("Cb" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         startBackoffTimer();
         return FSM_HANDLED;
@@ -189,7 +189,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
-    LOG_INFO_PURE("Cc" << (uint16_t)event.signal << LOG_ENDL);
+    LOG_DEBUG_PURE("Cc" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
@@ -228,7 +228,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
-    LOG_INFO_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
+    LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
@@ -291,7 +291,7 @@ void CAPLayer::startBackoffTimer() {
 
     dsme.getEventDispatcher().setupCSMATimer(CAPStart + backoffSinceCAPStart);
 
-    LOG_INFO(now << " " << (CAPStart + backoffSinceCAPStart));
+    LOG_DEBUG(now << " " << (CAPStart + backoffSinceCAPStart));
 }
 
 bool CAPLayer::enoughTimeLeft() {
@@ -303,7 +303,7 @@ void CAPLayer::popMessage(DataStatus::Data_Status status) {
     DSMEMessage* msg = queue.front();
     queue.pop();
 
-    LOG_INFO("pop " << (uint64_t)msg);
+    LOG_DEBUG("pop " << (uint64_t)msg);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs);
 }
 
