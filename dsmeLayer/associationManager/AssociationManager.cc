@@ -318,10 +318,23 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
         if(superframesSinceAssociationSent*(1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
             actionPending = false;
-            mlme_sap::ASSOCIATE_confirm_parameters params;
-            params.assocShortAddress = 0xFFFF;
-            params.status = AssociationStatus::NO_DATA;
-            this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+            switch(this->currentAction) {
+                case CommandFrameIdentifier::ASSOCIATION_REQUEST: {
+                    mlme_sap::ASSOCIATE_confirm_parameters associate_params;
+                    associate_params.assocShortAddress = 0xFFFF;
+                    associate_params.status = AssociationStatus::NO_DATA;
+                    this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
+                    break;
+                }
+                case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION: {
+                    mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
+                    disassociate_params.status = DisassociationStatus::SUCCESS; /* According to the standard, all failures mean disassociation */
+                    this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
+                    break; 
+                }
+                default:
+                    DSME_ASSERT(false);
+            }
         }
     }
 }
