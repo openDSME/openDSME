@@ -148,7 +148,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(it->address);
         DSME_ASSERT(numSlotIt != numAllocatedTxSlots.end());
         (*numSlotIt)--;
-        LOG_INFO("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
+        LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
         if ((*numSlotIt) == 0) {
             numAllocatedTxSlots.remove(numSlotIt);
         }
