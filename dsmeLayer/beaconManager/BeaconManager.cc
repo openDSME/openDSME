@@ -149,7 +149,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
         dsme.getPlatform().releaseMessage(msg);
     }
     else {
-        LOG_INFO("Beacon sent");
+        LOG_DEBUG("Beacon sent");
     }
 
     return;

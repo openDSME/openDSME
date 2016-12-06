@@ -319,19 +319,19 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 }
 
                 // GTS slot not yet allocated
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
+                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
             }
             else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
+                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
             }
             else if(params.status == DataStatus::TRANSACTION_OVERFLOW) {
                 // Queue is full
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
+                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
             }
             else if(params.status == DataStatus::TRANSACTION_EXPIRED) {
                 // Transaction expired, e.g. for RESET
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
+                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
             }
             else {
                 // Should not occur

@@ -394,7 +394,7 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
 
 
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg) {
-    LOG_INFO("sendDoneGTS");
+    LOG_DEBUG("sendDoneGTS");
 
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));

@@ -85,13 +85,13 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t s
 
 
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
-    LOG_INFO_PREFIX;LOG_INFO_PURE(DECOUT << type << " " << palId_id());
+    LOG_DEBUG_PREFIX;LOG_DEBUG_PURE(DECOUT << type << " " << palId_id());
     if (direction == TX) {
-        LOG_INFO_PURE(">");
+        LOG_DEBUG_PURE(">");
     } else {
-        LOG_INFO_PURE("<");
+        LOG_DEBUG_PURE("<");
     }
-    LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID+9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
+    LOG_DEBUG_PURE(address << " " << (uint16_t)(gtSlotID+9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
 }
 
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {
