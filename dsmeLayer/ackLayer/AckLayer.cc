@@ -189,8 +189,15 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 pendingMessage->getHeader().setSequenceNumber(this->nextSequenceNumber++);
             }
             bool success = dsme.getPlatform().sendCopyNow(pendingMessage, internalDoneCallback);
-            DSME_ASSERT(success);
-            return transition(&AckLayer::stateTx);
+            if(!success) {
+                // currently busy (e.g. recent reception)
+                externalDoneCallback(SEND_FAILED, pendingMessage);
+                pendingMessage = nullptr; // owned by upper layer now
+                return transitionToIdle();
+            }
+            else {
+                return transition(&AckLayer::stateTx);
+            }
         }
 
         case AckEvent::RECEIVE_REQUEST:
