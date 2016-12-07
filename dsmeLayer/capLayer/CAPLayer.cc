@@ -173,7 +173,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
         if (enoughTimeLeft()) {
             return transition(&CAPLayer::stateCCA);
         } else {
-            DSME_ASSERT(false);
+            DSME_SIM_ASSERT(false);
             // should only happen in rare cases (e.g. resync)
             // normally the backoff is chosen large enough beforehand
             // TODO check how often this really happens

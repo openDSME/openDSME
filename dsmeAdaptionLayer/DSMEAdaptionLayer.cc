@@ -319,19 +319,24 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
                 }
 
                 // GTS slot not yet allocated
-                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
             }
             else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
-                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
+            }
+            else if(params.status == DataStatus::CHANNEL_ACCESS_FAILURE) {
+                // This should not happen, but might be the case if a foreign packet is received and the phy is therefore busy
+                DSME_SIM_ASSERT(false);
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Channel Access Failure");
             }
             else if(params.status == DataStatus::TRANSACTION_OVERFLOW) {
                 // Queue is full
-                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
             }
             else if(params.status == DataStatus::TRANSACTION_EXPIRED) {
                 // Transaction expired, e.g. for RESET
-                LOG_INFO("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
+                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
             }
             else {
                 // Should not occur
