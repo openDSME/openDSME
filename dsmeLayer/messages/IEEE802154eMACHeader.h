@@ -461,6 +461,9 @@ inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& h
     } else if (header.destinationAddressLength() == 8) {
         buffer >> header.dstAddr;
     }
+    else {
+        header.dstAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
 
     /* deserialize source address */
     if (header.sourcePanIdLength() != 0) {
@@ -473,6 +476,9 @@ inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& h
         header.srcAddr.setShortAddress(shortSrcAddr);
     } else if (header.sourceAddressLength() == 8) {
         buffer >> header.srcAddr;
+    }
+    else {
+        header.srcAddr = IEEE802154MacAddress::UNSPECIFIED;
     }
 
     return buffer;

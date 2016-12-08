@@ -368,6 +368,11 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
         return;
     }
 
+    if(!msg->getHeader().isEnhancedBeacon()) {
+        LOG_INFO("We only want enhanced beacons -> discard");
+        return;
+    }
+
     /* Data exist or no macAutoRequest -> create indication */
 
     mlme_sap::BEACON_NOTIFY_indication_parameters params;
@@ -389,14 +394,9 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
     params.eBSN = msg->getHeader().getSequenceNumber();
     params.beaconType = msg->getHeader().isEnhancedBeacon();
 
-    if (msg->getHeader().isEnhancedBeacon()) {
-        params.panDescriptor.dsmePANDescriptor.decapsulateFrom(msg);
-        this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
-        handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
-    } else {
-        DSME_ASSERT(false); // not implemented!
-        this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
-    }
+    params.panDescriptor.dsmePANDescriptor.decapsulateFrom(msg);
+    this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
+    handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
 
     if (this->scanning) {
         switch (this->scanType) {
