@@ -66,6 +66,19 @@ PHY_PIB::PHY_PIB(uint8_t phySHRDuration) :
 
 }
 
+void PHY_PIB::useOneChannelOnly() {
+    for (uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
+        delete phyChannelsSupported[i];
+    }
+
+    channelList_t DSSS2450_channels(1);
+    DSSS2450_channels[0] = phyCurrentChannel;
+    MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
+
+    phyChannelsSupported.setLength(1);
+    phyChannelsSupported[0] = DSSS2450_page0;
+}
+
 PHY_PIB::~PHY_PIB() {
     for (uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
         delete phyChannelsSupported[i];

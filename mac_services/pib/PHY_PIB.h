@@ -86,6 +86,8 @@ public:
 
     /* The maximum number of symbols in a frame, as defined in 9.4. */
     const uint16_t phyMaxFrameDuration;
+
+    void useOneChannelOnly();
 };
 
 } /* dsme */
