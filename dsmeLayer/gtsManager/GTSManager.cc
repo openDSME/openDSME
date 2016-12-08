@@ -781,7 +781,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
 
         if (validFsmId >= 0 && validFsmId < GTS_STATE_MULTIPLICITY) {
             if (status != DataStatus::SUCCESS) {
-                LOG_INFO("GTSManager::onCSMASent transmission failure: " << (int16_t)status);
+                LOG_DEBUG("GTSManager::onCSMASent transmission failure: " << (int16_t)status);
             }
             returnStatus = dispatch(validFsmId, GTSEvent::SEND_COMPLETE, msg, management, cmdId, status);
         } else {

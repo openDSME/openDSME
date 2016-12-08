@@ -417,7 +417,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage*
             params.status = DataStatus::NO_ACK;
             break;
         case AckLayerResponse::SEND_FAILED:
-            LOG_ERROR("SEND_FAILED during GTS");
+            LOG_DEBUG("SEND_FAILED during GTS");
             currentACTElement->incrementIdleCounter();
             params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
             break;
