@@ -46,7 +46,7 @@
 
 namespace dsme {
 
-PHY_PIB::PHY_PIB(uint8_t phySHRDuration) :
+PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly) :
         phyCurrentChannel(11),
         phyChannelsSupported(),
         phyCurrentPage(0),
@@ -54,29 +54,25 @@ PHY_PIB::PHY_PIB(uint8_t phySHRDuration) :
         phySymbolsPerOctet(2),
         phyMaxFrameDuration(phySHRDuration + ((aMaxPHYPacketSize + 1) * phySymbolsPerOctet)) {
 
-    /* 11 <= phyCurrentChannel <= 26 for 2450 MHz band DSSS */
-    channelList_t DSSS2450_channels(16);
-    for (uint8_t i = 0; i < 16; i++) {
-        DSSS2450_channels[i] = 11 + i;
+    if(useOneChannelOnly) {
+        channelList_t DSSS2450_channels(1);
+        DSSS2450_channels[0] = phyCurrentChannel;
+        MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
+
+        phyChannelsSupported.setLength(1);
+        phyChannelsSupported[0] = DSSS2450_page0;
     }
-    MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
+    else {
+        /* 11 <= phyCurrentChannel <= 26 for 2450 MHz band DSSS */
+        channelList_t DSSS2450_channels(16);
+        for (uint8_t i = 0; i < 16; i++) {
+            DSSS2450_channels[i] = 11 + i;
+        }
+        MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
 
-    phyChannelsSupported.setLength(1);
-    phyChannelsSupported[0] = DSSS2450_page0;
-
-}
-
-void PHY_PIB::useOneChannelOnly() {
-    for (uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
-        delete phyChannelsSupported[i];
+        phyChannelsSupported.setLength(1);
+        phyChannelsSupported[0] = DSSS2450_page0;
     }
-
-    channelList_t DSSS2450_channels(1);
-    DSSS2450_channels[0] = phyCurrentChannel;
-    MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
-
-    phyChannelsSupported.setLength(1);
-    phyChannelsSupported[0] = DSSS2450_page0;
 }
 
 PHY_PIB::~PHY_PIB() {

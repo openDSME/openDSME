@@ -55,7 +55,7 @@ typedef MacStaticList<uint8_t, 16> channelList_t;
  */
 class PHY_PIB {
 public:
-    explicit PHY_PIB(uint8_t phySHRDuration);
+    explicit PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly = false);
 
     PHY_PIB() = delete;
     PHY_PIB(const PHY_PIB&) = delete;
@@ -86,8 +86,6 @@ public:
 
     /* The maximum number of symbols in a frame, as defined in 9.4. */
     const uint16_t phyMaxFrameDuration;
-
-    void useOneChannelOnly();
 };
 
 } /* dsme */
