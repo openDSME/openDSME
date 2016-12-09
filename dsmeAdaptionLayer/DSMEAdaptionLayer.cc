@@ -195,8 +195,11 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
 
         msg->getHeader().setSrcAddrMode(SHORT_ADDRESS);
         msg->getHeader().setDstAddrMode(SHORT_ADDRESS);
-        msg->getHeader().setDstPANId(0); // TODO
         msg->getHeader().setDstAddr(dst);
+
+        msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+        msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
+
         params.msdu = msg;
         params.msduHandle = 0; //TODO
         params.ackTX = true;
@@ -371,7 +374,7 @@ void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
 
     if (panDescriptor != nullptr) {
         LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
-                << panDescriptor->coordAddress.getShortAddress() << ".");
+                << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
         this->associationInProgress = true;
         this->scanInProgress = false;
         this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,

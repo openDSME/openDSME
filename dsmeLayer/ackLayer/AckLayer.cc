@@ -110,40 +110,47 @@ void AckLayer::receive(DSMEMessage* msg) {
         return;
     }
 
-    /* compare destination address to this device's address */
-    bool thisDeviceIsDestination = false;
-    IEEE802154MacAddress &dstAddr = header.getDestAddr();
-    uint16_t myShortAddress = dsme.getMAC_PIB().macShortAddress;
-    IEEE802154MacAddress &myExtendedAddr = dsme.getMAC_PIB().macExtendedAddress;
-
-    if (header.getDstAddrMode() == SHORT_ADDRESS) {
-        thisDeviceIsDestination = (dstAddr.getShortAddress() == myShortAddress);
-    } else if (header.getDstAddrMode() == EXTENDED_ADDRESS) {
-        thisDeviceIsDestination = (dstAddr == myExtendedAddr);
+    /* filter messages not for this device */
+    bool throwawayMessage = false;
+    if (this->dsme.getMAC_PIB().macAssociatedPANCoord && header.destinationPanIdLength() != 0 && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId) {
+        LOG_INFO("Mismatching PAN-ID: " << header.getDstPANId() << " instead of " << this->dsme.getMAC_PIB().macPANId << " from " << header.getSrcAddr().getShortAddress());
+        throwawayMessage = true;
+    } else if (!header.getDestAddr().isBroadcast()) {
+        if (header.getDstAddrMode() == SHORT_ADDRESS && header.getDestAddr().getShortAddress() != this->dsme.getMAC_PIB().macShortAddress) {
+            throwawayMessage = true;
+        } else if (header.getDstAddrMode() == EXTENDED_ADDRESS && header.getDestAddr() != this->dsme.getMAC_PIB().macExtendedAddress) {
+            throwawayMessage = true;
+        }
     }
 
-    // TODO check for correct PAN-ID
-
-    if (!dstAddr.isBroadcast() && !thisDeviceIsDestination) {
-        dsme.getPlatform().releaseMessage(msg);
+    if (throwawayMessage) {
+        this->dsme.getPlatform().releaseMessage(msg);
         return;
     }
 
-    /* throw away the packet if the FSM is busy */
+    /* also throw away the packet if the FSM is busy */
+    bool wasBusy;
     dsme_atomicBegin();
     if (busy) {
-        dsme_atomicEnd();
-        dsme.getPlatform().releaseMessage(msg);
+        wasBusy = true;
+        DSME_SIM_ASSERT(false);
+    } else {
+        wasBusy = false;
+        busy = true;
+    }
+    dsme_atomicEnd();
+
+    if (wasBusy) {
+        this->dsme.getPlatform().releaseMessage(msg);
         return;
     }
-    busy = true;
-    dsme_atomicEnd();
 
     this->pendingMessage = msg;
     AckEvent e;
-
     e.signal = AckEvent::RECEIVE_REQUEST;
     dispatch(e);
+
+    return;
 }
 
 void AckLayer::dispatchTimer() {

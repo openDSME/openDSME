@@ -129,9 +129,10 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd &reply, IEEE8021
     msg->getHeader().getFrameControl().dstAddrMode = AddrMode::EXTENDED_ADDRESS;
     msg->getHeader().getFrameControl().framePending = 0;
     msg->getHeader().setAckRequest(true);
-    msg->getHeader().getFrameControl().panIDCompression = 1;
+    //msg->getHeader().getFrameControl().panIDCompression = 1; // TODO: Check why this was done!
     msg->getHeader().setDstPANId(dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstAddr(deviceAddress);
+    msg->getHeader().setSrcPANId(dsme.getMAC_PIB().macPANId);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
 
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
@@ -160,7 +161,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
     if ((params.status == AssociationStatus::SUCCESS) || (params.status == AssociationStatus::FASTA_SUCCESSFUL)) {
-        this->dsme.getMAC_PIB().macPANId = msg->getHeader().getSrcPANId();
+        this->dsme.getMAC_PIB().macPANId = msg->getHeader().getDstPANId();
         this->dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
         this->dsme.getMAC_PIB().macAssociatedPANCoord = true;
 

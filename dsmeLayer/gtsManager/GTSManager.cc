@@ -873,6 +873,10 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& 
     msg->getHeader().setSrcAddrMode(AddrMode::SHORT_ADDRESS);
     msg->getHeader().setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
     msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
+
+    msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
+
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
 

@@ -132,8 +132,12 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
 
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
     msg->getHeader().setDstAddrMode(SHORT_ADDRESS);
+
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::BEACON);
+
+    msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
     if (dsme.getMAC_PIB().macIsPANCoord) {
         // TODO only for PAN coordinator or for all coordinators?
@@ -174,6 +178,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     msg->getHeader().getFrameControl().frameVersion = IEEE802154eMACHeader::FrameVersion::IEEE802154_2012; //0b10 in specification
     msg->getHeader().getFrameControl().framePending = 0;
     msg->getHeader().setAckRequest(false);
+    msg->getHeader().getFrameControl().panIDCompression = 1;
 
     msg->getHeader().getFrameControl().securityEnabled = 0;
 
@@ -266,6 +271,10 @@ void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
     msg->getHeader().setDstAddrMode(SHORT_ADDRESS);
+
+    msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
+
     msg->getHeader().setAckRequest(false);
 
     // Update PANDDescription
@@ -320,6 +329,9 @@ void BeaconManager::sendBeaconCollisionNotification(uint16_t beaconSDIndex, cons
     msg->getHeader().setDstAddr(addr);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setAckRequest(true);
+
+    msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
     if(!dsme.getMessageDispatcher().sendInCAP(msg)) {
         // TODO
@@ -379,7 +391,7 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
 
     params.bsn = msg->getHeader().getSequenceNumber();
     params.panDescriptor.coordAddrMode = msg->getHeader().getSrcAddrMode();
-    params.panDescriptor.coordPANId = msg->getHeader().getSrcPANId();
+    params.panDescriptor.coordPANId = msg->getHeader().getDstPANId();
     params.panDescriptor.coordAddress = msg->getHeader().getSrcAddr();
     params.panDescriptor.channelNumber = this->dsme.getPHY_PIB().phyCurrentChannel;
     params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
