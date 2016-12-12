@@ -68,10 +68,12 @@ void AssociationManager::reset() {
 void AssociationManager::sendAssociationRequest(AssociateRequestCmd &req, mlme_sap::ASSOCIATE::request_parameters &params) {
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
+    dsme_atomicBegin();
     DSME_ASSERT(!actionPending);
     currentAction = CommandFrameIdentifier::ASSOCIATION_REQUEST;
-
     actionPending = true;
+    dsme_atomicEnd();
+
     messageSent = false;
 
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
@@ -116,6 +118,15 @@ void AssociationManager::handleAssociationRequest(DSMEMessage *msg) {
 }
 
 void AssociationManager::sendAssociationReply(AssociateReplyCmd &reply, IEEE802154MacAddress &deviceAddress) {
+    dsme_atomicBegin();
+    if(actionPending) {
+        dsme_atomicEnd();
+	return;
+    }
+    currentAction = CommandFrameIdentifier::ASSOCIATION_RESPONSE;
+    actionPending = true;
+    dsme_atomicEnd();
+
     LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
 
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
@@ -144,10 +155,14 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd &reply, IEEE8021
 }
 
 void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
-    if(!actionPending) {
+    dsme_atomicBegin();
+    if(!actionPending || currentAction != CommandFrameIdentifier::ASSOCIATION_REQUEST) {
         // No association pending, for example because of an ACK timeout
+        dsme_atomicEnd();
         return;
     }
+    actionPending = false;
+    dsme_atomicEnd();
 
     AssociateReplyCmd reply;
     reply.decapsulateFrom(msg);
@@ -155,8 +170,6 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
     mlme_sap::ASSOCIATE_confirm_parameters params;
     params.assocShortAddress = reply.getShortAddr();
     params.status = reply.getStatus();
-
-    actionPending = false;
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
@@ -179,10 +192,12 @@ void AssociationManager::handleAssociationReply(DSMEMessage *msg) {
  * Disassociation
  ****************************************************************************/
 void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd &req, mlme_sap::DISASSOCIATE::request_parameters &params) {
+    dsme_atomicBegin();
     DSME_ASSERT(!actionPending);
     currentAction = CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION;
-
     actionPending = true;
+    dsme_atomicEnd();
+
     messageSent = false;
 
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
@@ -238,22 +253,31 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage *msg) {
  * Gets called when CSMA Message was sent down to the PHY
  */
 void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
+    dsme_atomicBegin();
     if(!actionPending) {
         // Already received a response
         dsme.getPlatform().releaseMessage(msg);
+    	dsme_atomicEnd();
         return;
     }
 
-    mlme_sap::ASSOCIATE_confirm_parameters associate_params;
-    mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
-    associate_params.assocShortAddress = 0xFFFF;
-
-
     DSME_ASSERT(this->currentAction == cmdId);
+
+    if(cmdId == CommandFrameIdentifier::ASSOCIATION_RESPONSE) {
+        actionPending = false;
+        dsme.getPlatform().releaseMessage(msg);
+        dsme_atomicEnd();
+        return;
+    }
 
     if(status != DataStatus::Data_Status::SUCCESS) {
         actionPending = false;
     }
+    dsme_atomicEnd();
+
+    mlme_sap::ASSOCIATE_confirm_parameters associate_params;
+    mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
+    associate_params.assocShortAddress = 0xFFFF;
 
     switch(status) {
         case DataStatus::Data_Status::SUCCESS:
@@ -309,11 +333,11 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
             DSME_ASSERT(false);
     }
 
-
     dsme.getPlatform().releaseMessage(msg);
 }
 
 void AssociationManager::handleStartOfCFP(uint8_t superframe) {
+    dsme_atomicBegin();
     if(actionPending && messageSent) {
         superframesSinceAssociationSent++;
         // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
@@ -324,12 +348,14 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
                     mlme_sap::ASSOCIATE_confirm_parameters associate_params;
                     associate_params.assocShortAddress = 0xFFFF;
                     associate_params.status = AssociationStatus::NO_DATA;
+            	    dsme_atomicEnd();
                     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
                     break;
                 }
                 case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION: {
                     mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
                     disassociate_params.status = DisassociationStatus::SUCCESS; /* According to the standard, all failures mean disassociation */
+            	    dsme_atomicEnd();
                     this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
                     break; 
                 }
@@ -337,6 +363,12 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
                     DSME_ASSERT(false);
             }
         }
+	else {
+            dsme_atomicEnd();
+	}
+    }
+    else {
+        dsme_atomicEnd();
     }
 }
 
