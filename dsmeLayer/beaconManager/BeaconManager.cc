@@ -111,6 +111,9 @@ void BeaconManager::reset() {
 
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
     lastHeardBeaconTimestamp = 0;
+
+    this->heardBeacons.fill(false);
+    this->neighborOrOwnHeardBeacons.fill(false);
 }
 
 void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness) {
