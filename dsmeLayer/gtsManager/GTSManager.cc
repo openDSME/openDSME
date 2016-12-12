@@ -273,7 +273,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if (event.cmdId == DSME_GTS_REQUEST) {
                 if (event.dataStatus != DataStatus::Data_Status::SUCCESS) {
-                    LOG_INFO("GTSManager sending request failed " << (uint16_t)event.dataStatus);
+                    LOG_DEBUG("GTSManager sending request failed " << (uint16_t)event.dataStatus);
 
                     switch (event.dataStatus) {
                         case DataStatus::NO_ACK:
@@ -789,7 +789,7 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
             // the RESPONSE or NOTIFY might already have been handled properly.
             // Same holds if the current state is not sending (see there)
             // TODO What about the states of the receiver and the neighbours?
-            LOG_INFO("Outdated message");
+            LOG_DEBUG("Outdated message");
             returnStatus = true;
         }
     }
