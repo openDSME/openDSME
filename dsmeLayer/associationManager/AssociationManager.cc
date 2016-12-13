@@ -265,6 +265,8 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
 
     if(cmdId == CommandFrameIdentifier::ASSOCIATION_RESPONSE) {
         actionPending = false;
+        messageSent = false;
+        superframesSinceAssociationSent = 0;
         dsme.getPlatform().releaseMessage(msg);
         dsme_atomicEnd();
         return;
