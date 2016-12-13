@@ -88,7 +88,7 @@ public:
 	}
 
 	template <typename ...Args>
-	int dispatch(int8_t fsmId, uint16_t signal, Args & ... args)
+	bool dispatch(int8_t fsmId, uint16_t signal, Args & ... args)
 	{
 	    DSME_ASSERT(fsmId >= 0 && fsmId <= N);
 

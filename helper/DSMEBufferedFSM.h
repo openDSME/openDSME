@@ -65,7 +65,7 @@ public:
 	}
 
 	template <typename ...Args>
-	int dispatch(uint16_t signal, Args & ... args)
+	bool dispatch(uint16_t signal, Args & ... args)
 	{
 	    bool canAdd;
 	    bool isBusy;

@@ -80,7 +80,7 @@ void CAPLayer::dispatchCCAResult(bool success) {
     DSME_ASSERT(dispatchSuccessful);
 }
 
-void CAPLayer::sendDone(enum AckLayerResponse response, DSMEMessage* msg) {
+void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
     uint8_t signal;
     switch (response) {
         case AckLayerResponse::NO_ACK_REQUESTED:

@@ -88,7 +88,7 @@ private:
     /*
      * External interfaces for use through callbacks
      */
-    void sendDone(enum AckLayerResponse response, DSMEMessage *msg);
+    void sendDone(AckLayerResponse response, DSMEMessage *msg);
 
     /**
      * Actions
