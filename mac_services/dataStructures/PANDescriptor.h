@@ -61,15 +61,15 @@ public:
     SecurityStatus::Security_Status securityStatus;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
-    uint8_t *codeList;
+    uint8_t* codeList;
 
     /* IEEE 802.15.4e-2012 */
     DSMEPANDescriptor dsmePANDescriptor;
 
 public:
-    PANDescriptor& operator=(const PANDescriptor &other) {
+    PANDescriptor& operator=(const PANDescriptor& other) {
         this->coordAddrMode = other.coordAddrMode;
         this->coordPANId = other.coordPANId;
         this->coordAddress = other.coordAddress;

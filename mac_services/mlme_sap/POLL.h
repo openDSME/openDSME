@@ -61,14 +61,14 @@ struct POLL_confirm_parameters {
 class POLL : public ConfirmBase<POLL_confirm_parameters> {
 public:
 
-    explicit POLL(DSMELayer &dsme);
+    explicit POLL(DSMELayer& dsme);
     struct request_parameters {
         AddrMode coordAddrMode;
         uint16_t coordPANId;
         IEEE802154MacAddress coordAddress;
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
 
     };
@@ -76,7 +76,7 @@ public:
     void request(request_parameters&);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
 
 };
 

@@ -47,28 +47,27 @@
 namespace dsme {
 
 PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly) :
-        phyCurrentChannel(11),
-        phyChannelsSupported(),
-        phyCurrentPage(0),
-        phySHRDuration(phySHRDuration),
-        phySymbolsPerOctet(2),
-        phyMaxFrameDuration(phySHRDuration + ((aMaxPHYPacketSize + 1) * phySymbolsPerOctet)) {
+    phyCurrentChannel(11),
+    phyChannelsSupported(),
+    phyCurrentPage(0),
+    phySHRDuration(phySHRDuration),
+    phySymbolsPerOctet(2),
+    phyMaxFrameDuration(phySHRDuration + ((aMaxPHYPacketSize + 1) * phySymbolsPerOctet)) {
 
     if(useOneChannelOnly) {
         channelList_t DSSS2450_channels(1);
         DSSS2450_channels[0] = phyCurrentChannel;
-        MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
+        MacTuple<uint8_t, channelList_t>* DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
 
         phyChannelsSupported.setLength(1);
         phyChannelsSupported[0] = DSSS2450_page0;
-    }
-    else {
+    } else {
         /* 11 <= phyCurrentChannel <= 26 for 2450 MHz band DSSS */
         channelList_t DSSS2450_channels(16);
         for (uint8_t i = 0; i < 16; i++) {
             DSSS2450_channels[i] = 11 + i;
         }
-        MacTuple<uint8_t, channelList_t> *DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
+        MacTuple<uint8_t, channelList_t>* DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
 
         phyChannelsSupported.setLength(1);
         phyChannelsSupported[0] = DSSS2450_page0;

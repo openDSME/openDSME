@@ -49,18 +49,18 @@
 namespace dsme {
 
 DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme) :
-        dsme(dsme),
-        associationHelper(*this),
-        gtsAllocationHelper(*this),
-        scanHelper(*this),
+    dsme(dsme),
+    associationHelper(*this),
+    gtsAllocationHelper(*this),
+    scanHelper(*this),
 
-        mcps_sap(nullptr),
-        mlme_sap(nullptr),
-        phy_pib(nullptr),
-        mac_pib(nullptr),
+    mcps_sap(nullptr),
+    mlme_sap(nullptr),
+    phy_pib(nullptr),
+    mac_pib(nullptr),
 
-        scanInProgress(false),
-        associationInProgress(false) {
+    scanInProgress(false),
+    associationInProgress(false) {
 
 }
 
@@ -127,7 +127,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
     if (this->retryBuffer.hasCurrent()) {
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
         do {
-            DSMEMessage *currentMessage = this->retryBuffer.current()->message;
+            DSMEMessage* currentMessage = this->retryBuffer.current()->message;
             DSME_ASSERT(!currentMessage->currentlySending);
 
             this->retryBuffer.advanceCurrent();
@@ -136,7 +136,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
     }
 }
 
-void DSMEAdaptionLayer::sendMessage(DSMEMessage *msg) {
+void DSMEAdaptionLayer::sendMessage(DSMEMessage* msg) {
     LOG_INFO("Sending DATA message");
 
     sendMessageDown(msg, true);
@@ -159,7 +159,7 @@ void DSMEAdaptionLayer::startAssociation() {
     }
 }
 
-void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
+void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
     if (msg == nullptr) {
         /* '-> Error! */
         DSME_ASSERT(false);
@@ -210,7 +210,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
         }
         else {
         */
-            params.gtsTX = !dst.isBroadcast();
+        params.gtsTX = !dst.isBroadcast();
         //}
 
         params.indirectTX = false;
@@ -258,7 +258,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage *msg, bool newMessage) {
     return;
 }
 
-void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameters &params) {
+void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameters& params) {
     LOG_INFO("Received DATA message from MCPS.");
     receiveIndication(params.msdu);
     return;
@@ -280,9 +280,9 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
         if (!oldestEntry->message->currentlySending) {
             uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
             LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress()
-                    << ": Retry-Queue overflow ("
-                    << currentSymbolCounter - oldestEntry->initialSymbolCounter
-                    << " symbols old)");
+                      << ": Retry-Queue overflow ("
+                      << currentSymbolCounter - oldestEntry->initialSymbolCounter
+                      << " symbols old)");
             DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
@@ -297,7 +297,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
     return false;
 }
 
-void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &params) {
+void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params) {
     LOG_DEBUG("Received DATA confirm from MCPS");
     DSMEMessage* msg = params.msduHandle;
 
@@ -323,25 +323,20 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
 
                 // GTS slot not yet allocated
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
-            }
-            else if(params.status == DataStatus::NO_ACK) {
+            } else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
-            }
-            else if(params.status == DataStatus::CHANNEL_ACCESS_FAILURE) {
+            } else if(params.status == DataStatus::CHANNEL_ACCESS_FAILURE) {
                 // This should not happen, but might be the case if a foreign packet is received and the phy is therefore busy
                 DSME_SIM_ASSERT(false);
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Channel Access Failure");
-            }
-            else if(params.status == DataStatus::TRANSACTION_OVERFLOW) {
+            } else if(params.status == DataStatus::TRANSACTION_OVERFLOW) {
                 // Queue is full
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
-            }
-            else if(params.status == DataStatus::TRANSACTION_EXPIRED) {
+            } else if(params.status == DataStatus::TRANSACTION_EXPIRED) {
                 // Transaction expired, e.g. for RESET
                 LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
-            }
-            else {
+            } else {
                 // Should not occur
                 DSME_ASSERT(false);
             }
@@ -358,7 +353,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters &par
     callback_confirm(params.msduHandle, params.status);
 }
 
-void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params) {
+void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params) {
     if(params.lossReason == LossReason::BEACON_LOST) {
         LOG_ERROR("Beacon tracking lost.");
     } else {
@@ -374,11 +369,11 @@ void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
 
     if (panDescriptor != nullptr) {
         LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
-                << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
+                 << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
         this->associationInProgress = true;
         this->scanInProgress = false;
         this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
-                panDescriptor->channelNumber);
+                                          panDescriptor->channelNumber);
     } else {
         LOG_INFO("Channel scan did not yield any PANs." << " Trying again!");
         this->scanHelper.startScan();

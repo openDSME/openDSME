@@ -58,7 +58,7 @@ namespace mcps_sap {
  * IEEE 802.15.4-2011 6.3.2, Table 47,  IEEE 802.15.4e-2012 6.3.2, Table 47
  */
 struct DATA_confirm_parameters {
-    DSMEMessage *msduHandle;
+    DSMEMessage* msduHandle;
     uint32_t Timestamp;
     bool RangingReceived;
     uint32_t RangingCounterStart;
@@ -90,13 +90,13 @@ struct DATA_indication_parameters {
     uint8_t msduLength;
     */
 
-    DSMEMessage *msdu;
+    DSMEMessage* msdu;
     uint8_t mpduLinkQuality;
     uint8_t dsn;
     uint32_t timestamp;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
     UWBPRFMode uwbprf;
     uint16_t uwbPreambleSymbolRepetitions;
@@ -113,9 +113,9 @@ struct DATA_indication_parameters {
  * These primitives support the transport of data (IEEE 802.15.4-2011 6.3.1 and IEEE 802.15.4e-2012 updates).
  */
 class DATA : public ConfirmBase<DATA_confirm_parameters>,
-             public IndicationBase<DATA_indication_parameters> {
+    public IndicationBase<DATA_indication_parameters> {
 public:
-    explicit DATA(DSMELayer &dsme);
+    explicit DATA(DSMELayer& dsme);
 
     /*
      * IEEE 802.15.4-2011 6.3.1, Table 46,  IEEE 802.15.4e-2012 6.3.1, Table 46
@@ -130,14 +130,14 @@ public:
         uint8_t msduLength;
         */
 
-        DSMEMessage *msdu;
+        DSMEMessage* msdu;
         uint8_t msduHandle;
         bool ackTX;
         bool gtsTX;
         bool indirectTX;
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
         UWBPRFMode uwbprf;
         RangingMode ranging;
@@ -155,7 +155,7 @@ public:
     void request(request_parameters&);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
 };
 
 } /* mcps_sap */

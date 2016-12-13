@@ -47,9 +47,9 @@
 namespace dsme {
 
 DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() :
-        numSuperframesPerMultiSuperframe(0),
-        numGTSlots(0),
-        numChannels(0) {
+    numSuperframesPerMultiSuperframe(0),
+    numGTSlots(0),
+    numChannels(0) {
 }
 
 void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {
@@ -64,17 +64,17 @@ void DSMESlotAllocationBitmap::clear() {
     occupied.fill(false);
 }
 
-void DSMESlotAllocationBitmap::addOccupiedSlots(const DSMESABSpecification &subBlock) {
+void DSMESlotAllocationBitmap::addOccupiedSlots(const DSMESABSpecification& subBlock) {
     occupied.setOperationJoin(subBlock.getSubBlock(), subBlock.getSubBlockIndex() * numGTSlots * numChannels);
     return;
 }
 
-void DSMESlotAllocationBitmap::removeOccupiedSlots(const DSMESABSpecification &subBlock) {
+void DSMESlotAllocationBitmap::removeOccupiedSlots(const DSMESABSpecification& subBlock) {
     occupied.setOperationComplement(subBlock.getSubBlock(), subBlock.getSubBlockIndex() * numGTSlots * numChannels);
     return;
 }
 
-void DSMESlotAllocationBitmap::getOccupiedSubBlock(DSMESABSpecification &subBlock, uint16_t subBlockIndex) const {
+void DSMESlotAllocationBitmap::getOccupiedSubBlock(DSMESABSpecification& subBlock, uint16_t subBlockIndex) const {
     subBlock.getSubBlock().copyFrom(occupied, subBlockIndex * numGTSlots * numChannels);
     return;
 }

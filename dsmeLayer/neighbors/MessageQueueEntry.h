@@ -60,7 +60,7 @@ struct MessageQueueEntry {
 
 template<typename T>
 MessageQueueEntry<T>::MessageQueueEntry() :
-        value(nullptr), next(nullptr) {
+    value(nullptr), next(nullptr) {
 }
 
 template<typename T>

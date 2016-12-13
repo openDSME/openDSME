@@ -56,8 +56,8 @@ private:
     DSMESABSpecification SABSpec;
 
 public:
-    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification &SABSpec) :
-            numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
+    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec) :
+        numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
     }
 
     GTSRequestCmd() {

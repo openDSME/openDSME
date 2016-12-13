@@ -74,31 +74,30 @@ private:
 template<typename C, typename E, uint8_t N, ringbuffer_size_t S>
 class DSMEBufferedMultiFSM {
 public:
-	typedef fsmReturnStatus (C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
-	/**
-	 * Created FSM is put into initial state
-	 */
-	explicit DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) :
-			dispatchBusy(false) {
-	    for(uint8_t i = 0; i < N; i++) {
-	        states[i] = initial;
-	    }
-	    states[N] = busy;
-	}
+    /**
+     * Created FSM is put into initial state
+     */
+    explicit DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) :
+        dispatchBusy(false) {
+        for(uint8_t i = 0; i < N; i++) {
+            states[i] = initial;
+        }
+        states[N] = busy;
+    }
 
-	template <typename ...Args>
-	bool dispatch(int8_t fsmId, uint16_t signal, Args & ... args)
-	{
-	    DSME_ASSERT(fsmId >= 0 && fsmId <= N);
+    template <typename ...Args>
+    bool dispatch(int8_t fsmId, uint16_t signal, Args& ... args) {
+        DSME_ASSERT(fsmId >= 0 && fsmId <= N);
 
-	    bool canAdd;
-	    bool isBusy;
-	    bool returnValue;
+        bool canAdd;
+        bool isBusy;
+        bool returnValue;
 
-	    dsme_atomicBegin();
+        dsme_atomicBegin();
 
-	    canAdd = this->eventBuffer.hasNext();
+        canAdd = this->eventBuffer.hasNext();
         DSME_ASSERT(canAdd); // TODO: Remove after testing? Should never trigger when S is chosen correctly.
 
         if(canAdd) {
@@ -123,27 +122,27 @@ public:
         }
 
         return returnValue;
-	}
+    }
 
-	inline fsmReturnStatus transition(int8_t fsmId, state_t next) {
-	    DSME_ASSERT(fsmId >= 0 && fsmId < N);
+    inline fsmReturnStatus transition(int8_t fsmId, state_t next) {
+        DSME_ASSERT(fsmId >= 0 && fsmId < N);
 
         dsme_atomicBegin();
-		states[fsmId] = next;
+        states[fsmId] = next;
         dsme_atomicEnd();
         return FSM_TRANSITION;
-	}
+    }
 
-	const state_t& getState(int8_t fsmId) const {
-	    DSME_ASSERT(fsmId >= 0 && fsmId < N);
+    const state_t& getState(int8_t fsmId) const {
+        DSME_ASSERT(fsmId >= 0 && fsmId < N);
 
-		return states[fsmId];
-	}
+        return states[fsmId];
+    }
 
 private:
-	void runUntilFinished() {
+    void runUntilFinished() {
         while (eventBuffer.hasCurrent()) {
-            E *currentEvent = this->eventBuffer.current();
+            E* currentEvent = this->eventBuffer.current();
 
             int8_t fsmId = currentEvent->getFsmId();
             state_t state = states[fsmId];
@@ -168,12 +167,12 @@ private:
         }
         dispatchBusy = false;
         return;
-	}
+    }
 
 
-	state_t states[N + 1];
-	bool dispatchBusy;
-	DSMERingBuffer<E,S> eventBuffer;
+    state_t states[N + 1];
+    bool dispatchBusy;
+    DSMERingBuffer<E, S> eventBuffer;
 };
 
 

@@ -67,7 +67,7 @@ public:
     friend bool operator!=(const BitVectorIterator&, const BitVectorIterator&);
 
 private:
-    BitVectorBase *instance;
+    BitVectorBase* instance;
     bit_vector_size_t position;
     bool value;
 };

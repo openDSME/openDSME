@@ -69,17 +69,17 @@ public:
      * See IEEE 802.15.4e-2012 5.2.1.1, Figure 36
      */
     struct FrameControl {
-        FrameType frameType :3;
-        uint8_t securityEnabled :1;
-        uint8_t framePending :1;
-        uint8_t ackRequest :1;
-        uint8_t panIDCompression :1;
-        uint8_t reserved :1;
-        uint8_t seqNumSuppression :1;
-        uint8_t ieListPresent :1;
-        AddrMode dstAddrMode :2;
-        FrameVersion frameVersion :2;
-        AddrMode srcAddrMode :2;
+        FrameType frameType : 3;
+        uint8_t securityEnabled : 1;
+        uint8_t framePending : 1;
+        uint8_t ackRequest : 1;
+        uint8_t panIDCompression : 1;
+        uint8_t reserved : 1;
+        uint8_t seqNumSuppression : 1;
+        uint8_t ieListPresent : 1;
+        AddrMode dstAddrMode : 2;
+        FrameVersion frameVersion : 2;
+        AddrMode srcAddrMode : 2;
     };
 
     IEEE802154eMACHeader() {
@@ -348,9 +348,9 @@ public:
 
     virtual void serialize(Serializer& serializer);
 
-    inline bool deserializeFrom(const uint8_t* &buffer, uint8_t payloadLength);
+    inline bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
 
-    friend uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader& header);
+    friend uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header);
 
     /*
      * Due to the impossibility of checking for a large enough buffer, this method was deprecated.
@@ -363,7 +363,7 @@ Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameContro
 
 /* NEW FAST SERIALISATION **************************************************************/
 
-inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader::FrameControl& fc) {
+inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader::FrameControl& fc) {
     uint8_t fcf_0, fcf_1;
 
     fcf_0  = fc.frameType         << 0;
@@ -384,7 +384,7 @@ inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader::FrameCo
     return buffer;
 }
 
-inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader::FrameControl& fc) {
+inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154eMACHeader::FrameControl& fc) {
     uint8_t fcf_0, fcf_1;
 
     fcf_0 = *(buffer++);
@@ -404,7 +404,7 @@ inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader::F
     return buffer;
 }
 
-inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader& header) {
+inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header) {
     /* serialize frame control */
     buffer << header.frameControl;
 
@@ -444,57 +444,55 @@ inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader& header)
     return buffer;
 }
 
-inline bool IEEE802154eMACHeader::deserializeFrom(const uint8_t* &buffer, uint8_t payloadLength) {
-        if(payloadLength < 2) {
-            return false;
-        }
-
-        /* deserialize frame control */
-        buffer >> this->frameControl;
-
-        if(payloadLength < getSerializationLength()) {
-            return false;
-        }
-
-        /* deserialize sequence number */
-        if (hasSequenceNumber()) {
-            this->seqNum = *(buffer++);
-        }
-
-        /* deserialize destination address */
-        if (destinationPanIdLength() != 0) {
-            this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
-            buffer += 2;
-        }
-        if (destinationAddressLength() == 2) {
-            uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
-            buffer += 2;
-            this->dstAddr.setShortAddress(shortDstAddr);
-        } else if (destinationAddressLength() == 8) {
-            buffer >> this->dstAddr;
-        }
-        else {
-            this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
-        }
-
-        /* deserialize source address */
-        if (sourcePanIdLength() != 0) {
-            this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
-            buffer += 2;
-        }
-        if (sourceAddressLength() == 2) {
-            uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
-            buffer += 2;
-            this->srcAddr.setShortAddress(shortSrcAddr);
-        } else if (sourceAddressLength() == 8) {
-            buffer >> this->srcAddr;
-        }
-        else {
-            this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
-        }
-
-        return true;
+inline bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
+    if(payloadLength < 2) {
+        return false;
     }
+
+    /* deserialize frame control */
+    buffer >> this->frameControl;
+
+    if(payloadLength < getSerializationLength()) {
+        return false;
+    }
+
+    /* deserialize sequence number */
+    if (hasSequenceNumber()) {
+        this->seqNum = *(buffer++);
+    }
+
+    /* deserialize destination address */
+    if (destinationPanIdLength() != 0) {
+        this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+    }
+    if (destinationAddressLength() == 2) {
+        uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+        this->dstAddr.setShortAddress(shortDstAddr);
+    } else if (destinationAddressLength() == 8) {
+        buffer >> this->dstAddr;
+    } else {
+        this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    /* deserialize source address */
+    if (sourcePanIdLength() != 0) {
+        this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+    }
+    if (sourceAddressLength() == 2) {
+        uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+        this->srcAddr.setShortAddress(shortSrcAddr);
+    } else if (sourceAddressLength() == 8) {
+        buffer >> this->srcAddr;
+    } else {
+        this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    return true;
+}
 
 }
 #endif

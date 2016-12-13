@@ -108,19 +108,19 @@ public:
 
     uint16_t getNumAllocatedTxGTS(uint16_t address);
 
-    void setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress = false);
-    void setACTState(DSMESABSpecification &subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition, bool checkAddress = false);
-    void setACTStateIfExists(DSMESABSpecification &subBlock, ACTState state);
+    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress = false);
+    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition, bool checkAddress = false);
+    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state);
 
 private:
-    DSMEAllocationCounterTable(const DSMEAllocationCounterTable &other) {
+    DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) {
     }
 
     uint16_t numSuperFramesPerMultiSuperframe;
     uint8_t numGTSlots;
     uint8_t numChannels;
 
-    BitVector<MAX_SUPERFRAMES_PER_MULTI_SUPERFRAME * MAX_GTSLOTS> bitmap;
+    BitVector<MAX_SUPERFRAMES_PER_MULTI_SUPERFRAME* MAX_GTSLOTS> bitmap;
     RBTree<ACTElement, ACTPosition> act;
 
     // TODO integrate this nicely into the NeighborQueue

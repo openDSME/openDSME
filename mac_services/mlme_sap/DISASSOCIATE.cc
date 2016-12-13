@@ -49,12 +49,12 @@ namespace dsme {
 namespace mlme_sap {
 
 DISASSOCIATE::DISASSOCIATE(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
-void DISASSOCIATE::request(request_parameters &params) {
+void DISASSOCIATE::request(request_parameters& params) {
     DisassociationNotifyCmd disassociationCmd(params.disassociateReason);
-    AssociationManager &associationManager = dsme.getAssociationManager();
+    AssociationManager& associationManager = dsme.getAssociationManager();
     associationManager.sendDisassociationRequest(disassociationCmd, params);
 
     // TODO s.83 in 2011

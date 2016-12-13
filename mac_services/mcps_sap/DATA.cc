@@ -49,16 +49,16 @@ namespace dsme {
 namespace mcps_sap {
 
 DATA::DATA(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
 /*
  * IEEE802.15.4-2011 6.3.1
  * On receipt of the MCPS-DATA.request primitive, the MAC sublayer entity begins the transmission of the supplied MSDU.
  */
-void DATA::request(request_parameters &params) {
-    DSMEMessage *dsmemsg = params.msdu;
-    IDSMEMessage *msg = dsmemsg;
+void DATA::request(request_parameters& params) {
+    DSMEMessage* dsmemsg = params.msdu;
+    IDSMEMessage* msg = dsmemsg;
 
     if (!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
         mcps_sap::DATA_confirm_parameters confirmParams;

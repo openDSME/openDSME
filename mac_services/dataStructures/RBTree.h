@@ -95,7 +95,7 @@ public:
      * removes object and reconstruct a new RBTree
      * @Param iterator that points to node that shall be removed
      */
-    void remove(iterator &iter);
+    void remove(iterator& iter);
 
     /*
      * find object with key key
@@ -180,7 +180,7 @@ private:
 
 template<typename T, typename K>
 RBTree<T, K>::RBTree() :
-        root(nullptr), m_size(0) {
+    root(nullptr), m_size(0) {
 }
 
 template<typename T, typename K>
@@ -214,7 +214,7 @@ const typename RBTree<T, K>::iterator RBTree<T, K>::end() const {
 template<typename T, typename K>
 bool RBTree<T, K>::insert(T obj, K key) {
     RBNode<T, K>* node;
-    if (m_size == (tree_size_t) -1) {
+    if (m_size == (tree_size_t) - 1) {
         /* '-> tree is already full, depends on bit-width of 'tree_size_t' */
         return false;
     }
@@ -258,7 +258,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
          */
 
         while (true) {
-            RBNode<T, K> *P, *G, *U;
+            RBNode<T, K>* P, *G, *U;
             P = node->parent;
             G = grandparent(node); // grandparent from node
             U = uncle(node); // uncle from node
@@ -277,7 +277,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
              * node and P are different direction children ( one is a leftchild and the other a rightchild)
              */
             if (node == P->rightChild && (G == nullptr || P == G->leftChild)) { // Transformation_4R
-                                                                                //node is right from parent, parent is left from grandparent
+                //node is right from parent, parent is left from grandparent
                 rotate_left(P);
                 //node becomes parent from P, both are now left children
 
@@ -285,7 +285,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
                 P = node->parent; // new parent(red)
 
             } else if (node == P->leftChild && (G == nullptr || P == G->rightChild)) { // Transformation_4L
-                                                                                       //node is left from parent, parent is right from grandparent
+                //node is left from parent, parent is right from grandparent
                 rotate_right(P);
                 //node becomes parent from P, both are now right children
 
@@ -298,10 +298,10 @@ bool RBTree<T, K>::insert(T obj, K key) {
              */
             if (G != nullptr) {
                 if (node == P->leftChild && P == G->leftChild) { // Transformation_5L
-                                                                 // node and P are left children
+                    // node and P are left children
                     rotate_right(G);
                 } else { // Transformation_5R
-                         // node and P are right children
+                    // node and P are right children
                     rotate_left(G);
                 }
 
@@ -329,8 +329,8 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
         /*
          * in each iteration sibling and parent have to be set to the actual value
          */
-        RBNode<T, K> *sib = sibling(node);
-        RBNode<T, K> *parent = node->parent;
+        RBNode<T, K>* sib = sibling(node);
+        RBNode<T, K>* parent = node->parent;
 
         /*
          * case 1: sibling of problem node is RED
@@ -422,7 +422,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
 }
 
 template<typename T, typename K>
-void RBTree<T, K>::remove(iterator &iter) {
+void RBTree<T, K>::remove(iterator& iter) {
     if (iter == end()) {
         return;
     }
@@ -441,7 +441,7 @@ void RBTree<T, K>::remove(iterator &iter) {
         /*
          * case 3 or case 6: node has two children
          */
-        RBNode<T, K> *swapnode = findSwapNode(node);
+        RBNode<T, K>* swapnode = findSwapNode(node);
         node->content = swapnode->content;
         node->key = swapnode->key;
         rnode = swapnode;
@@ -515,7 +515,7 @@ void RBTree<T, K>::remove(iterator &iter) {
 
 template<typename T, typename K>
 typename RBTree<T, K>::iterator RBTree<T, K>::find(K key) {
-    RBNode<T, K> *current = root;
+    RBNode<T, K>* current = root;
 
     while (current != nullptr) {
         if (current->key == key) {
@@ -554,10 +554,11 @@ RBNode<T, K>* RBTree<T, K>::sibling(RBNode<T, K>* x) {
     if (x->parent == nullptr) {
         return nullptr;
     }
-    if (x == x->parent->leftChild)
+    if (x == x->parent->leftChild) {
         return x->parent->rightChild;
-    else
+    } else {
         return x->parent->leftChild;
+    }
 }
 
 template<typename T, typename K>
@@ -566,7 +567,7 @@ RBNode<T, K>* RBTree<T, K>::findSwapNode(RBNode<T, K>* x) {
      * find node with smallest key in right subtree of x
      */
 
-    RBNode<T, K> *node = x->rightChild;
+    RBNode<T, K>* node = x->rightChild;
     while (node->leftChild != nullptr) {
         node = node->leftChild;
     }

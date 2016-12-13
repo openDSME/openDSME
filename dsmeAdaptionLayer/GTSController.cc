@@ -59,12 +59,12 @@ constexpr uint16_t SCALING = 128;
 namespace dsme {
 
 GTSControllerData::GTSControllerData() :
-        address(0xffff),
-        messagesInLastMultisuperframe(0),
-        messagesOutLastMultisuperframe(0),
-        error_sum(0),
-        last_error(0),
-        control(1) {
+    address(0xffff),
+    messagesInLastMultisuperframe(0),
+    messagesOutLastMultisuperframe(0),
+    error_sum(0),
+    last_error(0),
+    control(1) {
 
 }
 
@@ -95,15 +95,15 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 }
 
 void GTSController::multisuperframeEvent() {
-    for (GTSControllerData &data : this->links) {
+    for (GTSControllerData& data : this->links) {
 
         uint16_t w = data.messagesInLastMultisuperframe;
         uint16_t y = data.messagesOutLastMultisuperframe;
 
         int16_t e = w - y;
         int16_t d = e - data.last_error;
-        int16_t &i = data.error_sum;
-        int16_t &u = data.control;
+        int16_t& i = data.error_sum;
+        int16_t& u = data.control;
 
         i += e;
 
@@ -117,10 +117,10 @@ void GTSController::multisuperframeEvent() {
         LOG_DEBUG_PURE("Controller-Data->" << data.address);
         LOG_DEBUG_PURE("; w: " << (const char*)(       " ") << w);
         LOG_DEBUG_PURE("; y: " << (const char*)(       " ") << y);
-        LOG_DEBUG_PURE("; e: " << (const char*)(e<0?"":" ") << e);
-        LOG_DEBUG_PURE("; i: " << (const char*)(i<0?"":" ") << i);
-        LOG_DEBUG_PURE("; d: " << (const char*)(d<0?"":" ") << d);
-        LOG_DEBUG_PURE("; u: " << (const char*)(u<0?"":" ") << u);
+        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
+        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
+        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
+        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
         LOG_DEBUG("");
 
         data.last_error = e;
@@ -155,7 +155,7 @@ static uint16_t abs(int16_t v) {
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
     int16_t control = 0;
-    for (const GTSControllerData &d : this->links) {
+    for (const GTSControllerData& d : this->links) {
         if (abs(control) < abs(d.control)) {
             control = d.control;
             address = d.address;

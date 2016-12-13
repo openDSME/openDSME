@@ -51,25 +51,25 @@ namespace dsme {
 class GTSManagement : public DSMEMessageElement {
 public:
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess) :
-            type(type),
-            direction(direction),
-            prioritizedChannelAccess(prioritizedChannelAccess),
-            status(GTSStatus::GTS_Status::SUCCESS) {
+        type(type),
+        direction(direction),
+        prioritizedChannelAccess(prioritizedChannelAccess),
+        status(GTSStatus::GTS_Status::SUCCESS) {
     }
 
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess,
-            GTSStatus::GTS_Status status) :
-            type(type),
-            direction(direction),
-            prioritizedChannelAccess(prioritizedChannelAccess),
-            status(status) {
+                  GTSStatus::GTS_Status status) :
+        type(type),
+        direction(direction),
+        prioritizedChannelAccess(prioritizedChannelAccess),
+        status(status) {
     }
 
     GTSManagement() :
-            type(DEALLOCATION),
-            direction(RX),
-            prioritizedChannelAccess(HIGH),
-            status(GTSStatus::SUCCESS) {
+        type(DEALLOCATION),
+        direction(RX),
+        prioritizedChannelAccess(HIGH),
+        status(GTSStatus::SUCCESS) {
     }
 
     ManagementType type;

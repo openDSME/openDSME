@@ -53,11 +53,11 @@ public:
     typedef uint32_t ((T::*getter_t)());
 
     ReadonlyTimerAbstraction() :
-            getter_instance(nullptr),
-            getter(nullptr) {
+        getter_instance(nullptr),
+        getter(nullptr) {
     }
 
-    void initialize(T *instance, getter_t getter) {
+    void initialize(T* instance, getter_t getter) {
         this->getter_instance = instance;
         this->getter = getter;
     }
@@ -67,7 +67,7 @@ public:
     }
 
 private:
-    T *getter_instance;
+    T* getter_instance;
     getter_t getter;
 };
 
@@ -77,11 +77,11 @@ public:
     typedef void (T::*setter_t)(uint32_t);
 
     WriteonlyTimerAbstraction() :
-            setter_instance(nullptr),
-            setter(nullptr) {
+        setter_instance(nullptr),
+        setter(nullptr) {
     }
 
-    void initialize(T *instance, setter_t setter) {
+    void initialize(T* instance, setter_t setter) {
         setter_instance = instance;
         this->setter = setter;
     }
@@ -92,7 +92,7 @@ public:
     }
 
 private:
-    T *setter_instance;
+    T* setter_instance;
     setter_t setter;
 };
 

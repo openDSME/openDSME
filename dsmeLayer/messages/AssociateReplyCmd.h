@@ -55,14 +55,14 @@ public:
     }
 
     AssociateReplyCmd(uint16_t shortAddr,  AssociationStatus::Association_Status status) :
-            shortAddr(shortAddr), status(status) {
+        shortAddr(shortAddr), status(status) {
     }
 
     uint16_t getShortAddr() const {
         return this->shortAddr;
     }
 
-    AssociationStatus::Association_Status getStatus() const{
+    AssociationStatus::Association_Status getStatus() const {
         return this->status;
     }
 

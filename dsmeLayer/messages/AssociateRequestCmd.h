@@ -54,7 +54,7 @@ public:
     }
 
     explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) :
-            capabilityInformation(capabilityInformation) {
+        capabilityInformation(capabilityInformation) {
     }
 
     const CapabilityInformation& getCapabilityInformation() const {

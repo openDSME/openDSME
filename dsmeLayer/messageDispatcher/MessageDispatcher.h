@@ -56,14 +56,14 @@ class DSMELayer;
 class MessageDispatcher {
 
 public:
-    explicit MessageDispatcher(DSMELayer &dsme);
+    explicit MessageDispatcher(DSMELayer& dsme);
     ~MessageDispatcher();
 
     void initialize(void);
     void reset(void);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
 
 public:
     void sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg);
@@ -71,24 +71,24 @@ public:
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(DSMEMessage *msg, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(DSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs);
 
-    bool sendInGTS(DSMEMessage *msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
+    bool sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
 
-    bool sendInCAP(DSMEMessage *msg);
+    bool sendInCAP(DSMEMessage* msg);
 
-    void receive(DSMEMessage *msg);
+    void receive(DSMEMessage* msg);
 
     NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
         return neighborQueue;
     }
 
-    void addNeighbor(const IEEE802154MacAddress &address) {
+    void addNeighbor(const IEEE802154MacAddress& address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
     }
 
-    bool neighborExists(const IEEE802154MacAddress &address) {
+    bool neighborExists(const IEEE802154MacAddress& address) {
         return neighborQueue.findByAddress(address) != neighborQueue.end();
     }
 
@@ -129,7 +129,7 @@ protected:
 
     AckLayer::done_callback_t doneGTS;
 
-    DSMEMessage *dsmeAckFrame;
+    DSMEMessage* dsmeAckFrame;
 
     /**
      * Called on start of every GTSlot.
@@ -157,7 +157,7 @@ protected:
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
-    void createDataIndication(DSMEMessage *msg);
+    void createDataIndication(DSMEMessage* msg);
 };
 
 } /* dsme */

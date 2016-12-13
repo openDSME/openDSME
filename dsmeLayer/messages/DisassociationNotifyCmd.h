@@ -55,7 +55,7 @@ public:
     }
 
     explicit DisassociationNotifyCmd(DisassociateReason reason) :
-            reason(reason) {
+        reason(reason) {
     }
 
     virtual uint8_t getSerializationLength() const {
@@ -70,7 +70,7 @@ public:
         reason = (DisassociateReason) r;
     }
 
-    DisassociateReason& getReason(){
+    DisassociateReason& getReason() {
         return reason;
     }
 

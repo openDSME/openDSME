@@ -61,7 +61,7 @@ namespace mlme_sap {
 
 class MLME_SAP {
 public:
-    explicit MLME_SAP(DSMELayer &dsme);
+    explicit MLME_SAP(DSMELayer& dsme);
 
     ASSOCIATE& getASSOCIATE();
     BEACON_NOTIFY& getBEACON_NOTIFY();

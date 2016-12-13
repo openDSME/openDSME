@@ -48,10 +48,10 @@
 namespace dsme {
 namespace mcps_sap {
 
-MCPS_SAP::MCPS_SAP(DSMELayer &dsme) :
-        dsme(dsme),
-        data(dsme),
-        purge(dsme) {
+MCPS_SAP::MCPS_SAP(DSMELayer& dsme) :
+    dsme(dsme),
+    data(dsme),
+    purge(dsme) {
     this->dsme.setMCPS(this);
 }
 
@@ -63,7 +63,7 @@ PURGE& MCPS_SAP::getPURGE() {
     return this->purge;
 }
 
-uint8_t MCPS_SAP::getMessageCount(const IEEE802154MacAddress &addr) const {
+uint8_t MCPS_SAP::getMessageCount(const IEEE802154MacAddress& addr) const {
     const NeighborQueue<MAX_NEIGHBORS>::iterator it = this->dsme.getMessageDispatcher().getNeighborQueue().findByAddress(addr);
     return this->dsme.getMessageDispatcher().getNeighborQueue().getPacketsInQueue(it);
 }

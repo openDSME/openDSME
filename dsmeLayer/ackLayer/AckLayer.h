@@ -76,7 +76,7 @@ class AckLayer : private FSM<AckLayer, AckEvent> {
 public:
     typedef Delegate<void(enum AckLayerResponse, DSMEMessage* msg)> done_callback_t;
 
-    explicit AckLayer(DSMELayer &dsme);
+    explicit AckLayer(DSMELayer& dsme);
 
     void reset();
 

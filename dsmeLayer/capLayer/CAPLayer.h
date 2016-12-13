@@ -69,10 +69,10 @@ class DSMELayer;
 
 class CAPLayer : private DSMEBufferedFSM<CAPLayer, CSMAEvent, 4> {
 public:
-    explicit CAPLayer(DSMELayer &dsme);
+    explicit CAPLayer(DSMELayer& dsme);
 
     void reset();
-    bool pushMessage(DSMEMessage *msg);
+    bool pushMessage(DSMEMessage* msg);
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
 
@@ -80,15 +80,15 @@ private:
     /**
      * States
      */
-    fsmReturnStatus stateIdle(CSMAEvent &event);
-    fsmReturnStatus stateBackoff(CSMAEvent & vent);
-    fsmReturnStatus stateCCA(CSMAEvent &event);
-    fsmReturnStatus stateSending(CSMAEvent &event);
+    fsmReturnStatus stateIdle(CSMAEvent& event);
+    fsmReturnStatus stateBackoff(CSMAEvent& vent);
+    fsmReturnStatus stateCCA(CSMAEvent& event);
+    fsmReturnStatus stateSending(CSMAEvent& event);
 
     /*
      * External interfaces for use through callbacks
      */
-    void sendDone(AckLayerResponse response, DSMEMessage *msg);
+    void sendDone(AckLayerResponse response, DSMEMessage* msg);
 
     /**
      * Actions
@@ -106,7 +106,7 @@ private:
     /*
      * Attributes
      */
-    DSMELayer &dsme;
+    DSMELayer& dsme;
     uint8_t NB;
     uint8_t NR;
     uint8_t totalNBs;

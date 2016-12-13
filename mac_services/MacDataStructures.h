@@ -50,9 +50,9 @@ namespace dsme {
 template<typename TK, typename TV>
 class MacTuple {
 public:
-    MacTuple(const TK &key, const TV &value) :
-            key(key),
-            value(value) {
+    MacTuple(const TK& key, const TV& value) :
+        key(key),
+        value(value) {
     }
 
     TK key;
@@ -63,18 +63,18 @@ template<typename T, uint8_t S>
 class MacStaticList {
 public:
     MacStaticList() :
-            length(0) {
+        length(0) {
     }
 
-    explicit MacStaticList(const MacStaticList &other) :
-            length(other.length) {
+    explicit MacStaticList(const MacStaticList& other) :
+        length(other.length) {
         for (uint8_t i = 0; i < length; i++) {
             this->array[i] = other.array[i];
         }
     }
 
     explicit MacStaticList(uint8_t length) :
-            length(length) {
+        length(length) {
     }
 
     ~MacStaticList() {
@@ -96,13 +96,13 @@ public:
         return this->array[pos];
     }
 
-    void add(const T &element) {
+    void add(const T& element) {
         if (this->length < S) {
             this->array[length++] = element;
         }
     }
 
-    bool contains(const T &element) {
+    bool contains(const T& element) {
         for (uint8_t i = 0; i < length; i++) {
             if(this->array[i] == element) {
                 return true;

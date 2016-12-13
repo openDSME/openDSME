@@ -58,9 +58,9 @@ struct ASSOCIATE_indication_parameters {
     CapabilityInformation capabilityInformation;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
-    uint8_t *lowLatencyNetworkInfo;
+    uint8_t* lowLatencyNetworkInfo;
     uint16_t channelOffset;
     uint8_t hoppingSequenceID;
 
@@ -71,21 +71,21 @@ struct ASSOCIATE_confirm_parameters {
     AssociationStatus::Association_Status status;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
-    uint8_t *lowLatencyNetworkInfo;
+    uint8_t* lowLatencyNetworkInfo;
     uint16_t channelOffset;
     uint16_t hoppingSequenceLength;
-    uint8_t *hoppingSequence;
+    uint8_t* hoppingSequence;
 };
 
 /*
  * These primitives are used when a device becomes associated with a PAN (IEEE 802.15.4-2011 6.2.2 and IEEE 802.15.4e-2012 updates )
  */
 class ASSOCIATE : public IndicationBase<ASSOCIATE_indication_parameters>,
-                  public ConfirmBase<ASSOCIATE_confirm_parameters> {
+    public ConfirmBase<ASSOCIATE_confirm_parameters> {
 public:
-    explicit ASSOCIATE(DSMELayer &dsme);
+    explicit ASSOCIATE(DSMELayer& dsme);
 
     struct request_parameters {
         uint8_t channelNumber;
@@ -96,9 +96,9 @@ public:
         CapabilityInformation capabilityInformation;
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
-        uint8_t *lowLatencyNetworkInfo; //only needed for LLDN networks
+        uint8_t* lowLatencyNetworkInfo; //only needed for LLDN networks
         uint16_t channelOffset; //To be ignored, when in channel adaption mode
         uint8_t hoppingSequenceID; //To be ignored, when in channel adaption mode
 
@@ -110,12 +110,12 @@ public:
         AssociationStatus::Association_Status status;
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
-        uint8_t *lowLatencyNetworkInfo;
+        uint8_t* lowLatencyNetworkInfo;
         uint16_t channelOffset;
         uint16_t hoppingSequenceLength;
-        uint8_t *hoppingSequence;
+        uint8_t* hoppingSequence;
 
     };
 

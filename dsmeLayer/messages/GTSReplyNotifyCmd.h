@@ -65,14 +65,14 @@ public:
     }
 
     //in channel hopping mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification &SABSpec) :
+    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification& SABSpec) :
         destinationAddress(destinationAddress),
         channelOffset(channelOffset),
         SABSpec(SABSpec) {
     }
 
     //in channel adaption mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification &SABSpec) :
+    GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification& SABSpec) :
         destinationAddress(destinationAddress),
         channelOffset(0),
         SABSpec(SABSpec) {

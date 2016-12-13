@@ -48,10 +48,10 @@ namespace dsme {
 namespace mlme_sap {
 
 RESET::RESET(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
-void RESET::request(request_parameters &params) {
+void RESET::request(request_parameters& params) {
     if(params.setDefaultPIB) {
         LOG_ERROR("Resetting the PIB is currently not supported.");
         DSME_ASSERT(false);

@@ -132,13 +132,13 @@ public:
 
 private:
     ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) :
-            superframeID(superframeID),
-            slotID(slotID),
-            channel(channel),
-            direction(direction),
-            address(address),
-            idleCounter(0),
-            state(state) {
+        superframeID(superframeID),
+        slotID(slotID),
+        channel(channel),
+        direction(direction),
+        address(address),
+        idleCounter(0),
+        state(state) {
     }
 
     uint16_t superframeID;

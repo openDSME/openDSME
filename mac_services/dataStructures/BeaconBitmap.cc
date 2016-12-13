@@ -49,7 +49,7 @@ namespace dsme {
 /* Function DEFINITIONS ******************************************************/
 
 BeaconBitmap::BeaconBitmap() :
-        sdIndex(0) {
+    sdIndex(0) {
 }
 
 void BeaconBitmap::setSDIndex(uint16_t SDIndex) {
@@ -61,11 +61,11 @@ uint16_t BeaconBitmap::getSDIndex() const {
 }
 
 bool BeaconBitmap::setSDBitmapLengthBytes(uint16_t SDBitmapLengthBytes, bool value) {
-    return sdBitmap.setLength(SDBitmapLengthBytes*8, value);
+    return sdBitmap.setLength(SDBitmapLengthBytes * 8, value);
 }
 
 uint16_t BeaconBitmap::getSDBitmapLengthBytes() const {
-    return sdBitmap.length()/8;
+    return sdBitmap.length() / 8;
 }
 
 void BeaconBitmap::fill(bool value) {
@@ -153,11 +153,10 @@ Serializer& operator<<(Serializer& serializer, BeaconBitmap& b) {
     if(serializer.getType() == SERIALIZATION) {
         uint16_t SDBitmapLength = BITVECTOR_BYTE_LENGTH(b.sdBitmap.length());
         serializer << SDBitmapLength;
-    }
-    else {
+    } else {
         uint16_t SDBitmapLength = 0; /* unused value */
         serializer << SDBitmapLength;
-        b.sdBitmap.setLength(SDBitmapLength*8);
+        b.sdBitmap.setLength(SDBitmapLength * 8);
     }
 
     serializer << b.sdBitmap;

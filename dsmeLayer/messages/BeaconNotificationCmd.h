@@ -48,8 +48,7 @@ namespace dsme {
 /*
  * Allocation notification or collision notification
  */
-class BeaconNotificationCmd : public DSMEMessageElement
-{
+class BeaconNotificationCmd : public DSMEMessageElement {
 private:
     uint16_t beaconSDIndex;
 

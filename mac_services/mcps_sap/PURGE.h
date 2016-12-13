@@ -61,7 +61,7 @@ struct PURGE_confirm_parameters {
  */
 class PURGE : public ConfirmBase<PURGE_confirm_parameters> {
 public:
-    explicit PURGE(DSMELayer &dsme);
+    explicit PURGE(DSMELayer& dsme);
 
     struct request_parameters {
         uint8_t msduHandle;

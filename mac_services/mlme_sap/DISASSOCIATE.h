@@ -58,7 +58,7 @@ struct DISASSOCIATE_indication_parameters {
     DisassociateReason disassociateReason;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
 };
 
@@ -75,9 +75,9 @@ struct DISASSOCIATE_confirm_parameters {
  * device from a PAN. (IEEE 802.15.4-2011 6.2.3)
  */
 class DISASSOCIATE : public IndicationBase<DISASSOCIATE_indication_parameters>,
-                     public ConfirmBase<DISASSOCIATE_confirm_parameters> {
+    public ConfirmBase<DISASSOCIATE_confirm_parameters> {
 public:
-    explicit DISASSOCIATE(DSMELayer &dsme);
+    explicit DISASSOCIATE(DSMELayer& dsme);
     struct request_parameters {
         AddrMode deviceAddrMode;
         uint16_t devicePANId;
@@ -86,7 +86,7 @@ public:
         bool txIndirect; //TRUE if the disassociation notification command is to be sent indirectly.
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
     };
 

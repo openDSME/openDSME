@@ -7,9 +7,8 @@ astyle \
     --indent-switches \
     --indent-col1-comments \
     --pad-oper \
-    --pad-header \
-    --align-pointer=name \
-    --align-reference=name \
+    --align-pointer=type \
+    --align-reference=type \
     --add-brackets \
     --convert-tabs \
     --close-templates \

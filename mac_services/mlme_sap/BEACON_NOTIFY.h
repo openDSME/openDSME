@@ -55,9 +55,9 @@ struct BEACON_NOTIFY_indication_parameters {
     uint8_t bsn;
     PANDescriptor panDescriptor;
     uint8_t pendAddrSpec;
-    uint64_t *addrList;
+    uint64_t* addrList;
     uint8_t sduLength;
-    uint8_t *sdu;
+    uint8_t* sdu;
     uint8_t eBSN;
     uint8_t beaconType;
 

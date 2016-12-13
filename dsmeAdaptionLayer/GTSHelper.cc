@@ -51,9 +51,9 @@
 namespace dsme {
 
 GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-        dsmeAdaptionLayer(dsmeAdaptionLayer),
-        gtsController(),
-        gtsConfirmPending(false) {
+    dsmeAdaptionLayer(dsmeAdaptionLayer),
+    gtsController(),
+    gtsConfirmPending(false) {
 }
 
 void GTSHelper::initialize() {
@@ -155,10 +155,10 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     params.keyIndex = 0;
 
     LOG_INFO("Requesting slot "
-            << preferredGTS.slotID
-            << " " << preferredGTS.superframeID
-            << " " << (uint16_t)preferredGTS.channel
-            << " for transmission to " << params.deviceAddress << ".");
+             << preferredGTS.slotID
+             << " " << preferredGTS.superframeID
+             << " " << (uint16_t)preferredGTS.channel
+             << " for transmission to " << params.deviceAddress << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
     for (DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
@@ -200,14 +200,14 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
         dsmeSABSpecification.getSubBlock().fill(false);
         dsmeSABSpecification.getSubBlock().set(
-                toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(),
-                true);
+            toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(),
+            true);
 
         sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
     }
 }
 
-void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters &params) {
+void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters& params) {
     LOG_INFO("COMM_STATUS indication handled.");
 
     // TODO should we do anything here? especially for failures?
@@ -215,7 +215,7 @@ void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_pa
     return;
 }
 
-void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_parameters &params) {
+void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_parameters& params) {
     if (!this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Not associated, discarding incoming GTS request from " << params.deviceAddress << ".");
         return;
@@ -238,7 +238,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             responseParams.dsmeSABSpecification.setSubBlockIndex(params.dsmeSABSpecification.getSubBlockIndex());
 
             findFreeSlots(params.dsmeSABSpecification, responseParams.dsmeSABSpecification, params.numSlot, params.preferredSuperframeID,
-                    params.preferredSlotID);
+                          params.preferredSlotID);
 
             if (responseParams.dsmeSABSpecification.getSubBlock().isZero()) {
                 LOG_WARN("Unable to allocate GTS.");
@@ -345,7 +345,7 @@ const char* printStatus(GTSStatus::GTS_Status status) {
     return "UNKNOWN";
 }
 
-void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters &params) {
+void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& params) {
     LOG_DEBUG("GTS confirmation handled (Status: " << printStatus(params.status) << ").");
 
     // TODO handle channel access failure! retransmission?
@@ -426,7 +426,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
     return GTS::UNDEFINED;
 }
 
-GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &requestSABSpec, uint16_t &deviceAddress, Direction& direction) {
+GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& requestSABSpec, uint16_t& deviceAddress, Direction& direction) {
     GTSStatus::GTS_Status result;
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
@@ -442,7 +442,7 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &reques
         idx += it->getChannel();
 
         if (it->getSuperframeID() != requestSABSpec.getSubBlockIndex() || !requestSABSpec.getSubBlock().get(idx)) {
-            continue;			// no deallocation requested
+            continue;           // no deallocation requested
         }
 
         if (deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS) {
@@ -473,8 +473,8 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification &reques
     return result;
 }
 
-void GTSHelper::findFreeSlots(DSMESABSpecification &requestSABSpec, DSMESABSpecification &replySABSpec, uint8_t numSlots,
-        uint16_t preferredSuperframe, uint8_t preferredSlot) {
+void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots,
+                              uint16_t preferredSuperframe, uint8_t preferredSlot) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
     for (uint8_t i = 0; i < numSlots; i++) {

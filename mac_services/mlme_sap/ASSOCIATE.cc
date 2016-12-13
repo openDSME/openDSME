@@ -51,11 +51,11 @@ namespace dsme {
 namespace mlme_sap {
 
 ASSOCIATE::ASSOCIATE(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
 /* IEEE802.15.4-2011 6.2.2.1 */
-void ASSOCIATE::request(request_parameters &params) {
+void ASSOCIATE::request(request_parameters& params) {
 
     //update PHY and MAC PIB attributes
     dsme.getPlatform().setChannelNumber(params.channelNumber); // TODO Move -> AssociationManager
@@ -68,15 +68,15 @@ void ASSOCIATE::request(request_parameters &params) {
     }
 
     AssociateRequestCmd associateRequestCmd(params.capabilityInformation);
-    AssociationManager &associationManager = dsme.getAssociationManager();
+    AssociationManager& associationManager = dsme.getAssociationManager();
     associationManager.sendAssociationRequest(associateRequestCmd, params);
 
 }
 
-void ASSOCIATE::response(response_parameters &params) {
+void ASSOCIATE::response(response_parameters& params) {
 
     AssociateReplyCmd reply(params.assocShortAddress, params.status);
-    AssociationManager &associationManager = dsme.getAssociationManager();
+    AssociationManager& associationManager = dsme.getAssociationManager();
 
     if (params.status != AssociationStatus::FASTA_SUCCESSFUL) {
         /* TODO handle! (IEEE 802.15.4-2011 5.1.3.1)

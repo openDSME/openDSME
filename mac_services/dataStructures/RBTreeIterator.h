@@ -92,14 +92,14 @@ private:
 
 template<typename T, typename K>
 RBTreeIterator<T, K>::RBTreeIterator() :
-        instance(nullptr),
-        currentNode(nullptr) {
+    instance(nullptr),
+    currentNode(nullptr) {
 }
 
 template<typename T, typename K>
 RBTreeIterator<T, K>::RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode) :
-        instance(instance),
-        currentNode(initialNode) {
+    instance(instance),
+    currentNode(initialNode) {
 }
 
 template<typename T, typename K>
@@ -107,7 +107,7 @@ RBTreeIterator<T, K>::~RBTreeIterator() {
 }
 
 template<typename T, typename K>
-RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K> &other) {
+RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>& other) {
     this->instance = other.instance;
     this->currentNode = other.currentNode;
     return *this;
@@ -119,7 +119,7 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>
  */
 template<typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
-    RBNode<T, K> *parent;
+    RBNode<T, K>* parent;
     /*end iterator does not increment */
     if (this->currentNode == nullptr) {
         return *this;
@@ -163,7 +163,7 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
     if (this->currentNode == nullptr) {
         return *this;
     }
-    RBNode<T, K> *n;
+    RBNode<T, K>* n;
     if (this->currentNode->leftChild != nullptr) {
         /* '-> has left child node -> visit always */
         this->currentNode = this->currentNode->leftChild;
@@ -178,7 +178,7 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
                 this->currentNode = nullptr;
                 break;
             } else if (n == n->parent->leftChild
-                    && n->parent->rightChild != nullptr) {
+                       && n->parent->rightChild != nullptr) {
                 this->currentNode = n->parent->rightChild;
                 break;
             } else {

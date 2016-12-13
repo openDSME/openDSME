@@ -65,7 +65,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         return beaconBitmap;
     }
 
-    DSMEPANDescriptor& operator=(const DSMEPANDescriptor &other) {
+    DSMEPANDescriptor& operator=(const DSMEPANDescriptor& other) {
         this->superframeSpec = other.superframeSpec;
         this->pendingAddresses = other.pendingAddresses;
         this->dsmeSuperframeSpec = other.dsmeSuperframeSpec;

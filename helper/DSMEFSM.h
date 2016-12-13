@@ -58,11 +58,11 @@ public:
     };
 
     explicit FSMEvent(uint8_t signal):
-            signal(signal) {
+        signal(signal) {
     }
 
     explicit FSMEvent():
-            signal(EMPTY_SIGNAL) {
+        signal(EMPTY_SIGNAL) {
     }
 
     uint8_t signal;
@@ -80,14 +80,14 @@ typedef enum : uint8_t {
 template<typename C, typename E>
 class FSM {
 public:
-	typedef fsmReturnStatus (C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
-	/**
-	 * Created FSM is put into initial state
-	 */
-	explicit FSM(const state_t &initial) :
-			state(initial), dispatchBusy(false) {
-	}
+    /**
+     * Created FSM is put into initial state
+     */
+    explicit FSM(const state_t& initial) :
+        state(initial), dispatchBusy(false) {
+    }
 
     inline fsmReturnStatus transition(state_t next) {
         dsme_atomicBegin();
@@ -132,8 +132,8 @@ public:
     }
 
 private:
-	state_t state;
-	bool dispatchBusy;
+    state_t state;
+    bool dispatchBusy;
 };
 
 } /* dsme */

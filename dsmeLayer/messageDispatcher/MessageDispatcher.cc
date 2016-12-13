@@ -49,18 +49,17 @@
 
 namespace dsme {
 
-MessageDispatcher::MessageDispatcher(DSMELayer &dsme) :
-                dsme(dsme),
-                doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)),
-                dsmeAckFrame(nullptr),
-                lastSendGTSNeighbor(neighborQueue.end())
-{
+MessageDispatcher::MessageDispatcher(DSMELayer& dsme) :
+    dsme(dsme),
+    doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)),
+    dsmeAckFrame(nullptr),
+    lastSendGTSNeighbor(neighborQueue.end()) {
 }
 
 MessageDispatcher::~MessageDispatcher() {
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(! this->neighborQueue.isQueueEmpty(it)) {
-            DSMEMessage *msg = neighborQueue.popFront(it);
+            DSMEMessage* msg = neighborQueue.popFront(it);
             this->dsme.getPlatform().releaseMessage(msg);
         }
     }
@@ -76,7 +75,7 @@ void MessageDispatcher::reset(void) {
 
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(! this->neighborQueue.isQueueEmpty(it)) {
-            DSMEMessage *msg = neighborQueue.popFront(it);
+            DSMEMessage* msg = neighborQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
             params.msduHandle = msg;
             params.Timestamp = 0;
@@ -108,8 +107,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
         dsme.getPlatform().setChannelNumber(commonChannel);
         currentACTElement = act.end();
-    }
-    else if (nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+    } else if (nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
         unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
         if (act.isAllocated(nextSuperframe, nextGTS)) {
             currentACTElement = act.find(nextSuperframe, nextGTS);
@@ -124,8 +122,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             if (currentACTElement->getDirection() == RX) {
                 numUnusedRxGts++;   // gets PURGE.cc decremented on actual reception
             }
-        }
-        else {
+        } else {
             currentACTElement = act.end();
         }
     } else {
@@ -146,75 +143,75 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
     IEEE802154eMACHeader macHdr = msg->getHeader();
 
     switch (macHdr.getFrameType()) {
-    case IEEE802154eMACHeader::FrameType::BEACON: {
-        LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() <<  ".");
-        this->dsme.getBeaconManager().handleBeacon(msg);
-        this->dsme.getPlatform().releaseMessage(msg);
-        break;
-    }
-
-    case IEEE802154eMACHeader::FrameType::COMMAND: {
-        MACCommand cmd;
-        cmd.decapsulateFrom(msg);
-        switch (cmd.getCmdId()) {
-        case CommandFrameIdentifier::DSME_GTS_REQUEST:
-            LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getGTSManager().handleGTSRequest(msg);
+        case IEEE802154eMACHeader::FrameType::BEACON: {
+            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() <<  ".");
+            this->dsme.getBeaconManager().handleBeacon(msg);
+            this->dsme.getPlatform().releaseMessage(msg);
             break;
-        case CommandFrameIdentifier::DSME_GTS_REPLY:
-            LOG_INFO("DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getGTSManager().handleGTSResponse(msg);
-            break;
-        case CommandFrameIdentifier::DSME_GTS_NOTIFY:
-            LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getGTSManager().handleGTSNotify(msg);
-            break;
-        case CommandFrameIdentifier::ASSOCIATION_REQUEST:
-            LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getAssociationManager().handleAssociationRequest(msg);
-            break;
-        case CommandFrameIdentifier::ASSOCIATION_RESPONSE:
-            LOG_INFO("ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getAssociationManager().handleAssociationReply(msg);
-            break;
-        case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION:
-            LOG_INFO("DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getAssociationManager().handleDisassociationRequest(msg);
-            break;
-        case CommandFrameIdentifier::DATA_REQUEST:
-            /* Not implemented */
-            break;
-        case CommandFrameIdentifier::DSME_BEACON_ALLOCATION_NOTIFICATION:
-            LOG_INFO("DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getBeaconManager().handleBeaconAllocation(msg);
-            break;
-        case CommandFrameIdentifier::DSME_BEACON_COLLISION_NOTIFICATION:
-            LOG_INFO("DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getBeaconManager().handleBeaconCollision(msg);
-            break;
-        case CommandFrameIdentifier::BEACON_REQUEST:
-            LOG_INFO("BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
-            dsme.getBeaconManager().handleBeaconRequest(msg);
-            break;
-        default:
-            DSME_ASSERT(false);
         }
-        dsme.getPlatform().releaseMessage(msg);
-        break;
-    }
 
-    case IEEE802154eMACHeader::FrameType::DATA: {
-        if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
-            handleGTSFrame(msg);
-        } else {
-            createDataIndication(msg);
+        case IEEE802154eMACHeader::FrameType::COMMAND: {
+            MACCommand cmd;
+            cmd.decapsulateFrom(msg);
+            switch (cmd.getCmdId()) {
+                case CommandFrameIdentifier::DSME_GTS_REQUEST:
+                    LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getGTSManager().handleGTSRequest(msg);
+                    break;
+                case CommandFrameIdentifier::DSME_GTS_REPLY:
+                    LOG_INFO("DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getGTSManager().handleGTSResponse(msg);
+                    break;
+                case CommandFrameIdentifier::DSME_GTS_NOTIFY:
+                    LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getGTSManager().handleGTSNotify(msg);
+                    break;
+                case CommandFrameIdentifier::ASSOCIATION_REQUEST:
+                    LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getAssociationManager().handleAssociationRequest(msg);
+                    break;
+                case CommandFrameIdentifier::ASSOCIATION_RESPONSE:
+                    LOG_INFO("ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getAssociationManager().handleAssociationReply(msg);
+                    break;
+                case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION:
+                    LOG_INFO("DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getAssociationManager().handleDisassociationRequest(msg);
+                    break;
+                case CommandFrameIdentifier::DATA_REQUEST:
+                    /* Not implemented */
+                    break;
+                case CommandFrameIdentifier::DSME_BEACON_ALLOCATION_NOTIFICATION:
+                    LOG_INFO("DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getBeaconManager().handleBeaconAllocation(msg);
+                    break;
+                case CommandFrameIdentifier::DSME_BEACON_COLLISION_NOTIFICATION:
+                    LOG_INFO("DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getBeaconManager().handleBeaconCollision(msg);
+                    break;
+                case CommandFrameIdentifier::BEACON_REQUEST:
+                    LOG_INFO("BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getBeaconManager().handleBeaconRequest(msg);
+                    break;
+                default:
+                    DSME_ASSERT(false);
+            }
+            dsme.getPlatform().releaseMessage(msg);
+            break;
         }
-        break;
-    }
 
-    default: {
-        DSME_ASSERT(false); // TODO handle other frame types
-    }
+        case IEEE802154eMACHeader::FrameType::DATA: {
+            if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
+                handleGTSFrame(msg);
+            } else {
+                createDataIndication(msg);
+            }
+            break;
+        }
+
+        default: {
+            DSME_ASSERT(false); // TODO handle other frame types
+        }
     }
     return;
 }
@@ -363,28 +360,28 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
             LOG_DEBUG("cmdID " << (uint16_t)cmd.getCmdId());
 
             switch (cmd.getCmdId()) {
-            case ASSOCIATION_REQUEST:
-            case ASSOCIATION_RESPONSE:
-            case DISASSOCIATION_NOTIFICATION:
-                this->dsme.getAssociationManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
-                break;
-            case DATA_REQUEST:
-            case DSME_ASSOCIATION_REQUEST:
-            case DSME_ASSOCIATION_RESPONSE:
-                DSME_ASSERT(false);
-                // TODO handle correctly
-                this->dsme.getPlatform().releaseMessage(msg);
-                break;
-            case BEACON_REQUEST:
-            case DSME_BEACON_ALLOCATION_NOTIFICATION:
-            case DSME_BEACON_COLLISION_NOTIFICATION:
-                this->dsme.getBeaconManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
-                break;
-            case DSME_GTS_REQUEST:
-            case DSME_GTS_REPLY:
-            case DSME_GTS_NOTIFY:
-                this->dsme.getGTSManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
-                break;
+                case ASSOCIATION_REQUEST:
+                case ASSOCIATION_RESPONSE:
+                case DISASSOCIATION_NOTIFICATION:
+                    this->dsme.getAssociationManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
+                    break;
+                case DATA_REQUEST:
+                case DSME_ASSOCIATION_REQUEST:
+                case DSME_ASSOCIATION_RESPONSE:
+                    DSME_ASSERT(false);
+                    // TODO handle correctly
+                    this->dsme.getPlatform().releaseMessage(msg);
+                    break;
+                case BEACON_REQUEST:
+                case DSME_BEACON_ALLOCATION_NOTIFICATION:
+                case DSME_BEACON_COLLISION_NOTIFICATION:
+                    this->dsme.getBeaconManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
+                    break;
+                case DSME_GTS_REQUEST:
+                case DSME_GTS_REPLY:
+                case DSME_GTS_NOTIFY:
+                    this->dsme.getGTSManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
+                    break;
             }
         } else {
             this->dsme.getPlatform().releaseMessage(msg);

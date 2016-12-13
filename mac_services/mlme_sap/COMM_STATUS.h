@@ -60,7 +60,7 @@ struct COMM_STATUS_indication_parameters {
     CommStatus::Comm_Status status;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
 
 };

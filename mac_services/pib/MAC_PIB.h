@@ -67,7 +67,7 @@ public:
 
     PIBHelper helper;
 
-    PHY_PIB &phy_pib;
+    PHY_PIB& phy_pib;
 
     /* GENERAL PART FROM HERE ON ------------------------------------------> */
 

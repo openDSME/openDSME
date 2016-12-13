@@ -55,8 +55,8 @@ public:
     static const GTS UNDEFINED;
 
     GTS(uint16_t superframeID, uint16_t slotID, uint8_t channel);
-    GTS(const GTS &other);
-    GTS& operator=(const GTS &other);
+    GTS(const GTS& other);
+    GTS& operator=(const GTS& other);
 
     uint16_t superframeID;
     uint16_t slotID;

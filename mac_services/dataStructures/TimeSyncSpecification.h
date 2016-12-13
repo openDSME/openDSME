@@ -45,8 +45,7 @@
 
 namespace dsme {
 
-struct TimeSyncSpecification
-{
+struct TimeSyncSpecification {
 public:
     TimeSyncSpecification() :
         beaconTimestamp(0),

@@ -49,7 +49,7 @@
 namespace dsme {
 
 AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-        dsmeAdaptionLayer(dsmeAdaptionLayer) {
+    dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
 
 void AssociationHelper::initialize() {
@@ -121,7 +121,7 @@ bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
     return this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord;
 }
 
-void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters &params) {
+void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters& params) {
     LOG_INFO("Association requested from 0x" << params.deviceAddress.getShortAddress() << ".");
 
     mlme_sap::ASSOCIATE::response_parameters response_params;
@@ -144,12 +144,12 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
     return;
 }
 
-void AssociationHelper::handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters &params) {
+void AssociationHelper::handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters& params) {
     this->associationCompleteDelegate(params.status);
     return;
 }
 
-void AssociationHelper::handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_confirm_parameters &params) {
+void AssociationHelper::handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_confirm_parameters& params) {
     this->disassociationCompleteDelegate(params.status);
     return;
 }

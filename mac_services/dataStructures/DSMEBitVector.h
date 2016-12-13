@@ -65,7 +65,7 @@ class BitVectorBase {
 public:
     typedef BitVectorIterator iterator;
 
-    explicit BitVectorBase(uint8_t *byte_array);
+    explicit BitVectorBase(uint8_t* byte_array);
 
     void initialize(bit_vector_size_t bitSize, bool initial_fill = false);
 
@@ -101,7 +101,7 @@ public:
 
 protected:
     bit_vector_size_t bitSize;
-    uint8_t * const byte_array;
+    uint8_t* const byte_array;
 
     iterator endSetIterator;
     iterator endUnsetIterator;
@@ -115,14 +115,14 @@ template<bit_vector_size_t MAX_SIZE>
 class BitVector : public BitVectorBase {
 public:
     BitVector() :
-            BitVectorBase(array) {
+        BitVectorBase(array) {
     }
 
     BitVector(const BitVector& other) :
-            BitVectorBase(array, other) {
+        BitVectorBase(array, other) {
     }
 
-    BitVector& operator=(const BitVector &other) {
+    BitVector& operator=(const BitVector& other) {
         this->setLength(other.length(), false);
         this->copyFrom(other, 0);
         return *this;

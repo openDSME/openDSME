@@ -45,16 +45,16 @@
 namespace dsme {
 
 BitVectorIterator::BitVectorIterator(BitVectorBase* instance,
-        bit_vector_size_t position, bool value) {
-        this->instance = instance;
-        this->position = position;
-        this->value = value;
+                                     bit_vector_size_t position, bool value) {
+    this->instance = instance;
+    this->position = position;
+    this->value = value;
 }
 
 BitVectorIterator::~BitVectorIterator() {
 }
 
-BitVectorIterator& BitVectorIterator::operator=(const BitVectorIterator &other) {
+BitVectorIterator& BitVectorIterator::operator=(const BitVectorIterator& other) {
     this->instance = other.instance;
     this->position = other.position;
     this->value = other.value;

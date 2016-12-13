@@ -41,33 +41,28 @@ template<typename return_type, typename... params>
 class Delegate; //forward declaration..
 
 template<typename return_type, typename... params>
-class Delegate<return_type(params...)>
-{
+class Delegate<return_type(params...)> {
     typedef return_type (*Pointer2Function)(void* callee, params...);
 public:
     Delegate(void* callee, Pointer2Function function)
         : fpCallee(callee)
-        , fpCallbackFunction(function)
-    {}
-
-    Delegate()
-    : fpCallee(nullptr)
-    , fpCallbackFunction(nullptr)
-    {
+        , fpCallbackFunction(function) {
     }
 
-    operator bool() const
-    {
+    Delegate()
+        : fpCallee(nullptr)
+        , fpCallbackFunction(nullptr) {
+    }
+
+    operator bool() const {
         return (fpCallbackFunction != nullptr);
     }
 
-    return_type operator()(params... xs) const
-    {
+    return_type operator()(params... xs) const {
         return (*fpCallbackFunction)(fpCallee, xs...);
     }
 
-    bool operator==(const Delegate& other) const
-    {
+    bool operator==(const Delegate& other) const {
         return (fpCallee == other.fpCallee)
                && (fpCallbackFunction == other.fpCallbackFunction);
     }
@@ -84,17 +79,14 @@ private:
  * inside the Delegate back to the correct type.
  */
 template<typename T, typename return_type, typename... params>
-struct DelegateFactory
-{
+struct DelegateFactory {
     template<return_type (T::*Func)(params...)>
-    static return_type MethodCaller(void* o, params... xs)
-    {
+    static return_type MethodCaller(void* o, params... xs) {
         return (static_cast<T*>(o)->*Func)(xs...);
     }
 
     template<return_type (T::*Func)(params...)>
-    inline static Delegate<return_type(params...)> Create(T* o)
-    {
+    inline static Delegate<return_type(params...)> Create(T* o) {
         return Delegate<return_type(params...)>(o, &DelegateFactory::MethodCaller<Func>);
     }
 };
@@ -104,8 +96,7 @@ struct DelegateFactory
  * will return a DelegateFactory
  */
 template<typename T, typename return_type, typename... params>
-DelegateFactory<T, return_type, params... > MakeDelegate(return_type (T::*)(params...))
-{
+DelegateFactory<T, return_type, params...> MakeDelegate(return_type (T::*)(params...)) {
     return DelegateFactory<T, return_type, params...>();
 }
 

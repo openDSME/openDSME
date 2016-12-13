@@ -69,7 +69,7 @@ public:
     }
 
     /* called from lower part of MAC layer */
-    void notify_indication(I &params) {
+    void notify_indication(I& params) {
         if (this->callback_indication) {
             /* if callback is set, parameter will not be saved */
             this->callback_indication(params);

@@ -53,15 +53,14 @@ enum serialization_type_t {
 class Serializer {
 public:
     Serializer(uint8_t* data, serialization_type_t type)
-    : data(data), type(type) {
+        : data(data), type(type) {
     }
 
     Serializer& operator<<(uint16_t& value) {
         if(type == SERIALIZATION) {
             data[0] = value & 0xff;
             data[1] = value >> 8;
-        }
-        else {
+        } else {
             value = data[0] | (data[1] << 8);
         }
 
@@ -72,8 +71,7 @@ public:
     Serializer& operator<<(uint8_t& value) {
         if(type == SERIALIZATION) {
             data[0] = value;
-        }
-        else {
+        } else {
             value = data[0];
         }
         data += 1;

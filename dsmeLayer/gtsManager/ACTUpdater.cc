@@ -52,8 +52,7 @@
 namespace dsme {
 
 ACTUpdater::ACTUpdater(DSMELayer& dsme) :
-                        dsme(dsme)
-                        {
+    dsme(dsme) {
 }
 
 void ACTUpdater::requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
@@ -75,14 +74,18 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
 void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
     LOG_DEBUG("ACTUpdater - approvavQueued");
     if(management.type == ManagementType::ALLOCATION) {
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, [](ACTState b) {
+            return b != ACTState::INVALID;
+        });
     }
 }
 
 void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
     LOG_DEBUG("ACTUpdater - approvalReceived");
     if(management.type == ManagementType::ALLOCATION) {
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, [](ACTState b){return b!= ACTState::INVALID;});
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, [](ACTState b) {
+            return b != ACTState::INVALID;
+        });
     }
 }
 
@@ -106,8 +109,7 @@ void ACTUpdater::notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagemen
         // This is not handled by the standard, but improves the consistency
         // The sender of the notify is also the requester, so do not invert the direction
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, management.direction, deviceAddr);
-    }
-    else {
+    } else {
         // No action required
     }
 }
@@ -116,9 +118,10 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
     LOG_DEBUG("ACTUpdater - notifyDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, [](ACTElement e){return e.getState() != ACTState::INVALID;});
-    }
-    else if(management.type == ManagementType::DEALLOCATION) {
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, [](ACTElement e) {
+            return e.getState() != ACTState::INVALID;
+        });
+    } else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, management.direction, deviceAddr, true);
     }
@@ -141,8 +144,7 @@ void ACTUpdater::approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagem
     if(management.type == ManagementType::DEALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, invert(management.direction), deviceAddr);
-    }
-    else {
+    } else {
         // No action required
     }
 }
@@ -157,9 +159,10 @@ void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& ma
     LOG_DEBUG("ACTUpdater - notifyReceived");
     if(management.type == ManagementType::ALLOCATION) {
         // The receiver of the notify is not the requester, so invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, [](ACTElement e){return e.getState() != ACTState::INVALID;});
-    }
-    else if(management.type == ManagementType::DEALLOCATION) {
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, [](ACTElement e) {
+            return e.getState() != ACTState::INVALID;
+        });
+    } else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, invert(management.direction), deviceAddr);
     }
 }

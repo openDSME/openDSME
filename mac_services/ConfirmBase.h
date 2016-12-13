@@ -69,7 +69,7 @@ public:
     }
 
     /* called from lower part of MAC layer*/
-    void notify_confirm(C &params) {
+    void notify_confirm(C& params) {
         if (this->callback_confirm) {
             /* if callback is set, parameter will not be saved */
             this->callback_confirm(params);

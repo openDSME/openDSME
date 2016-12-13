@@ -49,8 +49,8 @@
 namespace dsme {
 
 PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) :
-        phy_pib(phy_pib),
-        mac_pib(mac_pib) {
+    phy_pib(phy_pib),
+    mac_pib(mac_pib) {
     return;
 }
 

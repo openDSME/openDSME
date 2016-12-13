@@ -50,13 +50,13 @@ namespace dsme {
 
 class IEEE802154MacAddress {
 public:
-    IEEE802154MacAddress(const IEEE802154MacAddress &other);
+    IEEE802154MacAddress(const IEEE802154MacAddress& other);
 
     explicit IEEE802154MacAddress();
 
     explicit IEEE802154MacAddress(uint16_t shortPart);
 
-    explicit IEEE802154MacAddress(const uint16_t *a);
+    explicit IEEE802154MacAddress(const uint16_t* a);
 
     explicit IEEE802154MacAddress(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4);
 
@@ -90,7 +90,7 @@ public:
         addr[3] = a;
     }
 
-    IEEE802154MacAddress& operator=(IEEE802154MacAddress const & other) {
+    IEEE802154MacAddress& operator=(IEEE802154MacAddress const& other) {
         addr[0] = other.a1();
         addr[1] = other.a2();
         addr[2] = other.a3();
@@ -132,8 +132,8 @@ public:
 
     friend Serializer& operator<<(Serializer& serializer, IEEE802154MacAddress& addr);
 
-    friend uint8_t* operator<<(uint8_t* &buffer, const IEEE802154MacAddress& addr);
-    friend const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154MacAddress& addr);
+    friend uint8_t* operator<<(uint8_t*& buffer, const IEEE802154MacAddress& addr);
+    friend const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& addr);
 
 private:
     uint16_t addr[4];
@@ -149,7 +149,7 @@ inline Serializer& operator<<(Serializer& serializer, IEEE802154MacAddress& addr
 
 /* NEW FAST SERIALISATION **************************************************************/
 
-inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154MacAddress& addr) {
+inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154MacAddress& addr) {
     *(buffer++) = addr.addr[0] & 0xFF;
     *(buffer++) = addr.addr[0] >> 8;
     *(buffer++) = addr.addr[1] & 0xFF;
@@ -162,7 +162,7 @@ inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154MacAddress& addr) {
     return buffer;
 }
 
-inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154MacAddress& addr) {
+inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& addr) {
     addr.addr[0] = *(buffer) | (*(buffer + 1) << 8);
     buffer += 2;
 

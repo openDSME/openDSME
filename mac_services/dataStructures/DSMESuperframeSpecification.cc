@@ -54,8 +54,7 @@ Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec
         s |= spec.CAPReductionFlag     << 6;
         s |= spec.deferredBeaconFlag   << 7;
         serializer << s;
-    }
-    else {
+    } else {
         serializer << s;
 
         spec.multiSuperframeOrder = (s >> 0) & 0x15;

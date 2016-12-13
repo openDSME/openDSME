@@ -50,13 +50,13 @@ GTS::GTS(uint16_t superframeID, uint16_t slotID, uint8_t channel) {
     this->slotID = slotID;
     this->channel = channel;
 }
-GTS::GTS(const GTS &other) {
+GTS::GTS(const GTS& other) {
     this->superframeID = other.superframeID;
     this->slotID = other.slotID;
     this->channel = other.channel;
 
 }
-GTS& GTS::operator=(const GTS &other) {
+GTS& GTS::operator=(const GTS& other) {
     this->superframeID = other.superframeID;
     this->slotID = other.slotID;
     this->channel = other.channel;

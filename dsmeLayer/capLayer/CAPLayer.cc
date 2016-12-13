@@ -48,12 +48,12 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme) :
-        DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle),
-        dsme(dsme),
-        NB(0),
-        NR(0),
-        totalNBs(0),
-        doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle),
+    dsme(dsme),
+    NB(0),
+    NR(0),
+    totalNBs(0),
+    doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
 void CAPLayer::reset() {
@@ -183,8 +183,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
-        }
-        else {
+        } else {
             return FSM_HANDLED;
         }
     } else if (event.signal == CSMAEvent::MSG_PUSHED) {

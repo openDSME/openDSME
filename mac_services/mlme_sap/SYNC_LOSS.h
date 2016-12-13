@@ -56,7 +56,7 @@ struct SYNC_LOSS_indication_parameters {
     uint8_t channelPage;
     uint8_t securityLevel;
     uint8_t keyIdMode;
-    uint8_t *keySource;
+    uint8_t* keySource;
     uint8_t keyIndex;
 };
 

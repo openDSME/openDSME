@@ -48,10 +48,10 @@
 namespace dsme {
 namespace mlme_sap {
 SCAN::SCAN(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
-void SCAN::request(request_parameters &params) {
+void SCAN::request(request_parameters& params) {
     switch (params.scanType) {
         /*
          * IEEE802.15.4-2012 6.2.10.1

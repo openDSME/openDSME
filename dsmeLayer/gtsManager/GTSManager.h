@@ -68,7 +68,7 @@ class DSMELayer;
 class GTSEvent : public MultiFSMEvent {
 public:
     template <typename ...Args>
-    void fill(uint16_t signal, Args & ... args) {
+    void fill(uint16_t signal, Args& ... args) {
         this->signal = signal;
         fill(args...);
     }
@@ -94,7 +94,7 @@ private:
     static void fill(void) {
     }
 
-    void fill(DSMEMessage *&msg, GTSManagement &management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
+    void fill(DSMEMessage*& msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
         switch (cmdId) {
             case CommandFrameIdentifier::DSME_GTS_REQUEST:
                 this->requestCmd.decapsulateFrom(msg);
@@ -114,19 +114,19 @@ private:
         this->dataStatus = dataStatus;
     }
 
-    void fill(uint16_t &deviceAddr, GTSManagement &management, GTSReplyNotifyCmd &replyNotifyCmd){
+    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
         this->deviceAddr = deviceAddr;
         this->management = management;
         this->replyNotifyCmd = replyNotifyCmd;
     }
 
-    void fill(uint16_t &deviceAddr, GTSManagement &management, GTSRequestCmd &requestCmd){
+    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestCmd& requestCmd) {
         this->deviceAddr = deviceAddr;
         this->management = management;
         this->requestCmd = requestCmd;
     }
 
-    void fill(DSMEMessage *&msg, GTSManagement &management, GTSReplyNotifyCmd &replyNotifyCmd) {
+    void fill(DSMEMessage*& msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
         this->deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
         this->header = msg->getHeader();
         this->management = management;
@@ -141,7 +141,7 @@ typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, 4> GT
 class GTSManager : private GTSManagerFSM_t {
 public:
 
-    explicit GTSManager(DSMELayer &dsme);
+    explicit GTSManager(DSMELayer& dsme);
 
     void initialize();
 
@@ -157,7 +157,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the request, true otherwise
      */
-    bool handleMLMERequest(uint16_t deviceAddr, GTSManagement &gtsManagement, GTSRequestCmd &gtsRequestAllocationCmd);
+    bool handleMLMERequest(uint16_t deviceAddr, GTSManagement& gtsManagement, GTSRequestCmd& gtsRequestAllocationCmd);
 
     /*
      * Called on reception of a GTS-response from upper layer.
@@ -168,7 +168,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the response, true otherwise
      */
-    bool handleMLMEResponse(GTSManagement &gtsManagement, GTSReplyNotifyCmd &gtsReply);
+    bool handleMLMEResponse(GTSManagement& gtsManagement, GTSReplyNotifyCmd& gtsReply);
 
 
     /**

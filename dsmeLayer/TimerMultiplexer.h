@@ -56,11 +56,11 @@ protected:
     typedef T timer_t;
     typedef void (R::*handler_t)(int32_t lateness);
 
-    TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G> &now, WriteonlyTimerAbstraction<S> &timer) :
-            lastDispatchSymbolCounter(0),
-            instance(instance),
-            _NOW(now),
-            _TIMER(timer) {
+    TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G>& now, WriteonlyTimerAbstraction<S>& timer) :
+        lastDispatchSymbolCounter(0),
+        instance(instance),
+        _NOW(now),
+        _TIMER(timer) {
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
             this->handlers[i] = nullptr;
@@ -99,9 +99,9 @@ protected:
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
             LOG_ERROR("now:" << now
-                    << ", nextEvent: "<< nextEventSymbolCounter
-                    << ", lastDispatch: " << this->lastDispatchSymbolCounter
-                    << ", Event " << (uint16_t)E);
+                      << ", nextEvent: " << nextEventSymbolCounter
+                      << ", lastDispatch: " << this->lastDispatchSymbolCounter
+                      << ", Event " << (uint16_t)E);
             history.printEvents();
             DSME_ASSERT(false);
         }
@@ -196,12 +196,12 @@ private:
     /**
      * Reading this as uint32_t returns the current system's symbol counter
      */
-    ReadonlyTimerAbstraction<G> &_NOW;
+    ReadonlyTimerAbstraction<G>& _NOW;
 
     /**
      * Writing an uint32_t to this schedules a timer at the given symbol counter
      */
-    WriteonlyTimerAbstraction<S> &_TIMER;
+    WriteonlyTimerAbstraction<S>& _TIMER;
 
     /**
      * For debuging only, records the last scheduled events

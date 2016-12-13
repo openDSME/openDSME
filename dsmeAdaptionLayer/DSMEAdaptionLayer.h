@@ -74,7 +74,7 @@ public:
     };
 
     DSMEAdaptionLayerSettings() :
-            allocationScheme(ALLOC_CONTIGUOUS_SLOT) {
+        allocationScheme(ALLOC_CONTIGUOUS_SLOT) {
 
     }
 
@@ -130,11 +130,11 @@ private:
 
     bool queueMessageIfPossible(DSMEMessage* msg);
 
-    void handleDataIndication(mcps_sap::DATA_indication_parameters &params);
+    void handleDataIndication(mcps_sap::DATA_indication_parameters& params);
 
-    void handleDataConfirm(mcps_sap::DATA_confirm_parameters &params);
+    void handleDataConfirm(mcps_sap::DATA_confirm_parameters& params);
 
-    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters &params);
+    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params);
 
     void handleScanComplete(PANDescriptor* panDescriptor);
 

@@ -59,7 +59,7 @@ class BeaconManager {
     friend class mlme_sap::SCAN;
 
 public:
-    explicit BeaconManager(DSMELayer &dsme);
+    explicit BeaconManager(DSMELayer& dsme);
 
     void initialize();
 
@@ -84,12 +84,12 @@ public:
 
     bool isScanning() const;
 
-    void startScanPassive(uint16_t scanDuration, const channelList_t &scanChannels);
+    void startScanPassive(uint16_t scanDuration, const channelList_t& scanChannels);
 
     /**
      * Starts an enhanced active scan (See IEEE 802.15.4e-2012 6.2.10.1)
      */
-    void startScanEnhancedActive(uint16_t scanDuration, const channelList_t &scanChannels);
+    void startScanEnhancedActive(uint16_t scanDuration, const channelList_t& scanChannels);
 
     void handleStartOfCFP(uint16_t currentSuperframe, uint16_t currentMultiSuperframe);
 
@@ -102,17 +102,17 @@ public:
      * Handle reception of beacon collision notification.
      * Update beacon allocation
      */
-    void handleBeaconCollision(DSMEMessage *);
+    void handleBeaconCollision(DSMEMessage*);
 
     /**
      * Called on reception of an BeaconAllocationNotification
      */
-    void handleBeaconAllocation(DSMEMessage *);
+    void handleBeaconAllocation(DSMEMessage*);
 
     /**
      * Called on reception of an BeaconRequest
      */
-    void handleBeaconRequest(DSMEMessage *);
+    void handleBeaconRequest(DSMEMessage*);
 
 protected:
     DSMELayer& dsme;
@@ -163,10 +163,10 @@ private:
 
     /* CALLBACKS FOR SCANNING */
     void channelScanEnhancedActiveComplete();
-    void singleBeaconScanEnhancedActiveReceived(PANDescriptor &panDescr);
+    void singleBeaconScanEnhancedActiveReceived(PANDescriptor& panDescr);
 
     void channelScanPassiveComplete();
-    void singleBeaconScanPassiveReceived(PANDescriptor &panDescr);
+    void singleBeaconScanPassiveReceived(PANDescriptor& panDescr);
 
     /* VARIABLES FOR SCANNING */
     uint16_t currentScanChannel;

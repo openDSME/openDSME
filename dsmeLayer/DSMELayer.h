@@ -98,11 +98,11 @@ public:
 
     /* MAC SERVICES -------------------------------------------------------> */
 private:
-    PHY_PIB *phy_pib;
-    MAC_PIB *mac_pib;
+    PHY_PIB* phy_pib;
+    MAC_PIB* mac_pib;
 
-    mcps_sap::MCPS_SAP *mcps_sap;
-    mlme_sap::MLME_SAP *mlme_sap;
+    mcps_sap::MCPS_SAP* mcps_sap;
+    mlme_sap::MLME_SAP* mlme_sap;
 
 public:
     PHY_PIB& getPHY_PIB() {
@@ -131,12 +131,12 @@ public:
         return;
     }
 
-    void setMCPS(mcps_sap::MCPS_SAP *mcps_sap) {
+    void setMCPS(mcps_sap::MCPS_SAP* mcps_sap) {
         this->mcps_sap = mcps_sap;
         return;
     }
 
-    void setMLME(mlme_sap::MLME_SAP *mlme_sap) {
+    void setMLME(mlme_sap::MLME_SAP* mlme_sap) {
         this->mlme_sap = mlme_sap;
         return;
     }

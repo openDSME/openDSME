@@ -45,12 +45,10 @@
 
 namespace dsme {
 
-class PendingAddresses
-{
+class PendingAddresses {
 public:
     PendingAddresses()
-    : specByte(0)
-    {
+        : specByte(0) {
     }
 
     uint8_t getSerializationLength() const {
@@ -59,14 +57,14 @@ public:
 
 private:
     union {
-        struct {
-            uint8_t numShortAddrs : 3;
-            bool reserved0 : 1;
-            uint8_t numExtAddrs : 3;
-            bool reserved1 : 1;
+            struct {
+                uint8_t numShortAddrs : 3;
+                bool reserved0 : 1;
+                uint8_t numExtAddrs : 3;
+                bool reserved1 : 1;
+            };
+            uint8_t specByte;
         };
-        uint8_t specByte;
-    };
 
     friend Serializer& operator<<(Serializer& serializer, PendingAddresses& spec);
 };

@@ -55,25 +55,24 @@ namespace dsme {
 template<typename C, typename E, ringbuffer_size_t S>
 class DSMEBufferedFSM {
 public:
-	typedef fsmReturnStatus (C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
-	/**
-	 * Created FSM is put into initial state
-	 */
-	DSMEBufferedFSM(const state_t& initial) :
-			state(initial), dispatchBusy(false) {
-	}
+    /**
+     * Created FSM is put into initial state
+     */
+    DSMEBufferedFSM(const state_t& initial) :
+        state(initial), dispatchBusy(false) {
+    }
 
-	template <typename ...Args>
-	bool dispatch(uint16_t signal, Args & ... args)
-	{
-	    bool canAdd;
-	    bool isBusy;
-	    bool returnValue;
+    template <typename ...Args>
+    bool dispatch(uint16_t signal, Args& ... args) {
+        bool canAdd;
+        bool isBusy;
+        bool returnValue;
 
-	    dsme_atomicBegin();
+        dsme_atomicBegin();
 
-	    canAdd = this->eventBuffer.hasNext();
+        canAdd = this->eventBuffer.hasNext();
         DSME_ASSERT(canAdd); // TODO: Remove after testing? Should never trigger when S is chosen correctly.
 
         if(canAdd) {
@@ -97,23 +96,23 @@ public:
         }
 
         return returnValue;
-	}
+    }
 
-	inline fsmReturnStatus transition(state_t next) {
+    inline fsmReturnStatus transition(state_t next) {
         dsme_atomicBegin();
-		state = next;
+        state = next;
         dsme_atomicEnd();
         return FSM_TRANSITION;
-	}
+    }
 
-	const state_t& getState() const {
-		return state;
-	}
+    const state_t& getState() const {
+        return state;
+    }
 
 private:
-	void runUntilFinished() {
+    void runUntilFinished() {
         while (eventBuffer.hasCurrent()) {
-            E *currentEvent = this->eventBuffer.current();
+            E* currentEvent = this->eventBuffer.current();
 
             state_t s = state;
             fsmReturnStatus r = (((C*) this)->*state)(*currentEvent);
@@ -134,12 +133,12 @@ private:
         }
         dispatchBusy = false;
         return;
-	}
+    }
 
 
-	state_t state;
-	bool dispatchBusy;
-	DSMERingBuffer<E,S> eventBuffer;
+    state_t state;
+    bool dispatchBusy;
+    DSMERingBuffer<E, S> eventBuffer;
 };
 
 } /* dsme */

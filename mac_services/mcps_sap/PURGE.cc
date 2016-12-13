@@ -52,7 +52,7 @@ PURGE::PURGE(DSMELayer& dsme) {
 }
 
 /* IEEE802.15.4-2011 6.3.4 */
-void PURGE::request(request_parameters &params) {
+void PURGE::request(request_parameters& params) {
     // TODO
     return;
 }

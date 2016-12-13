@@ -84,7 +84,7 @@ public:
         return result;
     }
 
-    T * current() {
+    T* current() {
         T* result;
         dsme_atomicBegin();
         result = &(this->buffer[this->head]);
@@ -92,7 +92,7 @@ public:
         return result;
     }
 
-    T * next() {
+    T* next() {
         T* result;
         dsme_atomicBegin();
         result = &(this->buffer[this->tail]);

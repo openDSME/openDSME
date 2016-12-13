@@ -49,7 +49,7 @@ namespace dsme {
  * IEEE 802.15.4e-2012 5.3.11.11.3
  */
 
-class LinkStatusDescriptors{
+class LinkStatusDescriptors {
 public:
     uint8_t channel;
     uint8_t avgLQI;
@@ -60,7 +60,7 @@ public:
 class DSMELinkStatusSpecification {
 public:
     uint8_t linkStatusDescriptorCount;
-    LinkStatusDescriptors *linkStatusList;
+    LinkStatusDescriptors* linkStatusList;
 
 };
 }

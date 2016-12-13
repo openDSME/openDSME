@@ -64,7 +64,7 @@ struct START_confirm_parameters {
  */
 class START : public ConfirmBase<START_confirm_parameters> {
 public:
-    explicit START(DSMELayer &dsme);
+    explicit START(DSMELayer& dsme);
 
     struct request_parameters {
         uint16_t panId;
@@ -78,11 +78,11 @@ public:
         bool coordRealignment;
         uint8_t coordRealignSecurityLevel;
         uint8_t coordRealignKeyIdMode;
-        uint8_t *coordRealignKeySource;
+        uint8_t* coordRealignKeySource;
         uint8_t coordRealignKeyIndex;
         uint8_t beaconSecurityLevel;
         uint8_t beaconKeyIdMode;
-        uint8_t *beaconKeySource;
+        uint8_t* beaconKeySource;
         uint8_t beaconKeyIndex;
         DSMESuperframeSpecification dsmeSuperframeSpecification;
         BeaconBitmap beaconBitmap;

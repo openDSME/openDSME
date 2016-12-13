@@ -157,7 +157,7 @@ typename NeighborQueue<N>::iterator NeighborQueue<N>::findByAddress(const IEEE80
 }
 
 template<uint8_t N>
-queue_size_t NeighborQueue<N>::getPacketsInQueue(const iterator& neighbor) const{
+queue_size_t NeighborQueue<N>::getPacketsInQueue(const iterator& neighbor) const {
     if(neighbor != end()) {
         return neighbor->queueSize;
     } else {

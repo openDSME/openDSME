@@ -61,41 +61,43 @@ inline T sum(uint8_t min, uint8_t max, F func) {
 }
 
 MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
-        helper(phy_pib, *this),
-        phy_pib(phy_pib),
+    helper(phy_pib, *this),
+    phy_pib(phy_pib),
 
-        macExtendedAddress(0, 0, 0, 0),
-        macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTimeSymbols + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
-        macAssociatedPANCoord(false),
-        macAssociationPermit(false),
-        macAutoRequest(false),
-        macCoordExtendedAddress(0, 0, 0, 0),
-        macBeaconOrder(15),
-        macCoordShortAddress(0xffff),
-        macMaxBE(5),
-        macMaxCSMABackoffs(4),
-        macMaxFrameRetries(3),
-        macMinBE(3),
-        macMaxFrameTotalWaitTime(0),
-        macPANId(0xffff),
-        macShortAddress(0xffff),
-        macSuperframeOrder(15),
-        macResponseWaitTime(32),
+    macExtendedAddress(0, 0, 0, 0),
+    macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTimeSymbols + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
+    macAssociatedPANCoord(false),
+    macAssociationPermit(false),
+    macAutoRequest(false),
+    macCoordExtendedAddress(0, 0, 0, 0),
+    macBeaconOrder(15),
+    macCoordShortAddress(0xffff),
+    macMaxBE(5),
+    macMaxCSMABackoffs(4),
+    macMaxFrameRetries(3),
+    macMinBE(3),
+    macMaxFrameTotalWaitTime(0),
+    macPANId(0xffff),
+    macShortAddress(0xffff),
+    macSuperframeOrder(15),
+    macResponseWaitTime(32),
 
-        macChannelDiversityMode(0x00),
-        macMultiSuperframeOrder(15),
-        macDSMESAB(),
-        macDSMEACT(),
-        macDSMEGTSExpirationTime(7) {
+    macChannelDiversityMode(0x00),
+    macMultiSuperframeOrder(15),
+    macDSMESAB(),
+    macDSMEACT(),
+    macDSMEGTSExpirationTime(7) {
     recalculateDependentProperties();
 }
 
 void MAC_PIB::recalculateDependentProperties() {
     /* macMaxFrameTotalWaitTime (IEEE 802.15.4-2011 6.4.3.) */
     uint8_t m = min(((uint8_t) (this->macMaxBE - this->macMinBE)), this->macMaxCSMABackoffs);
-    uint16_t partialSum = sum<uint16_t>(0, m - 1, [&] (uint8_t k) {return 1 << (this->macMinBE + k);});
+    uint16_t partialSum = sum<uint16_t>(0, m - 1, [&] (uint8_t k) {
+        return 1 << (this->macMinBE + k);
+    });
     this->macMaxFrameTotalWaitTime = (partialSum + ((1 << this->macMinBE) - 1) * (this->macMaxCSMABackoffs - m)) * aUnitBackoffPeriod
-            + this->phy_pib.phyMaxFrameDuration;
+                                     + this->phy_pib.phyMaxFrameDuration;
 
     return;
 }

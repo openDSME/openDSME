@@ -71,10 +71,10 @@ public:
     bool isAssociatedDevice(IEEE802154MacAddress address);
 
 private:
-    void handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters &params);
-    void handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters &params);
+    void handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters& params);
+    void handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters& params);
 
-    void handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_confirm_parameters &params);
+    void handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_confirm_parameters& params);
 
     DSMEAdaptionLayer& dsmeAdaptionLayer;
     associationCompleteDelegate_t associationCompleteDelegate;

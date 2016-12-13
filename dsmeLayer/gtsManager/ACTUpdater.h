@@ -56,30 +56,30 @@ class DSMELayer;
 class ACTUpdater {
 public:
 
-    explicit ACTUpdater(DSMELayer &dsme);
+    explicit ACTUpdater(DSMELayer& dsme);
 
-    void requestAccessFailure(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void requestNoAck(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void responseTimeout(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void approvalQueued(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void approvalReceived(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void disapproved(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void notifyAccessFailure(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void notifyDelivered(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
+    void requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void requestNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
 
-    void approvalDelivered(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void approvalAccessFailure(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void notifyTimeout(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void notifyReceived(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void disapprovalAccessFailure(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void disapprovalNoAck(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
-    void disapprovalDelivered(DSMESABSpecification &sabSpec, GTSManagement &management, uint16_t deviceAddr);
+    void approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void disapprovalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void disapprovalNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void disapprovalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
 
-    void duplicateAllocation(DSMESABSpecification &sabSpec);
-    void expired(DSMESABSpecification &sabSpec);
+    void duplicateAllocation(DSMESABSpecification& sabSpec);
+    void expired(DSMESABSpecification& sabSpec);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
     Direction invert(Direction direction);
 };
 

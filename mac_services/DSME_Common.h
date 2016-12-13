@@ -65,23 +65,23 @@ enum CommandFrameIdentifier {
 };
 
 struct CapabilityInformation {
-    bool alternatePANCoordinator :1;
-    bool deviceType :1; //FFD = 1 or RFD = 0
-    bool powerSource :1;
-    bool receiverOnWhenIdle :1;
-    bool associationType :1;
-    uint8_t reserved :1;
-    bool securityCapability :1;
-    bool allocateAddress :1;
+    bool alternatePANCoordinator : 1;
+    bool deviceType : 1; //FFD = 1 or RFD = 0
+    bool powerSource : 1;
+    bool receiverOnWhenIdle : 1;
+    bool associationType : 1;
+    uint8_t reserved : 1;
+    bool securityCapability : 1;
+    bool allocateAddress : 1;
 };
 
 struct HoppingDescriptor {
     uint8_t hoppingSequenceID;
     uint16_t hoppingSequenceLength;
-    uint8_t *hoppingSequence;
+    uint8_t* hoppingSequence;
     uint16_t channelOffset;
     uint16_t channelOffsetBitmapLength;
-    uint8_t *channelOffsetBitmap;
+    uint8_t* channelOffsetBitmap;
 };
 
 enum ManagementType {

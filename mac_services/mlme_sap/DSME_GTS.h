@@ -86,9 +86,9 @@ struct DSME_GTS_confirm_parameters {
  * beacons of its coordinator. (IEEE 802.15.4e-2012 6.2.21.1)
  */
 class DSME_GTS : public IndicationBase<DSME_GTS_indication_parameters>,
-                 public ConfirmBase<DSME_GTS_confirm_parameters> {
+    public ConfirmBase<DSME_GTS_confirm_parameters> {
 public:
-    explicit DSME_GTS(DSMELayer &dsme);
+    explicit DSME_GTS(DSMELayer& dsme);
 
     struct request_parameters {
         uint16_t deviceAddress;
@@ -120,7 +120,7 @@ public:
     void response(response_parameters&);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
 };
 
 } /* mlme_sap */

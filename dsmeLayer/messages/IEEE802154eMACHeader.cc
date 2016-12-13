@@ -56,8 +56,7 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
     if(serializer.getType() == serialization_type_t::SERIALIZATION) {
         uint8_t*& data = serializer.getDataRef();
         data << *this;
-    }
-    else {
+    } else {
         const uint8_t* data = serializer.getDataRef();
         // data >> *this; /* removed due to deprecation of the operator Ü/
         serializer.getDataRef() += this->getSerializationLength();
@@ -82,8 +81,7 @@ Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameContro
         fcf |= fc.srcAddrMode        << 14;
 
         serializer << fcf;
-    }
-    else {
+    } else {
         serializer << fcf;
 
         fc.frameType         = IEEE802154eMACHeader::FrameType((fcf >> 0) & 0x7);

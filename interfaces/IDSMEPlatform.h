@@ -65,12 +65,12 @@ public:
      * but keep the message (the caller has to ensure that the message is eventually released)
      * This might lead to an additional memory copy in the platform
      */
-    virtual bool sendCopyNow(DSMEMessage *msg, Delegate<void(bool)> txEndCallback) = 0;
+    virtual bool sendCopyNow(DSMEMessage* msg, Delegate<void(bool)> txEndCallback) = 0;
 
     /**
      * Send an ACK message, delay until aTurnaRoundTime after reception_time has expired
      */
-    virtual bool sendDelayedAck(DSMEMessage *ackMsg, DSMEMessage *receivedMsg, Delegate<void(bool)> txEndCallback) = 0;
+    virtual bool sendDelayedAck(DSMEMessage* ackMsg, DSMEMessage* receivedMsg, Delegate<void(bool)> txEndCallback) = 0;
 
     virtual void setReceiveDelegate(receive_delegate_t receiveDelegate) = 0;
 

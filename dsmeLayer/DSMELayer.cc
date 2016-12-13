@@ -49,30 +49,30 @@
 namespace dsme {
 
 DSMELayer::DSMELayer() :
-        phy_pib(nullptr),
-        mac_pib(nullptr),
-        mcps_sap(nullptr),
-        mlme_sap(nullptr),
+    phy_pib(nullptr),
+    mac_pib(nullptr),
+    mcps_sap(nullptr),
+    mlme_sap(nullptr),
 
-        platform(nullptr),
-        eventDispatcher(*this),
+    platform(nullptr),
+    eventDispatcher(*this),
 
-        ackLayer(*this),
-        capLayer(*this),
-        associationManager(*this),
-        beaconManager(*this),
-        gtsManager(*this),
-        messageDispatcher(*this),
+    ackLayer(*this),
+    capLayer(*this),
+    associationManager(*this),
+    beaconManager(*this),
+    gtsManager(*this),
+    messageDispatcher(*this),
 
-        currentSlot(0),
-        currentSuperframe(0),
-        currentMultiSuperframe(0),
-        nextSlot(0),
-        nextSuperframe(0),
-        nextMultiSuperframe(0),
-        slotsSinceLastKnownBeaconIntervalStart(0),
-        trackingBeacons(false),
-        lastSlotTime(0) {
+    currentSlot(0),
+    currentSuperframe(0),
+    currentMultiSuperframe(0),
+    nextSlot(0),
+    nextSuperframe(0),
+    nextMultiSuperframe(0),
+    slotsSinceLastKnownBeaconIntervalStart(0),
+    trackingBeacons(false),
+    lastSlotTime(0) {
 }
 
 DSMELayer::~DSMELayer() {
@@ -207,7 +207,7 @@ uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift
     // Add one superframe to account for times where the shifted time is larger than the current time
     return (time - (beaconManager.getLastKnownBeaconIntervalStart() + shift)
             + aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot())
-            % (aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot());
+           % (aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot());
 }
 
 bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
@@ -217,7 +217,7 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
     //LOG_INFO(capStart << " " << symbolsSinceSuperframeStart << " " << duration << " " << capEnd);
     return (symbolsSinceSuperframeStart >= capStart) // after beacon slot
-    && (symbolsSinceSuperframeStart + duration <= capEnd); // before pre-event of first GTS
+           && (symbolsSinceSuperframeStart + duration <= capEnd); // before pre-event of first GTS
 
     // Unrealistic, but helpful example for
     //   symbolsPerSlot  = 2

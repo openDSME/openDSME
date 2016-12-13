@@ -47,8 +47,7 @@
 
 namespace dsme {
 
-class SuperframeSpecification
-{
+class SuperframeSpecification {
 public:
     union {
         struct {

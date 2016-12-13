@@ -73,7 +73,7 @@ struct RBNode {
     /*
      * Pointer to construct the tree
      */
-    RBNode<T, K> *leftChild, *rightChild, *parent;
+    RBNode<T, K>* leftChild, *rightChild, *parent;
 
     /*
      * Key to identify object
@@ -94,7 +94,7 @@ struct RBNode {
 /* FUNCTION DEFINITIONS ******************************************************/
 template<typename T, typename K>
 RBNode<T, K>::RBNode(T content, K key) :
-        leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
+    leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
 }
 
 template<typename T, typename K>

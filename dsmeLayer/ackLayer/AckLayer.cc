@@ -48,14 +48,14 @@
 namespace dsme {
 
 AckLayer::AckLayer(DSMELayer& dsme) :
-        FSM<AckLayer, AckEvent>(&AckLayer::stateIdle),
-        dsme(dsme),
-        busy(false),
-        pendingMessage(nullptr),
-        pendingSequenceNumber(0),
-        ackSeqNum(0),
-        nextSequenceNumber(0),
-        internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
+    FSM<AckLayer, AckEvent>(&AckLayer::stateIdle),
+    dsme(dsme),
+    busy(false),
+    pendingMessage(nullptr),
+    pendingSequenceNumber(0),
+    ackSeqNum(0),
+    nextSequenceNumber(0),
+    internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 
 void AckLayer::reset() {
@@ -87,7 +87,7 @@ bool AckLayer::sendButKeep(DSMEMessage* msg, done_callback_t doneCallback) {
 
 void AckLayer::receive(DSMEMessage* msg) {
 
-    IEEE802154eMACHeader &header = msg->getHeader();
+    IEEE802154eMACHeader& header = msg->getHeader();
 
     /*
      * TODO
@@ -179,13 +179,13 @@ fsmReturnStatus AckLayer::transitionToIdle() {
 
 fsmReturnStatus AckLayer::catchAll(AckEvent& event) {
     switch(event.signal) {
-    case AckEvent::ACK_RECEIVED:
-    case AckEvent::ENTRY_SIGNAL:
-    case AckEvent::EXIT_SIGNAL:
-        return FSM_IGNORED;
-    default:
-        DSME_ASSERT(false);
-        return FSM_IGNORED;
+        case AckEvent::ACK_RECEIVED:
+        case AckEvent::ENTRY_SIGNAL:
+        case AckEvent::EXIT_SIGNAL:
+            return FSM_IGNORED;
+        default:
+            DSME_ASSERT(false);
+            return FSM_IGNORED;
     }
 }
 
@@ -201,8 +201,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 externalDoneCallback(SEND_FAILED, pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
                 return transitionToIdle();
-            }
-            else {
+            } else {
                 return transition(&AckLayer::stateTx);
             }
         }
@@ -226,7 +225,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     return transitionToIdle();
                 }
 
-                IEEE802154eMACHeader &ackHeader = pendingMessage->getHeader();
+                IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader();
                 ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
                 ackSeqNum = receivedMessage->getHeader().getSequenceNumber();
                 ackHeader.setSequenceNumber(ackSeqNum);
@@ -241,8 +240,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
                 if(success) {
                     return transition(&AckLayer::stateTxAck);
-                }
-                else {
+                } else {
                     DSME_SIM_ASSERT(false);
 
                     dsme.getPlatform().releaseMessage(pendingMessage);
@@ -304,7 +302,8 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
 
         case AckEvent::TIMER_FIRED:
             dsme.getEventDispatcher().stopACKTimer();
-            LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr " << pendingMessage->getHeader().getDestAddr().getShortAddress());
+            LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr " <<
+                      pendingMessage->getHeader().getDestAddr().getShortAddress());
             externalDoneCallback(ACK_FAILED, pendingMessage);
             pendingMessage = nullptr; // owned by upper layer now
             return transitionToIdle();

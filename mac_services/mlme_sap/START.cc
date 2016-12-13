@@ -48,11 +48,11 @@ namespace dsme {
 namespace mlme_sap {
 
 START::START(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
 
-void START::request(request_parameters &params) {
+void START::request(request_parameters& params) {
     StartStatus::Start_Status status;
 
     if (params.panCoordinator) {

@@ -51,7 +51,7 @@ template<typename C, uint16_t MAX_SIZE>
 class DSMEQueue {
 public:
     DSMEQueue()
-    : next_back(0), size(0) {
+        : next_back(0), size(0) {
     }
 
     // assumes queue is not full
@@ -60,9 +60,8 @@ public:
 
         queue[next_back] = element;
         if(next_back == 0) {
-            next_back = MAX_SIZE-1;
-        }
-        else {
+            next_back = MAX_SIZE - 1;
+        } else {
             next_back--;
         }
         size++;
@@ -77,7 +76,7 @@ public:
     // assumes queue is not empty
     C& front() {
         DSME_ASSERT(size > 0);
-        return queue[(next_back+size)%MAX_SIZE];
+        return queue[(next_back + size) % MAX_SIZE];
     }
 
     bool empty() const {

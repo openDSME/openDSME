@@ -49,7 +49,7 @@ namespace dsme {
 namespace mlme_sap {
 
 template<typename T>
-static void notify_busy_confirm(T &params, DSME_GTS& dsme_gts) {
+static void notify_busy_confirm(T& params, DSME_GTS& dsme_gts) {
     DSME_GTS_confirm_parameters busyConfirm;
 
     busyConfirm.deviceAddress = params.deviceAddress;
@@ -63,19 +63,19 @@ static void notify_busy_confirm(T &params, DSME_GTS& dsme_gts) {
 }
 
 DSME_GTS::DSME_GTS(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 /*
  * Request command(IEEE 802.15.4e-2012 5.3.11.4) will be generated with the request_parameters from higher layer.
  */
-void DSME_GTS::request(request_parameters &params) {
+void DSME_GTS::request(request_parameters& params) {
     uint16_t srcAddr = this->dsme.getMAC_PIB().macShortAddress;
     if ((srcAddr == 0xfffe) || (srcAddr == 0xffff)) {
         DSME_GTS_confirm_parameters reply;
         reply.status = GTSStatus::NO_SHORT_ADDRESS;
         this->notify_confirm(reply);
     } else {
-        GTSManager &gtsManager = dsme.getGTSManager();
+        GTSManager& gtsManager = dsme.getGTSManager();
 
         GTSManagement gtsManagement(params.managmentType, params.direction, params.prioritizedChannelAccess);
         GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeID, params.preferredSlotID, params.dsmeSABSpecification);
@@ -87,11 +87,11 @@ void DSME_GTS::request(request_parameters &params) {
     }
 }
 
-void DSME_GTS::response(response_parameters &params) {
+void DSME_GTS::response(response_parameters& params) {
     /* (IEEE 802.15.4e-2012 6.2.21.1.3):
      - generate reply command (IEEE 802.15.4e-2012 5.3.11.5)
      */
-    GTSManager &gtsManager = dsme.getGTSManager();
+    GTSManager& gtsManager = dsme.getGTSManager();
     GTSManagement gtsManagement(params.managmentType, params.direction, params.prioritizedChannelAccess, params.status);
 
     bool busy;

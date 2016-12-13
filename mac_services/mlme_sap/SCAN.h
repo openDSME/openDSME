@@ -57,12 +57,12 @@ struct SCAN_confirm_parameters {
     ScanStatus::Scan_Status status;
     ScanType scanType;
     uint8_t channelPage;
-    uint16_t *unscannedChannels;
+    uint16_t* unscannedChannels;
     uint8_t resultListSize;
-    uint8_t *energyDetectList;
+    uint8_t* energyDetectList;
     PanDescriptorList panDescriptorList;
     uint8_t detectedCategory;
-    uint8_t *uwbEnergyDetectList;
+    uint8_t* uwbEnergyDetectList;
 };
 
 /*
@@ -72,7 +72,7 @@ struct SCAN_confirm_parameters {
 class SCAN : public ConfirmBase<SCAN_confirm_parameters> {
 public:
 
-    explicit SCAN(DSMELayer &dsme);
+    explicit SCAN(DSMELayer& dsme);
     struct request_parameters {
         ScanType scanType;
         channelList_t scanChannels;
@@ -80,7 +80,7 @@ public:
         uint8_t channelPage;
         uint8_t securityLevel;
         uint8_t keyIdMode;
-        uint8_t *keySource;
+        uint8_t* keySource;
         uint8_t keyIndex;
         bool linkQualityScan;
         uint8_t frameControlOptions;
@@ -92,7 +92,7 @@ public:
     void request(request_parameters&);
 
 private:
-    DSMELayer &dsme;
+    DSMELayer& dsme;
 };
 
 } /* mlme_sap */

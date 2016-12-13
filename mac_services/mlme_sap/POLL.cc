@@ -50,10 +50,10 @@ namespace dsme {
 namespace mlme_sap {
 
 POLL::POLL(DSMELayer& dsme) :
-        dsme(dsme) {
+    dsme(dsme) {
 }
 
-void POLL::request(request_parameters &params) {
+void POLL::request(request_parameters& params) {
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     /*IEEE802.15.4-2011 5.3.4*/
