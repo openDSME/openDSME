@@ -40,10 +40,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMECSMA_H
-#define DSMECSMA_H
+#ifndef CAPLAYER_H
+#define CAPLAYER_H
 
-#include "../../helper/DSMEFSM.h"
+#include "../../helper/DSMEBufferedFSM.h"
 #include "../../helper/DSMEQueue.h"
 #include "../ackLayer/AckLayer.h"
 
@@ -51,6 +51,10 @@ namespace dsme {
 
 class CSMAEvent : public FSMEvent {
 public:
+    void fill(uint16_t signal) {
+        this->signal = signal;
+    }
+
     enum : uint8_t {
         MSG_PUSHED = USER_SIGNAL_START,
         TIMER_FIRED,
@@ -63,42 +67,53 @@ public:
 
 class DSMELayer;
 
-class CAPLayer : private FSM<CAPLayer, CSMAEvent> {
+class CAPLayer : private DSMEBufferedFSM<CAPLayer, CSMAEvent, 4> {
 public:
     explicit CAPLayer(DSMELayer &dsme);
 
     void reset();
-
     bool pushMessage(DSMEMessage *msg);
-
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
 
 private:
-    DSMELayer &dsme;
-
-    uint8_t NB;
-    uint8_t NR;
-    uint8_t totalNBs;
-
-    AckLayer::done_callback_t doneCallback;
-
-    void sendDone(enum AckLayerResponse response, DSMEMessage *msg);
-    void startBackoffTimer();
-    bool enoughTimeLeft();
-    uint16_t symbolsRequired();
-    void popMessage(DataStatus::Data_Status status);
-
+    /**
+     * States
+     */
     fsmReturnStatus stateIdle(CSMAEvent &event);
     fsmReturnStatus stateBackoff(CSMAEvent & vent);
     fsmReturnStatus stateCCA(CSMAEvent &event);
     fsmReturnStatus stateSending(CSMAEvent &event);
 
-    DSMEQueue<DSMEMessage*, CAP_QUEUE_SIZE> queue;
+    /*
+     * External interfaces for use through callbacks
+     */
+    void sendDone(enum AckLayerResponse response, DSMEMessage *msg);
 
+    /**
+     * Actions
+     */
+    void actionStartBackoffTimer();
+    void actionPopMessage(DataStatus::Data_Status);
+
+    /**
+     * Internal helper
+     */
     fsmReturnStatus choiceRebackoff();
+    bool enoughTimeLeft();
+    uint16_t symbolsRequired();
+
+    /*
+     * Attributes
+     */
+    DSMELayer &dsme;
+    uint8_t NB;
+    uint8_t NR;
+    uint8_t totalNBs;
+    AckLayer::done_callback_t doneCallback;
+    DSMEQueue<DSMEMessage*, CAP_QUEUE_SIZE> queue;
 };
 
-}
+} /* dsme */
 
-#endif
+#endif /* CAPLAYER_H */

@@ -68,8 +68,7 @@ class DSMELayer;
 class GTSEvent : public MultiFSMEvent {
 public:
     template <typename ...Args>
-    void fill(uint16_t signal, Args & ... args)
-    {
+    void fill(uint16_t signal, Args & ... args) {
         this->signal = signal;
         fill(args...);
     }
@@ -92,7 +91,7 @@ public:
     DataStatus::Data_Status dataStatus;
 
 private:
-    static void fill(void){
+    static void fill(void) {
     }
 
     void fill(DSMEMessage *&msg, GTSManagement &management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
@@ -261,7 +260,6 @@ private:
     /**
      * FSM identification helpers
      */
-
     int8_t getFsmIdIdle();
     int8_t getFsmIdForRequest();
     int8_t getFsmIdForResponse(uint16_t destinationAddress);
@@ -270,9 +268,11 @@ private:
 
     bool hasBusyFsm();
 
+    /*
+     * Attributes
+     */
     DSMELayer& dsme;
     ACTUpdater actUpdater;
-
     GTSData data[GTS_STATE_MULTIPLICITY + 1];
 };
 

@@ -48,7 +48,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme) :
-        FSM<CAPLayer, CSMAEvent>(&CAPLayer::stateIdle),
+        DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle),
         dsme(dsme),
         NB(0),
         NR(0),
@@ -71,38 +71,30 @@ void CAPLayer::reset() {
  * External interfaces
  *****************************/
 void CAPLayer::dispatchTimerEvent() {
-    CSMAEvent e;
-    e.signal = CSMAEvent::TIMER_FIRED;
-    bool dispatchSuccessful = dispatch(e);
+    bool dispatchSuccessful = dispatch(CSMAEvent::TIMER_FIRED);
     DSME_ASSERT(dispatchSuccessful);
 }
 
 void CAPLayer::dispatchCCAResult(bool success) {
-    CSMAEvent e;
-    if (success) {
-        e.signal = CSMAEvent::CCA_SUCCESS;
-    } else {
-        e.signal = CSMAEvent::CCA_FAILURE;
-    }
-    bool dispatchSuccessful = dispatch(e);
+    bool dispatchSuccessful = dispatch(success ? CSMAEvent::CCA_SUCCESS : CSMAEvent::CCA_FAILURE);
     DSME_ASSERT(dispatchSuccessful);
 }
 
 void CAPLayer::sendDone(enum AckLayerResponse response, DSMEMessage* msg) {
-    CSMAEvent e;
+    uint8_t signal;
     switch (response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
         case AckLayerResponse::ACK_SUCCESSFUL:
-            e.signal = CSMAEvent::SEND_SUCCESSFUL;
+            signal = CSMAEvent::SEND_SUCCESSFUL;
             break;
         case AckLayerResponse::ACK_FAILED:
         case AckLayerResponse::SEND_FAILED:
-            e.signal = CSMAEvent::SEND_FAILED;
+            signal = CSMAEvent::SEND_FAILED;
             break;
         default:
             DSME_ASSERT(false);
     }
-    bool dispatchSuccessful = dispatch(e);
+    bool dispatchSuccessful = dispatch(signal);
     DSME_ASSERT(dispatchSuccessful);
 }
 
@@ -113,9 +105,7 @@ bool CAPLayer::pushMessage(DSMEMessage* msg) {
         return false;
     } else {
         queue.push(msg);
-        CSMAEvent e;
-        e.signal = CSMAEvent::MSG_PUSHED;
-        dispatch(e);
+        dispatch(CSMAEvent::MSG_PUSHED);
         return true;
     }
 }
@@ -127,7 +117,7 @@ fsmReturnStatus CAPLayer::choiceRebackoff() {
     NB++;
     totalNBs++;
     if (NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
-        popMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
+        actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
         return transition(&CAPLayer::stateIdle);
     } else {
         return transition(&CAPLayer::stateBackoff);
@@ -165,7 +155,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     LOG_DEBUG_PURE("Cb" << (uint16_t)event.signal << LOG_ENDL);
     if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        startBackoffTimer();
+        actionStartBackoffTimer();
         return FSM_HANDLED;
     } else if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
@@ -208,7 +198,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
             // should only happen in rare cases (e.g. resync)
             // TODO check how often this really happens
             if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
-                popMessage(DataStatus::Data_Status::NO_ACK);
+                actionPopMessage(DataStatus::Data_Status::NO_ACK);
                 return transition(&CAPLayer::stateIdle);
             } else {
                 NB = 0;
@@ -232,12 +222,12 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
-        popMessage(DataStatus::SUCCESS);
+        actionPopMessage(DataStatus::SUCCESS);
         return transition(&CAPLayer::stateIdle);
     } else if (event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
         if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
-            popMessage(DataStatus::Data_Status::NO_ACK);
+            actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
         } else {
             NB = 0;
@@ -266,7 +256,7 @@ uint16_t CAPLayer::symbolsRequired() {
     return symbols;
 }
 
-void CAPLayer::startBackoffTimer() {
+void CAPLayer::actionStartBackoffTimer() {
     uint8_t backoffExp = dsme.getMAC_PIB().macMinBE + NB;
     uint8_t maxBE = dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
@@ -299,7 +289,7 @@ bool CAPLayer::enoughTimeLeft() {
     return dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), symbolsRequired());
 }
 
-void CAPLayer::popMessage(DataStatus::Data_Status status) {
+void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     DSMEMessage* msg = queue.front();
     queue.pop();
 
