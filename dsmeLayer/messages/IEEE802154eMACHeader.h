@@ -43,10 +43,7 @@
 #ifndef IEEE802154EMACHEADER_H
 #define IEEE802154EMACHEADER_H
 
-class IEEE802154eMACHeader;
-
 #include "../../mac_services/DSME_Common.h"
-
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 
@@ -351,8 +348,15 @@ public:
 
     virtual void serialize(Serializer& serializer);
 
+    inline bool deserializeFrom(const uint8_t* &buffer, uint8_t payloadLength);
+
     friend uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader& header);
-    friend const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& header);
+
+    /*
+     * Due to the impossibility of checking for a large enough buffer, this method was deprecated.
+     * Use the member deserializeFrom(...) instead.
+     */
+    //friend const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& header);
 };
 
 Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameControl& fc);
@@ -440,49 +444,57 @@ inline uint8_t* operator<<(uint8_t* &buffer, const IEEE802154eMACHeader& header)
     return buffer;
 }
 
-inline const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& header) {
-    /* deserialize frame control */
-    buffer >> header.frameControl;
+inline bool IEEE802154eMACHeader::deserializeFrom(const uint8_t* &buffer, uint8_t payloadLength) {
+        if(payloadLength < 2) {
+            return false;
+        }
 
-    /* deserialize sequence number */
-    if (header.hasSequenceNumber()) {
-        header.seqNum = *(buffer++);
-    }
+        /* deserialize frame control */
+        buffer >> this->frameControl;
 
-    /* deserialize destination address */
-    if (header.destinationPanIdLength() != 0) {
-        header.dstPAN = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-    }
-    if (header.destinationAddressLength() == 2) {
-        uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-        header.dstAddr.setShortAddress(shortDstAddr);
-    } else if (header.destinationAddressLength() == 8) {
-        buffer >> header.dstAddr;
-    }
-    else {
-        header.dstAddr = IEEE802154MacAddress::UNSPECIFIED;
-    }
+        if(payloadLength < getSerializationLength()) {
+            return false;
+        }
 
-    /* deserialize source address */
-    if (header.sourcePanIdLength() != 0) {
-        header.srcPAN = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-    }
-    if (header.sourceAddressLength() == 2) {
-        uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-        header.srcAddr.setShortAddress(shortSrcAddr);
-    } else if (header.sourceAddressLength() == 8) {
-        buffer >> header.srcAddr;
-    }
-    else {
-        header.srcAddr = IEEE802154MacAddress::UNSPECIFIED;
-    }
+        /* deserialize sequence number */
+        if (hasSequenceNumber()) {
+            this->seqNum = *(buffer++);
+        }
 
-    return buffer;
-}
+        /* deserialize destination address */
+        if (destinationPanIdLength() != 0) {
+            this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
+            buffer += 2;
+        }
+        if (destinationAddressLength() == 2) {
+            uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
+            buffer += 2;
+            this->dstAddr.setShortAddress(shortDstAddr);
+        } else if (destinationAddressLength() == 8) {
+            buffer >> this->dstAddr;
+        }
+        else {
+            this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
+        }
+
+        /* deserialize source address */
+        if (sourcePanIdLength() != 0) {
+            this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
+            buffer += 2;
+        }
+        if (sourceAddressLength() == 2) {
+            uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
+            buffer += 2;
+            this->srcAddr.setShortAddress(shortSrcAddr);
+        } else if (sourceAddressLength() == 8) {
+            buffer >> this->srcAddr;
+        }
+        else {
+            this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
+        }
+
+        return true;
+    }
 
 }
 #endif

@@ -41,10 +41,17 @@
  */
 
 #include "IEEE802154eMACHeader.h"
+#include "dsme_platform.h"
 
 namespace dsme {
 
 void IEEE802154eMACHeader::serialize(Serializer& serializer) {
+    /*
+     * This function is too slow due to too much indirection, so ACK-timings would be missed.
+     * Use the member deserializeFrom(...) instead.
+     */
+    DSME_ASSERT(false);
+
     // TODO deprecated
     if(serializer.getType() == serialization_type_t::SERIALIZATION) {
         uint8_t*& data = serializer.getDataRef();
@@ -52,7 +59,7 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
     }
     else {
         const uint8_t* data = serializer.getDataRef();
-        data >> *this;
+        // data >> *this; /* removed due to deprecation of the operator Ü/
         serializer.getDataRef() += this->getSerializationLength();
     }
     return;
