@@ -192,22 +192,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     } else if (event.signal == CSMAEvent::CCA_FAILURE) {
         return choiceRebackoff();
     } else if (event.signal == CSMAEvent::CCA_SUCCESS) {
-        if (!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
-            DSME_ASSERT(false);
-            // message could not be sent (another transmission or reception is active)
-            // should only happen in rare cases (e.g. resync)
-            // TODO check how often this really happens
-            if (NR > dsme.getMAC_PIB().macMaxFrameRetries) {
-                actionPopMessage(DataStatus::Data_Status::NO_ACK);
-                return transition(&CAPLayer::stateIdle);
-            } else {
-                NB = 0;
-                NR++;
-                return transition(&CAPLayer::stateBackoff);
-            }
-        } else {
-            return transition(&CAPLayer::stateSending);
-        }
+        return transition(&CAPLayer::stateSending);
     } else {
         if (event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t )event.signal);
@@ -219,7 +204,12 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
-    if (event.signal == CSMAEvent::MSG_PUSHED) {
+    if (event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        if (!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
+            DSME_ASSERT(false);
+        }
+        return FSM_HANDLED;
+    } else if (event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if (event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
