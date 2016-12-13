@@ -107,7 +107,7 @@ public:
         return;
     }
 
-    void advanceNext() {;
+    void advanceNext() {
         dsme_atomicBegin();
         this->tail = next(this->tail);
         dsme_atomicEnd();
