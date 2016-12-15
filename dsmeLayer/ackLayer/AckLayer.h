@@ -88,7 +88,6 @@ public:
     void sendAdditionalAck(uint8_t seqNum);
     void receive(DSMEMessage* msg);
     void dispatchTimer();
-    void setNextSequenceNumber(uint8_t nextSequenceNumber);
 
 private:
     void sendDone(bool success);
@@ -96,22 +95,19 @@ private:
     fsmReturnStatus stateTx(AckEvent& event);
     fsmReturnStatus stateWaitForAck(AckEvent& event);
     fsmReturnStatus stateTxAck(AckEvent& event);
-    fsmReturnStatus transitionToIdle();
+
     fsmReturnStatus catchAll(AckEvent& event);
 
     DSMELayer& dsme;
 
-    // Indicates if the layer is currently busy (i.e. in another state than idle)
+    /*
+     * Indicates if the layer is currently busy (i.e. in another state than idle)
+     */
     bool busy;
 
     DSMEMessage* pendingMessage;
-    uint8_t pendingSequenceNumber;
-
-    uint8_t ackSeqNum;
-    uint8_t nextSequenceNumber;
-
     done_callback_t externalDoneCallback;
-    Delegate<void(bool)> internalDoneCallback;
+    const Delegate<void(bool)> internalDoneCallback;
 };
 
 }

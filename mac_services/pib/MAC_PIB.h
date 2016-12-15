@@ -110,6 +110,9 @@ public:
      * coordinator is only using its extended address. A value of 0xffff indicates that this value is unknown. */
     uint16_t macCoordShortAddress;
 
+    /* The sequence number added to the transmitted Data frame or MAC command. */
+    uint8_t macDsn;
+
     /* The maximum value of the backoff exponent, BE, in the CSMA-CA algorithm, as defined in 5.1.1.4. */
     uint8_t macMaxBE;
 
