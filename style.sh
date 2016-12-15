@@ -7,6 +7,7 @@ astyle \
     --indent-switches \
     --indent-col1-comments \
     --pad-oper \
+    --unpad-paren \
     --align-pointer=type \
     --align-reference=type \
     --add-brackets \
