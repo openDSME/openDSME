@@ -93,7 +93,7 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->messageDispatcher.initialize();
     this->beaconManager.initialize();
 
-    this->ackLayer.setNextSequenceNumber(platform->getRandom());
+    this->mac_pib->macDsn = platform->getRandom();
 }
 
 void DSMELayer::start() {
@@ -121,7 +121,7 @@ void DSMELayer::reset() {
 
     this->capLayer.reset();
 
-    this->ackLayer.setNextSequenceNumber(this->platform->getRandom());
+    this->mac_pib->macDsn = platform->getRandom();
     this->ackLayer.reset();
 
     this->currentSlot = 0;

@@ -52,18 +52,11 @@ AckLayer::AckLayer(DSMELayer& dsme) :
     dsme(dsme),
     busy(false),
     pendingMessage(nullptr),
-    pendingSequenceNumber(0),
-    ackSeqNum(0),
-    nextSequenceNumber(0),
     internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 
 void AckLayer::reset() {
     transition(&AckLayer::stateIdle);
-}
-
-void AckLayer::setNextSequenceNumber(uint8_t nextSequenceNumber) {
-    this->nextSequenceNumber = nextSequenceNumber;
 }
 
 bool AckLayer::sendButKeep(DSMEMessage* msg, done_callback_t doneCallback) {
@@ -168,15 +161,6 @@ void AckLayer::sendDone(bool success) {
 
 //////////////////////////////// STATES ////////////////////////////////
 
-fsmReturnStatus AckLayer::transitionToIdle() {
-    DSME_ASSERT(pendingMessage == nullptr);
-    dsme_atomicBegin();
-    fsmReturnStatus ret = transition(&AckLayer::stateIdle);
-    busy = false;
-    dsme_atomicEnd();
-    return ret;
-}
-
 fsmReturnStatus AckLayer::catchAll(AckEvent& event) {
     switch(event.signal) {
         case AckEvent::ACK_RECEIVED:
@@ -191,18 +175,28 @@ fsmReturnStatus AckLayer::catchAll(AckEvent& event) {
 
 fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
     switch (event.signal) {
+        case AckEvent::ENTRY_SIGNAL:
+            pendingMessage = nullptr;
+            dsme_atomicBegin();
+            busy = false;
+            dsme_atomicEnd();
+            return FSM_HANDLED;
+
         case AckEvent::SEND_REQUEST: {
             if (pendingMessage->getHeader().hasSequenceNumber()) {
-                pendingMessage->getHeader().setSequenceNumber(this->nextSequenceNumber++);
+                pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
             }
-            bool success = dsme.getPlatform().sendCopyNow(pendingMessage, internalDoneCallback);
-            if(!success) {
-                // currently busy (e.g. recent reception)
+
+            if(dsme.getPlatform().sendCopyNow(pendingMessage, internalDoneCallback)) {
+                return transition(&AckLayer::stateTx);
+            } else {
+                /* '-> currently busy (e.g. recent reception) */
                 externalDoneCallback(SEND_FAILED, pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
-                return transitionToIdle();
-            } else {
-                return transition(&AckLayer::stateTx);
+                dsme_atomicBegin();
+                busy = false;
+                dsme_atomicEnd();
+                return FSM_HANDLED;
             }
         }
 
@@ -210,7 +204,10 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             if(!dsme.getPlatform().isReceptionFromAckLayerPossible()) {
                 dsme.getPlatform().releaseMessage(pendingMessage);
                 pendingMessage = nullptr;
-                return transitionToIdle();
+                dsme_atomicBegin();
+                busy = false;
+                dsme_atomicEnd();
+                return FSM_HANDLED;
             }
 
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to be set 5.3.11.5.2)
@@ -222,13 +219,15 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 pendingMessage = dsme.getPlatform().getEmptyMessage();
                 if (pendingMessage == nullptr) {
                     DSME_ASSERT(false);
-                    return transitionToIdle();
+                    dsme_atomicBegin();
+                    busy = false;
+                    dsme_atomicEnd();
+                    return FSM_HANDLED;
                 }
 
                 IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader();
                 ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
-                ackSeqNum = receivedMessage->getHeader().getSequenceNumber();
-                ackHeader.setSequenceNumber(ackSeqNum);
+                ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
 
                 ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
 
@@ -245,12 +244,18 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
                     dsme.getPlatform().releaseMessage(pendingMessage);
                     pendingMessage = nullptr;
-                    return transitionToIdle();
+                    dsme_atomicBegin();
+                    busy = false;
+                    dsme_atomicEnd();
+                    return FSM_HANDLED;
                 }
             } else {
                 dsme.getPlatform().handleReceivedMessageFromAckLayer(pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
-                return transitionToIdle();
+                dsme_atomicBegin();
+                busy = false;
+                dsme_atomicEnd();
+                return FSM_HANDLED;
             }
 
         default:
@@ -263,8 +268,7 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
         case AckEvent::SEND_DONE:
             if (!event.success) {
                 externalDoneCallback(SEND_FAILED, pendingMessage);
-                pendingMessage = nullptr; // owned by upper layer now
-                return transitionToIdle();
+                return transition(&AckLayer::stateIdle);
             } else {
                 // ACK requested?
                 if (pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
@@ -274,8 +278,7 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
                     return transition(&AckLayer::stateWaitForAck);
                 } else {
                     externalDoneCallback(NO_ACK_REQUESTED, pendingMessage);
-                    pendingMessage = nullptr; // owned by upper layer now
-                    return transitionToIdle();
+                    return transition(&AckLayer::stateIdle);
                 }
             }
 
@@ -291,10 +294,9 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
             if (event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {
-                externalDoneCallback(ACK_SUCCESSFUL, pendingMessage);
-                pendingMessage = nullptr; // owned by upper layer now
                 dsme.getEventDispatcher().stopACKTimer();
-                return transitionToIdle();
+                externalDoneCallback(ACK_SUCCESSFUL, pendingMessage);
+                return transition(&AckLayer::stateIdle);
             } else {
                 /* '-> if sequence number does not match, ignore this ACK */
                 return FSM_HANDLED;
@@ -305,8 +307,7 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr " <<
                       pendingMessage->getHeader().getDestAddr().getShortAddress());
             externalDoneCallback(ACK_FAILED, pendingMessage);
-            pendingMessage = nullptr; // owned by upper layer now
-            return transitionToIdle();
+            return transition(&AckLayer::stateIdle);
 
         default:
             return catchAll(event);
@@ -317,8 +318,7 @@ fsmReturnStatus AckLayer::stateTxAck(AckEvent& event) {
     switch (event.signal) {
         case AckEvent::SEND_DONE:
             dsme.getPlatform().releaseMessage(pendingMessage);
-            pendingMessage = nullptr;
-            return transitionToIdle();
+            return transition(&AckLayer::stateIdle);
 
         default:
             return catchAll(event);
