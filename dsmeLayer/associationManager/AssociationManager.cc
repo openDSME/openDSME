@@ -85,9 +85,8 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     //Header compliant to specification (IEEE802.15.4-2012 5.3.11.2.1).
     msg->getHeader().setDstAddr(params.coordAddress);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
-    msg->getHeader().getFrameControl().srcAddrMode = EXTENDED_ADDRESS;
-    msg->getHeader().getFrameControl().dstAddrMode = params.coordAddrMode;
-    msg->getHeader().getFrameControl().framePending = 0;
+    msg->getHeader().setSrcAddrMode(EXTENDED_ADDRESS);
+    msg->getHeader().setDstAddrMode(params.coordAddrMode);
     msg->getHeader().setDstPANId(params.coordPANId);
     msg->getHeader().setSrcPANId(BROADCAST_PAN_ID);
     msg->getHeader().setAckRequest(true);
@@ -136,11 +135,9 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     cmd.prependTo(msg);
 
     //Header compliant to specification (IEEE802.15.4-2012 5.3.11.3.1).
-    msg->getHeader().getFrameControl().srcAddrMode = AddrMode::EXTENDED_ADDRESS;
-    msg->getHeader().getFrameControl().dstAddrMode = AddrMode::EXTENDED_ADDRESS;
-    msg->getHeader().getFrameControl().framePending = 0;
+    msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
+    msg->getHeader().setDstAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
-    //msg->getHeader().getFrameControl().panIDCompression = 1; // TODO: Check why this was done!
     msg->getHeader().setDstPANId(dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstAddr(deviceAddress);
     msg->getHeader().setSrcPANId(dsme.getMAC_PIB().macPANId);
@@ -207,11 +204,9 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
     cmd.prependTo(msg);
 
     //Header compliant to specification (IEEE802.15.4-2011 5.3.3.1).
-    msg->getHeader().getFrameControl().dstAddrMode = params.deviceAddrMode;
-    msg->getHeader().getFrameControl().srcAddrMode = AddrMode::EXTENDED_ADDRESS;
-    msg->getHeader().getFrameControl().framePending = 0;
+    msg->getHeader().setDstAddrMode(params.deviceAddrMode);
+    msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
-    msg->getHeader().getFrameControl().panIDCompression = 1;
     msg->getHeader().setDstPANId(dsme.getMAC_PIB().macPANId);
 
     if (req.getReason() == DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {

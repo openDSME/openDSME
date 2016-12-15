@@ -61,21 +61,20 @@ void POLL::request(request_parameters& params) {
     cmd.setCmdId(CommandFrameIdentifier::DATA_REQUEST);
     cmd.prependTo(msg);
 
-    msg->getHeader().getFrameControl().dstAddrMode = params.coordAddrMode;
+    msg->getHeader().setDstAddrMode(params.coordAddrMode);
     msg->getHeader().setDstPANId(params.coordPANId);
     msg->getHeader().setDstAddr(params.coordAddress);
 
     /* 0xffff means unassociated, 0xfffe means short address not yet allocated */
     if (dsme.getMAC_PIB().macShortAddress < 0xfffe) {
-        msg->getHeader().getFrameControl().srcAddrMode = SHORT_ADDRESS;
+        msg->getHeader().setSrcAddrMode(SHORT_ADDRESS);
         IEEE802154MacAddress sourceAddress(dsme.getMAC_PIB().macShortAddress);
         msg->getHeader().setSrcAddr(sourceAddress);
     } else {
-        msg->getHeader().getFrameControl().srcAddrMode = EXTENDED_ADDRESS;
+        msg->getHeader().setSrcAddrMode(EXTENDED_ADDRESS);
         msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     }
 
-    msg->getHeader().getFrameControl().framePending = 0;
     msg->getHeader().setAckRequest(true);
 
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);

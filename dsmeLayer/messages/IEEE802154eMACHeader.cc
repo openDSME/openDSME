@@ -41,7 +41,7 @@
  */
 
 #include "IEEE802154eMACHeader.h"
-#include "dsme_platform.h"
+#include "../../../dsme_platform.h"
 
 namespace dsme {
 
@@ -98,6 +98,180 @@ Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameContro
     }
 
     return serializer;
+}
+
+uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header) {
+    // Check if we are able to use PAN ID Compression assuming a missing...
+    // - ... Destination PAN ID is equal to 0xFFFF (Sect. 6.7.2 case c) )
+    // - ... Source PAN ID is equal to the destination PAN (Sect. 6.7.2 5th paragraph from end) 
+    bool serializeSrcPAN = false;
+    bool serializeDstPAN = false;
+    bool compressionIfEqual = false;
+    bool panIDCompression;
+
+    if(!header.isVersion2015()) {
+        // Frame version field value is 0b00 or 0b01
+        if(header.getDstAddrMode() != NO_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) {
+            compressionIfEqual = true;
+        }
+        else {
+            panIDCompression = true;
+
+            if(header.getDstAddrMode() != NO_ADDRESS) {
+                serializeDstPAN = true;
+            }
+            else { // Source address has to be present
+                serializeSrcPAN = true;
+            }
+        }
+    }
+    else {
+        // Frame version field value is 0b10
+        if( (header.getSrcAddrMode() == SHORT_ADDRESS && header.getDstAddrMode() != NO_ADDRESS)
+          ||(header.getDstAddrMode() == SHORT_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) ) {
+            // Footnote
+            compressionIfEqual = true;
+        }
+        else if(header.getDstAddrMode() == NO_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) {
+            // Row 5 of Table 7-2
+            panIDCompression = 0;
+            serializeDstPAN = false;
+            serializeSrcPAN = true;
+        }
+        else {
+            serializeSrcPAN = false;
+            serializeDstPAN = (header.dstPAN != IEEE802154eMACHeader::BROADCAST_PAN);
+
+            if(header.getSrcAddrMode() == NO_ADDRESS && header.getDstAddrMode() == NO_ADDRESS) {
+                // First two rows of Table 7-2
+                panIDCompression = serializeDstPAN;
+            }
+            else {
+                panIDCompression = !serializeDstPAN;
+            }
+        }
+    }
+
+    if(compressionIfEqual) {
+        serializeDstPAN = true;
+        if(header.srcPAN == header.dstPAN) {
+            // Probably a mistake in the standard - the footnote says zero,
+            // while the text about the old versions says one
+            panIDCompression = 1;
+            serializeSrcPAN = false;
+        }
+        else {
+            panIDCompression = 0;
+            serializeSrcPAN = true;
+        }
+    }
+
+    if(header.panIDCompressionOverridden) {
+        DSME_ASSERT(header.frameControl.panIDCompression == panIDCompression);
+    }
+
+    /* serialize frame control */
+    auto frameControl = header.frameControl;
+    frameControl.panIDCompression = panIDCompression?1:0;
+    buffer << frameControl;
+
+    //LOG_INFO("TX " << header.destinationAddressLength() << " " << header.sourceAddressLength() << " " << serializeDstPAN << " " << serializeSrcPAN << " " << frameControl.panIDCompression);
+
+
+    /* serialize sequence number */
+    if (header.hasSequenceNumber()) {
+        *(buffer++) = header.seqNum;
+    }
+
+    /* serialize destination address */
+    if (serializeDstPAN) {
+        *(buffer++) = header.dstPAN & 0xFF;
+        *(buffer++) = header.dstPAN >> 8;
+    }
+
+    if (header.destinationAddressLength() == 2) {
+        uint16_t shortDstAddr = header.dstAddr.getShortAddress();
+        *(buffer++) = shortDstAddr & 0xFF;
+        *(buffer++) = shortDstAddr >> 8;
+    } else if (header.destinationAddressLength() == 8) {
+        buffer << header.dstAddr;
+    }
+
+    /* serialize source address */
+    if (serializeSrcPAN) {
+        *(buffer++) = header.srcPAN & 0xFF;
+        *(buffer++) = header.srcPAN >> 8;
+    }
+
+    if (header.sourceAddressLength() == 2) {
+        uint16_t shortSrcAddr = header.srcAddr.getShortAddress();
+        *(buffer++) = shortSrcAddr & 0xFF;
+        *(buffer++) = shortSrcAddr >> 8;
+    } else if (header.sourceAddressLength() == 8) {
+        buffer << header.srcAddr;
+    }
+
+    return buffer;
+}
+
+bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
+    if(payloadLength < 2) {
+        return false;
+    }
+
+    /* deserialize frame control */
+    buffer >> this->frameControl;
+
+    //LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " << this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
+
+    if(payloadLength < getSerializationLength()) {
+        return false;
+    }
+
+    /* deserialize sequence number */
+    if (hasSequenceNumber()) {
+        this->seqNum = *(buffer++);
+    }
+
+    /* deserialize destination address */
+    if (this->hasDestinationPANId()) {
+        this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+    }
+    else {
+        // A missing Destination PAN ID indicates 0xFFFF (Sect. 6.7.2 case c) )
+        this->dstPAN = BROADCAST_PAN;
+    }
+    if (destinationAddressLength() == 2) {
+        uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+        this->dstAddr.setShortAddress(shortDstAddr);
+    } else if (destinationAddressLength() == 8) {
+        buffer >> this->dstAddr;
+    } else {
+        this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    /* deserialize source address */
+    if (this->hasSourcePANId()) {
+        this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+    }
+    else {
+        // A missing Source PAN ID is to be set to the destination PAN ID (Sect. 6.7.2 5th paragraph from end) 
+        this->srcPAN = this->dstPAN;
+    }
+    if (sourceAddressLength() == 2) {
+        uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
+        buffer += 2;
+        this->srcAddr.setShortAddress(shortSrcAddr);
+    } else if (sourceAddressLength() == 8) {
+        buffer >> this->srcAddr;
+    } else {
+        this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    return true;
 }
 
 }

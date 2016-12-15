@@ -200,6 +200,11 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
         msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
         msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
+        // Both PAN IDs are equal and we are using short addresses
+        // so suppress the PAN ID -> This should not be the task
+        // for the user of the MCPS, but it is specified like this... TODO
+        params.frameControlOption_pan_id_suppressed = true;
+
         params.msdu = msg;
         params.msduHandle = 0; //TODO
         params.ackTX = true;
@@ -223,7 +228,6 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
         params.uwbPreambleSymbolRepetitions = 0;
         params.dataRate = 0; // DSSS -> 0
 
-        params.frameControlOption_pan_id_suppressed = false;
         params.frameControlOption_ies_included = false;
         params.frameControlOption_seq_num_suppressed = false;
 

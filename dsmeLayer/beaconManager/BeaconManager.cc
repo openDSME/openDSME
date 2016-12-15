@@ -177,12 +177,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 
     msg->getHeader().setFrameType(IEEE802154eMACHeader::COMMAND);
 
-    msg->getHeader().getFrameControl().frameVersion = IEEE802154eMACHeader::FrameVersion::IEEE802154_2012; //0b10 in specification
-    msg->getHeader().getFrameControl().framePending = 0;
     msg->getHeader().setAckRequest(false);
-    msg->getHeader().getFrameControl().panIDCompression = 1;
-
-    msg->getHeader().getFrameControl().securityEnabled = 0;
 
     if(!dsme.getMessageDispatcher().sendInCAP(msg)) {
         // TODO

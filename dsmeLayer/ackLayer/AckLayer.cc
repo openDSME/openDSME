@@ -112,7 +112,7 @@ void AckLayer::receive(DSMEMessage* msg) {
 
     /* filter messages not for this device */
     bool throwawayMessage = false;
-    if (this->dsme.getMAC_PIB().macAssociatedPANCoord && header.destinationPanIdLength() != 0 && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId) {
+    if (this->dsme.getMAC_PIB().macAssociatedPANCoord && header.hasDestinationPANId() && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId && header.getDstPANId() != IEEE802154eMACHeader::BROADCAST_PAN) {
         LOG_DEBUG("Mismatching PAN-ID: " << header.getDstPANId() << " instead of " << this->dsme.getMAC_PIB().macPANId << " from " << header.getSrcAddr().getShortAddress());
         throwawayMessage = true;
     } else if (!header.getDestAddr().isBroadcast()) {

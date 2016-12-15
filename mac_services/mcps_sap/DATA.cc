@@ -85,7 +85,7 @@ void DATA::request(request_parameters& params) {
 
     header.setSecurityEnabled(params.securityLevel);
 
-    header.setPanIDCompression(params.frameControlOption_pan_id_suppressed);
+    header.overridePanIDCompression(params.frameControlOption_pan_id_suppressed);
     header.setIEListPresent(params.frameControlOption_ies_included);
     header.setSeqNumSuppression(params.frameControlOption_seq_num_suppressed);
 

@@ -62,7 +62,11 @@ public:
      * See IEEE 802.15.4e-2012 5.2.1.1.7, Table 3a
      */
     enum FrameVersion {
-        IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2012 = 0x2, RESERVED = 0x3
+        IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2015 = 0x2, RESERVED = 0x3
+    };
+
+    enum PANID {
+        BROADCAST_PAN = 0xFFFF
     };
 
     /**
@@ -92,18 +96,19 @@ public:
         frameControl.securityEnabled = 0;
         frameControl.framePending = 0;
         frameControl.ackRequest = 0; // TODO
-        frameControl.panIDCompression = 0; // TODO
         frameControl.reserved = 0;
         frameControl.seqNumSuppression = 0; // TODO
         frameControl.ieListPresent = 0; // TODO
         frameControl.dstAddrMode = SHORT_ADDRESS; // TODO
-        frameControl.frameVersion = IEEE802154_2012;
+        frameControl.frameVersion = IEEE802154_2015;
         frameControl.srcAddrMode = SHORT_ADDRESS; // TODO
 
         seqNum = 17; // TODO
 
-        dstPAN = 0; // TODO
-        srcPAN = 0; // TODO
+        frameControl.panIDCompression = 0; // will be set during serialization
+        panIDCompressionOverridden = false;
+        dstPAN = BROADCAST_PAN;
+        srcPAN = BROADCAST_PAN;
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
@@ -162,7 +167,7 @@ public:
         return dstAddr;
     }
 
-    FrameControl& getFrameControl() {
+    const FrameControl& getFrameControl() const {
         return frameControl;
     }
 
@@ -197,7 +202,7 @@ public:
     }
 
     bool isEnhancedBeacon() const {
-        return frameControl.frameType == BEACON && frameControl.frameVersion == IEEE802154_2012;
+        return frameControl.frameType == BEACON && frameControl.frameVersion == IEEE802154_2015;
     }
 
     void setSecurityEnabled(bool enabled) {
@@ -208,7 +213,12 @@ public:
         return this->frameControl.securityEnabled;
     }
 
-    void setPanIDCompression(bool compression) {
+    /* Usually the PAN ID Compression bit is set automatically.
+     * If you override it and it does not match the automatic setting,
+     * the serialization will run in an ASSERT.
+     */
+    void overridePanIDCompression(bool compression) {
+        this->panIDCompressionOverridden = true;
         this->frameControl.panIDCompression = compression;
     }
 
@@ -231,6 +241,8 @@ private:
 
     uint16_t srcPAN;
 
+    bool panIDCompressionOverridden;
+
     IEEE802154MacAddress srcAddr;
 
 public:
@@ -244,8 +256,8 @@ public:
         return this->frameControl.dstAddrMode != NO_ADDRESS;
     }
 
-    inline bool isVersion2012() const {
-        return this->frameControl.frameVersion == IEEE802154_2012;
+    inline bool isVersion2015() const {
+        return this->frameControl.frameVersion == IEEE802154_2015;
     }
 
     inline bool hasPanIdCompression() const {
@@ -260,7 +272,7 @@ public:
      * See IEEE 802.15.4e-2012 5.2.1.1.5a
      */
     inline bool hasSequenceNumber() const {
-        return !(isVersion2012() && hasSequenceNumberSuppression());
+        return !(isVersion2015() && hasSequenceNumberSuppression());
     }
 
     /**
@@ -281,14 +293,25 @@ public:
     }
 
     /**
-     * See IEEE 802.15.4e-2012 5.2.1.1.5, Table 2a
+     * See IEEE 802.15.4-2015 7.2.1.5, Table 7-2
      */
-    inline uint8_t sourcePanIdLength() const {
-        if (hasSourceAddress() && !hasPanIdCompression() && !(hasDestinationAddress() && isVersion2012())) {
-            return 2;
-        } else {
-            return 0;
+    inline uint8_t hasSourcePANId() const {
+        // The source PAN ID is OMITTED iff
+        // - the source address is missing or
+        // - the the PAN ID compression bit is set or
+        bool omitted;
+        if(getSrcAddrMode() == NO_ADDRESS || frameControl.panIDCompression) {
+            omitted = true;
         }
+        else if(!isVersion2015()) {
+            // ... for version 0 and 1 never
+            omitted = false;
+        }
+        else {
+            // ... for version 2 both are extended addresses
+            omitted = (getSrcAddrMode() == EXTENDED_ADDRESS && getDstAddrMode() == EXTENDED_ADDRESS);
+        }
+        return !omitted;
     }
 
     /**
@@ -309,14 +332,24 @@ public:
     }
 
     /**
-     * See IEEE 802.15.4e-2012 5.2.1.1.5, Table 2a
+     * See IEEE 802.15.4-2015 7.2.1.5, Table 7-2
      */
-    inline uint8_t destinationPanIdLength() const {
-        if ((hasDestinationAddress() && (!hasPanIdCompression() || (hasSourceAddress() && !isVersion2012())))
-                || (!hasSourceAddress() && !hasDestinationAddress() && hasPanIdCompression())) {
-            return 2;
-        } else {
-            return 0;
+    inline uint8_t hasDestinationPANId() const {
+        // The destination PAN ID is available iff...
+        if(!isVersion2015()) {
+            // ... for version 0 and 1 the destination address exists
+            return (getDstAddrMode() != NO_ADDRESS);
+        }
+        else {
+            // ... for version 2, either
+            // - the destination address exists and the compression bit is unset or
+            // - both addresses exist and either of the addresses is a short address or
+            // - no address exists and the compression bit is set
+            bool dst = getDstAddrMode() != NO_ADDRESS;
+            bool src = getSrcAddrMode() != NO_ADDRESS;
+            bool shortAddr = getSrcAddrMode() == SHORT_ADDRESS || getDstAddrMode() == SHORT_ADDRESS;
+            bool compress = frameControl.panIDCompression;
+            return (dst && !compress) || (dst && src && shortAddr) || (!dst && !src && compress);
         }
     }
 
@@ -333,10 +366,14 @@ public:
         }
 
         if (this->frameControl.frameType != ACKNOWLEDGEMENT) {
-            size += this->destinationPanIdLength(); // destination PAN ID
+            if(this->hasDestinationPANId()) {
+                size += 2;
+            }
             size += this->destinationAddressLength(); // destination address
 
-            size += this->sourcePanIdLength(); // source PAN ID
+            if(this->hasSourcePANId()) {
+                size += 2;
+            }
             size += this->sourceAddressLength(); // source address
 
             size += 0; // security
@@ -348,7 +385,7 @@ public:
 
     virtual void serialize(Serializer& serializer);
 
-    inline bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
+    bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
 
     friend uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header);
 
@@ -402,96 +439,6 @@ inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154eMACHeader::F
     fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcf_1 >> 4) & 0x3);
     fc.srcAddrMode       = AddrMode((fcf_1 >> 6) & 0x3);
     return buffer;
-}
-
-inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header) {
-    /* serialize frame control */
-    buffer << header.frameControl;
-
-    /* serialize sequence number */
-    if (header.hasSequenceNumber()) {
-        *(buffer++) = header.seqNum;
-    }
-
-    /* serialize destination address */
-    if (header.destinationPanIdLength() != 0) {
-        *(buffer++) = header.dstPAN & 0xFF;
-        *(buffer++) = header.dstPAN >> 8;
-    }
-
-    if (header.destinationAddressLength() == 2) {
-        uint16_t shortDstAddr = header.dstAddr.getShortAddress();
-        *(buffer++) = shortDstAddr & 0xFF;
-        *(buffer++) = shortDstAddr >> 8;
-    } else if (header.destinationAddressLength() == 8) {
-        buffer << header.dstAddr;
-    }
-
-    /* serialize source address */
-    if (header.sourcePanIdLength() != 0) {
-        *(buffer++) = header.srcPAN & 0xFF;
-        *(buffer++) = header.srcPAN >> 8;
-    }
-
-    if (header.sourceAddressLength() == 2) {
-        uint16_t shortSrcAddr = header.srcAddr.getShortAddress();
-        *(buffer++) = shortSrcAddr & 0xFF;
-        *(buffer++) = shortSrcAddr >> 8;
-    } else if (header.sourceAddressLength() == 8) {
-        buffer << header.srcAddr;
-    }
-
-    return buffer;
-}
-
-inline bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
-    if(payloadLength < 2) {
-        return false;
-    }
-
-    /* deserialize frame control */
-    buffer >> this->frameControl;
-
-    if(payloadLength < getSerializationLength()) {
-        return false;
-    }
-
-    /* deserialize sequence number */
-    if (hasSequenceNumber()) {
-        this->seqNum = *(buffer++);
-    }
-
-    /* deserialize destination address */
-    if (destinationPanIdLength() != 0) {
-        this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-    }
-    if (destinationAddressLength() == 2) {
-        uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-        this->dstAddr.setShortAddress(shortDstAddr);
-    } else if (destinationAddressLength() == 8) {
-        buffer >> this->dstAddr;
-    } else {
-        this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
-    }
-
-    /* deserialize source address */
-    if (sourcePanIdLength() != 0) {
-        this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-    }
-    if (sourceAddressLength() == 2) {
-        uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
-        buffer += 2;
-        this->srcAddr.setShortAddress(shortSrcAddr);
-    } else if (sourceAddressLength() == 8) {
-        buffer >> this->srcAddr;
-    } else {
-        this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
-    }
-
-    return true;
 }
 
 }
