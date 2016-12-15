@@ -150,29 +150,29 @@ inline Serializer& operator<<(Serializer& serializer, IEEE802154MacAddress& addr
 /* NEW FAST SERIALISATION **************************************************************/
 
 inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154MacAddress& addr) {
-    *(buffer++) = addr.addr[0] & 0xFF;
-    *(buffer++) = addr.addr[0] >> 8;
-    *(buffer++) = addr.addr[1] & 0xFF;
-    *(buffer++) = addr.addr[1] >> 8;
-    *(buffer++) = addr.addr[2] & 0xFF;
-    *(buffer++) = addr.addr[2] >> 8;
     *(buffer++) = addr.addr[3] & 0xFF;
     *(buffer++) = addr.addr[3] >> 8;
+    *(buffer++) = addr.addr[2] & 0xFF;
+    *(buffer++) = addr.addr[2] >> 8;
+    *(buffer++) = addr.addr[1] & 0xFF;
+    *(buffer++) = addr.addr[1] >> 8;
+    *(buffer++) = addr.addr[0] & 0xFF;
+    *(buffer++) = addr.addr[0] >> 8;
 
     return buffer;
 }
 
 inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& addr) {
-    addr.addr[0] = *(buffer) | (*(buffer + 1) << 8);
-    buffer += 2;
-
-    addr.addr[1] = *(buffer) | (*(buffer + 1) << 8);
+    addr.addr[3] = *(buffer) | (*(buffer + 1) << 8);
     buffer += 2;
 
     addr.addr[2] = *(buffer) | (*(buffer + 1) << 8);
     buffer += 2;
 
-    addr.addr[3] = *(buffer) | (*(buffer + 1) << 8);
+    addr.addr[1] = *(buffer) | (*(buffer + 1) << 8);
+    buffer += 2;
+
+    addr.addr[0] = *(buffer) | (*(buffer + 1) << 8);
     buffer += 2;
 
     return buffer;
