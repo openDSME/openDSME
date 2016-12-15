@@ -79,7 +79,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         return timeSyncSpec;
     }
 
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
         size += 2; // Superframe Specification
         size += pendingAddresses.getSerializationLength(); // Pending Address

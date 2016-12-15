@@ -59,7 +59,7 @@ public:
     /**
      * The result is not valid before deserialization.
      */
-    virtual uint8_t getSerializationLength() const = 0;
+    virtual uint8_t getSerializationLength() = 0;
 
     virtual void serialize(Serializer& serializer) = 0;
 };

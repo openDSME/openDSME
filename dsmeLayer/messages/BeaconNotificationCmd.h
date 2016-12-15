@@ -65,7 +65,7 @@ public:
         this->beaconSDIndex = beaconSDIndex;
     }
 
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
         return 2;
     }
 

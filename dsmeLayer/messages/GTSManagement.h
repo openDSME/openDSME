@@ -78,7 +78,7 @@ public:
     GTSStatus::GTS_Status status;
 
 public:
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
         return 1;
     }
 

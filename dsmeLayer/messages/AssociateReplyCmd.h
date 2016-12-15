@@ -66,7 +66,7 @@ public:
         return this->status;
     }
 
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
         size += 2; //shortAddr
         size += 1; // status

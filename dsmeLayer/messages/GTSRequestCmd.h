@@ -93,7 +93,7 @@ public:
     }
 
 public:
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
         size += 1; // number of slots
         size += 2; // preferred superframe ID

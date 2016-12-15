@@ -49,7 +49,7 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
     // TODO deprecated
     if(serializer.getType() == serialization_type_t::SERIALIZATION) {
         uint8_t*& data = serializer.getDataRef();
-        data << *this;
+        this->serializeTo(data);
     } else {
         /*
          * This function is too slow due to too much indirection for deserialization for use on hardware, so ACK-timings would be missed.
@@ -63,154 +63,124 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
     return;
 }
 
-Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameControl& fc) {
-    uint16_t fcf;
-
-    if(serializer.getType() == SERIALIZATION) {
-        fcf = fc.frameType           << 0;
-        fcf |= fc.securityEnabled    << 3;
-        fcf |= fc.framePending       << 4;
-        fcf |= fc.ackRequest         << 5;
-        fcf |= fc.panIDCompression   << 6;
-        fcf |= fc.reserved           << 7;
-        fcf |= fc.seqNumSuppression  << 8;
-        fcf |= fc.ieListPresent      << 9;
-        fcf |= fc.dstAddrMode        << 10;
-        fcf |= fc.frameVersion       << 12;
-        fcf |= fc.srcAddrMode        << 14;
-
-        serializer << fcf;
-    } else {
-        serializer << fcf;
-
-        fc.frameType         = IEEE802154eMACHeader::FrameType((fcf >> 0) & 0x7);
-        fc.securityEnabled   = (fcf >> 3) & 0x1;
-        fc.framePending      = (fcf >> 4) & 0x1;
-        fc.ackRequest        = (fcf >> 5) & 0x1;
-        fc.panIDCompression  = (fcf >> 6) & 0x1;
-        fc.reserved          = (fcf >> 7) & 0x1;
-        fc.seqNumSuppression = (fcf >> 8) & 0x1;
-        fc.ieListPresent     = (fcf >> 9) & 0x1;
-        fc.dstAddrMode       = AddrMode((fcf >> 10) & 0x3);
-        fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcf >> 12) & 0x3);
-        fc.srcAddrMode       = AddrMode((fcf >> 14) & 0x3);
-    }
-
-    return serializer;
-}
-
-uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header) {
+void IEEE802154eMACHeader::finalize() {
     // Check if we are able to use PAN ID Compression assuming a missing...
     // - ... Destination PAN ID is equal to 0xFFFF (Sect. 6.7.2 case c) )
     // - ... Source PAN ID is equal to the destination PAN (Sect. 6.7.2 5th paragraph from end) 
-    bool serializeSrcPAN = false;
-    bool serializeDstPAN = false;
     bool compressionIfEqual = false;
     bool panIDCompression;
 
-    if(!header.isVersion2015()) {
+    if(!isVersion2015()) {
         // Frame version field value is 0b00 or 0b01
-        if(header.getDstAddrMode() != NO_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) {
+        if(getDstAddrMode() != NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
             compressionIfEqual = true;
         }
         else {
             panIDCompression = true;
 
-            if(header.getDstAddrMode() != NO_ADDRESS) {
-                serializeDstPAN = true;
+            if(getDstAddrMode() != NO_ADDRESS) {
+                hasDstPAN = true;
             }
             else { // Source address has to be present
-                serializeSrcPAN = true;
+                hasSrcPAN = true;
             }
         }
     }
     else {
         // Frame version field value is 0b10
-        if( (header.getSrcAddrMode() == SHORT_ADDRESS && header.getDstAddrMode() != NO_ADDRESS)
-          ||(header.getDstAddrMode() == SHORT_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) ) {
+        if( (getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS)
+          ||(getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS) ) {
             // Footnote
             compressionIfEqual = true;
         }
-        else if(header.getDstAddrMode() == NO_ADDRESS && header.getSrcAddrMode() != NO_ADDRESS) {
+        else if(getDstAddrMode() == NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
             // Row 5 of Table 7-2
             panIDCompression = 0;
-            serializeDstPAN = false;
-            serializeSrcPAN = true;
+            hasDstPAN = false;
+            hasSrcPAN = true;
         }
         else {
-            serializeSrcPAN = false;
-            serializeDstPAN = (header.dstPAN != IEEE802154eMACHeader::BROADCAST_PAN);
+            hasSrcPAN = false;
+            hasDstPAN = (dstPAN != IEEE802154eMACHeader::BROADCAST_PAN);
 
-            if(header.getSrcAddrMode() == NO_ADDRESS && header.getDstAddrMode() == NO_ADDRESS) {
+            if(getSrcAddrMode() == NO_ADDRESS && getDstAddrMode() == NO_ADDRESS) {
                 // First two rows of Table 7-2
-                panIDCompression = serializeDstPAN;
+                panIDCompression = hasDstPAN;
             }
             else {
-                panIDCompression = !serializeDstPAN;
+                panIDCompression = !hasDstPAN;
             }
         }
     }
 
     if(compressionIfEqual) {
-        serializeDstPAN = true;
-        if(header.srcPAN == header.dstPAN) {
+        hasDstPAN = true;
+        if(srcPAN == dstPAN) {
             // Probably a mistake in the standard - the footnote says zero,
             // while the text about the old versions says one
             panIDCompression = 1;
-            serializeSrcPAN = false;
+            hasSrcPAN = false;
         }
         else {
             panIDCompression = 0;
-            serializeSrcPAN = true;
+            hasSrcPAN = true;
         }
     }
 
-    if(header.panIDCompressionOverridden) {
-        DSME_ASSERT(header.frameControl.panIDCompression == panIDCompression);
+    if(panIDCompressionOverridden) {
+        DSME_ASSERT(frameControl.panIDCompression == panIDCompression);
+    }
+    else {
+        frameControl.panIDCompression = panIDCompression;
+    }
+
+    finalized = true;
+}
+
+void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
+    if(!finalized) {
+        finalize();
     }
 
     /* serialize frame control */
-    auto frameControl = header.frameControl;
-    frameControl.panIDCompression = panIDCompression?1:0;
-    buffer << frameControl;
+    *(buffer++) = getFrameControlLowByte();
+    *(buffer++) = getFrameControlHighByte();
 
-    //LOG_INFO("TX " << header.destinationAddressLength() << " " << header.sourceAddressLength() << " " << serializeDstPAN << " " << serializeSrcPAN << " " << frameControl.panIDCompression);
+    //LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " << frameControl.panIDCompression);
 
 
     /* serialize sequence number */
-    if (header.hasSequenceNumber()) {
-        *(buffer++) = header.seqNum;
+    if (hasSequenceNumber()) {
+        *(buffer++) = seqNum;
     }
 
     /* serialize destination address */
-    if (serializeDstPAN) {
-        *(buffer++) = header.dstPAN & 0xFF;
-        *(buffer++) = header.dstPAN >> 8;
+    if (hasDstPAN) {
+        *(buffer++) = dstPAN & 0xFF;
+        *(buffer++) = dstPAN >> 8;
     }
 
-    if (header.destinationAddressLength() == 2) {
-        uint16_t shortDstAddr = header.dstAddr.getShortAddress();
+    if (destinationAddressLength() == 2) {
+        uint16_t shortDstAddr = dstAddr.getShortAddress();
         *(buffer++) = shortDstAddr & 0xFF;
         *(buffer++) = shortDstAddr >> 8;
-    } else if (header.destinationAddressLength() == 8) {
-        buffer << header.dstAddr;
+    } else if (destinationAddressLength() == 8) {
+        buffer << dstAddr;
     }
 
     /* serialize source address */
-    if (serializeSrcPAN) {
-        *(buffer++) = header.srcPAN & 0xFF;
-        *(buffer++) = header.srcPAN >> 8;
+    if (hasSrcPAN) {
+        *(buffer++) = srcPAN & 0xFF;
+        *(buffer++) = srcPAN >> 8;
     }
 
-    if (header.sourceAddressLength() == 2) {
-        uint16_t shortSrcAddr = header.srcAddr.getShortAddress();
+    if (sourceAddressLength() == 2) {
+        uint16_t shortSrcAddr = srcAddr.getShortAddress();
         *(buffer++) = shortSrcAddr & 0xFF;
         *(buffer++) = shortSrcAddr >> 8;
-    } else if (header.sourceAddressLength() == 8) {
-        buffer << header.srcAddr;
+    } else if (sourceAddressLength() == 8) {
+        buffer << srcAddr;
     }
-
-    return buffer;
 }
 
 bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
@@ -219,7 +189,9 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     }
 
     /* deserialize frame control */
-    buffer >> this->frameControl;
+    uint8_t fcLow = *(buffer++);
+    uint8_t fcHigh = *(buffer++);
+    this->setFrameControl(fcLow, fcHigh);
 
     //LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " << this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
 

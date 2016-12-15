@@ -112,6 +112,7 @@ public:
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
+        finalized = false;
         this->frameControl.srcAddrMode = srcAddrMode;
     }
 
@@ -120,6 +121,7 @@ public:
     }
 
     void setSrcPANId(uint16_t srcPANId) {
+        finalized = false;
         this->srcPAN = srcPANId;
     }
 
@@ -128,6 +130,7 @@ public:
     }
 
     void setSrcAddr(const IEEE802154MacAddress& addr) {
+        finalized = false;
         srcAddr = addr;
     }
 
@@ -140,6 +143,7 @@ public:
     }
 
     void setDstAddrMode(const AddrMode& dstAddrMode) {
+        finalized = false;
         this->frameControl.dstAddrMode = dstAddrMode;
     }
 
@@ -148,6 +152,7 @@ public:
     }
 
     void setDstPANId(uint16_t dstPANId) {
+        finalized = false;
         this->dstPAN = dstPANId;
     }
 
@@ -156,6 +161,7 @@ public:
     }
 
     void setDstAddr(const IEEE802154MacAddress& addr) {
+        finalized = false;
         dstAddr = addr;
     }
 
@@ -172,6 +178,7 @@ public:
     }
 
     void setAckRequest(bool ar) {
+        finalized = false;
         frameControl.ackRequest = ar;
     }
 
@@ -180,6 +187,7 @@ public:
     }
 
     void setFrameType(FrameType type) {
+        finalized = false;
         frameControl.frameType = type;
 
         if (frameControl.frameType == ACKNOWLEDGEMENT) {
@@ -194,6 +202,7 @@ public:
     }
 
     void setSequenceNumber(uint8_t seq) {
+        finalized = false;
         seqNum = seq;
     }
 
@@ -206,6 +215,7 @@ public:
     }
 
     void setSecurityEnabled(bool enabled) {
+        finalized = false;
         this->frameControl.securityEnabled = enabled;
     }
 
@@ -218,16 +228,89 @@ public:
      * the serialization will run in an ASSERT.
      */
     void overridePanIDCompression(bool compression) {
+        finalized = false;
         this->panIDCompressionOverridden = true;
         this->frameControl.panIDCompression = compression;
     }
 
     void setIEListPresent(bool present) {
+        finalized = false;
         this->frameControl.ieListPresent = present;
     }
 
     void setSeqNumSuppression(bool suppression) {
+        finalized = false;
         this->frameControl.seqNumSuppression = suppression;
+    }
+
+    void setFrameControl(uint8_t lowByte, uint8_t highByte) {
+        frameControl.frameType         = IEEE802154eMACHeader::FrameType((lowByte >> 0) & 0x7);
+        frameControl.securityEnabled   = (lowByte >> 3) & 0x1;
+        frameControl.framePending      = (lowByte >> 4) & 0x1;
+        frameControl.ackRequest        = (lowByte >> 5) & 0x1;
+        frameControl.panIDCompression  = (lowByte >> 6) & 0x1;
+        frameControl.reserved          = (lowByte >> 7) & 0x1;
+
+        frameControl.seqNumSuppression = (highByte >> 0) & 0x1;
+        frameControl.ieListPresent     = (highByte >> 1) & 0x1;
+        frameControl.dstAddrMode       = AddrMode((highByte >> 2) & 0x3);
+        frameControl.frameVersion      = IEEE802154eMACHeader::FrameVersion((highByte >> 4) & 0x3);
+        frameControl.srcAddrMode       = AddrMode((highByte >> 6) & 0x3);
+
+        // The source PAN ID is OMITTED iff
+        // - the source address is missing or
+        // - the the PAN ID compression bit is set or
+        if(getSrcAddrMode() == NO_ADDRESS || frameControl.panIDCompression) {
+            hasSrcPAN = false;
+        }
+        else if(!isVersion2015()) {
+            // ... for version 0 and 1 never
+            hasSrcPAN = true;
+        }
+        else {
+            // ... for version 2 both are extended addresses
+            hasSrcPAN = !(getSrcAddrMode() == EXTENDED_ADDRESS && getDstAddrMode() == EXTENDED_ADDRESS);
+        }
+
+        // The destination PAN ID is available iff...
+        if(!isVersion2015()) {
+            // ... for version 0 and 1 the destination address exists
+            hasDstPAN = (getDstAddrMode() != NO_ADDRESS);
+        }
+        else {
+            // ... for version 2, either
+            // - the destination address exists and the compression bit is unset or
+            // - both addresses exist and either of the addresses is a short address or
+            // - no address exists and the compression bit is set
+            bool dst = getDstAddrMode() != NO_ADDRESS;
+            bool src = getSrcAddrMode() != NO_ADDRESS;
+            bool shortAddr = getSrcAddrMode() == SHORT_ADDRESS || getDstAddrMode() == SHORT_ADDRESS;
+            bool compress = frameControl.panIDCompression;
+            hasDstPAN = (dst && !compress) || (dst && src && shortAddr) || (!dst && !src && compress);
+        }
+
+        finalized = true;
+    }
+
+    uint8_t getFrameControlLowByte() {
+        uint8_t fcf_0;
+        fcf_0  = frameControl.frameType         << 0;
+        fcf_0 |= frameControl.securityEnabled   << 3;
+        fcf_0 |= frameControl.framePending      << 4;
+        fcf_0 |= frameControl.ackRequest        << 5;
+        fcf_0 |= frameControl.panIDCompression  << 6;
+        fcf_0 |= frameControl.reserved          << 7;
+        return fcf_0;
+    }
+
+    uint8_t getFrameControlHighByte() {
+        uint8_t fcf_1;
+        fcf_1  = frameControl.seqNumSuppression << 0;
+        fcf_1 |= frameControl.ieListPresent     << 1;
+        fcf_1 |= frameControl.dstAddrMode       << 2;
+        fcf_1 |= frameControl.frameVersion      << 4;
+        fcf_1 |= frameControl.srcAddrMode       << 6;
+        return fcf_1;
     }
 
 private:
@@ -235,15 +318,21 @@ private:
 
     uint8_t seqNum;
 
+    bool hasDstPAN;
     uint16_t dstPAN;
 
     IEEE802154MacAddress dstAddr;
 
+    bool hasSrcPAN;
     uint16_t srcPAN;
 
     bool panIDCompressionOverridden;
 
     IEEE802154MacAddress srcAddr;
+
+    bool finalized;
+
+    void finalize();
 
 public:
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
@@ -266,6 +355,14 @@ public:
 
     inline bool hasSequenceNumberSuppression() const {
         return this->frameControl.seqNumSuppression;
+    }
+
+    inline uint8_t hasDestinationPANId() const {
+        return hasDstPAN;
+    }
+
+    inline uint8_t hasSourcePANId() const {
+        return hasSrcPAN;
     }
 
     /**
@@ -293,28 +390,6 @@ public:
     }
 
     /**
-     * See IEEE 802.15.4-2015 7.2.1.5, Table 7-2
-     */
-    inline uint8_t hasSourcePANId() const {
-        // The source PAN ID is OMITTED iff
-        // - the source address is missing or
-        // - the the PAN ID compression bit is set or
-        bool omitted;
-        if(getSrcAddrMode() == NO_ADDRESS || frameControl.panIDCompression) {
-            omitted = true;
-        }
-        else if(!isVersion2015()) {
-            // ... for version 0 and 1 never
-            omitted = false;
-        }
-        else {
-            // ... for version 2 both are extended addresses
-            omitted = (getSrcAddrMode() == EXTENDED_ADDRESS && getDstAddrMode() == EXTENDED_ADDRESS);
-        }
-        return !omitted;
-    }
-
-    /**
      * See IEEE 802.15.4e-2012 5.2.1.1.6, Table 3
      */
     inline uint8_t destinationAddressLength() const {
@@ -331,32 +406,14 @@ public:
         }
     }
 
-    /**
-     * See IEEE 802.15.4-2015 7.2.1.5, Table 7-2
-     */
-    inline uint8_t hasDestinationPANId() const {
-        // The destination PAN ID is available iff...
-        if(!isVersion2015()) {
-            // ... for version 0 and 1 the destination address exists
-            return (getDstAddrMode() != NO_ADDRESS);
-        }
-        else {
-            // ... for version 2, either
-            // - the destination address exists and the compression bit is unset or
-            // - both addresses exist and either of the addresses is a short address or
-            // - no address exists and the compression bit is set
-            bool dst = getDstAddrMode() != NO_ADDRESS;
-            bool src = getSrcAddrMode() != NO_ADDRESS;
-            bool shortAddr = getSrcAddrMode() == SHORT_ADDRESS || getDstAddrMode() == SHORT_ADDRESS;
-            bool compress = frameControl.panIDCompression;
-            return (dst && !compress) || (dst && src && shortAddr) || (!dst && !src && compress);
-        }
-    }
-
     /* <----------------------------------- HELPER METHODS FOR HEADER FORMAT */
 
 
-    virtual uint8_t getSerializationLength() const {
+    virtual uint8_t getSerializationLength() {
+        if(!finalized) {
+            finalize();
+        }
+
         uint8_t size = 0;
 
         size += 2; // frame control
@@ -366,12 +423,12 @@ public:
         }
 
         if (this->frameControl.frameType != ACKNOWLEDGEMENT) {
-            if(this->hasDestinationPANId()) {
+            if(hasDstPAN) {
                 size += 2;
             }
             size += this->destinationAddressLength(); // destination address
 
-            if(this->hasSourcePANId()) {
+            if(hasSrcPAN) {
                 size += 2;
             }
             size += this->sourceAddressLength(); // source address
@@ -386,60 +443,8 @@ public:
     virtual void serialize(Serializer& serializer);
 
     bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
-
-    friend uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader& header);
-
-    /*
-     * Due to the impossibility of checking for a large enough buffer, this method was deprecated.
-     * Use the member deserializeFrom(...) instead.
-     */
-    //friend const uint8_t* operator>>(const uint8_t* &buffer, IEEE802154eMACHeader& header);
+    void serializeTo(uint8_t*& buffer);
 };
-
-Serializer& operator<<(Serializer& serializer, IEEE802154eMACHeader::FrameControl& fc);
-
-/* NEW FAST SERIALISATION **************************************************************/
-
-inline uint8_t* operator<<(uint8_t*& buffer, const IEEE802154eMACHeader::FrameControl& fc) {
-    uint8_t fcf_0, fcf_1;
-
-    fcf_0  = fc.frameType         << 0;
-    fcf_0 |= fc.securityEnabled   << 3;
-    fcf_0 |= fc.framePending      << 4;
-    fcf_0 |= fc.ackRequest        << 5;
-    fcf_0 |= fc.panIDCompression  << 6;
-    fcf_0 |= fc.reserved          << 7;
-    *(buffer++) = fcf_0;
-
-    fcf_1  = fc.seqNumSuppression << 0;
-    fcf_1 |= fc.ieListPresent     << 1;
-    fcf_1 |= fc.dstAddrMode       << 2;
-    fcf_1 |= fc.frameVersion      << 4;
-    fcf_1 |= fc.srcAddrMode       << 6;
-    *(buffer++) = fcf_1;
-
-    return buffer;
-}
-
-inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154eMACHeader::FrameControl& fc) {
-    uint8_t fcf_0, fcf_1;
-
-    fcf_0 = *(buffer++);
-    fc.frameType         = IEEE802154eMACHeader::FrameType((fcf_0 >> 0) & 0x7);
-    fc.securityEnabled   = (fcf_0 >> 3) & 0x1;
-    fc.framePending      = (fcf_0 >> 4) & 0x1;
-    fc.ackRequest        = (fcf_0 >> 5) & 0x1;
-    fc.panIDCompression  = (fcf_0 >> 6) & 0x1;
-    fc.reserved          = (fcf_0 >> 7) & 0x1;
-
-    fcf_1 = *(buffer++);
-    fc.seqNumSuppression = (fcf_1 >> 0) & 0x1;
-    fc.ieListPresent     = (fcf_1 >> 1) & 0x1;
-    fc.dstAddrMode       = AddrMode((fcf_1 >> 2) & 0x3);
-    fc.frameVersion      = IEEE802154eMACHeader::FrameVersion((fcf_1 >> 4) & 0x3);
-    fc.srcAddrMode       = AddrMode((fcf_1 >> 6) & 0x3);
-    return buffer;
-}
 
 }
 #endif
