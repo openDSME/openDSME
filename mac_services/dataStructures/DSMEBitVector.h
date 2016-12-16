@@ -46,7 +46,6 @@
 /* INCLDUDES *****************************************************************/
 
 #include <stdint.h>
-#include <assert.h>
 
 #include "BitVectorIterator.h"
 #include "Serializer.h"
