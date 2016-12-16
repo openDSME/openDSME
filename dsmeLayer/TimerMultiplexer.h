@@ -48,6 +48,12 @@
 #include "TimerAbstractions.h"
 #include "dsme_platform.h"
 
+#ifdef STATISTICS_MONITOR_LATENESS
+#define BIN_COUNT (16)
+#define BIN_WIDTH (16)
+#define MAXIMUM_LATENESS_ALLOWED ((BIN_COUNT-1) * (BIN_WIDTH))
+#endif
+
 namespace dsme {
 
 template<typename T, typename R, typename G, typename S>
@@ -65,6 +71,14 @@ protected:
             this->symbols_until[i] = -1;
             this->handlers[i] = nullptr;
         }
+
+#ifdef STATISTICS_MONITOR_LATENESS
+        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            for (uint16_t j = 0; j < BIN_COUNT; ++j) {
+                this->lateness_histogram[i][j] = 0;
+            }
+        }
+#endif
     }
 
     void _initialize() {
@@ -158,6 +172,17 @@ private:
             if (0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
                 int32_t lateness = symbolsSinceLastDispatch - this->symbols_until[i];
                 DSME_ASSERT(this->handlers[i] != nullptr);
+
+#ifdef STATISTICS_MONITOR_LATENESS
+                uint16_t bin;
+                if(static_cast<uint32_t>(lateness) > MAXIMUM_LATENESS_ALLOWED) {
+                    bin = BIN_COUNT - 1;
+                } else {
+                    bin = lateness / BIN_WIDTH;
+                }
+                lateness_histogram[i][bin]++;
+#endif
+
                 (this->instance->*(this->handlers[i]))(lateness);
             }
         }
@@ -207,6 +232,11 @@ private:
      * For debuging only, records the last scheduled events
      */
     EventHistory<T, 8> history;
+
+#ifdef STATISTICS_MONITOR_LATENESS
+public:
+    uint16_t lateness_histogram[timer_t::TIMER_COUNT][BIN_COUNT];
+#endif
 };
 
 } /* dsme */

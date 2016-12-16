@@ -187,6 +187,10 @@ void DSMELayer::slotEvent(int32_t lateness) {
 }
 
 void DSMELayer::handleStartOfCFP() {
+#ifdef STATISTICS_MONITOR_LATENESS
+    this->eventDispatcher.printLatenessHistogram();
+#endif
+
     if(this->startOfCFPDelegate) {
         this->startOfCFPDelegate();
     }
