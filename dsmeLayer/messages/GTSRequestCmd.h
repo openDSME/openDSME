@@ -61,7 +61,6 @@ public:
     }
 
     GTSRequestCmd() {
-
     }
 
     uint8_t getNumSlots() const {

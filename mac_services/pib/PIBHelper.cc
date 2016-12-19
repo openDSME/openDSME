@@ -89,6 +89,7 @@ uint8_t PIBHelper::getNumChannels() const {
             return phy_pib.phyChannelsSupported[i]->value.getLength();
         }
     }
+    DSME_ASSERT(false);
     return 0;
 }
 

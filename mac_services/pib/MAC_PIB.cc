@@ -64,6 +64,9 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
     helper(phy_pib, *this),
     phy_pib(phy_pib),
 
+    macIsPANCoord(false),
+    macIsCoord(false),
+
     macExtendedAddress(0, 0, 0, 0),
     macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTimeSymbols + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
     macAssociatedPANCoord(false),
@@ -72,6 +75,7 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
     macCoordExtendedAddress(0, 0, 0, 0),
     macBeaconOrder(15),
     macCoordShortAddress(0xffff),
+    macDsn(0),
     macMaxBE(5),
     macMaxCSMABackoffs(4),
     macMaxFrameRetries(3),

@@ -109,6 +109,10 @@ public:
         panIDCompressionOverridden = false;
         dstPAN = BROADCAST_PAN;
         srcPAN = BROADCAST_PAN;
+
+        hasSrcPAN = false;
+        srcPAN = false;
+        finalized = false;
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
