@@ -61,7 +61,7 @@ void ASSOCIATE::request(request_parameters& params) {
     dsme.getPlatform().setChannelNumber(params.channelNumber); // TODO Move -> AssociationManager
     dsme.getPHY_PIB().phyCurrentPage = params.channelPage;
     dsme.getMAC_PIB().macPANId = params.coordPANId;
-    if (params.coordAddrMode == AddrMode::SHORT_ADDRESS) {
+    if(params.coordAddrMode == AddrMode::SHORT_ADDRESS) {
         dsme.getMAC_PIB().macCoordShortAddress = params.coordAddress.getShortAddress();
     } else {
         dsme.getMAC_PIB().macCoordExtendedAddress = params.coordAddress;
@@ -78,7 +78,7 @@ void ASSOCIATE::response(response_parameters& params) {
     AssociateReplyCmd reply(params.assocShortAddress, params.status);
     AssociationManager& associationManager = dsme.getAssociationManager();
 
-    if (params.status != AssociationStatus::FASTA_SUCCESSFUL) {
+    if(params.status != AssociationStatus::FASTA_SUCCESSFUL) {
         /* TODO handle! (IEEE 802.15.4-2011 5.1.3.1)
          * response is added to a list of pending transactions
          */

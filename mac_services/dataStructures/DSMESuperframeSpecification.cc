@@ -59,9 +59,9 @@ Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec
 
         spec.multiSuperframeOrder = (s >> 0) & 0x15;
         spec.macChannelDiversityMode = (s >> 4) & 0x1;
-        spec.GACKFlag =             (s >> 5) & 0x1;
-        spec.CAPReductionFlag =     (s >> 6) & 0x1;
-        spec.deferredBeaconFlag =   (s >> 7) & 0x1;
+        spec.GACKFlag = (s >> 5) & 0x1;
+        spec.CAPReductionFlag = (s >> 6) & 0x1;
+        spec.deferredBeaconFlag = (s >> 7) & 0x1;
     }
 
     return serializer;

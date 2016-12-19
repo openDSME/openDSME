@@ -128,7 +128,7 @@ public:
     }
 
     bool setLength(bit_vector_size_t bitSize, bool initial_fill = false) {
-        if (bitSize > MAX_SIZE) {
+        if(bitSize > MAX_SIZE) {
             // WARNING this is safety and security relevant,
             // because setLength might be called with incoming message content
             return false;

@@ -77,7 +77,7 @@ void ScanHelper::startScan() {
     scanChannels.add(11);
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
-    if (((uint16_t)this->passiveScanCounter) > random_value) {
+    if(((uint16_t)this->passiveScanCounter) > random_value) {
         LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
@@ -103,7 +103,7 @@ void ScanHelper::startScan() {
 }
 
 void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indication_parameters& params) {
-    if (!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
+    if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
         LOG_INFO("Beacon registered in upper layer.");
         this->recordedPanDescriptors.add(params.panDescriptor);
     }
@@ -118,14 +118,14 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
              << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
              << ", isCoordinator:" << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
              << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength())
-             << "." );
+             << ".");
     if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
             && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
             && heardCoordinators.getLength() < 2
       ) {
 
         uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 3;
-        if (random_value < 1) {
+        if(random_value < 1) {
             mlme_sap::START::request_parameters request_params;
             request_params.panCoordinator = false;
             // TODO: fill rest;
@@ -144,14 +144,14 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
 }
 
 void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
-    if (!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
-        if (this->recordedPanDescriptors.size() > 0) {
+    if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
+        if(this->recordedPanDescriptors.size() > 0) {
             this->scanCompleteDelegate(&(this->recordedPanDescriptors[0]));
         } else {
             this->scanCompleteDelegate(nullptr);
         }
     } else {
-        if (params.panDescriptorList.size() > 0) {
+        if(params.panDescriptorList.size() > 0) {
             this->scanCompleteDelegate(&(params.panDescriptorList[0]));
         } else {
             this->scanCompleteDelegate(nullptr);

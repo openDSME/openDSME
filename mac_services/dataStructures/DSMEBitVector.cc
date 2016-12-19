@@ -74,7 +74,7 @@ BitVectorBase::BitVectorBase(uint8_t* byte_array, const BitVectorBase& other) :
 
 BitVectorBase::iterator BitVectorBase::beginSetBits() {
     bit_vector_size_t currentpos = 0;
-    for (currentpos = 0; currentpos < this->bitSize && !this->get(currentpos); currentpos++) {
+    for(currentpos = 0; currentpos < this->bitSize && !this->get(currentpos); currentpos++) {
     }
     return iterator(this, currentpos, true);
 }
@@ -85,7 +85,7 @@ const BitVectorBase::iterator BitVectorBase::endSetBits() const {
 
 BitVectorBase::iterator BitVectorBase::beginUnsetBits() {
     bit_vector_size_t currentpos = 0;
-    for (currentpos = 0; currentpos < this->bitSize && this->get(currentpos); currentpos++) {
+    for(currentpos = 0; currentpos < this->bitSize && this->get(currentpos); currentpos++) {
     }
     return iterator(this, currentpos, false);
 }
@@ -95,18 +95,18 @@ const BitVectorBase::iterator BitVectorBase::endUnsetBits() const {
 }
 
 void BitVectorBase::fill(bool value) {
-    for (uint16_t i = 0; i < BITVECTOR_BYTE_LENGTH(this->bitSize); i++) {
+    for(uint16_t i = 0; i < BITVECTOR_BYTE_LENGTH(this->bitSize); i++) {
         this->byte_array[i] = value * 0xFF;
     }
 }
 
 void BitVectorBase::set(bit_vector_size_t position, bool value) {
-    if (position >= this->bitSize) {
+    if(position >= this->bitSize) {
         /* '-> ERROR */
         return;
     }
 
-    if (value) {
+    if(value) {
         this->byte_array[position >> 3] |= (1 << (position & 0x07));
     } else {
         this->byte_array[position >> 3] &= ~(1 << (position & 0x07));
@@ -114,7 +114,7 @@ void BitVectorBase::set(bit_vector_size_t position, bool value) {
 }
 
 bool BitVectorBase::get(bit_vector_size_t position) const {
-    if (position >= this->bitSize) {
+    if(position >= this->bitSize) {
         /* '-> ERROR */
         return false;
     }
@@ -127,24 +127,24 @@ bit_vector_size_t BitVectorBase::length() const {
 }
 
 void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t theirOffset) {
-    if (theirOffset + this->bitSize > other.bitSize) {
+    if(theirOffset + this->bitSize > other.bitSize) {
         /* '-> ERROR */
         return;
     }
 
-    if ((theirOffset % 8) == 0) {
+    if((theirOffset % 8) == 0) {
         bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (theirOffset / 8);
 
-        for (bit_vector_size_t i = 0; i < fullBytes; i++) {
+        for(bit_vector_size_t i = 0; i < fullBytes; i++) {
             this->byte_array[i] = other.byte_array[offsetByte + i];
         }
 
-        for (bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
+        for(bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
             this->set(i, other.get((offsetByte * 8) + i));
         }
     } else {
-        for (bit_vector_size_t i = 0; i < this->bitSize; i++) {
+        for(bit_vector_size_t i = 0; i < this->bitSize; i++) {
             this->set(i, other.get(theirOffset + i));
         }
     }
@@ -152,24 +152,24 @@ void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t their
 }
 
 void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size_t myOffset) {
-    if (myOffset + other.bitSize > this->bitSize) {
+    if(myOffset + other.bitSize > this->bitSize) {
         /* '-> ERROR */
         return;
     }
 
-    if ((myOffset % 8) == 0) {
+    if((myOffset % 8) == 0) {
         bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (myOffset / 8);
 
-        for (bit_vector_size_t i = 0; i < fullBytes; i++) {
+        for(bit_vector_size_t i = 0; i < fullBytes; i++) {
             this->byte_array[offsetByte + i] |= other.byte_array[i];
         }
 
-        for (bit_vector_size_t i = (fullBytes * 8); i < other.bitSize; i++) {
+        for(bit_vector_size_t i = (fullBytes * 8); i < other.bitSize; i++) {
             this->set((offsetByte * 8) + i, this->get((offsetByte * 8) + i) || other.get(i));
         }
     } else {
-        for (bit_vector_size_t i = 0; i < other.bitSize; i++) {
+        for(bit_vector_size_t i = 0; i < other.bitSize; i++) {
             this->set(myOffset + i, this->get(myOffset + i) || other.get(i));
         }
     }
@@ -177,24 +177,24 @@ void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size
 }
 
 void BitVectorBase::setOperationComplement(const BitVectorBase& other, bit_vector_size_t myOffset) {
-    if (myOffset + other.bitSize > this->bitSize) {
+    if(myOffset + other.bitSize > this->bitSize) {
         /* '-> ERROR */
         return;
     }
 
-    if ((myOffset % 8) == 0) {
+    if((myOffset % 8) == 0) {
         bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (myOffset / 8);
 
-        for (bit_vector_size_t i = 0; i < fullBytes; i++) {
+        for(bit_vector_size_t i = 0; i < fullBytes; i++) {
             this->byte_array[offsetByte + i] &= ~other.byte_array[i];
         }
 
-        for (bit_vector_size_t i = (fullBytes * 8); i < other.bitSize; i++) {
+        for(bit_vector_size_t i = (fullBytes * 8); i < other.bitSize; i++) {
             this->set((offsetByte * 8) + i, this->get((offsetByte * 8) + i) && !other.get(i));
         }
     } else {
-        for (bit_vector_size_t i = 0; i < other.bitSize; i++) {
+        for(bit_vector_size_t i = 0; i < other.bitSize; i++) {
             this->set(myOffset + i, this->get(myOffset + i) && !other.get(i));
         }
     }
@@ -204,14 +204,14 @@ void BitVectorBase::setOperationComplement(const BitVectorBase& other, bit_vecto
 bool BitVectorBase::isZero() const {
     bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
 
-    for (bit_vector_size_t i = 0; i < fullBytes; i++) {
-        if (byte_array[i] != 0) {
+    for(bit_vector_size_t i = 0; i < fullBytes; i++) {
+        if(byte_array[i] != 0) {
             return false;
         }
     }
 
-    for (bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
-        if (this->get(i)) {
+    for(bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
+        if(this->get(i)) {
             return false;
         }
     }
@@ -223,18 +223,18 @@ bit_vector_size_t BitVectorBase::count(bool value) const {
     bit_vector_size_t count = 0;
     bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
 
-    for (bit_vector_size_t i = 0; i < fullBytes; i++) {
+    for(bit_vector_size_t i = 0; i < fullBytes; i++) {
         uint8_t x = this->byte_array[i];
-        if (!value) {
+        if(!value) {
             x = ~x;
         }
-        while (x > 0) {
+        while(x > 0) {
             count++;
             x &= x - 1; // Wegner (1960)
         }
     }
 
-    for (bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
+    for(bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
         count += this->get(i) ^ (!value);
     }
 
@@ -242,20 +242,20 @@ bit_vector_size_t BitVectorBase::count(bool value) const {
 }
 
 bool BitVectorBase::operator==(const BitVectorBase& other) const {
-    if (this->bitSize != other.bitSize) {
+    if(this->bitSize != other.bitSize) {
         return false;
     }
 
     bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
 
-    for (bit_vector_size_t i = 0; i < fullBytes; i++) {
-        if (this->byte_array[i] != other.byte_array[i]) {
+    for(bit_vector_size_t i = 0; i < fullBytes; i++) {
+        if(this->byte_array[i] != other.byte_array[i]) {
             return false;
         }
     }
 
-    for (bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
-        if (this->get(i) != other.get(i)) {
+    for(bit_vector_size_t i = (fullBytes * 8); i < this->bitSize; i++) {
+        if(this->get(i) != other.get(i)) {
             return false;
         }
     }
@@ -272,7 +272,7 @@ uint8_t BitVectorBase::getSerializationLength() const {
 }
 
 Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv) {
-    for (bit_vector_size_t i = 0; i < BITVECTOR_BYTE_LENGTH(bv.bitSize); i++) {
+    for(bit_vector_size_t i = 0; i < BITVECTOR_BYTE_LENGTH(bv.bitSize); i++) {
         serializer << bv.byte_array[i]; // TODO direction ok?
     }
 

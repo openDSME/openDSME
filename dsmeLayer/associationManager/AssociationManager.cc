@@ -170,7 +170,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
-    if ((params.status == AssociationStatus::SUCCESS) || (params.status == AssociationStatus::FASTA_SUCCESSFUL)) {
+    if((params.status == AssociationStatus::SUCCESS) || (params.status == AssociationStatus::FASTA_SUCCESSFUL)) {
         this->dsme.getMAC_PIB().macPANId = msg->getHeader().getDstPANId();
         this->dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
         this->dsme.getMAC_PIB().macAssociatedPANCoord = true;
@@ -209,10 +209,10 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setDstPANId(dsme.getMAC_PIB().macPANId);
 
-    if (req.getReason() == DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {
+    if(req.getReason() == DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {
         msg->getHeader().setDstAddr(params.deviceAddress);
     } else {
-        if (params.deviceAddrMode == AddrMode::SHORT_ADDRESS) {
+        if(params.deviceAddrMode == AddrMode::SHORT_ADDRESS) {
             msg->getHeader().setDstAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macCoordShortAddress));
         } else {
             msg->getHeader().setDstAddr(dsme.getMAC_PIB().macCoordExtendedAddress);

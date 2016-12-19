@@ -68,7 +68,7 @@ public:
 
     explicit MacStaticList(const MacStaticList& other) :
         length(other.length) {
-        for (uint8_t i = 0; i < length; i++) {
+        for(uint8_t i = 0; i < length; i++) {
             this->array[i] = other.array[i];
         }
     }
@@ -97,13 +97,13 @@ public:
     }
 
     void add(const T& element) {
-        if (this->length < S) {
+        if(this->length < S) {
             this->array[length++] = element;
         }
     }
 
     bool contains(const T& element) {
-        for (uint8_t i = 0; i < length; i++) {
+        for(uint8_t i = 0; i < length; i++) {
             if(this->array[i] == element) {
                 return true;
             }

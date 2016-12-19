@@ -121,14 +121,14 @@ template<typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
     RBNode<T, K>* parent;
     /*end iterator does not increment */
-    if (this->currentNode == nullptr) {
+    if(this->currentNode == nullptr) {
         return *this;
     }
     parent = this->currentNode->parent;
     /*
      * reaches root -> next is end()
      */
-    if (parent == nullptr) {
+    if(parent == nullptr) {
         this->currentNode = nullptr;
         return *this;
     }
@@ -137,17 +137,17 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
      * left child -> go to right child
      * right child -> go to parent
      */
-    if ((this->currentNode == parent->leftChild) && (parent->rightChild != nullptr)) {
+    if((this->currentNode == parent->leftChild) && (parent->rightChild != nullptr)) {
         this->currentNode = parent->rightChild;
     } else {
         this->currentNode = this->currentNode->parent;
         return *this;
     }
-    while (true) {
-        if (this->currentNode->leftChild != nullptr) {
+    while(true) {
+        if(this->currentNode->leftChild != nullptr) {
             /* '-> has left child node */
             this->currentNode = this->currentNode->leftChild;
-        } else if (this->currentNode->rightChild != nullptr) {
+        } else if(this->currentNode->rightChild != nullptr) {
             /* '-> only right child node */
             this->currentNode = this->currentNode->rightChild;
         } else {
@@ -160,25 +160,25 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
 
 template<typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
-    if (this->currentNode == nullptr) {
+    if(this->currentNode == nullptr) {
         return *this;
     }
     RBNode<T, K>* n;
-    if (this->currentNode->leftChild != nullptr) {
+    if(this->currentNode->leftChild != nullptr) {
         /* '-> has left child node -> visit always */
         this->currentNode = this->currentNode->leftChild;
-    } else if (this->currentNode->rightChild != nullptr) {
+    } else if(this->currentNode->rightChild != nullptr) {
         /* '-> only right child node -> visit always */
         this->currentNode = this->currentNode->rightChild;
     } else {
         n = this->currentNode;
-        while (true) {
+        while(true) {
             /* '-> traverse back until node with unvisited right neighbor or root */
-            if (n->parent == nullptr) {
+            if(n->parent == nullptr) {
                 this->currentNode = nullptr;
                 break;
-            } else if (n == n->parent->leftChild
-                       && n->parent->rightChild != nullptr) {
+            } else if(n == n->parent->leftChild
+                      && n->parent->rightChild != nullptr) {
                 this->currentNode = n->parent->rightChild;
                 break;
             } else {
@@ -231,13 +231,13 @@ bool RBTreeIterator<T, K>::operator!=(const RBTreeIterator<T, K>& other) const {
 #ifdef RBTREE_ITERATOR_POSTORDER
 template<typename T, typename K>
 RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<T, K>* rootNode) {
-    if (rootNode == nullptr) {
+    if(rootNode == nullptr) {
         return RBTreeIterator(instance, rootNode);
     }
-    while (true) {
-        if (rootNode->leftChild != nullptr) {
+    while(true) {
+        if(rootNode->leftChild != nullptr) {
             rootNode = rootNode->leftChild;
-        } else if (rootNode->rightChild != nullptr) {
+        } else if(rootNode->rightChild != nullptr) {
             rootNode = rootNode->rightChild;
         } else {
             return RBTreeIterator(instance, rootNode);

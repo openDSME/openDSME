@@ -91,10 +91,10 @@ private:
 #ifdef STATISTICS_MONITOR_LATENESS
 public:
     void printLatenessHistogram() {
-        for (uint8_t i = 0; i < EventTimers::TIMER_COUNT; ++i) {
+        for(uint8_t i = 0; i < EventTimers::TIMER_COUNT; ++i) {
             LOG_INFO_PREFIX;
             LOG_INFO_PURE(static_cast<uint16_t>(i) << ": ");
-            for (uint16_t j = 0; j < BIN_COUNT; ++j) {
+            for(uint16_t j = 0; j < BIN_COUNT; ++j) {
                 LOG_INFO_PURE(this->lateness_histogram[i][j] << ",");
             }
             LOG_INFO_PURE(LOG_ENDL);

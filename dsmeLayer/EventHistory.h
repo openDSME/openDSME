@@ -77,7 +77,7 @@ public:
         uint8_t p = head + 1;
 
         for(uint8_t i = 0; i < S; ++i) {
-            if (p == S) {
+            if(p == S) {
                 p = 0;
             }
 

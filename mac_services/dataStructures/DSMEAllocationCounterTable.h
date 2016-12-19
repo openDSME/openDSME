@@ -56,20 +56,20 @@ struct ACTPosition {
     uint8_t gtSlotID;
 
     bool operator>(const ACTPosition& other) const {
-        if (this->superframeID > other.superframeID) {
+        if(this->superframeID > other.superframeID) {
             return true;
         }
-        if (this->superframeID < other.superframeID) {
+        if(this->superframeID < other.superframeID) {
             return false;
         }
         return this->gtSlotID > other.gtSlotID;
     }
 
     bool operator<(const ACTPosition& other) const {
-        if (this->superframeID < other.superframeID) {
+        if(this->superframeID < other.superframeID) {
             return true;
         }
-        if (this->superframeID > other.superframeID) {
+        if(this->superframeID > other.superframeID) {
             return false;
         }
         return this->gtSlotID < other.gtSlotID;

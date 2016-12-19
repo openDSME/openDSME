@@ -80,7 +80,7 @@ typedef enum : uint8_t {
 template<typename C, typename E>
 class FSM {
 public:
-    typedef fsmReturnStatus (C::*state_t)(E& event);
+    typedef fsmReturnStatus(C::*state_t)(E& event);
 
     /**
      * Created FSM is put into initial state
@@ -115,10 +115,10 @@ public:
         state_t s = state;
         fsmReturnStatus r = (((C*)this)->*state)(event);
 
-        while (r == FSM_TRANSITION) {
+        while(r == FSM_TRANSITION) {
             /* call the exit action from last state, reuse the already processed 'event' to deliver this */
             event.signal = E::EXIT_SIGNAL;
-            r = (((C* )this)->*s)(event);
+            r = (((C*)this)->*s)(event);
             DSME_ASSERT(r != FSM_TRANSITION);
 
             s = state;

@@ -194,7 +194,7 @@ public:
         finalized = false;
         frameControl.frameType = type;
 
-        if (frameControl.frameType == ACKNOWLEDGEMENT) {
+        if(frameControl.frameType == ACKNOWLEDGEMENT) {
             frameControl.ackRequest = 0;
             frameControl.dstAddrMode = NO_ADDRESS;
             frameControl.srcAddrMode = NO_ADDRESS;
@@ -266,12 +266,10 @@ public:
         // - the the PAN ID compression bit is set or
         if(getSrcAddrMode() == NO_ADDRESS || frameControl.panIDCompression) {
             hasSrcPAN = false;
-        }
-        else if(!isVersion2015()) {
+        } else if(!isVersion2015()) {
             // ... for version 0 and 1 never
             hasSrcPAN = true;
-        }
-        else {
+        } else {
             // ... for version 2 both are extended addresses
             hasSrcPAN = !(getSrcAddrMode() == EXTENDED_ADDRESS && getDstAddrMode() == EXTENDED_ADDRESS);
         }
@@ -280,8 +278,7 @@ public:
         if(!isVersion2015()) {
             // ... for version 0 and 1 the destination address exists
             hasDstPAN = (getDstAddrMode() != NO_ADDRESS);
-        }
-        else {
+        } else {
             // ... for version 2, either
             // - the destination address exists and the compression bit is unset or
             // - both addresses exist and either of the addresses is a short address or
@@ -380,7 +377,7 @@ public:
      * See IEEE 802.15.4e-2012 5.2.1.1.6, Table 3
      */
     inline uint8_t sourceAddressLength() const {
-        switch (this->frameControl.srcAddrMode) {
+        switch(this->frameControl.srcAddrMode) {
             default:
             case NO_ADDRESS:
                 return 0;
@@ -397,7 +394,7 @@ public:
      * See IEEE 802.15.4e-2012 5.2.1.1.6, Table 3
      */
     inline uint8_t destinationAddressLength() const {
-        switch (this->frameControl.dstAddrMode) {
+        switch(this->frameControl.dstAddrMode) {
             default:
             case NO_ADDRESS:
                 return 0;
@@ -422,11 +419,11 @@ public:
 
         size += 2; // frame control
 
-        if (this->hasSequenceNumber()) {
+        if(this->hasSequenceNumber()) {
             size += 1; // sequence number
         }
 
-        if (this->frameControl.frameType != ACKNOWLEDGEMENT) {
+        if(this->frameControl.frameType != ACKNOWLEDGEMENT) {
             if(hasDstPAN) {
                 size += 2;
             }

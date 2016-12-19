@@ -89,7 +89,7 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 
 uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon, bool withinPreSlot) {
     uint32_t next_slot_time = (slotsSinceLastHeardBeacon + 1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot()
-                              + ((uint32_t) (lastHeardBeaconSymbolCounter));
+                              + ((uint32_t)(lastHeardBeaconSymbolCounter));
 
     dsme_atomicBegin();
     DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);

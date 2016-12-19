@@ -68,7 +68,7 @@ public:
     }
 
     virtual void serialize(Serializer& serializer) {
-        if (serializer.getType() == SERIALIZATION) {
+        if(serializer.getType() == SERIALIZATION) {
             uint8_t info = 0;
             info |= capabilityInformation.alternatePANCoordinator;
             info |= capabilityInformation.deviceType << 1;

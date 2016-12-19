@@ -89,13 +89,13 @@ void BeaconBitmap::orWith(const BeaconBitmap& bitmap) {
 }
 
 int32_t BeaconBitmap::getNextAllocated(uint16_t start) const {
-    for (uint16_t i = start; i < sdBitmap.length(); i++) {
-        if (sdBitmap.get(i)) {
+    for(uint16_t i = start; i < sdBitmap.length(); i++) {
+        if(sdBitmap.get(i)) {
             return i;
         }
     }
-    for (uint16_t i = 0; i < start; i++) {
-        if (sdBitmap.get(i)) {
+    for(uint16_t i = 0; i < start; i++) {
+        if(sdBitmap.get(i)) {
             return i;
         }
     }
@@ -104,8 +104,8 @@ int32_t BeaconBitmap::getNextAllocated(uint16_t start) const {
 }
 
 int32_t BeaconBitmap::getNextFreeSlot() const {
-    for (uint16_t i = 0; i < sdBitmap.length(); i++) {
-        if (!sdBitmap.get(i)) {
+    for(uint16_t i = 0; i < sdBitmap.length(); i++) {
+        if(!sdBitmap.get(i)) {
             return i;
         }
     }
@@ -115,13 +115,13 @@ int32_t BeaconBitmap::getNextFreeSlot() const {
 
 int32_t BeaconBitmap::getRandomFreeSlot(uint16_t randomNumber) const {
     uint16_t start = randomNumber % sdBitmap.length();
-    for (uint16_t i = start; i < sdBitmap.length(); i++) {
-        if (!sdBitmap.get(i)) {
+    for(uint16_t i = start; i < sdBitmap.length(); i++) {
+        if(!sdBitmap.get(i)) {
             return i;
         }
     }
-    for (uint16_t i = 0; i < start; i++) {
-        if (!sdBitmap.get(i)) {
+    for(uint16_t i = 0; i < start; i++) {
+        if(!sdBitmap.get(i)) {
             return i;
         }
     }
@@ -131,8 +131,8 @@ int32_t BeaconBitmap::getRandomFreeSlot(uint16_t randomNumber) const {
 
 uint16_t BeaconBitmap::getAllocatedCount() const {
     uint16_t c = 0;
-    for (unsigned int i = 0; i < sdBitmap.length(); i++) {
-        if (sdBitmap.get(i)) {
+    for(unsigned int i = 0; i < sdBitmap.length(); i++) {
+        if(sdBitmap.get(i)) {
             c++;
         }
     }

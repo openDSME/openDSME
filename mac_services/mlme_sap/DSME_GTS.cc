@@ -70,7 +70,7 @@ DSME_GTS::DSME_GTS(DSMELayer& dsme) :
  */
 void DSME_GTS::request(request_parameters& params) {
     uint16_t srcAddr = this->dsme.getMAC_PIB().macShortAddress;
-    if ((srcAddr == 0xfffe) || (srcAddr == 0xffff)) {
+    if((srcAddr == 0xfffe) || (srcAddr == 0xffff)) {
         DSME_GTS_confirm_parameters reply;
         reply.status = GTSStatus::NO_SHORT_ADDRESS;
         this->notify_confirm(reply);
@@ -81,7 +81,7 @@ void DSME_GTS::request(request_parameters& params) {
         GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeID, params.preferredSlotID, params.dsmeSABSpecification);
         bool busy = !gtsManager.handleMLMERequest(params.deviceAddress, gtsManagement, gtsRequestCmd);
 
-        if (busy) {
+        if(busy) {
             notify_busy_confirm(params, *this);
         }
     }
@@ -95,7 +95,7 @@ void DSME_GTS::response(response_parameters& params) {
     GTSManagement gtsManagement(params.managmentType, params.direction, params.prioritizedChannelAccess, params.status);
 
     bool busy;
-    if (dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
+    if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
         //channel adaption mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSABSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
@@ -104,7 +104,7 @@ void DSME_GTS::response(response_parameters& params) {
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSABSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     }
-    if (busy) {
+    if(busy) {
         notify_busy_confirm(params, *this);
     }
 }
