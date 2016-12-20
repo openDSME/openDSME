@@ -73,6 +73,14 @@ public:
         }
     }
 
+    MacStaticList& operator=(const MacStaticList& other) {
+        this->length = other.length;
+        for (uint8_t i = 0; i < length; i++) {
+            this->array[i] = other.array[i];
+        }
+        return *this;
+    }
+
     explicit MacStaticList(uint8_t length) :
         length(length) {
     }

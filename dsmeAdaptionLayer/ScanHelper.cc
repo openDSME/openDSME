@@ -51,17 +51,19 @@ namespace dsme {
 ScanHelper::ScanHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
     dsmeAdaptionLayer(dsmeAdaptionLayer),
     recordedPanDescriptors(0),
-    passiveScanCounter(0) {
+    passiveScanCounter(0),
+    syncActive(false) {
 }
 
-void ScanHelper::initialize() {
+void ScanHelper::initialize(channelList_t& scanChannels) {
+    this->scanChannels = scanChannels;
     this->dsmeAdaptionLayer.getMLME_SAP().getBEACON_NOTIFY().indication(DELEGATE(&ScanHelper::handleBEACON_NOTIFY_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getSCAN().confirm(DELEGATE(&ScanHelper::handleSCAN_confirm, *this));
     return;
 }
 
-void ScanHelper::setScanCompleteDelegate(scanCompleteDelegate_t delegate) {
-    this->scanCompleteDelegate = delegate;
+void ScanHelper::setScanAndSyncCompleteDelegate(scanAndSyncCompleteDelegate_t delegate) {
+    this->scanAndSyncCompleteDelegate = delegate;
     return;
 }
 
@@ -69,12 +71,6 @@ void ScanHelper::startScan() {
     this->recordedPanDescriptors.clear();
 
     mlme_sap::SCAN::request_parameters params;
-
-    // TODO: Decide which channels to scan
-
-    //channelList_t &scanChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getChannels();
-    channelList_t scanChannels;
-    scanChannels.add(11);
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
     if (((uint16_t)this->passiveScanCounter) > random_value) {
@@ -113,6 +109,11 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
         heardCoordinators.add(shortAddress);
     }
 
+    if(this->syncActive) {
+        // TODO check if the beacon is actually from the PAN described in the activePanDescriptor
+        this->scanAndSyncCompleteDelegate(&this->panDescriptorToSyncTo);
+    }
+
     //TODO CROSS-LAYER-CALLS, no interface for this information
     LOG_INFO("Checking whether to become a coordinator: "
              << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
@@ -144,19 +145,31 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
 }
 
 void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
+    this->syncActive = false;
+
     if (!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
         if (this->recordedPanDescriptors.size() > 0) {
-            this->scanCompleteDelegate(&(this->recordedPanDescriptors[0]));
+            this->panDescriptorToSyncTo = this->recordedPanDescriptors[0];
         } else {
-            this->scanCompleteDelegate(nullptr);
+            this->scanAndSyncCompleteDelegate(nullptr);
+            return;
         }
     } else {
         if (params.panDescriptorList.size() > 0) {
-            this->scanCompleteDelegate(&(params.panDescriptorList[0]));
+            this->panDescriptorToSyncTo = params.panDescriptorList[0];
         } else {
-            this->scanCompleteDelegate(nullptr);
+            this->scanAndSyncCompleteDelegate(nullptr);
+            return;
         }
     }
+
+    mlme_sap::SYNC::request_parameters syncParams;
+    syncParams.channelNumber = this->panDescriptorToSyncTo.channelNumber;
+    syncParams.channelPage = this->panDescriptorToSyncTo.channelPage;
+    syncParams.trackBeacon = true;
+    this->syncActive = true;
+    this->dsmeAdaptionLayer.getMLME_SAP().getSYNC().request(syncParams);
+
     return;
 }
 

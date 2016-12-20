@@ -44,6 +44,7 @@
 #define SCANHELPER_H_
 
 #include "../mac_services/mlme_sap/helper/PanDescriptorList.h"
+#include "PHY_PIB.h"
 
 namespace dsme {
 
@@ -58,15 +59,15 @@ struct DSMEPANDescriptor;
 
 class ScanHelper {
 public:
-    typedef Delegate<void(PANDescriptor*)> scanCompleteDelegate_t;
+    typedef Delegate<void(PANDescriptor*)> scanAndSyncCompleteDelegate_t;
 
     explicit ScanHelper(DSMEAdaptionLayer&);
 
-    void initialize();
+    void initialize(channelList_t& scanChannels);
 
     void startScan();
 
-    void setScanCompleteDelegate(scanCompleteDelegate_t delegate);
+    void setScanAndSyncCompleteDelegate(scanAndSyncCompleteDelegate_t delegate);
 
 private:
     void handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indication_parameters&);
@@ -76,10 +77,13 @@ private:
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
     PanDescriptorList recordedPanDescriptors;
-    scanCompleteDelegate_t scanCompleteDelegate;
+    scanAndSyncCompleteDelegate_t scanAndSyncCompleteDelegate;
 
     MacStaticList<uint16_t, 8> heardCoordinators;
     uint8_t passiveScanCounter;
+    channelList_t scanChannels;
+    PANDescriptor panDescriptorToSyncTo;
+    bool syncActive;
 };
 
 } /* dsme */

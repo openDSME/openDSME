@@ -55,7 +55,8 @@ MLME_SAP::MLME_SAP(DSMELayer& dsme) :
     poll(dsme),
     reset(dsme),
     scan(dsme),
-    start(dsme) {
+    start(dsme),
+    sync(dsme) {
     this->dsme.setMLME(this);
 }
 

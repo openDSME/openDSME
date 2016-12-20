@@ -59,12 +59,12 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme) :
     phy_pib(nullptr),
     mac_pib(nullptr),
 
-    scanInProgress(false),
+    scanOrSyncInProgress(false),
     associationInProgress(false) {
 
 }
 
-void DSMEAdaptionLayer::initialize() {
+void DSMEAdaptionLayer::initialize(channelList_t& scanChannels) {
     this->mcps_sap = &(dsme.getMCPS_SAP());
     this->mlme_sap = &(dsme.getMLME_SAP());
     this->phy_pib = &(dsme.getPHY_PIB());
@@ -72,7 +72,7 @@ void DSMEAdaptionLayer::initialize() {
 
     this->associationHelper.initialize();
     this->gtsAllocationHelper.initialize();
-    this->scanHelper.initialize();
+    this->scanHelper.initialize(scanChannels);
 
     this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
@@ -80,7 +80,7 @@ void DSMEAdaptionLayer::initialize() {
 
     this->mlme_sap->getSYNC_LOSS().indication(DELEGATE(&DSMEAdaptionLayer::handleSyncLossIndication, *this));
 
-    this->scanHelper.setScanCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanComplete, *this));
+    this->scanHelper.setScanAndSyncCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanAndSyncComplete, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     this->associationHelper.setDisassociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleDisassociationComplete, *this));
     return;
@@ -147,8 +147,8 @@ void DSMEAdaptionLayer::startAssociation() {
     if (!getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Device is not associated with PAN.");
         if (!this->associationInProgress) {
-            if (!this->scanInProgress) {
-                this->scanInProgress = true;
+            if (!this->scanOrSyncInProgress) {
+                this->scanOrSyncInProgress = true;
                 this->scanHelper.startScan();
             } else {
                 LOG_INFO("Scan already in progress.");
@@ -369,13 +369,14 @@ void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_
     return;
 }
 
-void DSMEAdaptionLayer::handleScanComplete(PANDescriptor* panDescriptor) {
+void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
 
     if (panDescriptor != nullptr) {
         LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
                  << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
+
         this->associationInProgress = true;
-        this->scanInProgress = false;
+        this->scanOrSyncInProgress = false;
         this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
                                           panDescriptor->channelNumber);
     } else {

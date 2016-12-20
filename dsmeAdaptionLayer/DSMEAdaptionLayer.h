@@ -98,7 +98,7 @@ public:
 
     explicit DSMEAdaptionLayer(DSMELayer&);
 
-    void initialize();
+    void initialize(channelList_t& scanChannels);
 
     mcps_sap::MCPS_SAP& getMCPS_SAP();
 
@@ -136,7 +136,7 @@ private:
 
     void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params);
 
-    void handleScanComplete(PANDescriptor* panDescriptor);
+    void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
 
     void handleAssociationComplete(AssociationStatus::Association_Status status);
 
@@ -156,7 +156,7 @@ private:
     indicationCallback_t callback_indication;
     confirmCallback_t callback_confirm;
 
-    bool scanInProgress;
+    bool scanOrSyncInProgress;
     bool associationInProgress;
 
     DSMERingBuffer<DSMEAdaptionLayerBufferEntry, UPPER_LAYER_QUEUE_SIZE> retryBuffer;

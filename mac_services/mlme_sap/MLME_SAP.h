@@ -51,6 +51,7 @@
 #include "POLL.h"
 #include "RESET.h"
 #include "SCAN.h"
+#include "SYNC.h"
 #include "START.h"
 #include "SYNC_LOSS.h"
 
@@ -72,6 +73,7 @@ public:
     RESET& getRESET();
     SCAN& getSCAN();
     START& getSTART();
+    SYNC& getSYNC();
     SYNC_LOSS& getSYNC_LOSS();
 
 private:
@@ -86,6 +88,7 @@ private:
     RESET reset;
     SCAN scan;
     START start;
+    SYNC sync;
     SYNC_LOSS sync_loss;
 };
 

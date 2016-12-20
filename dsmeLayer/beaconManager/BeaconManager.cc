@@ -515,7 +515,7 @@ void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t curren
         }
     }
 
-    if(this->dsme.isTrackingBeacons() && this->dsme.getMAC_PIB().macAssociatedPANCoord && currentMultiSuperframe == 0 && currentSuperframe == 0) {
+    if(this->dsme.isTrackingBeacons() && currentMultiSuperframe == 0 && currentSuperframe == 0) {
         /* Increment the number of missed beacons. This gets reset whenever a beacon is received */
         ++(this->missedBeacons);
         if(this->missedBeacons > aMaxLostBeacons) {
