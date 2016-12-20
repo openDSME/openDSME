@@ -54,7 +54,7 @@ inline T min(T a, T b) {
 template<typename T, typename F>
 inline T sum(uint8_t min, uint8_t max, F func) {
     T result = 0;
-    for (uint8_t k = min; k <= max; k++) {
+    for(uint8_t k = min; k <= max; k++) {
         result += func(k);
     }
     return result;
@@ -64,6 +64,9 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
     helper(phy_pib, *this),
     phy_pib(phy_pib),
 
+    macIsPANCoord(false),
+    macIsCoord(false),
+
     macExtendedAddress(0, 0, 0, 0),
     macAckWaitDuration(aUnitBackoffPeriod + aTurnaroundTimeSymbols + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet),
     macAssociatedPANCoord(false),
@@ -72,6 +75,7 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
     macCoordExtendedAddress(0, 0, 0, 0),
     macBeaconOrder(15),
     macCoordShortAddress(0xffff),
+    macDsn(0),
     macMaxBE(5),
     macMaxCSMABackoffs(4),
     macMaxFrameRetries(3),
@@ -92,8 +96,8 @@ MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) :
 
 void MAC_PIB::recalculateDependentProperties() {
     /* macMaxFrameTotalWaitTime (IEEE 802.15.4-2011 6.4.3.) */
-    uint8_t m = min(((uint8_t) (this->macMaxBE - this->macMinBE)), this->macMaxCSMABackoffs);
-    uint16_t partialSum = sum<uint16_t>(0, m - 1, [&] (uint8_t k) {
+    uint8_t m = min(((uint8_t)(this->macMaxBE - this->macMinBE)), this->macMaxCSMABackoffs);
+    uint16_t partialSum = sum<uint16_t>(0, m - 1, [&](uint8_t k) {
         return 1 << (this->macMinBE + k);
     });
     this->macMaxFrameTotalWaitTime = (partialSum + ((1 << this->macMinBE) - 1) * (this->macMaxCSMABackoffs - m)) * aUnitBackoffPeriod

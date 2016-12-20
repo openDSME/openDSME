@@ -87,7 +87,7 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t s
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
     LOG_DEBUG_PREFIX;
     LOG_DEBUG_PURE(DECOUT << type << " " << palId_id());
-    if (direction == TX) {
+    if(direction == TX) {
         LOG_DEBUG_PURE(">");
     } else {
         LOG_DEBUG_PURE("<");
@@ -114,9 +114,9 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     bool success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
 
     if(success) {
-        if (direction == TX) {
+        if(direction == TX) {
             RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(address);
-            if (numSlotIt == numAllocatedTxSlots.end()) {
+            if(numSlotIt == numAllocatedTxSlots.end()) {
                 LOG_INFO("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedTxSlots.");
                 numAllocatedTxSlots.insert(1, address);
             } else {
@@ -145,12 +145,12 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     bitmap.set(superframeID * numGTSlots + gtSlotID, false);
 
-    if (it->direction == TX) {
+    if(it->direction == TX) {
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(it->address);
         DSME_ASSERT(numSlotIt != numAllocatedTxSlots.end());
         (*numSlotIt)--;
         LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
-        if ((*numSlotIt) == 0) {
+        if((*numSlotIt) == 0) {
             numAllocatedTxSlots.remove(numSlotIt);
         }
     }
@@ -164,7 +164,7 @@ bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSl
 
 uint16_t DSMEAllocationCounterTable::getNumAllocatedTxGTS(uint16_t address) {
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(address);
-    if (numSlotIt == numAllocatedTxSlots.end()) {
+    if(numSlotIt == numAllocatedTxSlots.end()) {
         return 0;
     } else {
         return *numSlotIt;
@@ -177,7 +177,7 @@ void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBl
 }
 
 static const char* stateToString(ACTState state) {
-    switch (state) {
+    switch(state) {
         case VALID:
             return "VALID";
         case UNCONFIRMED:
@@ -207,7 +207,7 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
     }
     DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
 
-    for (DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
+    for(DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
         GTS gts = GTS::GTSfromAbsoluteIndex((*it) + subBlock.getSubBlockIndex() * numGTSlots * numChannels, numGTSlots, numChannels,
                                             numSuperFramesPerMultiSuperframe);
 
@@ -217,7 +217,7 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
                   << " (" << (uint16_t)gts.channel << ")");
         DSMEAllocationCounterTable::iterator actit = find(gts.superframeID, gts.slotID);
 
-        if (actit != end()) {
+        if(actit != end()) {
             if(actit->getChannel() != gts.channel) {
                 LOG_DEBUG("Request too late, GTS" << "used on other channel");
                 //DSME_ASSERT(false);
@@ -233,14 +233,14 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
             }
         }
 
-        if (actit != end() && state == REMOVED) {
+        if(actit != end() && state == REMOVED) {
             remove(actit);
             continue;
         }
 
-        if (actit == end()) {
+        if(actit == end()) {
             /* '-> does not yet exist */
-            if (deviceAddress != 0xFFFF) {
+            if(deviceAddress != 0xFFFF) {
                 bool added = add(gts.superframeID, gts.slotID, gts.channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
                 LOG_DEBUG("add slot "

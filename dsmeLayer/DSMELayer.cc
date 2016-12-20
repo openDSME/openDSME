@@ -175,18 +175,24 @@ void DSMELayer::slotEvent(int32_t lateness) {
     }
 
     /* handle slot */
-    if (currentSlot == 0) {
+    if(currentSlot == 0) {
         beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe, lateness);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe);
 
-    if (currentSlot == getMAC_PIB().helper.getFinalCAPSlot() + 1) {
+    if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot() + 1) {
         platform->scheduleStartOfCFP();
     }
 }
 
 void DSMELayer::handleStartOfCFP() {
+#ifdef STATISTICS_MONITOR_LATENESS
+    if(latenessStatisticsCount++ % 10 == 0) {
+        this->eventDispatcher.printLatenessHistogram();
+    }
+#endif
+
     if(this->startOfCFPDelegate) {
         this->startOfCFPDelegate();
     }

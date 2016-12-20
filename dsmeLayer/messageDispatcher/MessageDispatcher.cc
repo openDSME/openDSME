@@ -102,14 +102,14 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
     DSMEAllocationCounterTable& act = dsme.getMAC_PIB().macDSMEACT;
 
-    if (nextSlot == 0) {
+    if(nextSlot == 0) {
         // next slot will be the beacon frame
         uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
         dsme.getPlatform().setChannelNumber(commonChannel);
         currentACTElement = act.end();
-    } else if (nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+    } else if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {  // TODO correct?
         unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
-        if (act.isAllocated(nextSuperframe, nextGTS)) {
+        if(act.isAllocated(nextSuperframe, nextGTS)) {
             currentACTElement = act.find(nextSuperframe, nextGTS);
             DSME_ASSERT(currentACTElement != act.end());
 
@@ -119,7 +119,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             }
 
             // statistic
-            if (currentACTElement->getDirection() == RX) {
+            if(currentACTElement->getDirection() == RX) {
                 numUnusedRxGts++;   // gets PURGE.cc decremented on actual reception
             }
         } else {
@@ -133,7 +133,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe) {
-    if (slot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {
+    if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {
         handleGTS();
     }
     return true;
@@ -142,7 +142,7 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe) {
 void MessageDispatcher::receive(DSMEMessage* msg) {
     IEEE802154eMACHeader macHdr = msg->getHeader();
 
-    switch (macHdr.getFrameType()) {
+    switch(macHdr.getFrameType()) {
         case IEEE802154eMACHeader::FrameType::BEACON: {
             LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() <<  ".");
             this->dsme.getBeaconManager().handleBeacon(msg);
@@ -153,7 +153,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
         case IEEE802154eMACHeader::FrameType::COMMAND: {
             MACCommand cmd;
             cmd.decapsulateFrom(msg);
-            switch (cmd.getCmdId()) {
+            switch(cmd.getCmdId()) {
                 case CommandFrameIdentifier::DSME_GTS_REQUEST:
                     LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getGTSManager().handleGTSRequest(msg);
@@ -253,7 +253,7 @@ bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>
 
     numUpperPacketsForGTS++;
 
-    if (!neighborQueue.isQueueFull()) {
+    if(!neighborQueue.isQueueFull()) {
         /* push into queue */
         // TODO implement TRANSACTION_EXPIRED
         uint16_t totalSize = 0;
@@ -274,14 +274,14 @@ bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>
 bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
     numUpperPacketsForCAP++;
     LOG_INFO("Inserting message into CAP queue.");
-    if (msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
+    if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
         LOG_WARN("Message dropped due to missing association!");
         // TODO document this behaviour
         // TODO send appropriate MCPS confirm or better remove this handling and implement TRANSACTION_EXPIRED
         return false;
     }
 
-    if (!this->dsme.getCapLayer().pushMessage(msg)) {
+    if(!this->dsme.getCapLayer().pushMessage(msg)) {
         LOG_INFO("CAP queue full!");
         return false;
     }
@@ -291,17 +291,17 @@ bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
 
 
 void MessageDispatcher::handleGTS() {
-    if (currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
+    if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
             && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
 
-        if (currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+        if(currentACTElement->getDirection() == RX) {  // also if INVALID or UNCONFIRMED!
             //LOG_INFO("Waiting to receive from " << currentACTElement->getAddress())
-        } else if (currentACTElement->getState() == VALID) {
+        } else if(currentACTElement->getState() == VALID) {
             // transmit from gtsQueue
             DSME_ASSERT(lastSendGTSNeighbor == neighborQueue.end());
 
             lastSendGTSNeighbor = neighborQueue.findByAddress(IEEE802154MacAddress(currentACTElement->getAddress()));
-            if (neighborQueue.isQueueEmpty(lastSendGTSNeighbor)) {
+            if(neighborQueue.isQueueEmpty(lastSendGTSNeighbor)) {
                 lastSendGTSNeighbor = neighborQueue.end();
                 numUnusedTxGts++;
             } else {
@@ -311,7 +311,7 @@ void MessageDispatcher::handleGTS() {
 
                 DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= msg->getTotalSymbols());
 
-                if (!dsme.getAckLayer().sendButKeep(msg, doneGTS)) {
+                if(!dsme.getAckLayer().sendButKeep(msg, doneGTS)) {
                     // message could not be sent
                     DSME_ASSERT(false); // the ACK layer is still busy, but we have an assigned slot, something is wrong, probably DSMECSMA::symbolsRequired()
                     neighborQueue.popFront(lastSendGTSNeighbor);
@@ -331,7 +331,7 @@ void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
     numRxGtsFrames++;
     numUnusedRxGts--;
 
-    if (currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
+    if(currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
             && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
         // According to 5.1.10.5.3
         currentACTElement->resetIdleCounter();
@@ -341,7 +341,7 @@ void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
 }
 
 void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs) {
-    if (msg->receivedViaMCPS) {
+    if(msg->receivedViaMCPS) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
         params.Timestamp = 0; // TODO
@@ -353,13 +353,13 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
         params.gtsTX = false;
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     } else {
-        if (msg->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+        if(msg->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
             MACCommand cmd;
             cmd.decapsulateFrom(msg);
 
             LOG_DEBUG("cmdID " << (uint16_t)cmd.getCmdId());
 
-            switch (cmd.getCmdId()) {
+            switch(cmd.getCmdId()) {
                 case ASSOCIATION_REQUEST:
                 case ASSOCIATION_RESPONSE:
                 case DISASSOCIATION_NOTIFICATION:
@@ -404,7 +404,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage*
     params.RangingReceived = false;
     params.gtsTX = true;
 
-    switch (response) {
+    switch(response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
         case AckLayerResponse::ACK_SUCCESSFUL:
             params.status = DataStatus::SUCCESS;

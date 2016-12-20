@@ -48,6 +48,12 @@
 #include "TimerAbstractions.h"
 #include "dsme_platform.h"
 
+#ifdef STATISTICS_MONITOR_LATENESS
+#define BIN_COUNT (16)
+#define BIN_WIDTH (16)
+#define MAXIMUM_LATENESS_ALLOWED ((BIN_COUNT-1) * (BIN_WIDTH))
+#endif
+
 namespace dsme {
 
 template<typename T, typename R, typename G, typename S>
@@ -61,10 +67,18 @@ protected:
         instance(instance),
         _NOW(now),
         _TIMER(timer) {
-        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
             this->handlers[i] = nullptr;
         }
+
+#ifdef STATISTICS_MONITOR_LATENESS
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            for(uint16_t j = 0; j < BIN_COUNT; ++j) {
+                this->lateness_histogram[i][j] = 0;
+            }
+        }
+#endif
     }
 
     void _initialize() {
@@ -73,7 +87,7 @@ protected:
 
     void _reset() {
         this->lastDispatchSymbolCounter = _NOW;
-        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
             this->handlers[i] = nullptr;
         }
@@ -95,7 +109,7 @@ protected:
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         this->history.addEvent(nextEventSymbolCounter, E);
 
-        if (nextEventSymbolCounter <= this->lastDispatchSymbolCounter) {
+        if(nextEventSymbolCounter <= this->currentDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
             LOG_ERROR("now:" << now
@@ -120,8 +134,8 @@ protected:
     void _scheduleTimer() {
         uint32_t symsUntilNextEvent = UINT32_MAX;
 
-        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (0 < this->symbols_until[i] && static_cast<uint32_t>(this->symbols_until[i]) < symsUntilNextEvent) {
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            if(0 < this->symbols_until[i] && static_cast<uint32_t>(this->symbols_until[i]) < symsUntilNextEvent) {
                 symsUntilNextEvent = symbols_until[i];
             }
         }
@@ -133,13 +147,13 @@ protected:
         uint32_t timer = this->lastDispatchSymbolCounter + symsUntilNextEvent;
 
         uint32_t currentSymCnt = _NOW;
-        if (timer < currentSymCnt + 2) {
+        if(timer < currentSymCnt + 2) {
             timer = currentSymCnt + 2;
         }
         _TIMER = timer;
 
         uint32_t now = _NOW;
-        if (timer <= now) {
+        if(timer <= now) {
             LOG_ERROR("now: " << now << " timer: " << timer);
             DSME_ASSERT(false);
         }
@@ -149,25 +163,36 @@ protected:
 
 private:
     void dispatchEvents() {
-        uint32_t currentSymbolCounter = _NOW;
+        currentDispatchSymbolCounter = _NOW;
 
         /* The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t). */
-        int32_t symbolsSinceLastDispatch = (uint32_t) (currentSymbolCounter - this->lastDispatchSymbolCounter);
+        int32_t symbolsSinceLastDispatch = (uint32_t) (currentDispatchSymbolCounter - this->lastDispatchSymbolCounter);
 
-        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            if(0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
                 int32_t lateness = symbolsSinceLastDispatch - this->symbols_until[i];
                 DSME_ASSERT(this->handlers[i] != nullptr);
+
+#ifdef STATISTICS_MONITOR_LATENESS
+                uint16_t bin;
+                if(static_cast<uint32_t>(lateness) > MAXIMUM_LATENESS_ALLOWED) {
+                    bin = BIN_COUNT - 1;
+                } else {
+                    bin = lateness / BIN_WIDTH;
+                }
+                lateness_histogram[i][bin]++;
+#endif
+
                 (this->instance->*(this->handlers[i]))(lateness);
             }
         }
 
-        for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
-            if (this->symbols_until[i] > 0) {
+        for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
+            if(this->symbols_until[i] > 0) {
                 this->symbols_until[i] -= symbolsSinceLastDispatch;
             }
         }
-        this->lastDispatchSymbolCounter = currentSymbolCounter;
+        this->lastDispatchSymbolCounter = currentDispatchSymbolCounter;
         return;
     }
 
@@ -176,6 +201,8 @@ private:
      * The timestamp in symbols of the last call to dispatchEvents();
      */
     uint32_t lastDispatchSymbolCounter;
+
+    uint32_t currentDispatchSymbolCounter;
 
     /**
      * Values >  0: timer is activated
@@ -207,6 +234,11 @@ private:
      * For debuging only, records the last scheduled events
      */
     EventHistory<T, 8> history;
+
+#ifdef STATISTICS_MONITOR_LATENESS
+public:
+    uint16_t lateness_histogram[timer_t::TIMER_COUNT][BIN_COUNT];
+#endif
 };
 
 } /* dsme */

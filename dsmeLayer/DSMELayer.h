@@ -211,6 +211,10 @@ protected:
     DSMEEventDispatcher eventDispatcher;
     Delegate<void()> startOfCFPDelegate;
 
+#ifdef STATISTICS_MONITOR_LATENESS
+    int latenessStatisticsCount;
+#endif
+
     /* COMPONENTS OF THE DSMELAYER ----------------------------------------> */
     AckLayer ackLayer;
     CAPLayer capLayer;

@@ -76,7 +76,7 @@ private:
         Chunk() :
             next(nullptr) {
             /* link all free slots inside the new chunks */
-            for (uint8_t i = 0; i < S - 1; i++) {
+            for(uint8_t i = 0; i < S - 1; i++) {
                 data[i].next = &(data[i + 1]);
             }
         }
@@ -155,7 +155,7 @@ DynamicMultiMessageQueue<T, S, M>::DynamicMultiMessageQueue() :
 template<typename T, uint8_t S, uint8_t M>
 DynamicMultiMessageQueue<T, S, M>::~DynamicMultiMessageQueue() {
     Chunk* next, *toDelete = this->chunkList;
-    while (toDelete != nullptr) {
+    while(toDelete != nullptr) {
         next = toDelete->next;
         delete toDelete;
         toDelete = next;
@@ -165,14 +165,14 @@ DynamicMultiMessageQueue<T, S, M>::~DynamicMultiMessageQueue() {
 template<typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor, T* msg) {
 
-    if (this->full) {
+    if(this->full) {
         /* '-> all slots are used and no new chunk could be allocated */
         return;
     }
 
     MessageQueueEntry<T>* entry = this->freeFront;
 
-    if (this->freeFront == this->freeBack) {
+    if(this->freeFront == this->freeBack) {
         /* '-> this was the last free spot */
         this->tryAllocateChunk();
     } else {
@@ -183,12 +183,12 @@ void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor
     entry->value = msg;
     entry->next = nullptr;
 
-    if (neighbor.messageBack != nullptr) {
+    if(neighbor.messageBack != nullptr) {
         neighbor.messageBack->next = entry;
     }
     neighbor.messageBack = entry;
 
-    if (neighbor.messageFront == nullptr) {
+    if(neighbor.messageFront == nullptr) {
         neighbor.messageFront = neighbor.messageBack;
     }
 
@@ -197,7 +197,7 @@ void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor
 
 template<typename T, uint8_t S, uint8_t M>
 T* DynamicMultiMessageQueue<T, S, M>::pop_front(NeighborListEntry<T>& neighbor) {
-    if (neighbor.queueSize > 0) {
+    if(neighbor.queueSize > 0) {
         /* '-> queue contains messages for this neighbor */
 
         MessageQueueEntry<T>* entry = neighbor.messageFront;
@@ -229,7 +229,7 @@ template<typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bool keepFront) {
     MessageQueueEntry<T>* entry = neighbor.messageFront;
 
-    if (keepFront && entry != nullptr) {
+    if(keepFront && entry != nullptr) {
         /* keep existing first entry */
         MessageQueueEntry<T>* temp = entry;
         entry = entry->next;
@@ -242,7 +242,7 @@ void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bo
         neighbor.queueSize = 0;
     }
 
-    if (entry != nullptr) {
+    if(entry != nullptr) {
         /* '-> there are entries to be invalidated */
         this->full = false;
     } else {
@@ -256,7 +256,7 @@ void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bo
     this->addToFree(entry);
     entry = entry->next;
 
-    while (entry != nullptr) {
+    while(entry != nullptr) {
         entry->value = nullptr;
         this->freeBack->next = entry;
         this->freeBack = entry;
@@ -271,7 +271,7 @@ template<typename T, uint8_t S, uint8_t M>
 inline void DynamicMultiMessageQueue<T, S, M>::addToFree(MessageQueueEntry<T>* entry) {
     entry->value = nullptr;
 
-    if (this->freeFront == nullptr || this->freeBack == nullptr) {
+    if(this->freeFront == nullptr || this->freeBack == nullptr) {
         DSME_ASSERT(this->freeFront == nullptr);
         DSME_ASSERT(this->freeBack == nullptr);
         this->freeFront = entry;
@@ -284,7 +284,7 @@ inline void DynamicMultiMessageQueue<T, S, M>::addToFree(MessageQueueEntry<T>* e
 
 template<typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::tryAllocateChunk() {
-    if (this->chunkCount < M) {
+    if(this->chunkCount < M) {
         /* '-> allocate new chunk */
         this->lastChunk->next = new Chunk();
         this->lastChunk = this->lastChunk->next;

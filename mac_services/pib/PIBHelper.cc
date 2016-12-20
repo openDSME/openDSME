@@ -56,17 +56,17 @@ PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) :
 
 uint8_t PIBHelper::getNumberSuperframesPerMultiSuperframe() const {
     /* 2^(MO-SO) */
-    return 1 << (uint8_t) (this->mac_pib.macMultiSuperframeOrder - this->mac_pib.macSuperframeOrder);
+    return 1 << (uint8_t)(this->mac_pib.macMultiSuperframeOrder - this->mac_pib.macSuperframeOrder);
 }
 
 unsigned PIBHelper::getNumberSuperframesPerBeaconInterval() const {
     /* 2^(BO-SO) */
-    return 1 << (unsigned) (this->mac_pib.macBeaconOrder - this->mac_pib.macSuperframeOrder);
+    return 1 << (unsigned)(this->mac_pib.macBeaconOrder - this->mac_pib.macSuperframeOrder);
 }
 
 unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
     /*  2^(BO-MO) */
-    return 1 << (unsigned) (this->mac_pib.macBeaconOrder - this->mac_pib.macMultiSuperframeOrder);
+    return 1 << (unsigned)(this->mac_pib.macBeaconOrder - this->mac_pib.macMultiSuperframeOrder);
 }
 
 uint8_t PIBHelper::getFinalCAPSlot() const {
@@ -84,19 +84,20 @@ uint8_t PIBHelper::getNumGTSlots() const {
 }
 
 uint8_t PIBHelper::getNumChannels() const {
-    for (uint8_t i = 0; i < phy_pib.phyChannelsSupported.getLength(); i++) {
-        if (phy_pib.phyChannelsSupported[i]->key == phy_pib.phyCurrentPage) {
+    for(uint8_t i = 0; i < phy_pib.phyChannelsSupported.getLength(); i++) {
+        if(phy_pib.phyChannelsSupported[i]->key == phy_pib.phyCurrentPage) {
             return phy_pib.phyChannelsSupported[i]->value.getLength();
         }
     }
+    DSME_ASSERT(false);
     return 0;
 }
 
 const channelList_t& PIBHelper::getChannels() const {
     static channelList_t emptyList(0);
 
-    for (uint8_t i = 0; i < phy_pib.phyChannelsSupported.getLength(); i++) {
-        if (phy_pib.phyChannelsSupported[i]->key == phy_pib.phyCurrentPage) {
+    for(uint8_t i = 0; i < phy_pib.phyChannelsSupported.getLength(); i++) {
+        if(phy_pib.phyChannelsSupported[i]->key == phy_pib.phyCurrentPage) {
             return phy_pib.phyChannelsSupported[i]->value;
         }
     }

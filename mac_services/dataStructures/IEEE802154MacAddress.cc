@@ -70,31 +70,31 @@ IEEE802154MacAddress::IEEE802154MacAddress(const uint16_t* a) :
 }
 
 bool IEEE802154MacAddress::operator<=(const IEEE802154MacAddress& other) const {
-    if (this->addr[0] > other.addr[0]) {
+    if(this->addr[0] > other.addr[0]) {
         return false;
     }
-    if (this->addr[0] < other.addr[0]) {
+    if(this->addr[0] < other.addr[0]) {
         return true;
     }
 
-    if (this->addr[1] > other.addr[1]) {
+    if(this->addr[1] > other.addr[1]) {
         return false;
     }
-    if (this->addr[1] < other.addr[1]) {
+    if(this->addr[1] < other.addr[1]) {
         return true;
     }
 
-    if (this->addr[2] > other.addr[2]) {
+    if(this->addr[2] > other.addr[2]) {
         return false;
     }
-    if (this->addr[2] < other.addr[2]) {
+    if(this->addr[2] < other.addr[2]) {
         return true;
     }
 
-    if (this->addr[3] > other.addr[3]) {
+    if(this->addr[3] > other.addr[3]) {
         return false;
     }
-    if (this->addr[3] < other.addr[3]) {
+    if(this->addr[3] < other.addr[3]) {
         return true;
     }
 
@@ -102,31 +102,31 @@ bool IEEE802154MacAddress::operator<=(const IEEE802154MacAddress& other) const {
 }
 
 bool IEEE802154MacAddress::operator>=(const IEEE802154MacAddress& other) const {
-    if (this->addr[0] > other.addr[0]) {
+    if(this->addr[0] > other.addr[0]) {
         return true;
     }
-    if (this->addr[0] < other.addr[0]) {
+    if(this->addr[0] < other.addr[0]) {
         return false;
     }
 
-    if (this->addr[1] > other.addr[1]) {
+    if(this->addr[1] > other.addr[1]) {
         return true;
     }
-    if (this->addr[1] < other.addr[1]) {
+    if(this->addr[1] < other.addr[1]) {
         return false;
     }
 
-    if (this->addr[2] > other.addr[2]) {
+    if(this->addr[2] > other.addr[2]) {
         return true;
     }
-    if (this->addr[2] < other.addr[2]) {
+    if(this->addr[2] < other.addr[2]) {
         return false;
     }
 
-    if (this->addr[3] > other.addr[3]) {
+    if(this->addr[3] > other.addr[3]) {
         return true;
     }
-    if (this->addr[3] < other.addr[3]) {
+    if(this->addr[3] < other.addr[3]) {
         return false;
     }
 
