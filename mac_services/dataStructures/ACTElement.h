@@ -91,32 +91,32 @@ public:
     }
 
     bool operator>(const ACTElement& other) const {
-        if (this->superframeID > other.superframeID) {
+        if(this->superframeID > other.superframeID) {
             return true;
         }
-        if (this->superframeID < other.superframeID) {
+        if(this->superframeID < other.superframeID) {
             return false;
         }
-        if (this->slotID > other.slotID) {
+        if(this->slotID > other.slotID) {
             return true;
         }
-        if (this->slotID < other.slotID) {
+        if(this->slotID < other.slotID) {
             return false;
         }
         return this->channel > other.channel;
     }
 
     bool operator<(const ACTElement& other) const {
-        if (this->superframeID < other.superframeID) {
+        if(this->superframeID < other.superframeID) {
             return true;
         }
-        if (this->superframeID > other.superframeID) {
+        if(this->superframeID > other.superframeID) {
             return false;
         }
-        if (this->slotID < other.slotID) {
+        if(this->slotID < other.slotID) {
             return true;
         }
-        if (this->slotID > other.slotID) {
+        if(this->slotID > other.slotID) {
             return false;
         }
         return this->channel < other.channel;

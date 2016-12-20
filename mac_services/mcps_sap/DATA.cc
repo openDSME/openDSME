@@ -60,7 +60,7 @@ void DATA::request(request_parameters& params) {
     DSMEMessage* dsmemsg = params.msdu;
     IDSMEMessage* msg = dsmemsg;
 
-    if (!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
+    if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
         mcps_sap::DATA_confirm_parameters confirmParams;
         confirmParams.msduHandle = dsmemsg;
         confirmParams.Timestamp = 0;
@@ -89,7 +89,7 @@ void DATA::request(request_parameters& params) {
     header.setIEListPresent(params.frameControlOption_ies_included);
     header.setSeqNumSuppression(params.frameControlOption_seq_num_suppressed);
 
-    if (params.gtsTX) {
+    if(params.gtsTX) {
         // TODO use short address!
         IEEE802154MacAddress& dest = msg->getHeader().getDestAddr();
         NeighborQueue<MAX_NEIGHBORS>::iterator destIt = dsme.getMessageDispatcher().getNeighborQueue().findByAddress(dest);
@@ -97,7 +97,7 @@ void DATA::request(request_parameters& params) {
         DSMEAllocationCounterTable& macDSMEACT = dsme.getMAC_PIB().macDSMEACT;
         uint16_t numAllocatedSlots = macDSMEACT.getNumAllocatedTxGTS(dest.getShortAddress());
 
-        if (destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
+        if(destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
             mcps_sap::DATA_confirm_parameters confirmParams;
             confirmParams.msduHandle = dsmemsg;
             confirmParams.Timestamp = 0;

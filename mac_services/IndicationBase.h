@@ -58,7 +58,7 @@ public:
     }
 
     bool indication(I* params) {
-        if (this->indication_received) {
+        if(this->indication_received) {
             /* '-> message received for upper layer */
             *params = this->last_indication;
             this->indication_received = false;
@@ -70,7 +70,7 @@ public:
 
     /* called from lower part of MAC layer */
     void notify_indication(I& params) {
-        if (this->callback_indication) {
+        if(this->callback_indication) {
             /* if callback is set, parameter will not be saved */
             this->callback_indication(params);
         } else {

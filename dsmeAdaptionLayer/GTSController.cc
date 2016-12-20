@@ -75,7 +75,7 @@ void GTSController::registerIncomingMessage(uint16_t address) {
     LOG_DEBUG("Controller-Incoming");
 
     iterator it = this->links.find(address);
-    if (it == this->links.end()) {
+    if(it == this->links.end()) {
         GTSControllerData data;
         data.address = address;
         data.messagesInLastMultisuperframe++;
@@ -95,7 +95,7 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 }
 
 void GTSController::multisuperframeEvent() {
-    for (GTSControllerData& data : this->links) {
+    for(GTSControllerData& data : this->links) {
 
         uint16_t w = data.messagesInLastMultisuperframe;
         uint16_t y = data.messagesOutLastMultisuperframe;
@@ -107,7 +107,7 @@ void GTSController::multisuperframeEvent() {
 
         i += e;
 
-        if (e > 0) {
+        if(e > 0) {
             u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
         } else {
             u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
@@ -115,8 +115,8 @@ void GTSController::multisuperframeEvent() {
 
         LOG_DEBUG_PREFIX;
         LOG_DEBUG_PURE("Controller-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(       " ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(       " ") << y);
+        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
+        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
         LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
         LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
         LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
@@ -145,7 +145,7 @@ void GTSController::indicateChange(uint16_t address, int16_t change) {
 }
 
 static uint16_t abs(int16_t v) {
-    if (v > 0) {
+    if(v > 0) {
         return v;
     } else {
         return -v;
@@ -155,8 +155,8 @@ static uint16_t abs(int16_t v) {
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
     int16_t control = 0;
-    for (const GTSControllerData& d : this->links) {
-        if (abs(control) < abs(d.control)) {
+    for(const GTSControllerData& d : this->links) {
+        if(abs(control) < abs(d.control)) {
             control = d.control;
             address = d.address;
         }

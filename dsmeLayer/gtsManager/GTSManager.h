@@ -95,7 +95,7 @@ private:
     }
 
     void fill(DSMEMessage*& msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
-        switch (cmdId) {
+        switch(cmdId) {
             case CommandFrameIdentifier::DSME_GTS_REQUEST:
                 this->requestCmd.decapsulateFrom(msg);
                 this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();

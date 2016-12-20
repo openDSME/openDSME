@@ -58,7 +58,7 @@ public:
     }
 
     bool confirm(C* params) {
-        if (this->confirm_received) {
+        if(this->confirm_received) {
             /* '-> message received for upper layer */
             *params = this->last_confirm;
             this->confirm_received = false;
@@ -70,7 +70,7 @@ public:
 
     /* called from lower part of MAC layer*/
     void notify_confirm(C& params) {
-        if (this->callback_confirm) {
+        if(this->callback_confirm) {
             /* if callback is set, parameter will not be saved */
             this->callback_confirm(params);
         } else {

@@ -66,7 +66,7 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
 void IEEE802154eMACHeader::finalize() {
     // Check if we are able to use PAN ID Compression assuming a missing...
     // - ... Destination PAN ID is equal to 0xFFFF (Sect. 6.7.2 case c) )
-    // - ... Source PAN ID is equal to the destination PAN (Sect. 6.7.2 5th paragraph from end) 
+    // - ... Source PAN ID is equal to the destination PAN (Sect. 6.7.2 5th paragraph from end)
     bool compressionIfEqual = false;
     bool panIDCompression;
 
@@ -74,40 +74,34 @@ void IEEE802154eMACHeader::finalize() {
         // Frame version field value is 0b00 or 0b01
         if(getDstAddrMode() != NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
             compressionIfEqual = true;
-        }
-        else {
+        } else {
             panIDCompression = true;
 
             if(getDstAddrMode() != NO_ADDRESS) {
                 hasDstPAN = true;
-            }
-            else { // Source address has to be present
+            } else { // Source address has to be present
                 hasSrcPAN = true;
             }
         }
-    }
-    else {
+    } else {
         // Frame version field value is 0b10
-        if( (getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS)
-          ||(getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS) ) {
+        if((getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS)
+                || (getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS)) {
             // Footnote
             compressionIfEqual = true;
-        }
-        else if(getDstAddrMode() == NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
+        } else if(getDstAddrMode() == NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
             // Row 5 of Table 7-2
             panIDCompression = 0;
             hasDstPAN = false;
             hasSrcPAN = true;
-        }
-        else {
+        } else {
             hasSrcPAN = false;
             hasDstPAN = (dstPAN != IEEE802154eMACHeader::BROADCAST_PAN);
 
             if(getSrcAddrMode() == NO_ADDRESS && getDstAddrMode() == NO_ADDRESS) {
                 // First two rows of Table 7-2
                 panIDCompression = hasDstPAN;
-            }
-            else {
+            } else {
                 panIDCompression = !hasDstPAN;
             }
         }
@@ -120,8 +114,7 @@ void IEEE802154eMACHeader::finalize() {
             // while the text about the old versions says one
             panIDCompression = 1;
             hasSrcPAN = false;
-        }
-        else {
+        } else {
             panIDCompression = 0;
             hasSrcPAN = true;
         }
@@ -129,8 +122,7 @@ void IEEE802154eMACHeader::finalize() {
 
     if(panIDCompressionOverridden) {
         DSME_ASSERT(frameControl.panIDCompression == panIDCompression);
-    }
-    else {
+    } else {
         frameControl.panIDCompression = panIDCompression;
     }
 
@@ -150,35 +142,35 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
 
 
     /* serialize sequence number */
-    if (hasSequenceNumber()) {
+    if(hasSequenceNumber()) {
         *(buffer++) = seqNum;
     }
 
     /* serialize destination address */
-    if (hasDstPAN) {
+    if(hasDstPAN) {
         *(buffer++) = dstPAN & 0xFF;
         *(buffer++) = dstPAN >> 8;
     }
 
-    if (destinationAddressLength() == 2) {
+    if(destinationAddressLength() == 2) {
         uint16_t shortDstAddr = dstAddr.getShortAddress();
         *(buffer++) = shortDstAddr & 0xFF;
         *(buffer++) = shortDstAddr >> 8;
-    } else if (destinationAddressLength() == 8) {
+    } else if(destinationAddressLength() == 8) {
         buffer << dstAddr;
     }
 
     /* serialize source address */
-    if (hasSrcPAN) {
+    if(hasSrcPAN) {
         *(buffer++) = srcPAN & 0xFF;
         *(buffer++) = srcPAN >> 8;
     }
 
-    if (sourceAddressLength() == 2) {
+    if(sourceAddressLength() == 2) {
         uint16_t shortSrcAddr = srcAddr.getShortAddress();
         *(buffer++) = shortSrcAddr & 0xFF;
         *(buffer++) = shortSrcAddr >> 8;
-    } else if (sourceAddressLength() == 8) {
+    } else if(sourceAddressLength() == 8) {
         buffer << srcAddr;
     }
 }
@@ -200,43 +192,41 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     }
 
     /* deserialize sequence number */
-    if (hasSequenceNumber()) {
+    if(hasSequenceNumber()) {
         this->seqNum = *(buffer++);
     }
 
     /* deserialize destination address */
-    if (this->hasDestinationPANId()) {
+    if(this->hasDestinationPANId()) {
         this->dstPAN = *(buffer) | (*(buffer + 1) << 8);
         buffer += 2;
-    }
-    else {
+    } else {
         // A missing Destination PAN ID indicates 0xFFFF (Sect. 6.7.2 case c) )
         this->dstPAN = BROADCAST_PAN;
     }
-    if (destinationAddressLength() == 2) {
+    if(destinationAddressLength() == 2) {
         uint16_t shortDstAddr = *(buffer) | (*(buffer + 1) << 8);
         buffer += 2;
         this->dstAddr.setShortAddress(shortDstAddr);
-    } else if (destinationAddressLength() == 8) {
+    } else if(destinationAddressLength() == 8) {
         buffer >> this->dstAddr;
     } else {
         this->dstAddr = IEEE802154MacAddress::UNSPECIFIED;
     }
 
     /* deserialize source address */
-    if (this->hasSourcePANId()) {
+    if(this->hasSourcePANId()) {
         this->srcPAN = *(buffer) | (*(buffer + 1) << 8);
         buffer += 2;
-    }
-    else {
-        // A missing Source PAN ID is to be set to the destination PAN ID (Sect. 6.7.2 5th paragraph from end) 
+    } else {
+        // A missing Source PAN ID is to be set to the destination PAN ID (Sect. 6.7.2 5th paragraph from end)
         this->srcPAN = this->dstPAN;
     }
-    if (sourceAddressLength() == 2) {
+    if(sourceAddressLength() == 2) {
         uint16_t shortSrcAddr = *(buffer) | (*(buffer + 1) << 8);
         buffer += 2;
         this->srcAddr.setShortAddress(shortSrcAddr);
-    } else if (sourceAddressLength() == 8) {
+    } else if(sourceAddressLength() == 8) {
         buffer >> this->srcAddr;
     } else {
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;

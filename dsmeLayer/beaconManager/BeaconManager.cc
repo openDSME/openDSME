@@ -85,11 +85,11 @@ void BeaconManager::initialize() {
     isBeaconAllocationSent = false;
 
     // PAN Coordinator starts network with beacon
-    if (dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsPANCoord) {
         dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
         dsmePANDescriptor.getBeaconBitmap().fill(false);
         dsmePANDescriptor.getBeaconBitmap().set(0, true);
-    } else if (dsme.getMAC_PIB().macIsCoord) {
+    } else if(dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
@@ -101,11 +101,11 @@ void BeaconManager::reset() {
     isBeaconAllocated = false;
     isBeaconAllocationSent = false;
 
-    if (dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsPANCoord) {
         dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
         dsmePANDescriptor.getBeaconBitmap().fill(false);
         dsmePANDescriptor.getBeaconBitmap().set(0, true);
-    } else if (dsme.getMAC_PIB().macIsCoord) {
+    } else if(dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
@@ -117,10 +117,10 @@ void BeaconManager::reset() {
 }
 
 void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness) {
-    if (isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
+    if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
         uint16_t currentSDIndex = currentSuperframe
                                   + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
-        if (currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
+        if(currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
             sendEnhancedBeacon(lateness);
         }
     }
@@ -142,7 +142,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
-    if (dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsPANCoord) {
         // TODO only for PAN coordinator or for all coordinators?
         // the PAN coordinator is the reference, so set the sent beacon as heard beacon to advance in time
         // TODO timing?
@@ -151,7 +151,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
         dsme.beaconSentOrReceived(dsmePANDescriptor.getBeaconBitmap().getSDIndex());
     }
 
-    if (!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
+    if(!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
         // message could not be sent
         dsme.getPlatform().releaseMessage(msg);
     } else {
@@ -186,7 +186,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 }
 
 void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr) {
-    if (dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsPANCoord) {
         /* '-> This function should not be called for PAN-coordinators */
         DSME_ASSERT(false);
     }
@@ -220,7 +220,7 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     heardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
-    if (dsme.getMAC_PIB().macIsCoord) {
+    if(dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().set(descr.getBeaconBitmap().getSDIndex(), true);
     }
 
@@ -233,14 +233,14 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
               << ", isBeaconAllocated:" << isBeaconAllocated
               << ", isBeaconAllocationSent:" << isBeaconAllocationSent
               << ".");
-    if (dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
         LOG_INFO("Attempting to reserve slot for own BEACON.");
         if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
             LOG_INFO("Device is not associated, cannot reserve BEACON slot.");
         } else {
             // Lookup free slot within all neighbors and broadcast beacon allocation request
             int32_t i = neighborOrOwnHeardBeacons.getRandomFreeSlot(dsme.getPlatform().getRandom());
-            if (i >= 0) {
+            if(i >= 0) {
                 sendBeaconAllocationNotification(i);
             } else {
                 LOG_INFO("No window for a BEACON could be found.");
@@ -291,7 +291,7 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
     BeaconNotificationCmd beaconAlloc;
     beaconAlloc.decapsulateFrom(msg);
 
-    if (heardBeacons.get(beaconAlloc.getBeaconSDIndex())) {
+    if(heardBeacons.get(beaconAlloc.getBeaconSDIndex())) {
         sendBeaconCollisionNotification(beaconAlloc.getBeaconSDIndex(), msg->getHeader().getSrcAddr());
     } else {
         heardBeacons.set(beaconAlloc.getBeaconSDIndex(), true);
@@ -347,7 +347,7 @@ void BeaconManager::handleBeaconCollision(DSMEMessage* msg) {
 
 void BeaconManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     if(cmdId == DSME_BEACON_ALLOCATION_NOTIFICATION && status == DataStatus::SUCCESS) {
-        if (dsme.getMAC_PIB().macIsCoord && isBeaconAllocationSent) {
+        if(dsme.getMAC_PIB().macIsCoord && isBeaconAllocationSent) {
             isBeaconAllocated = true;
             isBeaconAllocationSent = false;
         }
@@ -365,13 +365,13 @@ void BeaconManager::sendDone(enum AckLayerResponse result, DSMEMessage* msg) {
 }
 
 void BeaconManager::handleBeacon(DSMEMessage* msg) {
-    if (dsme.getMAC_PIB().macIsPANCoord) {
+    if(dsme.getMAC_PIB().macIsPANCoord) {
         //* '-> do not handle beacon as PAN coordinator */
         LOG_INFO("A PAN-coordinator does not handle BEACONS -> discard");
         return;
     }
 
-    if ((!msg->hasPayload()) && (this->dsme.getMAC_PIB().macAutoRequest)) {
+    if((!msg->hasPayload()) && (this->dsme.getMAC_PIB().macAutoRequest)) {
         /* '-> Nothing to do for this beacon */
         LOG_INFO("This BEACON does not have to be indicated -> discard");
         return;
@@ -407,8 +407,8 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
     this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
     handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
 
-    if (this->scanning) {
-        switch (this->scanType) {
+    if(this->scanning) {
+        switch(this->scanType) {
             case PASSIVE:
                 singleBeaconScanPassiveReceived(params.panDescriptor);
                 break;
@@ -497,11 +497,11 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, const channelList_t&
 }
 
 void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t currentMultiSuperframe) {
-    if (this->scanning) {
+    if(this->scanning) {
         this->superframesLeftForScan--;
 
-        if (this->superframesLeftForScan == 0) {
-            switch (this->scanType) {
+        if(this->superframesLeftForScan == 0) {
+            switch(this->scanType) {
                 case PASSIVE:
                     channelScanPassiveComplete();
                     break;
@@ -553,13 +553,13 @@ void BeaconManager::channelScanPassiveComplete() {
     DSME_ASSERT(this->scanning);
 
     LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
-    if (this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
+    if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
 
         mlme_sap::SCAN_confirm_parameters params;
 
-        if (this->dsme.getMAC_PIB().macAutoRequest) {
+        if(this->dsme.getMAC_PIB().macAutoRequest) {
             params.panDescriptorList = panDescriptorList;
             params.resultListSize = panDescriptorList.size();
         } else {
@@ -581,10 +581,10 @@ void BeaconManager::channelScanPassiveComplete() {
 }
 
 void BeaconManager::singleBeaconScanPassiveReceived(PANDescriptor& panDescr) {
-    if (this->dsme.getMAC_PIB().macAutoRequest) {
+    if(this->dsme.getMAC_PIB().macAutoRequest) {
         LOG_INFO("Beacon registered during passive scan.");
         this->panDescriptorList.add(panDescr);
-        if (this->panDescriptorList.full()) {
+        if(this->panDescriptorList.full()) {
             channelScanPassiveComplete();
         }
     }
@@ -595,13 +595,13 @@ void BeaconManager::channelScanEnhancedActiveComplete() {
     DSME_ASSERT(this->scanning);
 
     LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
-    if (this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
+    if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
 
         mlme_sap::SCAN_confirm_parameters params;
 
-        if (this->dsme.getMAC_PIB().macAutoRequest) {
+        if(this->dsme.getMAC_PIB().macAutoRequest) {
             params.panDescriptorList = panDescriptorList;
             params.resultListSize = panDescriptorList.size();
         } else {
@@ -622,10 +622,10 @@ void BeaconManager::channelScanEnhancedActiveComplete() {
 }
 
 void BeaconManager::singleBeaconScanEnhancedActiveReceived(PANDescriptor& panDescr) {
-    if (this->dsme.getMAC_PIB().macAutoRequest) {
+    if(this->dsme.getMAC_PIB().macAutoRequest) {
         LOG_INFO("Beacon registered during enhanced active scan.");
         this->panDescriptorList.add(panDescr);
-        if (this->panDescriptorList.full()) {
+        if(this->panDescriptorList.full()) {
             channelScanEnhancedActiveComplete();
         }
     }

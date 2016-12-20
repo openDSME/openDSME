@@ -66,7 +66,7 @@ void POLL::request(request_parameters& params) {
     msg->getHeader().setDstAddr(params.coordAddress);
 
     /* 0xffff means unassociated, 0xfffe means short address not yet allocated */
-    if (dsme.getMAC_PIB().macShortAddress < 0xfffe) {
+    if(dsme.getMAC_PIB().macShortAddress < 0xfffe) {
         msg->getHeader().setSrcAddrMode(SHORT_ADDRESS);
         IEEE802154MacAddress sourceAddress(dsme.getMAC_PIB().macShortAddress);
         msg->getHeader().setSrcAddr(sourceAddress);

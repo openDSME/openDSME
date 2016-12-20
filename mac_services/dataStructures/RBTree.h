@@ -186,8 +186,8 @@ RBTree<T, K>::RBTree() :
 template<typename T, typename K>
 RBTree<T, K>::~RBTree() {
     iterator iter = this->begin();
-    while (iter != this->end()) {
-        delete (iter++).currentNode;
+    while(iter != this->end()) {
+        delete(iter++).currentNode;
     }
 }
 
@@ -214,11 +214,11 @@ const typename RBTree<T, K>::iterator RBTree<T, K>::end() const {
 template<typename T, typename K>
 bool RBTree<T, K>::insert(T obj, K key) {
     RBNode<T, K>* node;
-    if (m_size == (tree_size_t) - 1) {
+    if(m_size == (tree_size_t) - 1) {
         /* '-> tree is already full, depends on bit-width of 'tree_size_t' */
         return false;
     }
-    if (m_size == 0) {
+    if(m_size == 0) {
         node = new RBNode<T, K>(obj, key);
         //tree was empty -> inserted object becomes root
         node->parent = nullptr;
@@ -227,13 +227,13 @@ bool RBTree<T, K>::insert(T obj, K key) {
     } else {
         //tree was not empty
         RBNode<T, K>* current = root;
-        while (true) {
-            if (key == current->key) {
+        while(true) {
+            if(key == current->key) {
                 //double key means same node -> no insert necessary
                 return false;
-            } else if (key < current->key) {
+            } else if(key < current->key) {
                 // key is smaller -> left path
-                if (current->leftChild == nullptr) {
+                if(current->leftChild == nullptr) {
                     // has no left child -> current node sets his child -> position found
                     node = new RBNode<T, K>(obj, key);
                     node->parent = current;
@@ -241,9 +241,9 @@ bool RBTree<T, K>::insert(T obj, K key) {
                     break;
                 }
                 current = current->leftChild;
-            } else if (key > current->key) {
+            } else if(key > current->key) {
                 // key is bigger -> right path
-                if (current->rightChild == nullptr) {
+                if(current->rightChild == nullptr) {
                     // has no right child -> current node sets his child -> position found
                     node = new RBNode<T, K>(obj, key);
                     node->parent = current;
@@ -257,15 +257,15 @@ bool RBTree<T, K>::insert(T obj, K key) {
          * correct position for insertion found
          */
 
-        while (true) {
+        while(true) {
             RBNode<T, K>* P, *G, *U;
             P = node->parent;
             G = grandparent(node); // grandparent from node
             U = uncle(node); // uncle from node
 
-            if (P == nullptr || P->color == BLACK) { // Transformation_2 : parent node is BLACK
+            if(P == nullptr || P->color == BLACK) {  // Transformation_2 : parent node is BLACK
                 break; //nothing to do
-            } else if (U != nullptr && U->color == RED) { // Transformation_3: parent and uncle are RED
+            } else if(U != nullptr && U->color == RED) {  // Transformation_3: parent and uncle are RED
                 P->color = BLACK;
                 U->color = BLACK;
                 G->color = RED;
@@ -276,7 +276,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
             /*Transformation_4: P == RED , U != RED
              * node and P are different direction children ( one is a leftchild and the other a rightchild)
              */
-            if (node == P->rightChild && (G == nullptr || P == G->leftChild)) { // Transformation_4R
+            if(node == P->rightChild && (G == nullptr || P == G->leftChild)) {  // Transformation_4R
                 //node is right from parent, parent is left from grandparent
                 rotate_left(P);
                 //node becomes parent from P, both are now left children
@@ -284,7 +284,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
                 node = P; // new problem node
                 P = node->parent; // new parent(red)
 
-            } else if (node == P->leftChild && (G == nullptr || P == G->rightChild)) { // Transformation_4L
+            } else if(node == P->leftChild && (G == nullptr || P == G->rightChild)) {  // Transformation_4L
                 //node is left from parent, parent is right from grandparent
                 rotate_right(P);
                 //node becomes parent from P, both are now right children
@@ -296,8 +296,8 @@ bool RBTree<T, K>::insert(T obj, K key) {
             /* Transformation_5: P == RED , U != RED,
              * node and P are both same direction child (both right or both left)
              */
-            if (G != nullptr) {
-                if (node == P->leftChild && P == G->leftChild) { // Transformation_5L
+            if(G != nullptr) {
+                if(node == P->leftChild && P == G->leftChild) {  // Transformation_5L
                     // node and P are left children
                     rotate_right(G);
                 } else { // Transformation_5R
@@ -325,7 +325,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
      */
 
     /* the problem will at most move up to the root*/
-    while (node->parent != nullptr) {
+    while(node->parent != nullptr) {
         /*
          * in each iteration sibling and parent have to be set to the actual value
          */
@@ -335,8 +335,8 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
         /*
          * case 1: sibling of problem node is RED
          */
-        if (sib->color == RED) {
-            if (parent->rightChild == sib) {
+        if(sib->color == RED) {
+            if(parent->rightChild == sib) {
                 rotate_left(parent);
             } else {
                 rotate_right(parent);
@@ -349,11 +349,11 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
          * case 2: sibling of problem node is BLACK
          *         both children are BLACK or their are no children.
          */
-        if (sib->color == BLACK && (sib->rightChild == nullptr || sib->rightChild->color == BLACK)
+        if(sib->color == BLACK && (sib->rightChild == nullptr || sib->rightChild->color == BLACK)
                 && (sib->leftChild == nullptr || sib->leftChild->color == BLACK)) {
             node = parent;
             sib->color = RED;
-            if (node->color == RED) {
+            if(node->color == RED) {
                 node->color = BLACK;
                 return;
             } else {
@@ -364,13 +364,13 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
         /*
          * sibling is right child
          */
-        if (parent->rightChild == sib) {
+        if(parent->rightChild == sib) {
             /*
              * case 3: sibling of problem node is BLACK
              *         inner child is RED (left child)
              *         outer child is BLACK or does not exist (right child)
              */
-            if (sib->color == BLACK && (sib->rightChild == nullptr || sib->rightChild->color == BLACK)
+            if(sib->color == BLACK && (sib->rightChild == nullptr || sib->rightChild->color == BLACK)
                     && (sib->leftChild != nullptr && sib->leftChild->color == RED)) {
                 rotate_right(sib);
                 sib->color = RED;
@@ -381,7 +381,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
              * case 4: sibling of problem node is BLACK
              *         outer child is RED (right child)
              */
-            if (sib->color == BLACK && (sib->rightChild != nullptr && sib->rightChild->color == RED)) {
+            if(sib->color == BLACK && (sib->rightChild != nullptr && sib->rightChild->color == RED)) {
 
                 rotate_left(parent);
 
@@ -399,7 +399,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
              *         inner child is RED (right child)
              *         outer child is BLACK or does not exist (left child)
              */
-            if (sib->color == BLACK && (sib->rightChild != nullptr && sib->rightChild->color == RED)
+            if(sib->color == BLACK && (sib->rightChild != nullptr && sib->rightChild->color == RED)
                     && (sib->leftChild == nullptr || sib->leftChild->color == BLACK)) {
                 rotate_left(sib);
                 sib->color = RED;
@@ -410,7 +410,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
              * case 4: sibling of problem node is BLACK
              *         outer child is RED (left child)
              */
-            if (sib->color == BLACK && (sib->leftChild != nullptr && sib->leftChild->color == RED)) {
+            if(sib->color == BLACK && (sib->leftChild != nullptr && sib->leftChild->color == RED)) {
                 rotate_right(parent);
                 grandparent(node)->color = parent->color;
                 parent->color = BLACK;
@@ -423,7 +423,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
 
 template<typename T, typename K>
 void RBTree<T, K>::remove(iterator& iter) {
-    if (iter == end()) {
+    if(iter == end()) {
         return;
     }
 
@@ -431,10 +431,10 @@ void RBTree<T, K>::remove(iterator& iter) {
     /*
      * preparation for one child
      */
-    if (node->leftChild == nullptr) {
+    if(node->leftChild == nullptr) {
         rnode = node;
         child = rnode->rightChild;
-    } else if (node->rightChild == nullptr) {
+    } else if(node->rightChild == nullptr) {
         rnode = node;
         child = rnode->leftChild;
     } else {
@@ -452,12 +452,12 @@ void RBTree<T, K>::remove(iterator& iter) {
      * rnode points to the node that has to be removed
      */
     parent = rnode->parent;
-    if (parent == nullptr) {
+    if(parent == nullptr) {
         /*
          * case 1 and case 2: root is single node or has one child
          */
         root = child; // child becomes new root
-        if (child != nullptr) {
+        if(child != nullptr) {
             child->parent = nullptr;
         }
         delete rnode;
@@ -466,12 +466,12 @@ void RBTree<T, K>::remove(iterator& iter) {
     /*
      * simple cases: rnode or child is RED and rnode is not root
      */
-    else if (rnode->color == RED && parent != nullptr) {
+    else if(rnode->color == RED && parent != nullptr) {
         /*
          * case 4.1 and case 5.1: rnode is RED -> it can be removed easily.
          */
 
-        if (rnode == parent->leftChild) {
+        if(rnode == parent->leftChild) {
             parent->leftChild = child;
         } else {
             parent->rightChild = child;
@@ -479,24 +479,24 @@ void RBTree<T, K>::remove(iterator& iter) {
 
         delete rnode;
 
-    } else if (child == nullptr && rnode->color == BLACK && parent != nullptr) {
+    } else if(child == nullptr && rnode->color == BLACK && parent != nullptr) {
         /*
          * case 4.2: rnode is BLACK and child is nullptr
          */
         balanceTree(rnode);
-        if (rnode == parent->leftChild) {
+        if(rnode == parent->leftChild) {
             parent->leftChild = nullptr;
         } else {
             parent->rightChild = nullptr;
         }
 
         delete rnode;
-    } else if (child->color == RED && parent != nullptr && rnode->color == BLACK) {
+    } else if(child->color == RED && parent != nullptr && rnode->color == BLACK) {
         /*
          * case 5.2.1: rnode is BLACK and child is RED
          */
         child->color = BLACK;
-        if (rnode == parent->leftChild) {
+        if(rnode == parent->leftChild) {
             parent->leftChild = child;
         } else {
             parent->rightChild = child;
@@ -517,10 +517,10 @@ template<typename T, typename K>
 typename RBTree<T, K>::iterator RBTree<T, K>::find(K key) {
     RBNode<T, K>* current = root;
 
-    while (current != nullptr) {
-        if (current->key == key) {
+    while(current != nullptr) {
+        if(current->key == key) {
             return RBTree<T, K>::iterator(this, current);
-        } else if (key < current->key) {
+        } else if(key < current->key) {
             current = current->leftChild;
         } else {
             current = current->rightChild;
@@ -531,7 +531,7 @@ typename RBTree<T, K>::iterator RBTree<T, K>::find(K key) {
 
 template<typename T, typename K>
 RBNode<T, K>* RBTree<T, K>::grandparent(RBNode<T, K>* x) {
-    if (x == nullptr || x->parent == nullptr) {
+    if(x == nullptr || x->parent == nullptr) {
         return nullptr;
     }
     return x->parent->parent;
@@ -539,10 +539,10 @@ RBNode<T, K>* RBTree<T, K>::grandparent(RBNode<T, K>* x) {
 
 template<typename T, typename K>
 RBNode<T, K>* RBTree<T, K>::uncle(RBNode<T, K>* x) {
-    if (grandparent(x) == nullptr) {
+    if(grandparent(x) == nullptr) {
         return nullptr;
     }
-    if (x->parent == grandparent(x)->leftChild) {
+    if(x->parent == grandparent(x)->leftChild) {
         return grandparent(x)->rightChild;
     } else {
         return grandparent(x)->leftChild;
@@ -551,10 +551,10 @@ RBNode<T, K>* RBTree<T, K>::uncle(RBNode<T, K>* x) {
 
 template<typename T, typename K>
 RBNode<T, K>* RBTree<T, K>::sibling(RBNode<T, K>* x) {
-    if (x->parent == nullptr) {
+    if(x->parent == nullptr) {
         return nullptr;
     }
-    if (x == x->parent->leftChild) {
+    if(x == x->parent->leftChild) {
         return x->parent->rightChild;
     } else {
         return x->parent->leftChild;
@@ -568,7 +568,7 @@ RBNode<T, K>* RBTree<T, K>::findSwapNode(RBNode<T, K>* x) {
      */
 
     RBNode<T, K>* node = x->rightChild;
-    while (node->leftChild != nullptr) {
+    while(node->leftChild != nullptr) {
         node = node->leftChild;
     }
     return node;
@@ -587,12 +587,12 @@ void RBTree<T, K>::rotate_right(RBNode<T, K>* x) {
     rightgrandchild = leftchild->rightChild;
     parent = x->parent;
 
-    if (parent == nullptr) {
+    if(parent == nullptr) {
         root = leftchild;
         leftchild->parent = nullptr;
         x->parent = leftchild;
     } else {
-        if (parent->rightChild == x) {
+        if(parent->rightChild == x) {
             parent->rightChild = leftchild;
             leftchild->parent = parent;
         } else {
@@ -604,7 +604,7 @@ void RBTree<T, K>::rotate_right(RBNode<T, K>* x) {
     x->parent = leftchild;
 
     x->leftChild = rightgrandchild;
-    if (rightgrandchild != nullptr) {
+    if(rightgrandchild != nullptr) {
         rightgrandchild->parent = x;
     }
 }
@@ -616,12 +616,12 @@ void RBTree<T, K>::rotate_left(RBNode<T, K>* x) {
     leftgrandchild = rightchild->leftChild;
     parent = x->parent;
 
-    if (parent == nullptr) {
+    if(parent == nullptr) {
         root = rightchild;
         rightchild->parent = nullptr;
         x->parent = rightchild;
     } else {
-        if (parent->leftChild == x) {
+        if(parent->leftChild == x) {
             parent->leftChild = rightchild;
             rightchild->parent = parent;
         } else {
@@ -634,7 +634,7 @@ void RBTree<T, K>::rotate_left(RBNode<T, K>* x) {
     x->parent = rightchild;
 
     x->rightChild = leftgrandchild;
-    if (leftgrandchild != nullptr) {
+    if(leftgrandchild != nullptr) {
         leftgrandchild->parent = x;
     }
 }

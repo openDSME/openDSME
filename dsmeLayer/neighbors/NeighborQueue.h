@@ -129,7 +129,7 @@ const typename NeighborQueue<N>::iterator NeighborQueue<N>::end() const {
 
 template<uint8_t N>
 void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
-    if (neighbors.size() < N) {
+    if(neighbors.size() < N) {
         neighbors.insert(NeighborListEntry<DSMEMessage>(neighbor), neighbor.address);
         return;
     } else {
@@ -139,7 +139,7 @@ void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
 
 template<uint8_t N>
 void NeighborQueue<N>::eraseNeighbor(iterator& neighbor) {
-    if (neighbor != neighbors.end()) {
+    if(neighbor != neighbors.end()) {
         queue.flush(*neighbor, false);
         neighbors.remove(neighbor);
     }
@@ -188,7 +188,7 @@ void NeighborQueue<N>::pushBack(iterator& neighbor, DSMEMessage* msg) {
 
 template<uint8_t N>
 void NeighborQueue<N>::flushQueues(bool keepFront) {
-    for (iterator i = neighbors.begin(); i != neighbors.end(); ++i) {
+    for(iterator i = neighbors.begin(); i != neighbors.end(); ++i) {
         queue.flush(*i, keepFront);
     }
     return;

@@ -64,7 +64,7 @@ PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly) :
     } else {
         /* 11 <= phyCurrentChannel <= 26 for 2450 MHz band DSSS */
         channelList_t DSSS2450_channels(16);
-        for (uint8_t i = 0; i < 16; i++) {
+        for(uint8_t i = 0; i < 16; i++) {
             DSSS2450_channels[i] = 11 + i;
         }
         MacTuple<uint8_t, channelList_t>* DSSS2450_page0 = new MacTuple<uint8_t, channelList_t>(0, DSSS2450_channels);
@@ -75,7 +75,7 @@ PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly) :
 }
 
 PHY_PIB::~PHY_PIB() {
-    for (uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
+    for(uint8_t i = 0; i < phyChannelsSupported.getLength(); i++) {
         delete phyChannelsSupported[i];
     }
 }

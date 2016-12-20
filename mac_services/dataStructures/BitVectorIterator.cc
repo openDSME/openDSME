@@ -67,7 +67,7 @@ BitVectorIterator& BitVectorIterator::operator++() {
         return *this;
     }
     this->position++;
-    for (; this->position != max && instance->get(this->position) != value;
+    for(; this->position != max && instance->get(this->position) != value;
             this->position++) {
     }
     return *this;

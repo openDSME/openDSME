@@ -42,7 +42,7 @@ class Delegate; //forward declaration..
 
 template<typename return_type, typename... params>
 class Delegate<return_type(params...)> {
-    typedef return_type (*Pointer2Function)(void* callee, params...);
+    typedef return_type(*Pointer2Function)(void* callee, params...);
 public:
     Delegate(void* callee, Pointer2Function function)
         : fpCallee(callee)
@@ -80,12 +80,12 @@ private:
  */
 template<typename T, typename return_type, typename... params>
 struct DelegateFactory {
-    template<return_type (T::*Func)(params...)>
+    template<return_type(T::*Func)(params...)>
     static return_type MethodCaller(void* o, params... xs) {
         return (static_cast<T*>(o)->*Func)(xs...);
     }
 
-    template<return_type (T::*Func)(params...)>
+    template<return_type(T::*Func)(params...)>
     inline static Delegate<return_type(params...)> Create(T* o) {
         return Delegate<return_type(params...)>(o, &DelegateFactory::MethodCaller<Func>);
     }
@@ -96,7 +96,7 @@ struct DelegateFactory {
  * will return a DelegateFactory
  */
 template<typename T, typename return_type, typename... params>
-DelegateFactory<T, return_type, params...> MakeDelegate(return_type (T::*)(params...)) {
+DelegateFactory<T, return_type, params...> MakeDelegate(return_type(T::*)(params...)) {
     return DelegateFactory<T, return_type, params...>();
 }
 

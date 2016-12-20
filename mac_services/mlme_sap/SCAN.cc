@@ -52,7 +52,7 @@ SCAN::SCAN(DSMELayer& dsme) :
 }
 
 void SCAN::request(request_parameters& params) {
-    switch (params.scanType) {
+    switch(params.scanType) {
         /*
          * IEEE802.15.4-2012 6.2.10.1
          */
@@ -70,7 +70,7 @@ void SCAN::request(request_parameters& params) {
             break;
 
         case ScanType::ASYMMETRICMULTICHANNELACTIVE:
-            if (params.linkQualityScan) {
+            if(params.linkQualityScan) {
                 // not implemented
             } else {
                 // not implemented

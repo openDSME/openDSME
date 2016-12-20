@@ -74,7 +74,7 @@ private:
 template<typename C, typename E, uint8_t N, ringbuffer_size_t S>
 class DSMEBufferedMultiFSM {
 public:
-    typedef fsmReturnStatus (C::*state_t)(E& event);
+    typedef fsmReturnStatus(C::*state_t)(E& event);
 
     /**
      * Created FSM is put into initial state
@@ -107,7 +107,7 @@ public:
         }
 
         isBusy = this->dispatchBusy;
-        if (isBusy) {
+        if(isBusy) {
             returnValue = canAdd;
         } else {
             DSME_ASSERT(canAdd);
@@ -141,7 +141,7 @@ public:
 
 private:
     void runUntilFinished() {
-        while (eventBuffer.hasCurrent()) {
+        while(eventBuffer.hasCurrent()) {
             E* currentEvent = this->eventBuffer.current();
 
             int8_t fsmId = currentEvent->getFsmId();
@@ -150,10 +150,10 @@ private:
             state_t s = state;
             fsmReturnStatus r = (((C*) this)->*state)(*currentEvent);
 
-            while (r == FSM_TRANSITION) {
+            while(r == FSM_TRANSITION) {
                 /* call the exit action from last state, reuse the already processed 'currentEvent' to deliver this */
                 currentEvent->signal = E::EXIT_SIGNAL;
-                r = (((C* )this)->*s)(*currentEvent);
+                r = (((C*)this)->*s)(*currentEvent);
                 DSME_ASSERT(r != FSM_TRANSITION);
 
                 state = states[fsmId];
