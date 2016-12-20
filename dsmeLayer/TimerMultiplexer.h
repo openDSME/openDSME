@@ -109,7 +109,7 @@ protected:
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         this->history.addEvent(nextEventSymbolCounter, E);
 
-        if (nextEventSymbolCounter <= this->lastDispatchSymbolCounter) {
+        if (nextEventSymbolCounter <= this->currentDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
             LOG_ERROR("now:" << now
@@ -163,10 +163,10 @@ protected:
 
 private:
     void dispatchEvents() {
-        uint32_t currentSymbolCounter = _NOW;
+        currentDispatchSymbolCounter = _NOW;
 
         /* The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t). */
-        int32_t symbolsSinceLastDispatch = (uint32_t) (currentSymbolCounter - this->lastDispatchSymbolCounter);
+        int32_t symbolsSinceLastDispatch = (uint32_t) (currentDispatchSymbolCounter - this->lastDispatchSymbolCounter);
 
         for (uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             if (0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {
@@ -192,7 +192,7 @@ private:
                 this->symbols_until[i] -= symbolsSinceLastDispatch;
             }
         }
-        this->lastDispatchSymbolCounter = currentSymbolCounter;
+        this->lastDispatchSymbolCounter = currentDispatchSymbolCounter;
         return;
     }
 
@@ -201,6 +201,8 @@ private:
      * The timestamp in symbols of the last call to dispatchEvents();
      */
     uint32_t lastDispatchSymbolCounter;
+
+    uint32_t currentDispatchSymbolCounter;
 
     /**
      * Values >  0: timer is activated
