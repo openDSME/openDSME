@@ -134,13 +134,15 @@ private:
 
     void handleDataConfirm(mcps_sap::DATA_confirm_parameters& params);
 
-    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params);
+    void handleSyncLossAfterSynced();
 
     void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
 
     void handleAssociationComplete(AssociationStatus::Association_Status status);
 
     void handleDisassociationComplete(DisassociationStatus::Disassociation_Status status);
+
+    void reset();
 
     DSMELayer& dsme;
 

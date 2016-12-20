@@ -166,7 +166,7 @@ private:
         currentDispatchSymbolCounter = _NOW;
 
         /* The difference also works if there was a wrap around since lastSymCnt (modulo by casting to uint32_t). */
-        int32_t symbolsSinceLastDispatch = (uint32_t) (currentDispatchSymbolCounter - this->lastDispatchSymbolCounter);
+        int32_t symbolsSinceLastDispatch = (uint32_t)(currentDispatchSymbolCounter - this->lastDispatchSymbolCounter);
 
         for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             if(0 < this->symbols_until[i] && this->symbols_until[i] <= symbolsSinceLastDispatch) {

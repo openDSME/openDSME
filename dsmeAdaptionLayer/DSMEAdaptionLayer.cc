@@ -78,9 +78,8 @@ void DSMEAdaptionLayer::initialize(channelList_t& scanChannels) {
     this->mcps_sap->getDATA().indication(DELEGATE(&DSMEAdaptionLayer::handleDataIndication, *this));
     this->mcps_sap->getDATA().confirm(DELEGATE(&DSMEAdaptionLayer::handleDataConfirm, *this));
 
-    this->mlme_sap->getSYNC_LOSS().indication(DELEGATE(&DSMEAdaptionLayer::handleSyncLossIndication, *this));
-
     this->scanHelper.setScanAndSyncCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanAndSyncComplete, *this));
+    this->scanHelper.setSyncLossAfterSyncedDelegate(DELEGATE(&DSMEAdaptionLayer::handleSyncLossAfterSynced, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     this->associationHelper.setDisassociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleDisassociationComplete, *this));
     return;
@@ -117,14 +116,14 @@ void DSMEAdaptionLayer::setConfirmCallback(confirmCallback_t callback_confirm) {
 }
 
 void DSMEAdaptionLayer::receiveIndication(DSMEMessage* msg) {
-    if (this->callback_indication) {
+    if(this->callback_indication) {
         callback_indication(msg);
     }
     return;
 }
 
 void DSMEAdaptionLayer::sendRetryBuffer() {
-    if (this->retryBuffer.hasCurrent()) {
+    if(this->retryBuffer.hasCurrent()) {
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
         do {
             DSMEMessage* currentMessage = this->retryBuffer.current()->message;
@@ -132,7 +131,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
 
             this->retryBuffer.advanceCurrent();
             sendMessageDown(currentMessage, false);
-        } while (this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
+        } while(this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
     }
 }
 
@@ -144,10 +143,10 @@ void DSMEAdaptionLayer::sendMessage(DSMEMessage* msg) {
 }
 
 void DSMEAdaptionLayer::startAssociation() {
-    if (!getMAC_PIB().macAssociatedPANCoord) {
+    if(!getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Device is not associated with PAN.");
-        if (!this->associationInProgress) {
-            if (!this->scanOrSyncInProgress) {
+        if(!this->associationInProgress) {
+            if(!this->scanOrSyncInProgress) {
                 this->scanOrSyncInProgress = true;
                 this->scanHelper.startScan();
             } else {
@@ -160,7 +159,7 @@ void DSMEAdaptionLayer::startAssociation() {
 }
 
 void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
-    if (msg == nullptr) {
+    if(msg == nullptr) {
         /* '-> Error! */
         DSME_ASSERT(false);
         return;
@@ -171,13 +170,13 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
     msg->getHeader().setSrcAddr(this->mac_pib->macExtendedAddress);
     IEEE802154MacAddress& dst = msg->getHeader().getDestAddr();
 
-    if (!getMAC_PIB().macAssociatedPANCoord) {
+    if(!getMAC_PIB().macAssociatedPANCoord) {
         startAssociation();
         LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
         callback_confirm(msg, DataStatus::TRANSACTION_OVERFLOW);
         return;
-    } else if (this->getMAC_PIB().macIsCoord) {
-        if (!associationHelper.isAssociatedDevice(dst)) {
+    } else if(this->getMAC_PIB().macIsCoord) {
+        if(!associationHelper.isAssociatedDevice(dst)) {
             LOG_INFO("Discarding message for " << dst.getShortAddress() << " because it is not associated.");
             dsme.getPlatform().releaseMessage(msg);
             return;
@@ -186,7 +185,7 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
 
     LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
 
-    if (dst.getShortAddress() == this->mac_pib->macShortAddress) {
+    if(dst.getShortAddress() == this->mac_pib->macShortAddress) {
         /* '-> loopback */
         LOG_INFO("Loopback message received.");
         receiveIndication(msg);
@@ -233,16 +232,16 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
 
         params.sendMultipurpose = false;
 
-        if (params.gtsTX) {
+        if(params.gtsTX) {
             uint16_t srcAddr = this->dsme.getMAC_PIB().macShortAddress;
-            if (srcAddr == 0xfffe) {
+            if(srcAddr == 0xfffe) {
                 LOG_WARN("No short address allocated -> cannot request GTS!");
-            } else if (srcAddr == 0xffff) {
+            } else if(srcAddr == 0xffff) {
                 LOG_INFO("Association required before slot allocation.");
                 DSME_ASSERT(false);
             }
 
-            if (!this->dsme.getMessageDispatcher().neighborExists(dst)) {
+            if(!this->dsme.getMessageDispatcher().neighborExists(dst)) {
                 // TODO implement neighbor management / routing
                 this->dsme.getMessageDispatcher().addNeighbor(dst);
             }
@@ -269,11 +268,11 @@ void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameter
 }
 
 bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
-    if (!this->retryBuffer.hasNext()) {
+    if(!this->retryBuffer.hasNext()) {
         DSME_ASSERT(this->retryBuffer.hasCurrent());
 
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
-        if (oldestEntry->message == msg) {
+        if(oldestEntry->message == msg) {
             this->retryBuffer.advanceCurrent();
             DSME_ASSERT(this->retryBuffer.hasNext());
             this->retryBuffer.next()->message = msg;
@@ -281,7 +280,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
             return true;
         }
 
-        if (!oldestEntry->message->currentlySending) {
+        if(!oldestEntry->message->currentlySending) {
             uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
             LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress()
                       << ": Retry-Queue overflow ("
@@ -292,7 +291,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
             this->retryBuffer.advanceCurrent();
         }
     }
-    if (this->retryBuffer.hasNext()) {
+    if(this->retryBuffer.hasNext()) {
         this->retryBuffer.next()->message = msg;
         this->retryBuffer.next()->initialSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
         this->retryBuffer.advanceNext();
@@ -357,21 +356,20 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& par
     callback_confirm(params.msduHandle, params.status);
 }
 
-void DSMEAdaptionLayer::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params) {
-    if(params.lossReason == LossReason::BEACON_LOST) {
-        LOG_ERROR("Beacon tracking lost.");
-    } else {
-        LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
-        DSME_ASSERT(false);
+void DSMEAdaptionLayer::handleSyncLossAfterSynced() {
+    if(this->mac_pib->macAssociatedPANCoord) {
+        this->associationHelper.disassociate();
     }
-
-    this->associationHelper.disassociate();
-    return;
+    else {
+        reset();
+    }
 }
 
 void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
+    DSME_ASSERT(this->scanOrSyncInProgress);
+    DSME_ASSERT(!this->associationInProgress);
 
-    if (panDescriptor != nullptr) {
+    if(panDescriptor != nullptr) {
         LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
                  << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
 
@@ -388,7 +386,7 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
 
 void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association_Status status) {
     this->associationInProgress = false;
-    if (status == AssociationStatus::SUCCESS) {
+    if(status == AssociationStatus::SUCCESS) {
         LOG_INFO("Association completed successfully.");
     } else {
         LOG_ERROR("Association failed.");
@@ -396,18 +394,7 @@ void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association
     return;
 }
 
-void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
-    if (status == DisassociationStatus::SUCCESS) {
-        LOG_INFO("Disassociation completed successfully.");
-    } else {
-        LOG_ERROR("Disassociation failed.");
-    }
-
-    /*
-     * A disassociation is currently only started after loosing beacon tracking.
-     * Afterwards, reset the entire MLME.
-     */
-
+void DSMEAdaptionLayer::reset() {
     mlme_sap::RESET::request_parameters params;
     params.setDefaultPIB = false;
 
@@ -420,6 +407,20 @@ void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disas
 
     this->gtsAllocationHelper.reset();
     return;
+}
+
+void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
+    if(status == DisassociationStatus::SUCCESS) {
+        LOG_INFO("Disassociation completed successfully.");
+    } else {
+        LOG_ERROR("Disassociation failed.");
+    }
+
+    /*
+     * A disassociation is currently only started after loosing beacon tracking.
+     * Afterwards, reset the entire MLME.
+     */
+    reset();
 }
 
 } /* dsme */

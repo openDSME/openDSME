@@ -45,6 +45,7 @@
 
 #include "../mac_services/mlme_sap/helper/PanDescriptorList.h"
 #include "PHY_PIB.h"
+#include "SYNC_LOSS.h"
 
 namespace dsme {
 
@@ -60,6 +61,7 @@ struct DSMEPANDescriptor;
 class ScanHelper {
 public:
     typedef Delegate<void(PANDescriptor*)> scanAndSyncCompleteDelegate_t;
+    typedef Delegate<void()> syncLossAfterSyncedDelegate_t;
 
     explicit ScanHelper(DSMEAdaptionLayer&);
 
@@ -69,15 +71,20 @@ public:
 
     void setScanAndSyncCompleteDelegate(scanAndSyncCompleteDelegate_t delegate);
 
+    void setSyncLossAfterSyncedDelegate(syncLossAfterSyncedDelegate_t delegate);
+
 private:
     void handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indication_parameters&);
 
     void handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters&);
 
+    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params);
+
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
     PanDescriptorList recordedPanDescriptors;
     scanAndSyncCompleteDelegate_t scanAndSyncCompleteDelegate;
+    syncLossAfterSyncedDelegate_t syncLossAfterSyncedDelegate;
 
     MacStaticList<uint16_t, 8> heardCoordinators;
     uint8_t passiveScanCounter;

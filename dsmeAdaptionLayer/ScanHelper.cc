@@ -59,6 +59,7 @@ void ScanHelper::initialize(channelList_t& scanChannels) {
     this->scanChannels = scanChannels;
     this->dsmeAdaptionLayer.getMLME_SAP().getBEACON_NOTIFY().indication(DELEGATE(&ScanHelper::handleBEACON_NOTIFY_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getSCAN().confirm(DELEGATE(&ScanHelper::handleSCAN_confirm, *this));
+    this->dsmeAdaptionLayer.getMLME_SAP().getSYNC_LOSS().indication(DELEGATE(&ScanHelper::handleSyncLossIndication, *this));
     return;
 }
 
@@ -67,13 +68,20 @@ void ScanHelper::setScanAndSyncCompleteDelegate(scanAndSyncCompleteDelegate_t de
     return;
 }
 
+void ScanHelper::setSyncLossAfterSyncedDelegate(syncLossAfterSyncedDelegate_t delegate) {
+    this->syncLossAfterSyncedDelegate = delegate;
+    return;
+}
+
 void ScanHelper::startScan() {
+    DSME_ASSERT(!this->syncActive);
+
     this->recordedPanDescriptors.clear();
 
     mlme_sap::SCAN::request_parameters params;
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
-    if (((uint16_t)this->passiveScanCounter) > random_value) {
+    if(((uint16_t)this->passiveScanCounter) > random_value) {
         LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
@@ -98,8 +106,27 @@ void ScanHelper::startScan() {
     return;
 }
 
+void ScanHelper::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params) {
+    if(params.lossReason == LossReason::BEACON_LOST) {
+        LOG_ERROR("Beacon tracking lost.");
+        //DSME_SIM_ASSERT(false); TODO
+    } else {
+        LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
+        DSME_ASSERT(false);
+    }
+
+    if(this->syncActive) {
+        this->syncActive = false;
+        this->scanAndSyncCompleteDelegate(nullptr);
+    }
+    else {
+        this->syncLossAfterSyncedDelegate();
+    }
+    return;
+}
+
 void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indication_parameters& params) {
-    if (!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
+    if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
         LOG_INFO("Beacon registered in upper layer.");
         this->recordedPanDescriptors.add(params.panDescriptor);
     }
@@ -111,6 +138,7 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
 
     if(this->syncActive) {
         // TODO check if the beacon is actually from the PAN described in the activePanDescriptor
+        this->syncActive = false;
         this->scanAndSyncCompleteDelegate(&this->panDescriptorToSyncTo);
     }
 
@@ -119,14 +147,14 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
              << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
              << ", isCoordinator:" << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
              << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength())
-             << "." );
+             << ".");
     if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
             && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
             && heardCoordinators.getLength() < 2
       ) {
 
         uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 3;
-        if (random_value < 1) {
+        if(random_value < 1) {
             mlme_sap::START::request_parameters request_params;
             request_params.panCoordinator = false;
             // TODO: fill rest;
@@ -145,17 +173,17 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
 }
 
 void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
-    this->syncActive = false;
+    DSME_ASSERT(!this->syncActive);
 
-    if (!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
-        if (this->recordedPanDescriptors.size() > 0) {
+    if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
+        if(this->recordedPanDescriptors.size() > 0) {
             this->panDescriptorToSyncTo = this->recordedPanDescriptors[0];
         } else {
             this->scanAndSyncCompleteDelegate(nullptr);
             return;
         }
     } else {
-        if (params.panDescriptorList.size() > 0) {
+        if(params.panDescriptorList.size() > 0) {
             this->panDescriptorToSyncTo = params.panDescriptorList[0];
         } else {
             this->scanAndSyncCompleteDelegate(nullptr);

@@ -92,6 +92,10 @@ SCAN& MLME_SAP::getSCAN() {
     return this->scan;
 }
 
+SYNC& MLME_SAP::getSYNC() {
+    return this->sync;
+}
+
 START& MLME_SAP::getSTART() {
     return this->start;
 }

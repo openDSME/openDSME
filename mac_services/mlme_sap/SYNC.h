@@ -40,103 +40,41 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MACDATASTRUCTURES_H_
-#define MACDATASTRUCTURES_H_
+#ifndef SYNC_H_
+#define SYNC_H_
 
-#include <stdint.h>
+#include "../ConfirmBase.h"
+#include "../DSME_Common.h"
+#include "../dataStructures/DSMEPANDescriptor.h"
+#include "../pib/PHY_PIB.h"
+#include "helper/PanDescriptorList.h"
 
 namespace dsme {
+class DSMELayer;
+namespace mlme_sap {
 
-template<typename TK, typename TV>
-class MacTuple {
+/*
+ * These primitives are used to SYNC with a coordinator
+ * (IEEE 802.15.4-2015 8.2.13.1)
+ */
+class SYNC {
 public:
-    MacTuple(const TK& key, const TV& value) :
-        key(key),
-        value(value) {
-    }
 
-    TK key;
-    TV value;
-};
+    explicit SYNC(DSMELayer& dsme);
+    struct request_parameters {
+        uint8_t channelNumber;
+        uint8_t channelPage;
+        bool trackBeacon;
 
-template<typename T, uint8_t S>
-class MacStaticList {
-public:
-    MacStaticList() :
-        length(0) {
-    }
+    };
 
-    explicit MacStaticList(const MacStaticList& other) :
-        length(other.length) {
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-    }
-
-    MacStaticList& operator=(const MacStaticList& other) {
-        this->length = other.length;
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-        return *this;
-    }
-
-    explicit MacStaticList(uint8_t length) :
-        length(length) {
-    }
-
-    ~MacStaticList() {
-    }
-
-    uint8_t getLength() const {
-        return this->length;
-    }
-
-    void setLength(uint8_t length) {
-        this->length = length;
-    }
-
-    const T& operator[](uint8_t pos) const {
-        return this->array[pos];
-    }
-
-    T& operator[](uint8_t pos) {
-        return this->array[pos];
-    }
-
-    void add(const T& element) {
-        if(this->length < S) {
-            this->array[length++] = element;
-        }
-    }
-
-    bool contains(const T& element) {
-        for(uint8_t i = 0; i < length; i++) {
-            if(this->array[i] == element) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void clear() {
-        this->length = 0;
-    }
-
-    uint8_t size() const {
-        return this->length;
-    }
-
-    uint8_t full() const {
-        return (this->length == S);
-    }
+    void request(request_parameters&);
 
 private:
-    uint8_t length;
-    T array[S];
+    DSMELayer& dsme;
 };
 
-}
-/* dsme */
+} /* mlme_sap */
+} /* dsme */
 
-#endif /* MACDATASTRUCTURES_H_ */
+#endif /* SCAN_H_ */

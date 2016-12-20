@@ -2,7 +2,7 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * introduced in the IEEE 802.15.4e-2012 standard
+ * described in the IEEE 802.15.4-2015 standard
  *
  * Authors: Florian Meier <florian.meier@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
@@ -40,103 +40,22 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MACDATASTRUCTURES_H_
-#define MACDATASTRUCTURES_H_
+#include "SYNC.h"
 
-#include <stdint.h>
+#include "../../dsmeLayer/DSMELayer.h"
+#include "../../dsmeLayer/beaconManager/BeaconManager.h"
 
 namespace dsme {
-
-template<typename TK, typename TV>
-class MacTuple {
-public:
-    MacTuple(const TK& key, const TV& value) :
-        key(key),
-        value(value) {
-    }
-
-    TK key;
-    TV value;
-};
-
-template<typename T, uint8_t S>
-class MacStaticList {
-public:
-    MacStaticList() :
-        length(0) {
-    }
-
-    explicit MacStaticList(const MacStaticList& other) :
-        length(other.length) {
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-    }
-
-    MacStaticList& operator=(const MacStaticList& other) {
-        this->length = other.length;
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-        return *this;
-    }
-
-    explicit MacStaticList(uint8_t length) :
-        length(length) {
-    }
-
-    ~MacStaticList() {
-    }
-
-    uint8_t getLength() const {
-        return this->length;
-    }
-
-    void setLength(uint8_t length) {
-        this->length = length;
-    }
-
-    const T& operator[](uint8_t pos) const {
-        return this->array[pos];
-    }
-
-    T& operator[](uint8_t pos) {
-        return this->array[pos];
-    }
-
-    void add(const T& element) {
-        if(this->length < S) {
-            this->array[length++] = element;
-        }
-    }
-
-    bool contains(const T& element) {
-        for(uint8_t i = 0; i < length; i++) {
-            if(this->array[i] == element) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void clear() {
-        this->length = 0;
-    }
-
-    uint8_t size() const {
-        return this->length;
-    }
-
-    uint8_t full() const {
-        return (this->length == S);
-    }
-
-private:
-    uint8_t length;
-    T array[S];
-};
-
+namespace mlme_sap {
+SYNC::SYNC(DSMELayer& dsme) :
+    dsme(dsme) {
 }
-/* dsme */
 
-#endif /* MACDATASTRUCTURES_H_ */
+void SYNC::request(request_parameters& params) {
+    dsme.getPHY_PIB().phyCurrentPage = params.channelPage;
+    dsme.getPHY_PIB().phyCurrentChannel = params.channelNumber;
+    dsme.startTrackingBeacons();
+}
+
+} /* mlme_sap */
+} /* dsme */
