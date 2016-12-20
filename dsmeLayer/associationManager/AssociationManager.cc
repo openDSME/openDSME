@@ -357,6 +357,7 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
                     break;
                 }
                 default:
+                    LOG_ERROR(this->currentAction);
                     DSME_ASSERT(false);
             }
         } else {
