@@ -127,7 +127,8 @@ void AckLayer::receive(DSMEMessage* msg) {
     dsme_atomicBegin();
     if(busy) {
         wasBusy = true;
-        DSME_SIM_ASSERT(false);
+        LOG_DEBUG("Throwing away packet, ACKLayer was busy.");
+        //DSME_SIM_ASSERT(false);
     } else {
         wasBusy = false;
         busy = true;
