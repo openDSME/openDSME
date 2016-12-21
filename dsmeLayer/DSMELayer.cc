@@ -165,6 +165,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
         DSME_ASSERT(false);
     }
 
+    auto slotStartTime = this->lastSlotTime;
 
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
@@ -176,7 +177,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     /* handle slot */
     if(currentSlot == 0) {
-        beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe, lateness);
+        beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe, slotStartTime, lateness);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe);

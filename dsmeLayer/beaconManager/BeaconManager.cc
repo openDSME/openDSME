@@ -116,20 +116,20 @@ void BeaconManager::reset() {
     this->neighborOrOwnHeardBeacons.fill(false);
 }
 
-void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t lateness) {
+void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t startSlotTime, uint32_t lateness) {
     if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
         uint16_t currentSDIndex = currentSuperframe
                                   + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if(currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
-            sendEnhancedBeacon(lateness);
+            sendEnhancedBeacon(startSlotTime, lateness);
         }
     }
 }
 
-void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
+void BeaconManager::sendEnhancedBeacon(uint32_t startSlotTime, uint32_t lateness) {
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
-    dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(0); // TODO !!!
+    dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(startSlotTime * symbolDurationInMicroseconds);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(lateness * symbolDurationInMicroseconds);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
@@ -143,10 +143,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
     if(dsme.getMAC_PIB().macIsPANCoord) {
-        // TODO only for PAN coordinator or for all coordinators?
-        // the PAN coordinator is the reference, so set the sent beacon as heard beacon to advance in time
-        // TODO timing?
-        lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
+        lastKnownBeaconIntervalStart = startSlotTime;
         lastHeardBeaconTimestamp = dsmePANDescriptor.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
     }
 
@@ -205,8 +202,9 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // -8 symbols for preamble
     // -2 symbols for SFD
+    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds()/symbolDurationInMicroseconds;
     lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter()
-                                   - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2;
+                                   - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
