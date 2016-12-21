@@ -148,7 +148,6 @@ void BeaconManager::sendEnhancedBeacon(uint32_t lateness) {
         // TODO timing?
         lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
         lastHeardBeaconTimestamp = dsmePANDescriptor.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
-        dsme.beaconSentOrReceived(dsmePANDescriptor.getBeaconBitmap().getSDIndex());
     }
 
     if(!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
@@ -209,11 +208,6 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter()
                                    - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
-    //EV_DETAIL << "Received EnhancedBeacon @ " << lastHeardBeaconSDIndex << "(" << lastHeardBeaconTimestamp << ")" << endl;
-
-    // time sync -> reschedule nextSlotTimer
-
-    dsme.beaconSentOrReceived(lastHeardBeaconSDIndex);
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
     // update heardBeacons and neighborHeardBeacons
@@ -223,9 +217,6 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     if(dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().set(descr.getBeaconBitmap().getSDIndex(), true);
     }
-
-    //EV_DEBUG << "heardBeacons: " << heardBeacons.getAllocatedCount() << ": " << heardBeacons.SDBitmap.toString() << ", ";
-    //EV << "neighborsBeacons: " << neighborHeardBeacons.getAllocatedCount() << ": " << neighborHeardBeacons.SDBitmap.toString() << endl;
 
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "

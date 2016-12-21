@@ -359,8 +359,7 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& par
 void DSMEAdaptionLayer::handleSyncLossAfterSynced() {
     if(this->mac_pib->macAssociatedPANCoord) {
         this->associationHelper.disassociate();
-    }
-    else {
+    } else {
         reset();
     }
 }

@@ -64,6 +64,7 @@ protected:
 
     TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G>& now, WriteonlyTimerAbstraction<S>& timer) :
         lastDispatchSymbolCounter(0),
+        currentDispatchSymbolCounter(0),
         instance(instance),
         _NOW(now),
         _TIMER(timer) {
@@ -83,6 +84,7 @@ protected:
 
     void _initialize() {
         this->lastDispatchSymbolCounter = _NOW;
+        this->currentDispatchSymbolCounter = this->lastDispatchSymbolCounter;
     }
 
     void _reset() {

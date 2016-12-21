@@ -197,9 +197,6 @@ public:
         return currentSlot;
     }
 
-    // TODO data size
-    void beaconSentOrReceived(uint16_t SDIndex);
-
     void handleStartOfCFP();
 
     void startTrackingBeacons();

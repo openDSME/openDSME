@@ -118,8 +118,7 @@ void ScanHelper::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_paramet
     if(this->syncActive) {
         this->syncActive = false;
         this->scanAndSyncCompleteDelegate(nullptr);
-    }
-    else {
+    } else {
         this->syncLossAfterSyncedDelegate();
     }
     return;

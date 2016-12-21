@@ -169,7 +169,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     if(this->trackingBeacons) {
-        this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, false);
+        this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
     } else {
         this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
     }
@@ -200,13 +200,6 @@ void DSMELayer::handleStartOfCFP() {
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
-}
-
-void DSMELayer::beaconSentOrReceived(uint16_t SDIndex) {
-    /* When beacon processing takes too long, not the first slot of a superframe is scheduled, hence the "+ currentSlot" */
-    slotsSinceLastKnownBeaconIntervalStart = SDIndex * aNumSuperframeSlots + currentSlot;
-
-    this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart, currentSlot != nextSlot);
 }
 
 uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift) {
