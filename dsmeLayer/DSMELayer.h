@@ -229,7 +229,6 @@ protected:
     uint16_t nextSlot;
     uint16_t nextSuperframe;
     uint16_t nextMultiSuperframe;
-    uint16_t slotsSinceLastKnownBeaconIntervalStart;
 
     bool trackingBeacons;
     uint32_t lastSlotTime;

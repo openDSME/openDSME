@@ -70,7 +70,6 @@ DSMELayer::DSMELayer() :
     nextSlot(0),
     nextSuperframe(0),
     nextMultiSuperframe(0),
-    slotsSinceLastKnownBeaconIntervalStart(0),
     trackingBeacons(false),
     lastSlotTime(0) {
 }
@@ -86,7 +85,6 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->currentSlot = 0;
     this->currentSuperframe = 0;
     this->currentMultiSuperframe = 0;
-    this->slotsSinceLastKnownBeaconIntervalStart = 0;
 
     this->eventDispatcher.initialize();
     this->gtsManager.initialize();
@@ -127,7 +125,6 @@ void DSMELayer::reset() {
     this->currentSlot = 0;
     this->currentSuperframe = 0;
     this->currentMultiSuperframe = 0;
-    this->slotsSinceLastKnownBeaconIntervalStart = 0;
 
     dsme_atomicEnd();
 
@@ -141,7 +138,7 @@ void DSMELayer::preSlotEvent(void) {
     uint32_t cnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart() + macSIFSPeriod + 1;
 
     // calculate slot position
-    slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
+    uint16_t slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
     nextSlot = slotsSinceLastKnownBeaconIntervalStart % aNumSuperframeSlots;
     uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
     nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
@@ -170,10 +167,11 @@ void DSMELayer::slotEvent(int32_t lateness) {
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     if(this->trackingBeacons) {
-        this->lastSlotTime = eventDispatcher.setupSlotTimer(beaconManager.getLastKnownBeaconIntervalStart(), slotsSinceLastKnownBeaconIntervalStart);
-    } else {
-        this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
+        auto now = platform->getSymbolCounter();
+        this->lastSlotTime = now - (now - beaconManager.getLastKnownBeaconIntervalStart()) % getMAC_PIB().helper.getSymbolsPerSlot();
     }
+
+    this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
 
     /* handle slot */
     if(currentSlot == 0) {

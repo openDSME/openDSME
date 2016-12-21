@@ -87,24 +87,16 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 
 /********** Setup Methods **********/
 
-uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastHeardBeaconSymbolCounter, uint16_t slotsSinceLastHeardBeacon) {
-    uint32_t next_slot_time = (slotsSinceLastHeardBeacon + 1) * dsme.getMAC_PIB().helper.getSymbolsPerSlot()
-                              + ((uint32_t)(lastHeardBeaconSymbolCounter));
-
-    dsme_atomicBegin();
-    DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
-    DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
-    DSMETimerMultiplexer::_scheduleTimer();
-    dsme_atomicEnd();
-
-    return next_slot_time;
-}
-
 uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
-    /* this should only be used by the PAN-coordinator or when no beacon is currently being tracked */
-    uint32_t next_slot_time = lastSlotTime + dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    auto symbols_per_slot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t next_slot_time = lastSlotTime + symbols_per_slot;
+    uint32_t pre_slot_time = next_slot_time - PRE_EVENT_SHIFT;
 
     dsme_atomicBegin();
+    if(pre_slot_time <= NOW+1) {
+        next_slot_time += symbols_per_slot;
+        pre_slot_time += symbols_per_slot;
+    }
     DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
     DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
     DSMETimerMultiplexer::_scheduleTimer();
