@@ -395,8 +395,9 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
     params.beaconType = msg->getHeader().isEnhancedBeacon();
 
     params.panDescriptor.dsmePANDescriptor.decapsulateFrom(msg);
-    this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
+
     handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
+    this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
 
     if(this->scanning) {
         switch(this->scanType) {
