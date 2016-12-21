@@ -44,8 +44,8 @@
 #define SCANHELPER_H_
 
 #include "../mac_services/mlme_sap/helper/PanDescriptorList.h"
-#include "PHY_PIB.h"
-#include "SYNC_LOSS.h"
+#include "../mac_services/pib/PHY_PIB.h"
+#include "../mac_services/mlme_sap/SYNC_LOSS.h"
 
 namespace dsme {
 

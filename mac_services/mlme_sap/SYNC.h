@@ -43,11 +43,7 @@
 #ifndef SYNC_H_
 #define SYNC_H_
 
-#include "../ConfirmBase.h"
-#include "../DSME_Common.h"
-#include "../dataStructures/DSMEPANDescriptor.h"
-#include "../pib/PHY_PIB.h"
-#include "helper/PanDescriptorList.h"
+#include <cstdint>
 
 namespace dsme {
 class DSMELayer;
