@@ -93,7 +93,7 @@ uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
     uint32_t pre_slot_time = next_slot_time - PRE_EVENT_SHIFT;
 
     dsme_atomicBegin();
-    if(pre_slot_time <= NOW+1) {
+    if(pre_slot_time <= NOW + 1) {
         next_slot_time += symbols_per_slot;
         pre_slot_time += symbols_per_slot;
     }
