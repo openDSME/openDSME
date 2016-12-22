@@ -43,6 +43,7 @@
 /* INCLDUDES *****************************************************************/
 
 #include "DSMEBitVector.h"
+#include "../../../dsme_platform.h"
 
 namespace dsme {
 
@@ -103,6 +104,7 @@ void BitVectorBase::fill(bool value) {
 void BitVectorBase::set(bit_vector_size_t position, bool value) {
     if(position >= this->bitSize) {
         /* '-> ERROR */
+        DSME_ASSERT(false);
         return;
     }
 

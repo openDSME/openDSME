@@ -44,6 +44,7 @@
 #define DSMESABSPECIFICATION_H
 
 #include "../../../dsme_settings.h"
+#include "../../../dsme_platform.h"
 #include "DSMEBitVector.h"
 
 namespace dsme {
@@ -67,6 +68,7 @@ public:
     }
 
     void setSubBlockLengthBytes(uint8_t bytes) {
+        DSME_ASSERT(bytes > 0);
         subBlock.setLength(bytes * 8);
     }
 

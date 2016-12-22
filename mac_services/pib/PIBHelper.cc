@@ -105,7 +105,7 @@ const channelList_t& PIBHelper::getChannels() const {
 }
 
 uint8_t PIBHelper::getSubBlockLengthBytes() const {
-    return getNumGTSlots() * getNumChannels() / 8;
+    return (getNumGTSlots() * getNumChannels() - 1) / 8 + 1;
 }
 
 } /* dsme */
