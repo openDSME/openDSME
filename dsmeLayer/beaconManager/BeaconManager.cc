@@ -202,7 +202,7 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // -8 symbols for preamble
     // -2 symbols for SFD
-    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds()/symbolDurationInMicroseconds;
+    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / symbolDurationInMicroseconds;
     lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter()
                                    - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
