@@ -50,36 +50,31 @@
 
 namespace dsme {
 
-BeaconManager::BeaconManager(DSMELayer& dsme) :
-    dsme(dsme),
+BeaconManager::BeaconManager(DSMELayer& dsme)
+    : dsme(dsme),
 
-    isBeaconAllocationSent(false),
-    isBeaconAllocated(false),
-    lastHeardBeaconTimestamp(0),
-    lastKnownBeaconIntervalStart(0),
+      isBeaconAllocationSent(false),
+      isBeaconAllocated(false),
+      lastHeardBeaconTimestamp(0),
+      lastKnownBeaconIntervalStart(0),
 
-    numBeaconCollision(0),
-    missedBeacons(0),
-    doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
+      numBeaconCollision(0),
+      missedBeacons(0),
+      doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
 
-    currentScanChannel(0),
-    scanning(false),
-    scanType(ScanType::ED),
-    storedMacPANId(0),
-    currentScanChannelIndex(0),
-    superframesForEachChannel(0),
-    superframesLeftForScan(0) {
+      currentScanChannel(0),
+      scanning(false),
+      scanType(ScanType::ED),
+      storedMacPANId(0),
+      currentScanChannelIndex(0),
+      superframesForEachChannel(0),
+      superframesLeftForScan(0) {
 }
 
 void BeaconManager::initialize() {
-    dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(
-        BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-        false);
-    heardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-                                        false);
-    neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(
-        BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-        false);
+    dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    heardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
 
     isBeaconAllocated = false;
     isBeaconAllocationSent = false;
@@ -118,8 +113,7 @@ void BeaconManager::reset() {
 
 void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t startSlotTime, uint32_t lateness) {
     if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
-        uint16_t currentSDIndex = currentSuperframe
-                                  + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
+        uint16_t currentSDIndex = currentSuperframe + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if(currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
             sendEnhancedBeacon(startSlotTime, lateness);
         }
@@ -164,7 +158,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     cmd.setCmdId(CommandFrameIdentifier::BEACON_REQUEST);
     cmd.prependTo(msg);
 
-    //TODO Header IEEE802.15.4-2012 5.3.7.2.1 p.97
+    // TODO Header IEEE802.15.4-2012 5.3.7.2.1 p.97
     msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
 
@@ -203,8 +197,8 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     // -8 symbols for preamble
     // -2 symbols for SFD
     uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / symbolDurationInMicroseconds;
-    lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter()
-                                   - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
+    lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter() -
+                                   lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
@@ -218,10 +212,8 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "
-              << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord
-              << ", isBeaconAllocated:" << isBeaconAllocated
-              << ", isBeaconAllocationSent:" << isBeaconAllocationSent
-              << ".");
+              << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord << ", isBeaconAllocated:" << isBeaconAllocated
+              << ", isBeaconAllocationSent:" << isBeaconAllocationSent << ".");
     if(dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
         LOG_INFO("Attempting to reserve slot for own BEACON.");
         if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
@@ -238,7 +230,6 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     }
 
     // TODO if isAllocationsent and allocated Index now is allocated -> cancel!
-
 }
 
 void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
@@ -289,7 +280,7 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
 }
 
 void BeaconManager::handleBeaconRequest(DSMEMessage* msg) {
-    //TODO
+    // TODO
     if(!this->dsme.getMAC_PIB().macIsCoord && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Received BEACON-REQUEST, turning into a coordinator now.");
         this->dsme.getMAC_PIB().macIsCoord = true;
@@ -620,5 +611,4 @@ void BeaconManager::singleBeaconScanEnhancedActiveReceived(PANDescriptor& panDes
         }
     }
 }
-
 }

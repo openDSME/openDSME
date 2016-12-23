@@ -46,14 +46,13 @@
 
 namespace dsme {
 
-PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly) :
-    phyCurrentChannel(11),
-    phyChannelsSupported(),
-    phyCurrentPage(0),
-    phySHRDuration(phySHRDuration),
-    phySymbolsPerOctet(2),
-    phyMaxFrameDuration(phySHRDuration + ((aMaxPHYPacketSize + 1) * phySymbolsPerOctet)) {
-
+PHY_PIB::PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly)
+    : phyCurrentChannel(11),
+      phyChannelsSupported(),
+      phyCurrentPage(0),
+      phySHRDuration(phySHRDuration),
+      phySymbolsPerOctet(2),
+      phyMaxFrameDuration(phySHRDuration + ((aMaxPHYPacketSize + 1) * phySymbolsPerOctet)) {
     if(useOneChannelOnly) {
         channelList_t DSSS2450_channels(1);
         DSSS2450_channels[0] = phyCurrentChannel;

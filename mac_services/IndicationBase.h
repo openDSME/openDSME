@@ -47,7 +47,7 @@
 
 namespace dsme {
 
-template<typename I>
+template <typename I>
 class IndicationBase {
 public:
     IndicationBase() : indication_received(false), last_indication{} {

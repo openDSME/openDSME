@@ -47,15 +47,12 @@
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {
-class DisassociationNotifyCmd: public DSMEMessageElement {
+class DisassociationNotifyCmd : public DSMEMessageElement {
 public:
-
-    DisassociationNotifyCmd() :
-        reason(DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {
+    DisassociationNotifyCmd() : reason(DisassociateReason::COORD_WISH_DEVICE_TO_LEAVE) {
     }
 
-    explicit DisassociationNotifyCmd(DisassociateReason reason) :
-        reason(reason) {
+    explicit DisassociationNotifyCmd(DisassociateReason reason) : reason(reason) {
     }
 
     virtual uint8_t getSerializationLength() {
@@ -65,9 +62,9 @@ public:
     }
 
     virtual void serialize(Serializer& serializer) {
-        uint8_t r = (uint8_t) reason;
+        uint8_t r = (uint8_t)reason;
         serializer << r;
-        reason = (DisassociateReason) r;
+        reason = (DisassociateReason)r;
     }
 
     DisassociateReason& getReason() {

@@ -47,13 +47,8 @@
 
 namespace dsme {
 
-CAPLayer::CAPLayer(DSMELayer& dsme) :
-    DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle),
-    dsme(dsme),
-    NB(0),
-    NR(0),
-    totalNBs(0),
-    doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+CAPLayer::CAPLayer(DSMELayer& dsme)
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
 void CAPLayer::reset() {
@@ -242,7 +237,7 @@ uint16_t CAPLayer::symbolsRequired() {
     symbols += 8; // CCA
     symbols += msg->getTotalSymbols();
     symbols += dsme.getMAC_PIB().macAckWaitDuration; // ACK
-    symbols += 10; // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
+    symbols += 10;                                   // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
     return symbols;
 }
 
@@ -250,7 +245,7 @@ void CAPLayer::actionStartBackoffTimer() {
     uint8_t backoffExp = dsme.getMAC_PIB().macMinBE + NB;
     uint8_t maxBE = dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
-    uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t) backoffExp);
+    uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     uint32_t now = dsme.getPlatform().getSymbolCounter();

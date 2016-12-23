@@ -53,14 +53,12 @@ namespace mlme_sap {
 
 struct POLL_confirm_parameters {
     PollStatus::Poll_Status status;
-
 };
 /*
  * These primitives are used to request data from a coordinator. (IEEE 802.15.4-2011 6.2.14)
  */
 class POLL : public ConfirmBase<POLL_confirm_parameters> {
 public:
-
     explicit POLL(DSMELayer& dsme);
     struct request_parameters {
         AddrMode coordAddrMode;
@@ -70,14 +68,12 @@ public:
         uint8_t keyIdMode;
         uint8_t* keySource;
         uint8_t keyIndex;
-
     };
 
     void request(request_parameters&);
 
 private:
     DSMELayer& dsme;
-
 };
 
 } /* mlme_sap */

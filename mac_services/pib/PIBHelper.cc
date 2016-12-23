@@ -48,9 +48,7 @@
 
 namespace dsme {
 
-PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) :
-    phy_pib(phy_pib),
-    mac_pib(mac_pib) {
+PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) : phy_pib(phy_pib), mac_pib(mac_pib) {
     return;
 }
 
@@ -75,7 +73,7 @@ uint8_t PIBHelper::getFinalCAPSlot() const {
 
 uint32_t PIBHelper::getSymbolsPerSlot() const {
     /* aBaseSlotDuration * 2^(SO) */
-    return aBaseSlotDuration * (1 << (uint32_t)this->mac_pib.macSuperframeOrder);
+    return aBaseSlotDuration * (1 << (uint32_t) this->mac_pib.macSuperframeOrder);
 }
 
 uint8_t PIBHelper::getNumGTSlots() const {

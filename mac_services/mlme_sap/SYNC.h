@@ -55,13 +55,11 @@ namespace mlme_sap {
  */
 class SYNC {
 public:
-
     explicit SYNC(DSMELayer& dsme);
     struct request_parameters {
         uint8_t channelNumber;
         uint8_t channelPage;
         bool trackBeacon;
-
     };
 
     void request(request_parameters&);

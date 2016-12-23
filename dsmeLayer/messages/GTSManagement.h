@@ -50,26 +50,15 @@ namespace dsme {
 
 class GTSManagement : public DSMEMessageElement {
 public:
-    GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess) :
-        type(type),
-        direction(direction),
-        prioritizedChannelAccess(prioritizedChannelAccess),
-        status(GTSStatus::GTS_Status::SUCCESS) {
+    GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess)
+        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(GTSStatus::GTS_Status::SUCCESS) {
     }
 
-    GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess,
-                  GTSStatus::GTS_Status status) :
-        type(type),
-        direction(direction),
-        prioritizedChannelAccess(prioritizedChannelAccess),
-        status(status) {
+    GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess, GTSStatus::GTS_Status status)
+        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(status) {
     }
 
-    GTSManagement() :
-        type(DEALLOCATION),
-        direction(RX),
-        prioritizedChannelAccess(HIGH),
-        status(GTSStatus::SUCCESS) {
+    GTSManagement() : type(DEALLOCATION), direction(RX), prioritizedChannelAccess(HIGH), status(GTSStatus::SUCCESS) {
     }
 
     ManagementType type;
@@ -84,7 +73,6 @@ public:
 
     virtual void serialize(Serializer& serializer);
 };
-
 }
 
 #endif

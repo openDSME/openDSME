@@ -46,8 +46,8 @@
 #include <stdint.h>
 
 #include "../../mac_services/DSME_Common.h"
-#include "../messages/GTSManagement.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../messages/GTSManagement.h"
 
 namespace dsme {
 
@@ -55,7 +55,6 @@ class DSMELayer;
 
 class ACTUpdater {
 public:
-
     explicit ACTUpdater(DSMELayer& dsme);
 
     void requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
@@ -82,7 +81,6 @@ private:
     DSMELayer& dsme;
     Direction invert(Direction direction);
 };
-
 }
 
 #endif

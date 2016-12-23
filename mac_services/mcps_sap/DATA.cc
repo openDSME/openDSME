@@ -48,8 +48,7 @@
 namespace dsme {
 namespace mcps_sap {
 
-DATA::DATA(DSMELayer& dsme) :
-    dsme(dsme) {
+DATA::DATA(DSMELayer& dsme) : dsme(dsme) {
 }
 
 /*

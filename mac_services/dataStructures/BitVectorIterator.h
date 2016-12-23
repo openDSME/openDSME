@@ -76,5 +76,4 @@ private:
     bit_vector_size_t position;
     bool value;
 };
-
 }

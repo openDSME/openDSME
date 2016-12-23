@@ -41,14 +41,12 @@
  */
 
 #include "DSMEEventDispatcher.h"
-#include "DSMELayer.h"
 #include "../../dsme_platform.h"
+#include "DSMELayer.h"
 
 namespace dsme {
 
-DSMEEventDispatcher::DSMEEventDispatcher(DSMELayer& dsme) :
-    DSMETimerMultiplexer(this, NOW, TIMER),
-    dsme(dsme) {
+DSMEEventDispatcher::DSMEEventDispatcher(DSMELayer& dsme) : DSMETimerMultiplexer(this, NOW, TIMER), dsme(dsme) {
 }
 
 void DSMEEventDispatcher::initialize() {

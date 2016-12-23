@@ -85,8 +85,7 @@ void IEEE802154eMACHeader::finalize() {
         }
     } else {
         // Frame version field value is 0b10
-        if((getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS)
-                || (getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS)) {
+        if((getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS) || (getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS)) {
             // Footnote
             compressionIfEqual = true;
         } else if(getDstAddrMode() == NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
@@ -138,8 +137,8 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
     *(buffer++) = getFrameControlLowByte();
     *(buffer++) = getFrameControlHighByte();
 
-    //LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " << frameControl.panIDCompression);
-
+    // LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " <<
+    // frameControl.panIDCompression);
 
     /* serialize sequence number */
     if(hasSequenceNumber()) {
@@ -185,7 +184,8 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     uint8_t fcHigh = *(buffer++);
     this->setFrameControl(fcLow, fcHigh);
 
-    //LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " << this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
+    // LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " <<
+    // this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
 
     if(payloadLength < getSerializationLength()) {
         return false;
@@ -234,5 +234,4 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
 
     return true;
 }
-
 }

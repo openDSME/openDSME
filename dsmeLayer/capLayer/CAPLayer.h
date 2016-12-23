@@ -55,14 +55,7 @@ public:
         this->signal = signal;
     }
 
-    enum : uint8_t {
-        MSG_PUSHED = USER_SIGNAL_START,
-        TIMER_FIRED,
-        CCA_FAILURE,
-        CCA_SUCCESS,
-        SEND_SUCCESSFUL,
-        SEND_FAILED
-    };
+    enum : uint8_t { MSG_PUSHED = USER_SIGNAL_START, TIMER_FIRED, CCA_FAILURE, CCA_SUCCESS, SEND_SUCCESSFUL, SEND_FAILED };
 };
 
 class DSMELayer;

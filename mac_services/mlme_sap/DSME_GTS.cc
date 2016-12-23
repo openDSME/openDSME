@@ -48,7 +48,7 @@
 namespace dsme {
 namespace mlme_sap {
 
-template<typename T>
+template <typename T>
 static void notify_busy_confirm(T& params, DSME_GTS& dsme_gts) {
     DSME_GTS_confirm_parameters busyConfirm;
 
@@ -62,8 +62,7 @@ static void notify_busy_confirm(T& params, DSME_GTS& dsme_gts) {
     return;
 }
 
-DSME_GTS::DSME_GTS(DSMELayer& dsme) :
-    dsme(dsme) {
+DSME_GTS::DSME_GTS(DSMELayer& dsme) : dsme(dsme) {
 }
 /*
  * Request command(IEEE 802.15.4e-2012 5.3.11.4) will be generated with the request_parameters from higher layer.
@@ -96,11 +95,11 @@ void DSME_GTS::response(response_parameters& params) {
 
     bool busy;
     if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
-        //channel adaption mode
+        // channel adaption mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSABSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     } else {
-        //channel hopping mode
+        // channel hopping mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSABSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     }

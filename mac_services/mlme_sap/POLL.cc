@@ -49,8 +49,7 @@
 namespace dsme {
 namespace mlme_sap {
 
-POLL::POLL(DSMELayer& dsme) :
-    dsme(dsme) {
+POLL::POLL(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void POLL::request(request_parameters& params) {
@@ -83,7 +82,6 @@ void POLL::request(request_parameters& params) {
         // TODO ?
         dsme.getPlatform().releaseMessage(msg);
     }
-
 }
 
 } /* mlme_sap */

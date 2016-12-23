@@ -89,7 +89,6 @@ public:
         return *this;
     }
 };
-
 }
 
 #endif

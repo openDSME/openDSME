@@ -54,20 +54,14 @@ public:
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1.1, Table 2
      */
-    enum FrameType {
-        BEACON = 0x0, DATA = 0x1, ACKNOWLEDGEMENT = 0x2, COMMAND = 0x3, LLDN = 0x4, MULTIPURPOSE = 0x5
-    };
+    enum FrameType { BEACON = 0x0, DATA = 0x1, ACKNOWLEDGEMENT = 0x2, COMMAND = 0x3, LLDN = 0x4, MULTIPURPOSE = 0x5 };
 
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1.7, Table 3a
      */
-    enum FrameVersion {
-        IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2015 = 0x2, RESERVED = 0x3
-    };
+    enum FrameVersion { IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2015 = 0x2, RESERVED = 0x3 };
 
-    enum PANID {
-        BROADCAST_PAN = 0xFFFF
-    };
+    enum PANID { BROADCAST_PAN = 0xFFFF };
 
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1, Figure 36
@@ -97,8 +91,8 @@ public:
         frameControl.framePending = 0;
         frameControl.ackRequest = 0; // TODO
         frameControl.reserved = 0;
-        frameControl.seqNumSuppression = 0; // TODO
-        frameControl.ieListPresent = 0; // TODO
+        frameControl.seqNumSuppression = 0;       // TODO
+        frameControl.ieListPresent = 0;           // TODO
         frameControl.dstAddrMode = SHORT_ADDRESS; // TODO
         frameControl.frameVersion = IEEE802154_2015;
         frameControl.srcAddrMode = SHORT_ADDRESS; // TODO
@@ -249,18 +243,18 @@ public:
     }
 
     void setFrameControl(uint8_t lowByte, uint8_t highByte) {
-        frameControl.frameType         = IEEE802154eMACHeader::FrameType((lowByte >> 0) & 0x7);
-        frameControl.securityEnabled   = (lowByte >> 3) & 0x1;
-        frameControl.framePending      = (lowByte >> 4) & 0x1;
-        frameControl.ackRequest        = (lowByte >> 5) & 0x1;
-        frameControl.panIDCompression  = (lowByte >> 6) & 0x1;
-        frameControl.reserved          = (lowByte >> 7) & 0x1;
+        frameControl.frameType = IEEE802154eMACHeader::FrameType((lowByte >> 0) & 0x7);
+        frameControl.securityEnabled = (lowByte >> 3) & 0x1;
+        frameControl.framePending = (lowByte >> 4) & 0x1;
+        frameControl.ackRequest = (lowByte >> 5) & 0x1;
+        frameControl.panIDCompression = (lowByte >> 6) & 0x1;
+        frameControl.reserved = (lowByte >> 7) & 0x1;
 
         frameControl.seqNumSuppression = (highByte >> 0) & 0x1;
-        frameControl.ieListPresent     = (highByte >> 1) & 0x1;
-        frameControl.dstAddrMode       = AddrMode((highByte >> 2) & 0x3);
-        frameControl.frameVersion      = IEEE802154eMACHeader::FrameVersion((highByte >> 4) & 0x3);
-        frameControl.srcAddrMode       = AddrMode((highByte >> 6) & 0x3);
+        frameControl.ieListPresent = (highByte >> 1) & 0x1;
+        frameControl.dstAddrMode = AddrMode((highByte >> 2) & 0x3);
+        frameControl.frameVersion = IEEE802154eMACHeader::FrameVersion((highByte >> 4) & 0x3);
+        frameControl.srcAddrMode = AddrMode((highByte >> 6) & 0x3);
 
         // The source PAN ID is OMITTED iff
         // - the source address is missing or
@@ -296,22 +290,22 @@ public:
 
     uint8_t getFrameControlLowByte() {
         uint8_t fcf_0;
-        fcf_0  = frameControl.frameType         << 0;
-        fcf_0 |= frameControl.securityEnabled   << 3;
-        fcf_0 |= frameControl.framePending      << 4;
-        fcf_0 |= frameControl.ackRequest        << 5;
-        fcf_0 |= frameControl.panIDCompression  << 6;
-        fcf_0 |= frameControl.reserved          << 7;
+        fcf_0 = frameControl.frameType << 0;
+        fcf_0 |= frameControl.securityEnabled << 3;
+        fcf_0 |= frameControl.framePending << 4;
+        fcf_0 |= frameControl.ackRequest << 5;
+        fcf_0 |= frameControl.panIDCompression << 6;
+        fcf_0 |= frameControl.reserved << 7;
         return fcf_0;
     }
 
     uint8_t getFrameControlHighByte() {
         uint8_t fcf_1;
-        fcf_1  = frameControl.seqNumSuppression << 0;
-        fcf_1 |= frameControl.ieListPresent     << 1;
-        fcf_1 |= frameControl.dstAddrMode       << 2;
-        fcf_1 |= frameControl.frameVersion      << 4;
-        fcf_1 |= frameControl.srcAddrMode       << 6;
+        fcf_1 = frameControl.seqNumSuppression << 0;
+        fcf_1 |= frameControl.ieListPresent << 1;
+        fcf_1 |= frameControl.dstAddrMode << 2;
+        fcf_1 |= frameControl.frameVersion << 4;
+        fcf_1 |= frameControl.srcAddrMode << 6;
         return fcf_1;
     }
 
@@ -410,7 +404,6 @@ public:
 
     /* <----------------------------------- HELPER METHODS FOR HEADER FORMAT */
 
-
     virtual uint8_t getSerializationLength() {
         if(!finalized) {
             finalize();
@@ -447,6 +440,5 @@ public:
     bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
     void serializeTo(uint8_t*& buffer);
 };
-
 }
 #endif

@@ -47,9 +47,7 @@ namespace dsme {
 
 struct TimeSyncSpecification {
 public:
-    TimeSyncSpecification() :
-        beaconTimestamp(0),
-        beaconOffsetTimestamp(0) {
+    TimeSyncSpecification() : beaconTimestamp(0), beaconOffsetTimestamp(0) {
     }
 
     void setBeaconTimestampMicroSeconds(uint64_t beaconTimestamp) {
@@ -76,8 +74,6 @@ private:
         uint8_t beaconTimestampBytes[8];
     };
     uint16_t beaconOffsetTimestamp; // in microseconds
-
-
 };
 
 inline Serializer& operator<<(Serializer& serializer, TimeSyncSpecification& spec) {
@@ -91,7 +87,6 @@ inline Serializer& operator<<(Serializer& serializer, TimeSyncSpecification& spe
     serializer << spec.beaconOffsetTimestamp;
     return serializer;
 }
-
 }
 
 #endif

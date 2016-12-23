@@ -61,7 +61,6 @@ class DSMELinkStatusSpecification {
 public:
     uint8_t linkStatusDescriptorCount;
     LinkStatusDescriptors* linkStatusList;
-
 };
 }
 #endif /* DSMELINKSTATUSSPECIFICATION_H_ */

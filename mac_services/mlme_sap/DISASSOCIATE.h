@@ -67,15 +67,13 @@ struct DISASSOCIATE_confirm_parameters {
     AddrMode deviceAddrMode;
     uint16_t devicePANId;
     IEEE802154MacAddress deviceAddress;
-
 };
 
 /*
  * These primitives are used by a device to disassociate from a PAN or by the coordinator to disassociate a
  * device from a PAN. (IEEE 802.15.4-2011 6.2.3)
  */
-class DISASSOCIATE : public IndicationBase<DISASSOCIATE_indication_parameters>,
-    public ConfirmBase<DISASSOCIATE_confirm_parameters> {
+class DISASSOCIATE : public IndicationBase<DISASSOCIATE_indication_parameters>, public ConfirmBase<DISASSOCIATE_confirm_parameters> {
 public:
     explicit DISASSOCIATE(DSMELayer& dsme);
     struct request_parameters {
@@ -83,7 +81,7 @@ public:
         uint16_t devicePANId;
         IEEE802154MacAddress deviceAddress;
         DisassociateReason disassociateReason;
-        bool txIndirect; //TRUE if the disassociation notification command is to be sent indirectly.
+        bool txIndirect; // TRUE if the disassociation notification command is to be sent indirectly.
         uint8_t securityLevel;
         uint8_t keyIdMode;
         uint8_t* keySource;

@@ -48,7 +48,7 @@
 
 namespace dsme {
 
-template<typename T, uint8_t S>
+template <typename T, uint8_t S>
 class EventHistory {
     struct EventEntry {
         uint32_t timestamp;

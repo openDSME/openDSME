@@ -40,16 +40,15 @@
  * SUCH DAMAGE.
  */
 
+#include "AssociationHelper.h"
 #include "../../dsme_platform.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
 #include "../mac_services/pib/MAC_PIB.h"
-#include "AssociationHelper.h"
 #include "DSMEAdaptionLayer.h"
 
 namespace dsme {
 
-AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-    dsmeAdaptionLayer(dsmeAdaptionLayer) {
+AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
 
 void AssociationHelper::initialize() {
@@ -115,7 +114,6 @@ void AssociationHelper::disassociate() {
     this->dsmeAdaptionLayer.getMLME_SAP().getDISASSOCIATE().request(params);
     return;
 }
-
 
 bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
     return this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord;

@@ -40,20 +40,17 @@
  * SUCH DAMAGE.
  */
 
+#include "GTSHelper.h"
 #include "../../dsme_platform.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../mac_services/pib/dsme_mac_constants.h"
 #include "DSMEAdaptionLayer.h"
-#include "GTSHelper.h"
-#include "../mac_services/mcps_sap/MCPS_SAP.h"
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-    dsmeAdaptionLayer(dsmeAdaptionLayer),
-    gtsController(),
-    gtsConfirmPending(false) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsController(), gtsConfirmPending(false) {
 }
 
 void GTSHelper::initialize() {
@@ -154,11 +151,8 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     params.keySource = nullptr;
     params.keyIndex = 0;
 
-    LOG_INFO("Requesting slot "
-             << preferredGTS.slotID
-             << " " << preferredGTS.superframeID
-             << " " << (uint16_t)preferredGTS.channel
-             << " for transmission to " << params.deviceAddress << ".");
+    LOG_INFO("Requesting slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " for transmission to "
+                                << params.deviceAddress << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
     for(DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
@@ -200,8 +194,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
         dsmeSABSpecification.getSubBlock().fill(false);
         dsmeSABSpecification.getSubBlock().set(
-            toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(),
-            true);
+            toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
 
         sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
     }
@@ -280,10 +273,10 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
         }
         case EXPIRATION:
             // In this implementation EXPIRATION is only issued while no confirm is pending
-            //DSME_ASSERT(!gtsConfirmPending);
+            // DSME_ASSERT(!gtsConfirmPending);
 
             // TODO is this required?
-            //this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, DEALLOCATED);
+            // this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, DEALLOCATED);
 
             sendDeallocationRequest(params.deviceAddress, params.direction, params.dsmeSABSpecification);
             sendReply = false;
@@ -396,9 +389,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         DSME_ASSERT(sabSpec->getSubBlockIndex() == initialSuperframeID);
     }
 
-    for(gts.superframeID = initialSuperframeID; slotsToCheck > 0;
-            gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
-
+    for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
         if(sabSpec != nullptr && gts.superframeID != initialSuperframeID) {
             /* currently per convention a sub block holds exactly one superframe */
             return GTS::UNDEFINED;
@@ -446,7 +437,7 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
         idx += it->getChannel();
 
         if(it->getSuperframeID() != requestSABSpec.getSubBlockIndex() || !requestSABSpec.getSubBlock().get(idx)) {
-            continue;           // no deallocation requested
+            continue; // no deallocation requested
         }
 
         if(deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS) {
@@ -463,7 +454,7 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
 
     if(gtsDifferentAddresses) {
         // TODO handle multiple requests or also send (INVALID_PARAMETER)?!
-        //DSME_ASSERT(false); // TODO ?
+        // DSME_ASSERT(false); // TODO ?
         // TODO This could also mean that the slot is in use with another node, better DENIED?
         return GTSStatus::DENIED;
     }
@@ -477,8 +468,8 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
     return result;
 }
 
-void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots,
-                              uint16_t preferredSuperframe, uint8_t preferredSlot) {
+void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
+                              uint8_t preferredSlot) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
     for(uint8_t i = 0; i < numSlots; i++) {

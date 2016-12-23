@@ -47,11 +47,10 @@
 
 namespace dsme {
 
-template<typename C, uint16_t MAX_SIZE>
+template <typename C, uint16_t MAX_SIZE>
 class DSMEQueue {
 public:
-    DSMEQueue()
-        : next_back(0), size(0) {
+    DSMEQueue() : next_back(0), size(0) {
     }
 
     // assumes queue is not full
@@ -92,7 +91,6 @@ private:
     uint16_t next_back;
     uint16_t size;
 };
-
 }
 
 #endif

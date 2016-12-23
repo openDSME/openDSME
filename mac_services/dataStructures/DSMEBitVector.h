@@ -110,15 +110,13 @@ protected:
     friend Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv);
 };
 
-template<bit_vector_size_t MAX_SIZE>
+template <bit_vector_size_t MAX_SIZE>
 class BitVector : public BitVectorBase {
 public:
-    BitVector() :
-        BitVectorBase(array) {
+    BitVector() : BitVectorBase(array) {
     }
 
-    BitVector(const BitVector& other) :
-        BitVectorBase(array, other) {
+    BitVector(const BitVector& other) : BitVectorBase(array, other) {
     }
 
     BitVector& operator=(const BitVector& other) {

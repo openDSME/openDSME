@@ -66,16 +66,13 @@ struct DSME_INFO_confirm_parameters {
     DSMESABSpecification dsmeSABSpecification;
     DSMEPANDescriptor dsmePANDescriptor;
     InfoStatus::Info_Status status;
-
 };
 
 /*
  * MLME SAP DSME information primitives define how a device can acquire DSME information. (IEEE 802.15.4e-2012 6.2.21.2)
  */
-class DSME_INFO : public IndicationBase<DSME_INFO_indication_parameters>,
-    public ConfirmBase<DSME_INFO_confirm_parameters> {
+class DSME_INFO : public IndicationBase<DSME_INFO_indication_parameters>, public ConfirmBase<DSME_INFO_confirm_parameters> {
 public:
-
     struct request_parameters {
         AddrMode dstAddrMode;
         IEEE802154MacAddress dstAddr;
@@ -85,7 +82,6 @@ public:
     };
 
     void request(request_parameters);
-
 };
 
 } /* mlme_sap */

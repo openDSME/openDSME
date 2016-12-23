@@ -43,8 +43,8 @@
 #ifndef RESET_H_
 #define RESET_H_
 
-#include "../DSME_Common.h"
 #include "../ConfirmBase.h"
+#include "../DSME_Common.h"
 
 namespace dsme {
 class DSMELayer;
@@ -70,7 +70,6 @@ public:
 
 private:
     DSMELayer& dsme;
-
 };
 
 } /* mlme_sap */

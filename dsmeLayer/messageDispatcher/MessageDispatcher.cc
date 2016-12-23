@@ -42,23 +42,20 @@
 
 #include "./MessageDispatcher.h"
 
-#include "../messages/MACCommand.h"
-#include "../DSMELayer.h"
 #include "../../mac_services/mcps_sap/DATA.h"
 #include "../../mac_services/mcps_sap/MCPS_SAP.h"
+#include "../DSMELayer.h"
+#include "../messages/MACCommand.h"
 
 namespace dsme {
 
-MessageDispatcher::MessageDispatcher(DSMELayer& dsme) :
-    dsme(dsme),
-    doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)),
-    dsmeAckFrame(nullptr),
-    lastSendGTSNeighbor(neighborQueue.end()) {
+MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
+    : dsme(dsme), doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)), dsmeAckFrame(nullptr), lastSendGTSNeighbor(neighborQueue.end()) {
 }
 
 MessageDispatcher::~MessageDispatcher() {
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
-        while(! this->neighborQueue.isQueueEmpty(it)) {
+        while(!this->neighborQueue.isQueueEmpty(it)) {
             DSMEMessage* msg = neighborQueue.popFront(it);
             this->dsme.getPlatform().releaseMessage(msg);
         }
@@ -74,7 +71,7 @@ void MessageDispatcher::reset(void) {
     currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
 
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
-        while(! this->neighborQueue.isQueueEmpty(it)) {
+        while(!this->neighborQueue.isQueueEmpty(it)) {
             DSMEMessage* msg = neighborQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
             params.msduHandle = msg;
@@ -107,7 +104,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
         dsme.getPlatform().setChannelNumber(commonChannel);
         currentACTElement = act.end();
-    } else if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {  // TODO correct?
+    } else if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
         unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             currentACTElement = act.find(nextSuperframe, nextGTS);
@@ -120,7 +117,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             // statistic
             if(currentACTElement->getDirection() == RX) {
-                numUnusedRxGts++;   // gets PURGE.cc decremented on actual reception
+                numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
             }
         } else {
             currentACTElement = act.end();
@@ -144,7 +141,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
 
     switch(macHdr.getFrameType()) {
         case IEEE802154eMACHeader::FrameType::BEACON: {
-            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() <<  ".");
+            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << ".");
             this->dsme.getBeaconManager().handleBeacon(msg);
             this->dsme.getPlatform().releaseMessage(msg);
             break;
@@ -245,7 +242,6 @@ void MessageDispatcher::createDataIndication(DSMEMessage* msg) {
     this->dsme.getMCPS_SAP().getDATA().notify_indication(params);
 }
 
-
 bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt) {
     DSME_ASSERT(!msg->getHeader().getDestAddr().isBroadcast());
     DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
@@ -289,13 +285,11 @@ bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
     return true;
 }
 
-
 void MessageDispatcher::handleGTS() {
-    if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
-            && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
-
-        if(currentACTElement->getDirection() == RX) {  // also if INVALID or UNCONFIRMED!
-            //LOG_INFO("Waiting to receive from " << currentACTElement->getAddress())
+    if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe() &&
+       currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
+        if(currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+            // LOG_INFO("Waiting to receive from " << currentACTElement->getAddress())
         } else if(currentACTElement->getState() == VALID) {
             // transmit from gtsQueue
             DSME_ASSERT(lastSendGTSNeighbor == neighborQueue.end());
@@ -307,7 +301,7 @@ void MessageDispatcher::handleGTS() {
             } else {
                 DSMEMessage* msg = neighborQueue.front(lastSendGTSNeighbor);
 
-                //LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
+                // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
 
                 DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= msg->getTotalSymbols());
 
@@ -331,8 +325,8 @@ void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
     numRxGtsFrames++;
     numUnusedRxGts--;
 
-    if(currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe()
-            && currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
+    if(currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe() &&
+       currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
         // According to 5.1.10.5.3
         currentACTElement->resetIdleCounter();
     }
@@ -388,7 +382,6 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
         }
     }
 }
-
 
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg) {
     LOG_DEBUG("sendDoneGTS");

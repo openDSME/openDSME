@@ -47,8 +47,7 @@
 
 namespace dsme {
 namespace mlme_sap {
-SYNC::SYNC(DSMELayer& dsme) :
-    dsme(dsme) {
+SYNC::SYNC(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void SYNC::request(request_parameters& params) {

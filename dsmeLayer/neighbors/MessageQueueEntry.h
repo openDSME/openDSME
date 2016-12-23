@@ -47,7 +47,7 @@ namespace dsme {
 
 /* STRUCTS *******************************************************************/
 
-template<typename T>
+template <typename T>
 struct MessageQueueEntry {
     MessageQueueEntry();
     virtual ~MessageQueueEntry();
@@ -58,15 +58,13 @@ struct MessageQueueEntry {
 
 /* FUNCTION DEFINITIONS ******************************************************/
 
-template<typename T>
-MessageQueueEntry<T>::MessageQueueEntry() :
-    value(nullptr), next(nullptr) {
+template <typename T>
+MessageQueueEntry<T>::MessageQueueEntry() : value(nullptr), next(nullptr) {
 }
 
-template<typename T>
+template <typename T>
 MessageQueueEntry<T>::~MessageQueueEntry() {
 }
-
 }
 
 #endif /* MESSAGEQUEUEENTRY_H_ */

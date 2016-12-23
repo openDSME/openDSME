@@ -47,7 +47,7 @@
 
 namespace dsme {
 
-template<typename C>
+template <typename C>
 class ConfirmBase {
 public:
     ConfirmBase() : confirm_received(false), last_confirm{} {

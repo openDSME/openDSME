@@ -43,15 +43,15 @@
 #ifndef GET_H_
 #define GET_H_
 
-#include "../DSME_Common.h"
 #include "../ConfirmBase.h"
+#include "../DSME_Common.h"
 
 namespace dsme {
 namespace mlme_sap {
 
 struct GET_confirm_parameters {
     Get_Status status;
-    //TODO PIBAttribute class for the type?
+    // TODO PIBAttribute class for the type?
     uint8_t* pibAttribute;
     void* pibAttributeValue;
 };
@@ -61,13 +61,11 @@ struct GET_confirm_parameters {
  */
 class GET : public ConfirmBase<GET_confirm_parameters> {
 public:
-
     struct request_parameters {
         uint8_t* pibAttribute;
     };
 
     void request(request_parameters);
-
 };
 
 } /* mlme_sap */

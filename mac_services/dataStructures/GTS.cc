@@ -54,7 +54,6 @@ GTS::GTS(const GTS& other) {
     this->superframeID = other.superframeID;
     this->slotID = other.slotID;
     this->channel = other.channel;
-
 }
 GTS& GTS::operator=(const GTS& other) {
     this->superframeID = other.superframeID;
@@ -83,4 +82,3 @@ GTS GTS::GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t nu
 }
 
 } /* dsme */
-

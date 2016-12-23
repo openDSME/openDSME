@@ -88,7 +88,6 @@ private:
 
     uint8_t superframesSinceAssociationSent;
 };
-
 }
 
 #endif /* ASSOCIATIONMANAGER_H_ */

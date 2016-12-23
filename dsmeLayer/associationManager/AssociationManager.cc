@@ -49,10 +49,8 @@
 
 namespace dsme {
 
-AssociationManager::AssociationManager(DSMELayer& dsme) :
-    dsme(dsme),
-    currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST),
-    superframesSinceAssociationSent(0) {
+AssociationManager::AssociationManager(DSMELayer& dsme)
+    : dsme(dsme), currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST), superframesSinceAssociationSent(0) {
 }
 
 void AssociationManager::reset() {
@@ -82,7 +80,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_REQUEST);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2012 5.3.11.2.1).
+    // Header compliant to specification (IEEE802.15.4-2012 5.3.11.2.1).
     msg->getHeader().setDstAddr(params.coordAddress);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setSrcAddrMode(EXTENDED_ADDRESS);
@@ -105,7 +103,6 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
 }
 
 void AssociationManager::handleAssociationRequest(DSMEMessage* msg) {
-
     AssociateRequestCmd req;
     req.decapsulateFrom(msg);
 
@@ -134,7 +131,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_RESPONSE);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2012 5.3.11.3.1).
+    // Header compliant to specification (IEEE802.15.4-2012 5.3.11.3.1).
     msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setDstAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
@@ -203,7 +200,7 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
     cmd.setCmdId(CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2011 5.3.3.1).
+    // Header compliant to specification (IEEE802.15.4-2011 5.3.3.1).
     msg->getHeader().setDstAddrMode(params.deviceAddrMode);
     msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
@@ -242,7 +239,6 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage* msg) {
 
     this->dsme.getMLME_SAP().getDISASSOCIATE().notify_indication(params);
 }
-
 
 /**
  * Gets called when CSMA Message was sent down to the PHY
@@ -367,6 +363,4 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         dsme_atomicEnd();
     }
 }
-
 }
-

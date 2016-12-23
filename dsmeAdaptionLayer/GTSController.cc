@@ -46,7 +46,7 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
 
-constexpr int16_t K_P_POS =  0;
+constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 30;
 constexpr int16_t K_D_POS = 26;
 
@@ -58,14 +58,8 @@ constexpr uint16_t SCALING = 128;
 
 namespace dsme {
 
-GTSControllerData::GTSControllerData() :
-    address(0xffff),
-    messagesInLastMultisuperframe(0),
-    messagesOutLastMultisuperframe(0),
-    error_sum(0),
-    last_error(0),
-    control(1) {
-
+GTSControllerData::GTSControllerData()
+    : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
 }
 
 GTSController::GTSController() {
@@ -96,7 +90,6 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 
 void GTSController::multisuperframeEvent() {
     for(GTSControllerData& data : this->links) {
-
         uint16_t w = data.messagesInLastMultisuperframe;
         uint16_t y = data.messagesOutLastMultisuperframe;
 

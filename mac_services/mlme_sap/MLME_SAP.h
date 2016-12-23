@@ -51,8 +51,8 @@
 #include "POLL.h"
 #include "RESET.h"
 #include "SCAN.h"
-#include "SYNC.h"
 #include "START.h"
+#include "SYNC.h"
 #include "SYNC_LOSS.h"
 
 namespace dsme {

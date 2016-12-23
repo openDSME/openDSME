@@ -49,11 +49,7 @@ namespace dsme {
 
 /* CONSTRUCTORS & DESTRUCTOR *************************************************/
 
-BitVectorBase::BitVectorBase(uint8_t* byte_array) :
-    bitSize(0),
-    byte_array(byte_array),
-    endSetIterator(this, 0, true),
-    endUnsetIterator(this, 0, false) {
+BitVectorBase::BitVectorBase(uint8_t* byte_array) : bitSize(0), byte_array(byte_array), endSetIterator(this, 0, true), endUnsetIterator(this, 0, false) {
 }
 
 void BitVectorBase::initialize(bit_vector_size_t bitSize, bool initial_fill) {
@@ -63,11 +59,8 @@ void BitVectorBase::initialize(bit_vector_size_t bitSize, bool initial_fill) {
     this->fill(initial_fill);
 }
 
-BitVectorBase::BitVectorBase(uint8_t* byte_array, const BitVectorBase& other) :
-    bitSize(other.bitSize),
-    byte_array(byte_array),
-    endSetIterator(this, other.bitSize, true),
-    endUnsetIterator(this, other.bitSize, false) {
+BitVectorBase::BitVectorBase(uint8_t* byte_array, const BitVectorBase& other)
+    : bitSize(other.bitSize), byte_array(byte_array), endSetIterator(this, other.bitSize, true), endUnsetIterator(this, other.bitSize, false) {
     this->copyFrom(other);
 }
 
@@ -280,5 +273,4 @@ Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv) {
 
     return serializer;
 }
-
 }

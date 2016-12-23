@@ -47,8 +47,7 @@
 
 namespace dsme {
 namespace mlme_sap {
-SCAN::SCAN(DSMELayer& dsme) :
-    dsme(dsme) {
+SCAN::SCAN(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void SCAN::request(request_parameters& params) {
@@ -87,7 +86,6 @@ void SCAN::request(request_parameters& params) {
             dsme.getBeaconManager().startScanEnhancedActive(params.scanDuration, params.scanChannels);
             break;
     }
-
 }
 
 } /* mlme_sap */

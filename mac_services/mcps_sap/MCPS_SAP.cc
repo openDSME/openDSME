@@ -48,10 +48,7 @@
 namespace dsme {
 namespace mcps_sap {
 
-MCPS_SAP::MCPS_SAP(DSMELayer& dsme) :
-    dsme(dsme),
-    data(dsme),
-    purge(dsme) {
+MCPS_SAP::MCPS_SAP(DSMELayer& dsme) : dsme(dsme), data(dsme), purge(dsme) {
     this->dsme.setMCPS(this);
 }
 

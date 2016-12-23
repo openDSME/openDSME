@@ -69,13 +69,9 @@ class PHY_PIB;
 
 struct DSMEAdaptionLayerSettings {
 public:
-    enum gts_allocation_scheme {
-        ALLOC_RANDOM, ALLOC_CONTIGUOUS_SLOT
-    };
+    enum gts_allocation_scheme { ALLOC_RANDOM, ALLOC_CONTIGUOUS_SLOT };
 
-    DSMEAdaptionLayerSettings() :
-        allocationScheme(ALLOC_CONTIGUOUS_SLOT) {
-
+    DSMEAdaptionLayerSettings() : allocationScheme(ALLOC_CONTIGUOUS_SLOT) {
     }
 
     gts_allocation_scheme allocationScheme;

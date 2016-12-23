@@ -48,20 +48,19 @@ void GTSManagement::serialize(Serializer& serializer) {
     uint8_t man;
 
     if(serializer.getType() == SERIALIZATION) {
-        man = (type & 0x7)                     << 0;
-        man |= (direction & 0x1)                << 3;
+        man = (type & 0x7) << 0;
+        man |= (direction & 0x1) << 3;
         man |= (prioritizedChannelAccess & 0x1) << 4;
-        man |= (status & 0x7)                   << 5;
+        man |= (status & 0x7) << 5;
 
         serializer << man;
     } else {
         serializer << man;
 
-        type                        = ManagementType((man >> 0) & 0x07);
-        direction                   = Direction((man >> 3) & 0x01);
-        prioritizedChannelAccess    = Priority((man >> 4) & 0x01);
-        status                      = GTSStatus::GTS_Status((man >> 5) & 0x07);
+        type = ManagementType((man >> 0) & 0x07);
+        direction = Direction((man >> 3) & 0x01);
+        prioritizedChannelAccess = Priority((man >> 4) & 0x01);
+        status = GTSStatus::GTS_Status((man >> 5) & 0x07);
     }
 }
-
 }

@@ -46,11 +46,11 @@
 #include <stdint.h>
 
 #include "../../helper/DSMEBufferedMultiFSM.h"
+#include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../../mac_services/dataStructures/DSMESlotAllocationBitmap.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/mlme_sap/DSME_GTS.h"
 #include "../messages/GTSManagement.h"
 #include "../messages/GTSReplyNotifyCmd.h"
@@ -67,20 +67,13 @@ class DSMELayer;
 
 class GTSEvent : public MultiFSMEvent {
 public:
-    template <typename ...Args>
-    void fill(uint16_t signal, Args& ... args) {
+    template <typename... Args>
+    void fill(uint16_t signal, Args&... args) {
         this->signal = signal;
         fill(args...);
     }
 
-    enum : uint8_t {
-        MLME_REQUEST_ISSUED = USER_SIGNAL_START,
-        MLME_RESPONSE_ISSUED,
-        RESPONSE_CMD_FOR_ME,
-        NOTIFY_CMD_FOR_ME,
-        CFP_STARTED,
-        SEND_COMPLETE
-    };
+    enum : uint8_t { MLME_REQUEST_ISSUED = USER_SIGNAL_START, MLME_RESPONSE_ISSUED, RESPONSE_CMD_FOR_ME, NOTIFY_CMD_FOR_ME, CFP_STARTED, SEND_COMPLETE };
 
     uint16_t deviceAddr;
     GTSManagement management;
@@ -140,7 +133,6 @@ typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, 4> GT
 
 class GTSManager : private GTSManagerFSM_t {
 public:
-
     explicit GTSManager(DSMELayer& dsme);
 
     void initialize();
@@ -169,7 +161,6 @@ public:
      * @return false if the GTSManager is busy and can not handle the response, true otherwise
      */
     bool handleMLMEResponse(GTSManagement& gtsManagement, GTSReplyNotifyCmd& gtsReply);
-
 
     /**
      * Called on reception of a GTS-request.
@@ -243,7 +234,6 @@ private:
     void actionReportBusyCommStatus(GTSEvent& event);
     void actionProcessOverhearedResponse(GTSEvent& event);
 
-
     /**
      * Internal helper
      */
@@ -275,7 +265,6 @@ private:
     ACTUpdater actUpdater;
     GTSData data[GTS_STATE_MULTIPLICITY + 1];
 };
-
 }
 
 #endif

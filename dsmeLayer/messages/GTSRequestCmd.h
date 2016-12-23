@@ -56,19 +56,11 @@ private:
     DSMESABSpecification SABSpec;
 
 public:
-    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID,
-                  const DSMESABSpecification& SABSpec) :
-        numSlots(numSlots),
-        preferredSuperframeID(preferredSuperframeID),
-        preferredSlotID(preferredSlotID),
-        SABSpec(SABSpec) {
+    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec)
+        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
     }
 
-    GTSRequestCmd() :
-        numSlots{0},
-        preferredSuperframeID{0},
-        preferredSlotID{0},
-        SABSpec{} {
+    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{} {
     }
 
     uint8_t getNumSlots() const {
@@ -116,7 +108,6 @@ public:
         serializer << SABSpec;
     }
 };
-
 }
 
 #endif

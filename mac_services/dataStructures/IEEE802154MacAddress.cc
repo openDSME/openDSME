@@ -48,25 +48,20 @@ const IEEE802154MacAddress IEEE802154MacAddress::UNSPECIFIED(0, 0, 0, 0);
 const uint16_t IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS(0xffff);
 const uint16_t IEEE802154MacAddress::NO_SHORT_ADDRESS(0xfffe);
 
-IEEE802154MacAddress::IEEE802154MacAddress(const IEEE802154MacAddress& other) :
-    addr { other.a1(), other.a2(), other.a3(), other.a4() } {
+IEEE802154MacAddress::IEEE802154MacAddress(const IEEE802154MacAddress& other) : addr{other.a1(), other.a2(), other.a3(), other.a4()} {
 }
 
 IEEE802154MacAddress::IEEE802154MacAddress() {
     *this = UNSPECIFIED;
 }
 
-IEEE802154MacAddress::IEEE802154MacAddress(uint16_t shortPart) :
-    addr { 0, 0x00ff, 0xfe00, shortPart } {
+IEEE802154MacAddress::IEEE802154MacAddress(uint16_t shortPart) : addr{0, 0x00ff, 0xfe00, shortPart} {
 }
 
-IEEE802154MacAddress::IEEE802154MacAddress(uint16_t a1, uint16_t a2,
-        uint16_t a3, uint16_t a4) :
-    addr { a1, a2, a3, a4 } {
+IEEE802154MacAddress::IEEE802154MacAddress(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4) : addr{a1, a2, a3, a4} {
 }
 
-IEEE802154MacAddress::IEEE802154MacAddress(const uint16_t* a) :
-    addr { a[0], a[1], a[2], a[3] } {
+IEEE802154MacAddress::IEEE802154MacAddress(const uint16_t* a) : addr{a[0], a[1], a[2], a[3]} {
 }
 
 bool IEEE802154MacAddress::operator<=(const IEEE802154MacAddress& other) const {
@@ -142,13 +137,10 @@ bool IEEE802154MacAddress::operator<(const IEEE802154MacAddress& other) const {
 }
 
 bool IEEE802154MacAddress::operator==(const IEEE802154MacAddress& other) const {
-    return (this->a1() == other.a1() && this->a2() == other.a2()
-            && this->a3() == other.a3() && this->a4() == other.a4());
+    return (this->a1() == other.a1() && this->a2() == other.a2() && this->a3() == other.a3() && this->a4() == other.a4());
 }
 
 bool IEEE802154MacAddress::operator!=(const IEEE802154MacAddress& other) const {
     return !((*this) == other);
 }
-
 }
-

@@ -71,24 +71,23 @@ private:
 /**
  * Template for implementing a finite state machine (FSM).
  */
-template<typename C, typename E, uint8_t N, ringbuffer_size_t S>
+template <typename C, typename E, uint8_t N, ringbuffer_size_t S>
 class DSMEBufferedMultiFSM {
 public:
-    typedef fsmReturnStatus(C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
     /**
      * Created FSM is put into initial state
      */
-    explicit DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) :
-        dispatchBusy(false) {
+    explicit DSMEBufferedMultiFSM(const state_t& initial, const state_t& busy) : dispatchBusy(false) {
         for(uint8_t i = 0; i < N; i++) {
             states[i] = initial;
         }
         states[N] = busy;
     }
 
-    template <typename ...Args>
-    bool dispatch(int8_t fsmId, uint16_t signal, Args& ... args) {
+    template <typename... Args>
+    bool dispatch(int8_t fsmId, uint16_t signal, Args&... args) {
         DSME_ASSERT(fsmId >= 0 && fsmId <= N);
 
         bool canAdd;
@@ -148,7 +147,7 @@ private:
             state_t state = states[fsmId];
 
             state_t s = state;
-            fsmReturnStatus r = (((C*) this)->*state)(*currentEvent);
+            fsmReturnStatus r = (((C*)this)->*state)(*currentEvent);
 
             while(r == FSM_TRANSITION) {
                 /* call the exit action from last state, reuse the already processed 'currentEvent' to deliver this */
@@ -161,7 +160,7 @@ private:
 
                 /* call entry action of new state, reuse the already processed 'currentEvent' to deliver this */
                 currentEvent->signal = E::ENTRY_SIGNAL;
-                r = (((C*) this)->*state)(*currentEvent);
+                r = (((C*)this)->*state)(*currentEvent);
             }
             this->eventBuffer.advanceCurrent();
         }
@@ -169,12 +168,10 @@ private:
         return;
     }
 
-
     state_t states[N + 1];
     bool dispatchBusy;
     DSMERingBuffer<E, S> eventBuffer;
 };
-
 
 } /* dsme */
 

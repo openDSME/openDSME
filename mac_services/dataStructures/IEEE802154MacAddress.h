@@ -177,7 +177,6 @@ inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& a
 
     return buffer;
 }
-
 }
 
 #endif

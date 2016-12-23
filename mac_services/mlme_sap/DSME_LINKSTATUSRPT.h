@@ -54,7 +54,6 @@ namespace mlme_sap {
 struct DSME_LINKSTATUSRPT_indication_parameters {
     uint16_t dstAddr;
     DSMELinkStatusSpecification linkStatusSpecification;
-
 };
 
 struct DSME_LINKSTATUSRPT_confirm_parameters {
@@ -65,18 +64,14 @@ struct DSME_LINKSTATUSRPT_confirm_parameters {
  * The MLME-DSME-LINKSTATUSRPT primitives define how a source device reports the communication
  * link status between the source device and the destination device. (IEEE 802.15.4e-2012 6.2.21.3)
  */
-class DSME_LINKSTATUSRPT : public IndicationBase<DSME_LINKSTATUSRPT_indication_parameters>,
-    public ConfirmBase<DSME_LINKSTATUSRPT_confirm_parameters> {
+class DSME_LINKSTATUSRPT : public IndicationBase<DSME_LINKSTATUSRPT_indication_parameters>, public ConfirmBase<DSME_LINKSTATUSRPT_confirm_parameters> {
 public:
-
     struct request_parameters {
         uint16_t dstAddr;
         uint32_t reportPeriod;
-
     };
 
     void request(request_parameters);
-
 };
 
 } /* mlme_sap */

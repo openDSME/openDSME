@@ -112,8 +112,7 @@ struct DATA_indication_parameters {
 /*
  * These primitives support the transport of data (IEEE 802.15.4-2011 6.3.1 and IEEE 802.15.4e-2012 updates).
  */
-class DATA : public ConfirmBase<DATA_confirm_parameters>,
-    public IndicationBase<DATA_indication_parameters> {
+class DATA : public ConfirmBase<DATA_confirm_parameters>, public IndicationBase<DATA_indication_parameters> {
 public:
     explicit DATA(DSMELayer& dsme);
 
@@ -147,7 +146,7 @@ public:
         bool frameControlOption_pan_id_suppressed;
         bool frameControlOption_ies_included;
         bool frameControlOption_seq_num_suppressed;
-        void* headerIElist; // TODO
+        void* headerIElist;  // TODO
         void* payloadIElist; // TODO
         bool sendMultipurpose;
     };

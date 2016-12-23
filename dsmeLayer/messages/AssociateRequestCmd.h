@@ -47,14 +47,12 @@
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {
-class AssociateRequestCmd: public DSMEMessageElement {
+class AssociateRequestCmd : public DSMEMessageElement {
 public:
-    AssociateRequestCmd() :
-        capabilityInformation{0} {
+    AssociateRequestCmd() : capabilityInformation{0} {
     }
 
-    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) :
-        capabilityInformation(capabilityInformation) {
+    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) : capabilityInformation(capabilityInformation) {
     }
 
     const CapabilityInformation& getCapabilityInformation() const {
@@ -94,7 +92,6 @@ public:
 private:
     CapabilityInformation capabilityInformation;
 };
-
 }
 
 #endif /* ASSOCIATEREQUESTCMD_H_ */

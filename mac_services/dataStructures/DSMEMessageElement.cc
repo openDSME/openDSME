@@ -58,5 +58,4 @@ void DSMEMessageElement::decapsulateFrom(DSMEMessage* msg) {
 void DSMEMessageElement::copyFrom(DSMEMessage* msg) {
     msg->copyTo(this);
 }
-
 }

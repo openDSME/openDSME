@@ -65,11 +65,9 @@ struct SYNC_LOSS_indication_parameters {
  */
 class SYNC_LOSS : public IndicationBase<SYNC_LOSS_indication_parameters> {
 public:
-
     /*
      * The MLME-SYNC-LOSS.indication primitive indicates the loss of synchronization with a coordinator.
      */
-
 };
 
 } /* mlme_sap */
