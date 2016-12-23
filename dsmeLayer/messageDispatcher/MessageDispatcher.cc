@@ -50,7 +50,11 @@
 namespace dsme {
 
 MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
-    : dsme(dsme), doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)), dsmeAckFrame(nullptr), lastSendGTSNeighbor(neighborQueue.end()) {
+    : dsme(dsme),
+      currentACTElement(nullptr, nullptr),
+      doneGTS(DELEGATE(&MessageDispatcher::sendDoneGTS, *this)),
+      dsmeAckFrame(nullptr),
+      lastSendGTSNeighbor(neighborQueue.end()) {
 }
 
 MessageDispatcher::~MessageDispatcher() {

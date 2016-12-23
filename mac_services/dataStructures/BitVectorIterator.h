@@ -63,6 +63,8 @@ public:
     ~BitVectorIterator();
 
     BitVectorIterator& operator=(const BitVectorIterator&);
+    BitVectorIterator& operator=(BitVectorIterator&&);
+
     BitVectorIterator& operator++();
 
     BitVectorIterator operator++(int);
