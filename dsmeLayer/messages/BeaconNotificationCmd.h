@@ -53,8 +53,7 @@ private:
     uint16_t beaconSDIndex;
 
 public:
-    BeaconNotificationCmd() :
-        beaconSDIndex(0) {
+    BeaconNotificationCmd() : beaconSDIndex(0) {
     }
 
     uint16_t getBeaconSDIndex() const {
@@ -73,7 +72,6 @@ public:
         serializer << beaconSDIndex;
     }
 };
-
 }
 
 #endif

@@ -93,7 +93,6 @@ public:
 
 private:
     DSMELayer& dsme;
-
 };
 
 } /* mlme_sap */

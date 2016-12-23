@@ -47,7 +47,7 @@
 
 namespace dsme {
 
-template<typename C>
+template <typename C>
 class ConfirmBase {
 public:
     ConfirmBase() : confirm_received(false), last_confirm{} {
@@ -60,7 +60,7 @@ public:
     bool confirm(C* params) {
         if(this->confirm_received) {
             /* '-> message received for upper layer */
-            *params = this->last_confirm;
+            *params                = this->last_confirm;
             this->confirm_received = false;
             return true;
         } else {
@@ -74,7 +74,7 @@ public:
             /* if callback is set, parameter will not be saved */
             this->callback_confirm(params);
         } else {
-            this->last_confirm = params;
+            this->last_confirm     = params;
             this->confirm_received = true;
         }
     }

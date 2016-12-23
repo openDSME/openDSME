@@ -43,18 +43,17 @@
 #ifndef MESSAGEDISPATCHER_H
 #define MESSAGEDISPATCHER_H
 
-#include "../../../dsme_platform.h"
-#include "../neighbors/NeighborQueue.h"
-#include "../ackLayer/AckLayer.h"
-#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include <stdint.h>
+#include "../../../dsme_platform.h"
+#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
+#include "../ackLayer/AckLayer.h"
+#include "../neighbors/NeighborQueue.h"
 
 namespace dsme {
 
 class DSMELayer;
 
 class MessageDispatcher {
-
 public:
     explicit MessageDispatcher(DSMELayer& dsme);
     ~MessageDispatcher();
@@ -149,8 +148,8 @@ protected:
     long numUnusedRxGts = 0;
 
     long numUpperPacketsDroppedFullQueue = 0;
-    long numUpperPacketsForCAP = 0;
-    long numUpperPacketsForGTS = 0;
+    long numUpperPacketsForCAP           = 0;
+    long numUpperPacketsForGTS           = 0;
 
     bool recordGtsUpdates = false;
 

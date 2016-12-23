@@ -47,19 +47,18 @@ const GTS GTS::UNDEFINED = GTS(0xffff, 0xffff, 0xff);
 
 GTS::GTS(uint16_t superframeID, uint16_t slotID, uint8_t channel) {
     this->superframeID = superframeID;
-    this->slotID = slotID;
-    this->channel = channel;
+    this->slotID       = slotID;
+    this->channel      = channel;
 }
 GTS::GTS(const GTS& other) {
     this->superframeID = other.superframeID;
-    this->slotID = other.slotID;
-    this->channel = other.channel;
-
+    this->slotID       = other.slotID;
+    this->channel      = other.channel;
 }
 GTS& GTS::operator=(const GTS& other) {
     this->superframeID = other.superframeID;
-    this->slotID = other.slotID;
-    this->channel = other.channel;
+    this->slotID       = other.slotID;
+    this->channel      = other.channel;
     return (*this);
 }
 
@@ -83,4 +82,3 @@ GTS GTS::GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t nu
 }
 
 } /* dsme */
-

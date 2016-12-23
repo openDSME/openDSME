@@ -45,8 +45,8 @@
 
 /* INCLUDES ******************************************************************/
 
-#include "Neighbor.h"
 #include "DynamicMultiMessageQueue.h"
+#include "Neighbor.h"
 
 namespace dsme {
 
@@ -56,8 +56,8 @@ typedef uint8_t queue_size_t;
 
 /* STRUCTS *******************************************************************/
 
-template<typename T>
-struct NeighborListEntry: public Neighbor {
+template <typename T>
+struct NeighborListEntry : public Neighbor {
 public:
     explicit NeighborListEntry(Neighbor& neighbor);
     virtual ~NeighborListEntry();
@@ -70,16 +70,13 @@ public:
 
 /* FUNCTION DEFINITIONS ******************************************************/
 
-template<typename T>
-NeighborListEntry<T>::NeighborListEntry(Neighbor& neighbor) :
-    Neighbor(neighbor), messageFront(nullptr), messageBack(nullptr), queueSize(
-        0) {
+template <typename T>
+NeighborListEntry<T>::NeighborListEntry(Neighbor& neighbor) : Neighbor(neighbor), messageFront(nullptr), messageBack(nullptr), queueSize(0) {
 }
 
-template<typename T>
+template <typename T>
 NeighborListEntry<T>::~NeighborListEntry() {
 }
-
 }
 
 #endif /* NEIGHBORLISTENTRY_H_ */

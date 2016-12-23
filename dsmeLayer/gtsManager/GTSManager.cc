@@ -51,18 +51,13 @@
 
 namespace dsme {
 
-GTSManager::GTSManager(DSMELayer& dsme) :
-    GTSManagerFSM_t(&GTSManager::stateIdle, &GTSManager::stateBusy),
-    dsme(dsme),
-    actUpdater(dsme) {
+GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle, &GTSManager::stateBusy), dsme(dsme), actUpdater(dsme) {
 }
 
 void GTSManager::initialize() {
-    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(),
+    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(),
                                             dsme.getMAC_PIB().helper.getNumChannels());
-    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(),
+    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(),
                                             dsme.getMAC_PIB().helper.getNumChannels());
     return;
 }
@@ -86,7 +81,7 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     DSME_ASSERT(fsmId == GTS_STATE_MULTIPLICITY);
 
-    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateBusy)  << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateBusy) << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -112,7 +107,7 @@ fsmReturnStatus GTSManager::stateBusy(GTSEvent& event) {
 fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     if(event.signal != GTSEvent::CFP_STARTED) {
-        LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateIdle)  << "[" << (uint16_t)fsmId << "]");
+        LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateIdle) << "[" << (uint16_t)fsmId << "]");
     }
 
     switch(event.signal) {
@@ -182,27 +177,19 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
         case GTSEvent::CFP_STARTED: {
             // check if a slot should be deallocated, only if no reply or notify is pending
-            for(DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
-                    ++it) {
+            for(DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end(); ++it) {
                 // Since no reply is pending, this slot should have been removed already and is no longer in the ACT
                 // This should be even the case for timeouts (NO_DATA indication for upper layer)
                 DSME_ASSERT(it->getState() != DEALLOCATED);
                 DSME_ASSERT(it->getState() != REMOVED);
 
-                LOG_DEBUG("check slot "
-                          << (uint16_t)it->getGTSlotID()
-                          << " " << it->getSuperframeID()
-                          << " " << (uint16_t)it->getChannel()
-                          << " [" << this->dsme.getMAC_PIB().macShortAddress
-                          << (const char*)((it->getDirection() == Direction::TX) ? ">" : "<")
-                          << it->getAddress()
-                          << ", " << it->getIdleCounter() << "]");
+                LOG_DEBUG("check slot " << (uint16_t)it->getGTSlotID() << " " << it->getSuperframeID() << " " << (uint16_t)it->getChannel() << " ["
+                                        << this->dsme.getMAC_PIB().macShortAddress << (const char*)((it->getDirection() == Direction::TX) ? ">" : "<")
+                                        << it->getAddress() << ", " << it->getIdleCounter() << "]");
 
                 // TODO Since INVALID is not included in the standard, use the EXPIRATION type for INVALID, too.
                 //      The effect should be the same.
-                if(it->getState() == INVALID || it->getState() == UNCONFIRMED
-                        || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
-
+                if(it->getState() == INVALID || it->getState() == UNCONFIRMED || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     if(it->getState() == INVALID) {
                         LOG_INFO("DEALLOCATE: Due to state INVALID");
                     } else if(it->getState() == UNCONFIRMED) {
@@ -220,17 +207,16 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     mlme_sap::DSME_GTS_indication_parameters params;
                     params.deviceAddress = it->getAddress();
 
-                    params.managmentType = EXPIRATION;
-                    params.direction = it->getDirection();
+                    params.managmentType            = EXPIRATION;
+                    params.direction                = it->getDirection();
                     params.prioritizedChannelAccess = Priority::LOW;
-                    params.numSlot = 1;
+                    params.numSlot                  = 1;
 
                     uint8_t subBlockLengthBytes = dsme.getMAC_PIB().helper.getSubBlockLengthBytes();
                     params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
                     params.dsmeSABSpecification.setSubBlockIndex(it->getSuperframeID());
                     params.dsmeSABSpecification.getSubBlock().fill(false);
-                    params.dsmeSABSpecification.getSubBlock().set(
-                        it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+                    params.dsmeSABSpecification.getSubBlock().set(it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
 
                     this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
                     break;
@@ -248,7 +234,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateSending)  << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateSending) << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -351,7 +337,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateWaitForResponse)  << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateWaitForResponse) << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -369,28 +355,30 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
         case GTSEvent::RESPONSE_CMD_FOR_ME: {
             mlme_sap::DSME_GTS_confirm_parameters params;
-            params.deviceAddress = event.deviceAddr;
-            params.managmentType = event.management.type;
-            params.direction = event.management.direction;
+            params.deviceAddress            = event.deviceAddr;
+            params.managmentType            = event.management.type;
+            params.direction                = event.management.direction;
             params.prioritizedChannelAccess = event.management.prioritizedChannelAccess;
-            params.dsmeSABSpecification = event.replyNotifyCmd.getSABSpec();
+            params.dsmeSABSpecification     = event.replyNotifyCmd.getSABSpec();
 
             // TODO // if the ACK gets lost, the reply might be sent anyway, so we might be in SENDING_REQUEST
             // TODO DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REQUEST) || state == State::WAIT_FOR_REPLY);
 
             if(data[fsmId].pendingConfirm.deviceAddress != params.deviceAddress) {
                 LOG_INFO("Wrong response handled! Got address " << params.deviceAddress << " instead of " << data[fsmId].pendingConfirm.deviceAddress);
-                //DSME_ASSERT(false);
+                // DSME_ASSERT(false);
                 return FSM_HANDLED;
             }
             if(data[fsmId].pendingConfirm.managmentType != params.managmentType) {
-                LOG_INFO("Wrong response handled! Got type " << (int16_t)params.managmentType << " instead of " << (int16_t)data[fsmId].pendingConfirm.managmentType);
-                //DSME_ASSERT(false);
+                LOG_INFO("Wrong response handled! Got type " << (int16_t)params.managmentType << " instead of "
+                                                             << (int16_t)data[fsmId].pendingConfirm.managmentType);
+                // DSME_ASSERT(false);
                 return FSM_HANDLED;
             }
             if(data[fsmId].pendingConfirm.direction != params.direction) {
-                LOG_INFO("Wrong response handled! Got direction " << (int16_t)params.direction << " instead of " << (int16_t)data[fsmId].pendingConfirm.direction);
-                //DSME_ASSERT(false);
+                LOG_INFO("Wrong response handled! Got direction " << (int16_t)params.direction << " instead of "
+                                                                  << (int16_t)data[fsmId].pendingConfirm.direction);
+                // DSME_ASSERT(false);
                 return FSM_HANDLED;
             }
 
@@ -398,7 +386,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
             if(event.management.status == GTSStatus::SUCCESS) {
                 if(event.management.type == ALLOCATION) {
-                    if(checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, true)) {  // TODO issue #3
+                    if(checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, true)) { // TODO issue #3
                         uint8_t numSlotsOk = event.replyNotifyCmd.getSABSpec().getSubBlock().count(true);
 
                         if(numSlotsOk == 0) {
@@ -429,8 +417,8 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 } else {
                     return transition(fsmId, &GTSManager::stateSending);
                 }
-            } else if(event.management.status == GTSStatus::NO_DATA) {  // misuse NO_DATA to signal that the destination was busy
-                //actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+            } else if(event.management.status == GTSStatus::NO_DATA) { // misuse NO_DATA to signal that the destination was busy
+                // actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                 actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
@@ -445,8 +433,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 LOG_INFO("GTS timeout for response");
                 mlme_sap::DSME_GTS_confirm_parameters& pendingConfirm = data[fsmId].pendingConfirm;
 
-                actUpdater.responseTimeout(pendingConfirm.dsmeSABSpecification, data[fsmId].pendingManagement,
-                                           pendingConfirm.deviceAddress);
+                actUpdater.responseTimeout(pendingConfirm.dsmeSABSpecification, data[fsmId].pendingManagement, pendingConfirm.deviceAddress);
                 pendingConfirm.status = GTSStatus::GTS_Status::NO_DATA;
                 this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(pendingConfirm);
                 return transition(fsmId, &GTSManager::stateIdle);
@@ -462,7 +449,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
 fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
-    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateWaitForNotify)  << "[" << (uint16_t)fsmId << "]");
+    LOG_DEBUG(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateWaitForNotify) << "[" << (uint16_t)fsmId << "]");
 
     switch(event.signal) {
         case GTSEvent::ENTRY_SIGNAL:
@@ -479,18 +466,19 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
             return FSM_IGNORED;
 
         case GTSEvent::NOTIFY_CMD_FOR_ME: {
-            // TODO! DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REPLY) || state == State::WAIT_FOR_NOTIFY); // TODO what if the notify comes too late, probably send a deallocation again???
+            // TODO! DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REPLY) || state == State::WAIT_FOR_NOTIFY); // TODO what if the notify comes
+            // too late, probably send a deallocation again???
             actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
 
             /* If the DSME-GTS Destination address is the same as the macShortAddress, the device shall notify the next higher
              * layer of the receipt of the DSME-GTS notify command frame using MLME-COMM- STATUS.indication */
             // TODO also for DEALLOCATION?
             mlme_sap::COMM_STATUS_indication_parameters params;
-            params.pANId = event.header.getSrcPANId();
+            params.pANId       = event.header.getSrcPANId();
             params.srcAddrMode = event.header.getFrameControl().srcAddrMode;
-            params.srcAddr = event.header.getSrcAddr();
+            params.srcAddr     = event.header.getSrcAddr();
             params.dstAddrMode = event.header.getFrameControl().dstAddrMode;
-            params.dstAddr = event.header.getDestAddr(); //TODO: Header destination address of GTS destination address?
+            params.dstAddr = event.header.getDestAddr(); // TODO: Header destination address of GTS destination address?
             params.status = CommStatus::SUCCESS;
 
             dsme.getMLME_SAP().getCOMM_STATUS().notify_indication(params);
@@ -527,31 +515,31 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
 const char* GTSManager::signalToString(uint8_t signal) {
     switch(signal) {
         case GTSEvent::EMPTY_SIGNAL:
-            //return "EMPTY_SIGNAL";
+            // return "EMPTY_SIGNAL";
             return "EM";
         case GTSEvent::ENTRY_SIGNAL:
-            //return "ENTRY_SIGNAL";
+            // return "ENTRY_SIGNAL";
             return "EN";
         case GTSEvent::EXIT_SIGNAL:
-            //return "EXIT_SIGNAL";
+            // return "EXIT_SIGNAL";
             return "EX";
         case GTSEvent::MLME_REQUEST_ISSUED:
-            //return "MLME_REQUEST_ISSUED";
+            // return "MLME_REQUEST_ISSUED";
             return "REQ";
         case GTSEvent::MLME_RESPONSE_ISSUED:
-            //return "MLME_RESPONSE_ISSUED";
+            // return "MLME_RESPONSE_ISSUED";
             return "RES";
         case GTSEvent::RESPONSE_CMD_FOR_ME:
-            //return "RESPONSE_CMD_FOR_ME";
+            // return "RESPONSE_CMD_FOR_ME";
             return "RESFM";
         case GTSEvent::NOTIFY_CMD_FOR_ME:
-            //return "NOTIFY_CMD_FOR_ME";
+            // return "NOTIFY_CMD_FOR_ME";
             return "NO";
         case GTSEvent::CFP_STARTED:
-            //return "CFP_STARTED";
+            // return "CFP_STARTED";
             return "CFP";
         case GTSEvent::SEND_COMPLETE:
-            //return "SEND_COMPLETE";
+            // return "SEND_COMPLETE";
             return "CO";
         default:
             DSME_ASSERT(false);
@@ -565,13 +553,13 @@ const char* GTSManager::stateToString(GTSManagerFSM_t::state_t state) {
     } else if(state == &GTSManager::stateIdle) {
         return "IDLE";
     } else if(state == &GTSManager::stateSending) {
-        //return "SENDING";
+        // return "SENDING";
         return "SEND";
     } else if(state == &GTSManager::stateWaitForResponse) {
-        //return "WAITFORRESPONSE";
+        // return "WAITFORRESPONSE";
         return "WAITR";
     } else if(state == &GTSManager::stateWaitForNotify) {
-        //return "WAITFORNOTIFY";
+        // return "WAITFORNOTIFY";
         return "WAITN";
     } else {
         DSME_ASSERT(false);
@@ -586,32 +574,30 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     event.replyNotifyCmd.prependTo(msg);
 
-    LOG_INFO(
-        "Negative GTS response " << event.replyNotifyCmd.getDestinationAddress() << " TRANSACTION_OVERFLOW");
+    LOG_INFO("Negative GTS response " << event.replyNotifyCmd.getDestinationAddress() << " TRANSACTION_OVERFLOW");
     uint16_t destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
-    event.management.status = GTSStatus::NO_DATA; // misuse NO_DATA to signal that the destination was busy
+    event.management.status          = GTSStatus::NO_DATA; // misuse NO_DATA to signal that the destination was busy
     if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress, false)) {
         LOG_INFO("Could not send REPLY");
         dsme.getPlatform().releaseMessage(msg);
     }
 }
 
-
 void GTSManager::actionReportBusyNotify(GTSEvent& event) {
-    //LOG_INFO("BusyNotify on event '" << signalToString(event.signal) << "-" << stateToString(this->getState()) );
+    // LOG_INFO("BusyNotify on event '" << signalToString(event.signal) << "-" << stateToString(this->getState()) );
 
     mlme_sap::DSME_GTS_confirm_parameters busyConfirm;
-    busyConfirm.deviceAddress = event.deviceAddr;
-    busyConfirm.managmentType = event.management.type;
-    busyConfirm.direction = event.management.direction;
+    busyConfirm.deviceAddress            = event.deviceAddr;
+    busyConfirm.managmentType            = event.management.type;
+    busyConfirm.direction                = event.management.direction;
     busyConfirm.prioritizedChannelAccess = event.management.prioritizedChannelAccess;
-    busyConfirm.dsmeSABSpecification = event.requestCmd.getSABSpec();
-    busyConfirm.status = GTSStatus::TRANSACTION_OVERFLOW;
+    busyConfirm.dsmeSABSpecification     = event.requestCmd.getSABSpec();
+    busyConfirm.status                   = GTSStatus::TRANSACTION_OVERFLOW;
     this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(busyConfirm);
 }
 
 void GTSManager::actionReportBusyCommStatus(GTSEvent& event) {
-    //LOG_INFO("BusyCommstatus on event '" << signalToString(event.signal) << "-" << stateToString(this->getState()) );
+    // LOG_INFO("BusyCommstatus on event '" << signalToString(event.signal) << "-" << stateToString(this->getState()) );
 
     mlme_sap::COMM_STATUS_indication_parameters params;
     // TODO also fill other fields
@@ -631,7 +617,7 @@ bool GTSManager::handleMLMERequest(uint16_t deviceAddr, GTSManagement& man, GTSR
 
 bool GTSManager::handleMLMEResponse(GTSManagement& man, GTSReplyNotifyCmd& reply) {
     uint16_t destinationAddress = reply.getDestinationAddress();
-    int8_t fsmId = getFsmIdForResponse(destinationAddress);
+    int8_t fsmId                = getFsmIdForResponse(destinationAddress);
     return dispatch(fsmId, GTSEvent::MLME_RESPONSE_ISSUED, destinationAddress, man, reply);
 }
 
@@ -645,14 +631,14 @@ bool GTSManager::handleGTSRequest(DSMEMessage* msg) {
     req.decapsulateFrom(msg);
 
     mlme_sap::DSME_GTS_indication_parameters params;
-    params.deviceAddress = sourceAddr;
-    params.managmentType = man.type;
-    params.direction = man.direction;
+    params.deviceAddress            = sourceAddr;
+    params.managmentType            = man.type;
+    params.direction                = man.direction;
     params.prioritizedChannelAccess = man.prioritizedChannelAccess;
-    params.numSlot = req.getNumSlots();
-    params.preferredSuperframeID = req.getPreferredSuperframeID();
-    params.preferredSlotID = req.getPreferredSlotID();
-    params.dsmeSABSpecification = req.getSABSpec();
+    params.numSlot                  = req.getNumSlots();
+    params.preferredSuperframeID    = req.getPreferredSuperframeID();
+    params.preferredSlotID          = req.getPreferredSlotID();
+    params.dsmeSABSpecification     = req.getSABSpec();
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());
@@ -670,7 +656,7 @@ bool GTSManager::handleGTSResponse(DSMEMessage* msg) {
     replyNotifyCmd.decapsulateFrom(msg);
 
     if(replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
-        int8_t fsmId = getFsmIdFromResponseForMe(msg);
+        int8_t fsmId                       = getFsmIdFromResponseForMe(msg);
         data[fsmId].responsePartnerAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
         return dispatch(fsmId, GTSEvent::RESPONSE_CMD_FOR_ME, msg, management, replyNotifyCmd);
     } else if(management.status == GTSStatus::SUCCESS) {
@@ -705,7 +691,7 @@ bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
     replyNotifyCmd.decapsulateFrom(msg);
 
     if(replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
-        int8_t fsmId = getFsmIdFromNotifyForMe(msg);
+        int8_t fsmId                     = getFsmIdFromNotifyForMe(msg);
         data[fsmId].notifyPartnerAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
         return dispatch(fsmId, GTSEvent::NOTIFY_CMD_FOR_ME, msg, management, replyNotifyCmd);
     } else {
@@ -730,8 +716,7 @@ bool GTSManager::handleStartOfCFP(uint8_t superframe) {
 
     // also execute this during non-idle phases
     if(superframe == 0) {
-        for(DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end();
-                ++it) {
+        for(DSMEAllocationCounterTable::iterator it = dsme.getMAC_PIB().macDSMEACT.begin(); it != dsme.getMAC_PIB().macDSMEACT.end(); ++it) {
             if(it->getDirection() == Direction::RX) {
                 // New multi-superframe started, so increment the idle counter according to 5.1.10.5.3
                 it->incrementIdleCounter(); // gets reset to zero on RX
@@ -770,7 +755,8 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
             // Check which statemachine waits for this msg
             if(data[i].msgToSend == msg) {
                 data[i].msgToSend = nullptr;
-                DSME_ASSERT(getState(i) == &GTSManager::stateSending || getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
+                DSME_ASSERT(getState(i) == &GTSManager::stateSending ||
+                            getState(i) == &GTSManager::stateIdle); // The FSM might still execute the sendGTSCommand in the IDLE state
                 validFsmId = i;
                 break;
             }
@@ -795,7 +781,6 @@ bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, Data
     return returnStatus;
 }
 
-
 /*****************************
  * Internal helpers
  *****************************/
@@ -809,13 +794,11 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
     dupReq.getSABSpec().setSubBlockLengthBytes(sabSpec.getSubBlockLengthBytes());
     dupReq.getSABSpec().setSubBlockIndex(sabSpec.getSubBlockIndex());
 
-    for(DSMESABSpecification::SABSubBlock::iterator it = sabSpec.getSubBlock().beginSetBits(); it != sabSpec.getSubBlock().endSetBits();
-            ++it) {
-
+    for(DSMESABSpecification::SABSubBlock::iterator it = sabSpec.getSubBlock().beginSetBits(); it != sabSpec.getSubBlock().endSetBits(); ++it) {
         DSMEAllocationCounterTable::iterator actElement = macDSMEACT.find(sabSpec.getSubBlockIndex(), (*it) / dsme.getMAC_PIB().helper.getNumChannels());
         if(actElement != macDSMEACT.end() && (allChannels || actElement->getChannel() == (*it) % dsme.getMAC_PIB().helper.getNumChannels())) {
-            LOG_INFO("Duplicate allocation " << (uint16_t)(actElement->getGTSlotID() + 9) << " " << (uint16_t)sabSpec.getSubBlockIndex()
-                     << " " << (uint16_t)actElement->getChannel());
+            LOG_INFO("Duplicate allocation " << (uint16_t)(actElement->getGTSlotID() + 9) << " " << (uint16_t)sabSpec.getSubBlockIndex() << " "
+                                             << (uint16_t)actElement->getChannel());
 
             duplicateFound = true;
             dupReq.getSABSpec().getSubBlock().set(*it, true);
@@ -830,7 +813,7 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
         DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
         dupReq.prependTo(msg);
         GTSManagement man;
-        man.type = ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION;
+        man.type   = ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION;
         man.status = GTSStatus::SUCCESS;
 
         // this request expects no reply, so do not use usual request command
@@ -852,9 +835,8 @@ bool GTSManager::isTimeoutPending(uint8_t fsmId) {
     // It was changed in the IEEE 802.15.4-2015 standard to macResponseWaitTime (see e.g. Figure 6-57).
     // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
     LOG_INFO("superframesInCurrentState: " << data[fsmId].superframesInCurrentState << "("
-             << data[fsmId].superframesInCurrentState * (1 << dsme.getMAC_PIB().macSuperframeOrder) << "/"
-             << dsme.getMAC_PIB().macResponseWaitTime
-            );
+                                           << data[fsmId].superframesInCurrentState * (1 << dsme.getMAC_PIB().macSuperframeOrder) << "/"
+                                           << dsme.getMAC_PIB().macResponseWaitTime);
 
     return (data[fsmId].superframesInCurrentState * (1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime);
 }
@@ -892,10 +874,10 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& 
 void GTSManager::preparePendingConfirm(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
 
-    data[fsmId].pendingManagement = event.management;
-    data[fsmId].pendingConfirm.deviceAddress = event.deviceAddr;
-    data[fsmId].pendingConfirm.managmentType = event.management.type;
-    data[fsmId].pendingConfirm.direction = event.management.direction;
+    data[fsmId].pendingManagement                       = event.management;
+    data[fsmId].pendingConfirm.deviceAddress            = event.deviceAddr;
+    data[fsmId].pendingConfirm.managmentType            = event.management.type;
+    data[fsmId].pendingConfirm.direction                = event.management.direction;
     data[fsmId].pendingConfirm.prioritizedChannelAccess = event.management.prioritizedChannelAccess;
     if(event.signal == GTSEvent::MLME_REQUEST_ISSUED) {
         data[fsmId].pendingConfirm.dsmeSABSpecification = event.requestCmd.getSABSpec();
@@ -966,6 +948,5 @@ bool GTSManager::hasBusyFsm() {
     }
     return busyFsm;
 }
-
 
 } /* dsme */

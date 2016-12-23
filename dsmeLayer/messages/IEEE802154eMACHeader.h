@@ -54,20 +54,14 @@ public:
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1.1, Table 2
      */
-    enum FrameType {
-        BEACON = 0x0, DATA = 0x1, ACKNOWLEDGEMENT = 0x2, COMMAND = 0x3, LLDN = 0x4, MULTIPURPOSE = 0x5
-    };
+    enum FrameType { BEACON = 0x0, DATA = 0x1, ACKNOWLEDGEMENT = 0x2, COMMAND = 0x3, LLDN = 0x4, MULTIPURPOSE = 0x5 };
 
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1.7, Table 3a
      */
-    enum FrameVersion {
-        IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2015 = 0x2, RESERVED = 0x3
-    };
+    enum FrameVersion { IEEE802154_2003 = 0x0, IEEE802154_2006 = 0x1, IEEE802154_2015 = 0x2, RESERVED = 0x3 };
 
-    enum PANID {
-        BROADCAST_PAN = 0xFFFF
-    };
+    enum PANID { BROADCAST_PAN = 0xFFFF };
 
     /**
      * See IEEE 802.15.4e-2012 5.2.1.1, Figure 36
@@ -92,23 +86,23 @@ public:
 
     void reset() {
         // TODO find useful default values or make constructor private and DSMEMessage friend
-        frameControl.frameType = DATA;
-        frameControl.securityEnabled = 0;
-        frameControl.framePending = 0;
-        frameControl.ackRequest = 0; // TODO
-        frameControl.reserved = 0;
-        frameControl.seqNumSuppression = 0; // TODO
-        frameControl.ieListPresent = 0; // TODO
-        frameControl.dstAddrMode = SHORT_ADDRESS; // TODO
-        frameControl.frameVersion = IEEE802154_2015;
-        frameControl.srcAddrMode = SHORT_ADDRESS; // TODO
+        frameControl.frameType         = DATA;
+        frameControl.securityEnabled   = 0;
+        frameControl.framePending      = 0;
+        frameControl.ackRequest        = 0; // TODO
+        frameControl.reserved          = 0;
+        frameControl.seqNumSuppression = 0;             // TODO
+        frameControl.ieListPresent     = 0;             // TODO
+        frameControl.dstAddrMode       = SHORT_ADDRESS; // TODO
+        frameControl.frameVersion      = IEEE802154_2015;
+        frameControl.srcAddrMode       = SHORT_ADDRESS; // TODO
 
         seqNum = 17; // TODO
 
         frameControl.panIDCompression = 0; // will be set during serialization
-        panIDCompressionOverridden = false;
-        dstPAN = BROADCAST_PAN;
-        srcPAN = BROADCAST_PAN;
+        panIDCompressionOverridden    = false;
+        dstPAN                        = BROADCAST_PAN;
+        srcPAN                        = BROADCAST_PAN;
 
         hasDstPAN = false;
         hasSrcPAN = false;
@@ -117,7 +111,7 @@ public:
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
-        finalized = false;
+        finalized                      = false;
         this->frameControl.srcAddrMode = srcAddrMode;
     }
 
@@ -126,7 +120,7 @@ public:
     }
 
     void setSrcPANId(uint16_t srcPANId) {
-        finalized = false;
+        finalized    = false;
         this->srcPAN = srcPANId;
     }
 
@@ -136,7 +130,7 @@ public:
 
     void setSrcAddr(const IEEE802154MacAddress& addr) {
         finalized = false;
-        srcAddr = addr;
+        srcAddr   = addr;
     }
 
     const IEEE802154MacAddress& getSrcAddr() const {
@@ -148,7 +142,7 @@ public:
     }
 
     void setDstAddrMode(const AddrMode& dstAddrMode) {
-        finalized = false;
+        finalized                      = false;
         this->frameControl.dstAddrMode = dstAddrMode;
     }
 
@@ -157,7 +151,7 @@ public:
     }
 
     void setDstPANId(uint16_t dstPANId) {
-        finalized = false;
+        finalized    = false;
         this->dstPAN = dstPANId;
     }
 
@@ -167,7 +161,7 @@ public:
 
     void setDstAddr(const IEEE802154MacAddress& addr) {
         finalized = false;
-        dstAddr = addr;
+        dstAddr   = addr;
     }
 
     const IEEE802154MacAddress& getDestAddr() const {
@@ -183,7 +177,7 @@ public:
     }
 
     void setAckRequest(bool ar) {
-        finalized = false;
+        finalized               = false;
         frameControl.ackRequest = ar;
     }
 
@@ -192,11 +186,11 @@ public:
     }
 
     void setFrameType(FrameType type) {
-        finalized = false;
+        finalized              = false;
         frameControl.frameType = type;
 
         if(frameControl.frameType == ACKNOWLEDGEMENT) {
-            frameControl.ackRequest = 0;
+            frameControl.ackRequest  = 0;
             frameControl.dstAddrMode = NO_ADDRESS;
             frameControl.srcAddrMode = NO_ADDRESS;
         }
@@ -208,7 +202,7 @@ public:
 
     void setSequenceNumber(uint8_t seq) {
         finalized = false;
-        seqNum = seq;
+        seqNum    = seq;
     }
 
     uint8_t getSequenceNumber() const {
@@ -220,7 +214,7 @@ public:
     }
 
     void setSecurityEnabled(bool enabled) {
-        finalized = false;
+        finalized                          = false;
         this->frameControl.securityEnabled = enabled;
     }
 
@@ -233,28 +227,28 @@ public:
      * the serialization will run in an ASSERT.
      */
     void overridePanIDCompression(bool compression) {
-        finalized = false;
-        this->panIDCompressionOverridden = true;
+        finalized                           = false;
+        this->panIDCompressionOverridden    = true;
         this->frameControl.panIDCompression = compression;
     }
 
     void setIEListPresent(bool present) {
-        finalized = false;
+        finalized                        = false;
         this->frameControl.ieListPresent = present;
     }
 
     void setSeqNumSuppression(bool suppression) {
-        finalized = false;
+        finalized                            = false;
         this->frameControl.seqNumSuppression = suppression;
     }
 
     void setFrameControl(uint8_t lowByte, uint8_t highByte) {
-        frameControl.frameType         = IEEE802154eMACHeader::FrameType((lowByte >> 0) & 0x7);
-        frameControl.securityEnabled   = (lowByte >> 3) & 0x1;
-        frameControl.framePending      = (lowByte >> 4) & 0x1;
-        frameControl.ackRequest        = (lowByte >> 5) & 0x1;
-        frameControl.panIDCompression  = (lowByte >> 6) & 0x1;
-        frameControl.reserved          = (lowByte >> 7) & 0x1;
+        frameControl.frameType        = IEEE802154eMACHeader::FrameType((lowByte >> 0) & 0x7);
+        frameControl.securityEnabled  = (lowByte >> 3) & 0x1;
+        frameControl.framePending     = (lowByte >> 4) & 0x1;
+        frameControl.ackRequest       = (lowByte >> 5) & 0x1;
+        frameControl.panIDCompression = (lowByte >> 6) & 0x1;
+        frameControl.reserved         = (lowByte >> 7) & 0x1;
 
         frameControl.seqNumSuppression = (highByte >> 0) & 0x1;
         frameControl.ieListPresent     = (highByte >> 1) & 0x1;
@@ -284,11 +278,11 @@ public:
             // - the destination address exists and the compression bit is unset or
             // - both addresses exist and either of the addresses is a short address or
             // - no address exists and the compression bit is set
-            bool dst = getDstAddrMode() != NO_ADDRESS;
-            bool src = getSrcAddrMode() != NO_ADDRESS;
+            bool dst       = getDstAddrMode() != NO_ADDRESS;
+            bool src       = getSrcAddrMode() != NO_ADDRESS;
             bool shortAddr = getSrcAddrMode() == SHORT_ADDRESS || getDstAddrMode() == SHORT_ADDRESS;
-            bool compress = frameControl.panIDCompression;
-            hasDstPAN = (dst && !compress) || (dst && src && shortAddr) || (!dst && !src && compress);
+            bool compress  = frameControl.panIDCompression;
+            hasDstPAN      = (dst && !compress) || (dst && src && shortAddr) || (!dst && !src && compress);
         }
 
         finalized = true;
@@ -296,22 +290,22 @@ public:
 
     uint8_t getFrameControlLowByte() {
         uint8_t fcf_0;
-        fcf_0  = frameControl.frameType         << 0;
-        fcf_0 |= frameControl.securityEnabled   << 3;
-        fcf_0 |= frameControl.framePending      << 4;
-        fcf_0 |= frameControl.ackRequest        << 5;
-        fcf_0 |= frameControl.panIDCompression  << 6;
-        fcf_0 |= frameControl.reserved          << 7;
+        fcf_0 = frameControl.frameType << 0;
+        fcf_0 |= frameControl.securityEnabled << 3;
+        fcf_0 |= frameControl.framePending << 4;
+        fcf_0 |= frameControl.ackRequest << 5;
+        fcf_0 |= frameControl.panIDCompression << 6;
+        fcf_0 |= frameControl.reserved << 7;
         return fcf_0;
     }
 
     uint8_t getFrameControlHighByte() {
         uint8_t fcf_1;
-        fcf_1  = frameControl.seqNumSuppression << 0;
-        fcf_1 |= frameControl.ieListPresent     << 1;
-        fcf_1 |= frameControl.dstAddrMode       << 2;
-        fcf_1 |= frameControl.frameVersion      << 4;
-        fcf_1 |= frameControl.srcAddrMode       << 6;
+        fcf_1 = frameControl.seqNumSuppression << 0;
+        fcf_1 |= frameControl.ieListPresent << 1;
+        fcf_1 |= frameControl.dstAddrMode << 2;
+        fcf_1 |= frameControl.frameVersion << 4;
+        fcf_1 |= frameControl.srcAddrMode << 6;
         return fcf_1;
     }
 
@@ -410,7 +404,6 @@ public:
 
     /* <----------------------------------- HELPER METHODS FOR HEADER FORMAT */
 
-
     virtual uint8_t getSerializationLength() {
         if(!finalized) {
             finalize();
@@ -447,6 +440,5 @@ public:
     bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
     void serializeTo(uint8_t*& buffer);
 };
-
 }
 #endif

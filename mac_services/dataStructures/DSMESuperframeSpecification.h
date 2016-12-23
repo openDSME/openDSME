@@ -49,7 +49,7 @@ namespace dsme {
 
 class DSMESuperframeSpecification {
 public:
-    enum {CHANNEL_ADAPTION = 0x00, CHANNEL_HOPPING = 0x01};
+    enum { CHANNEL_ADAPTION = 0x00, CHANNEL_HOPPING = 0x01 };
     struct {
         uint8_t multiSuperframeOrder : 4;
         bool macChannelDiversityMode : 1;
@@ -58,18 +58,12 @@ public:
         bool deferredBeaconFlag : 1;
     };
 
-    DSMESuperframeSpecification() :
-        multiSuperframeOrder(0),
-        macChannelDiversityMode(CHANNEL_ADAPTION),
-        GACKFlag(false),
-        CAPReductionFlag(false),
-        deferredBeaconFlag(false) {
+    DSMESuperframeSpecification()
+        : multiSuperframeOrder(0), macChannelDiversityMode(CHANNEL_ADAPTION), GACKFlag(false), CAPReductionFlag(false), deferredBeaconFlag(false) {
     }
 };
 
-Serializer& operator<<(Serializer& serializer,
-                       DSMESuperframeSpecification& spec);
-
+Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec);
 }
 
 #endif

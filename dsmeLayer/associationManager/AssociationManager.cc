@@ -49,18 +49,16 @@
 
 namespace dsme {
 
-AssociationManager::AssociationManager(DSMELayer& dsme) :
-    dsme(dsme),
-    currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST),
-    superframesSinceAssociationSent(0) {
+AssociationManager::AssociationManager(DSMELayer& dsme)
+    : dsme(dsme), currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST), superframesSinceAssociationSent(0) {
 }
 
 void AssociationManager::reset() {
-    this->dsme.getMAC_PIB().macPANId = 0xffff;
-    this->dsme.getMAC_PIB().macShortAddress = 0xffff;
-    this->dsme.getMAC_PIB().macAssociatedPANCoord = false;
+    this->dsme.getMAC_PIB().macPANId                = 0xffff;
+    this->dsme.getMAC_PIB().macShortAddress         = 0xffff;
+    this->dsme.getMAC_PIB().macAssociatedPANCoord   = false;
     this->dsme.getMAC_PIB().macCoordExtendedAddress = IEEE802154MacAddress::UNSPECIFIED;
-    this->dsme.getMAC_PIB().macCoordShortAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
+    this->dsme.getMAC_PIB().macCoordShortAddress    = IEEE802154MacAddress::NO_SHORT_ADDRESS;
 
     this->dsme.getMAC_PIB().macIsCoord = false;
 }
@@ -82,7 +80,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_REQUEST);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2012 5.3.11.2.1).
+    // Header compliant to specification (IEEE802.15.4-2012 5.3.11.2.1).
     msg->getHeader().setDstAddr(params.coordAddress);
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setSrcAddrMode(EXTENDED_ADDRESS);
@@ -105,12 +103,11 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
 }
 
 void AssociationManager::handleAssociationRequest(DSMEMessage* msg) {
-
     AssociateRequestCmd req;
     req.decapsulateFrom(msg);
 
     mlme_sap::ASSOCIATE_indication_parameters params;
-    params.deviceAddress = msg->getHeader().getSrcAddr();
+    params.deviceAddress         = msg->getHeader().getSrcAddr();
     params.capabilityInformation = req.getCapabilityInformation();
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_indication(params);
@@ -134,7 +131,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_RESPONSE);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2012 5.3.11.3.1).
+    // Header compliant to specification (IEEE802.15.4-2012 5.3.11.3.1).
     msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setDstAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
@@ -166,13 +163,13 @@ void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
 
     mlme_sap::ASSOCIATE_confirm_parameters params;
     params.assocShortAddress = reply.getShortAddr();
-    params.status = reply.getStatus();
+    params.status            = reply.getStatus();
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 
     if((params.status == AssociationStatus::SUCCESS) || (params.status == AssociationStatus::FASTA_SUCCESSFUL)) {
-        this->dsme.getMAC_PIB().macPANId = msg->getHeader().getDstPANId();
-        this->dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
+        this->dsme.getMAC_PIB().macPANId              = msg->getHeader().getDstPANId();
+        this->dsme.getMAC_PIB().macShortAddress       = params.assocShortAddress;
         this->dsme.getMAC_PIB().macAssociatedPANCoord = true;
 
         this->dsme.startTrackingBeacons();
@@ -180,7 +177,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
         this->dsme.getPlatform().updateVisual();
     } else {
         /* default in case of failure */
-        this->dsme.getMAC_PIB().macPANId = 0xffff;
+        this->dsme.getMAC_PIB().macPANId        = 0xffff;
         this->dsme.getMAC_PIB().macShortAddress = 0xffff;
     }
 }
@@ -203,7 +200,7 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
     cmd.setCmdId(CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION);
     cmd.prependTo(msg);
 
-    //Header compliant to specification (IEEE802.15.4-2011 5.3.3.1).
+    // Header compliant to specification (IEEE802.15.4-2011 5.3.3.1).
     msg->getHeader().setDstAddrMode(params.deviceAddrMode);
     msg->getHeader().setSrcAddrMode(AddrMode::EXTENDED_ADDRESS);
     msg->getHeader().setAckRequest(true);
@@ -237,12 +234,11 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage* msg) {
     req.decapsulateFrom(msg);
 
     mlme_sap::DISASSOCIATE_indication_parameters params;
-    params.deviceAddress = msg->getHeader().getSrcAddr();
+    params.deviceAddress      = msg->getHeader().getSrcAddr();
     params.disassociateReason = req.getReason();
 
     this->dsme.getMLME_SAP().getDISASSOCIATE().notify_indication(params);
 }
-
 
 /**
  * Gets called when CSMA Message was sent down to the PHY
@@ -259,8 +255,8 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
     DSME_ASSERT(this->currentAction == cmdId);
 
     if(cmdId == CommandFrameIdentifier::ASSOCIATION_RESPONSE) {
-        actionPending = false;
-        messageSent = false;
+        actionPending                   = false;
+        messageSent                     = false;
         superframesSinceAssociationSent = 0;
         dsme.getPlatform().releaseMessage(msg);
         dsme_atomicEnd();
@@ -279,38 +275,38 @@ void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmd
     switch(status) {
         case DataStatus::Data_Status::SUCCESS:
             DSME_ASSERT(actionPending);
-            messageSent = true;
+            messageSent                     = true;
             superframesSinceAssociationSent = 0;
             dsme.getPlatform().releaseMessage(msg);
             return;
         case DataStatus::Data_Status::TRANSACTION_OVERFLOW:
         case DataStatus::Data_Status::TRANSACTION_EXPIRED:
         case DataStatus::Data_Status::CHANNEL_ACCESS_FAILURE:
-            associate_params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
+            associate_params.status    = AssociationStatus::CHANNEL_ACCESS_FAILURE;
             disassociate_params.status = DisassociationStatus::CHANNEL_ACCESS_FAILURE;
             break;
         case DataStatus::Data_Status::COUNTER_ERROR:
-            associate_params.status = AssociationStatus::COUNTER_ERROR;
+            associate_params.status    = AssociationStatus::COUNTER_ERROR;
             disassociate_params.status = DisassociationStatus::COUNTER_ERROR;
             break;
         case DataStatus::Data_Status::NO_ACK:
-            associate_params.status = AssociationStatus::NO_ACK;
+            associate_params.status    = AssociationStatus::NO_ACK;
             disassociate_params.status = DisassociationStatus::NO_ACK;
             break;
         case DataStatus::Data_Status::INVALID_PARAMETER:
-            associate_params.status = AssociationStatus::INVALID_PARAMETER;
+            associate_params.status    = AssociationStatus::INVALID_PARAMETER;
             disassociate_params.status = DisassociationStatus::INVALID_PARAMETER;
             break;
         case DataStatus::Data_Status::UNSUPPORTED_SECURITY:
-            associate_params.status = AssociationStatus::UNSUPPORTED_SECURITY;
+            associate_params.status    = AssociationStatus::UNSUPPORTED_SECURITY;
             disassociate_params.status = DisassociationStatus::UNSUPPORTED_SECURITY;
             break;
         case DataStatus::Data_Status::UNAVAILABLE_KEY:
-            associate_params.status = AssociationStatus::UNAVAILABLE_KEY;
+            associate_params.status    = AssociationStatus::UNAVAILABLE_KEY;
             disassociate_params.status = DisassociationStatus::UNAVAILABLE_KEY;
             break;
         case DataStatus::Data_Status::FRAME_TOO_LONG:
-            associate_params.status = AssociationStatus::FRAME_TOO_LONG;
+            associate_params.status    = AssociationStatus::FRAME_TOO_LONG;
             disassociate_params.status = DisassociationStatus::FRAME_TOO_LONG;
             break;
         case DataStatus::Data_Status::INVALID_ADDRESS:
@@ -344,7 +340,7 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
                 case CommandFrameIdentifier::ASSOCIATION_REQUEST: {
                     mlme_sap::ASSOCIATE_confirm_parameters associate_params;
                     associate_params.assocShortAddress = 0xFFFF;
-                    associate_params.status = AssociationStatus::NO_DATA;
+                    associate_params.status            = AssociationStatus::NO_DATA;
                     dsme_atomicEnd();
                     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
                     break;
@@ -367,6 +363,4 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         dsme_atomicEnd();
     }
 }
-
 }
-

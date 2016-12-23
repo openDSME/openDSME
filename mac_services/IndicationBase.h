@@ -47,7 +47,7 @@
 
 namespace dsme {
 
-template<typename I>
+template <typename I>
 class IndicationBase {
 public:
     IndicationBase() : indication_received(false), last_indication{} {
@@ -60,7 +60,7 @@ public:
     bool indication(I* params) {
         if(this->indication_received) {
             /* '-> message received for upper layer */
-            *params = this->last_indication;
+            *params                   = this->last_indication;
             this->indication_received = false;
             return true;
         } else {
@@ -74,7 +74,7 @@ public:
             /* if callback is set, parameter will not be saved */
             this->callback_indication(params);
         } else {
-            this->last_indication = params;
+            this->last_indication     = params;
             this->indication_received = true;
         }
     }

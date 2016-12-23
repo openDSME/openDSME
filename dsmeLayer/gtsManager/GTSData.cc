@@ -44,12 +44,12 @@
 
 namespace dsme {
 
-GTSData::GTSData() :
-    superframesInCurrentState(0),
-    cmdToSend(static_cast<CommandFrameIdentifier>(0)),
-    msgToSend(nullptr),
-    notifyPartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS),
-    responsePartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+GTSData::GTSData()
+    : superframesInCurrentState(0),
+      cmdToSend(static_cast<CommandFrameIdentifier>(0)),
+      msgToSend(nullptr),
+      notifyPartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS),
+      responsePartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS) {
 }
 
 } /* dsme */

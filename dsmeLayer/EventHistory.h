@@ -48,7 +48,7 @@
 
 namespace dsme {
 
-template<typename T, uint8_t S>
+template <typename T, uint8_t S>
 class EventHistory {
     struct EventEntry {
         uint32_t timestamp;
@@ -59,13 +59,13 @@ public:
     EventHistory() : head(0) {
         for(uint8_t i = 0; i < S; ++i) {
             history[i].timestamp = 0;
-            history[i].event = -1;
+            history[i].event     = -1;
         }
     }
 
     void addEvent(uint32_t timestamp, T event) {
         history[head].timestamp = timestamp;
-        history[head].event = (int16_t)event;
+        history[head].event     = (int16_t)event;
 
         ++head;
         if(head == S) {

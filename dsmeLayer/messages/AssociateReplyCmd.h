@@ -47,15 +47,12 @@
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {
-class AssociateReplyCmd: public DSMEMessageElement {
+class AssociateReplyCmd : public DSMEMessageElement {
 public:
-    AssociateReplyCmd() :
-        shortAddr(0),
-        status(AssociationStatus::Association_Status::SUCCESS) {
+    AssociateReplyCmd() : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS) {
     }
 
-    AssociateReplyCmd(uint16_t shortAddr,  AssociationStatus::Association_Status status) :
-        shortAddr(shortAddr), status(status) {
+    AssociateReplyCmd(uint16_t shortAddr, AssociationStatus::Association_Status status) : shortAddr(shortAddr), status(status) {
     }
 
     uint16_t getShortAddr() const {
@@ -68,23 +65,22 @@ public:
 
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
-        size += 2; //shortAddr
+        size += 2; // shortAddr
         size += 1; // status
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
         serializer << shortAddr;
-        uint8_t stat = (uint8_t) status;
+        uint8_t stat = (uint8_t)status;
         serializer << stat;
-        status = (AssociationStatus::Association_Status) stat;
+        status = (AssociationStatus::Association_Status)stat;
     }
 
 private:
     uint16_t shortAddr;
     AssociationStatus::Association_Status status;
 };
-
 }
 
 #endif /* ASSOCIATEREPLYCMD_H_ */

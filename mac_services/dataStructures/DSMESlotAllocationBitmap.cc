@@ -46,16 +46,13 @@
 
 namespace dsme {
 
-DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() :
-    numSuperframesPerMultiSuperframe(0),
-    numGTSlots(0),
-    numChannels(0) {
+DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() : numSuperframesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
 }
 
 void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {
     this->numSuperframesPerMultiSuperframe = numSuperframesPerMultiSuperframe;
-    this->numGTSlots = numGTSlots;
-    this->numChannels = numChannels;
+    this->numGTSlots                       = numGTSlots;
+    this->numChannels                      = numChannels;
     occupied.initialize(numSuperframesPerMultiSuperframe * numGTSlots * numChannels);
     return;
 }

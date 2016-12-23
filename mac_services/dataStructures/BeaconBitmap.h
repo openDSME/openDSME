@@ -131,12 +131,11 @@ public:
     friend Serializer& operator<<(Serializer& serializer, BeaconBitmap& b);
 
 private:
-    uint16_t sdIndex;                           // current beacon allocation in beacon interval
-    BitVector<MAX_TOTAL_SUPERFRAMES> sdBitmap;  // bitmap // TODO total superframes or just superframes?
+    uint16_t sdIndex;                          // current beacon allocation in beacon interval
+    BitVector<MAX_TOTAL_SUPERFRAMES> sdBitmap; // bitmap // TODO total superframes or just superframes?
 };
 
 Serializer& operator<<(Serializer& serializer, BeaconBitmap& b);
-
 }
 
 #endif /* BEACONBITMAP_H_ */

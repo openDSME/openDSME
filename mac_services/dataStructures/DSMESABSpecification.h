@@ -50,20 +50,16 @@ namespace dsme {
 
 class DSMESABSpecification {
 public:
-    typedef BitVector<MAX_GTSLOTS* MAX_CHANNELS* MAX_SAB_UNITS> SABSubBlock;
+    typedef BitVector<MAX_GTSLOTS * MAX_CHANNELS * MAX_SAB_UNITS> SABSubBlock;
 
-    DSMESABSpecification() :
-        subBlockIndex(0) {
+    DSMESABSpecification() : subBlockIndex(0) {
     }
 
-    explicit DSMESABSpecification(uint8_t subBlockLengthBytes) :
-        subBlockIndex(0) {
+    explicit DSMESABSpecification(uint8_t subBlockLengthBytes) : subBlockIndex(0) {
         subBlock.initialize(subBlockLengthBytes * 8);
     }
 
-    explicit DSMESABSpecification(SABSubBlock& bitVector) :
-        subBlockIndex(0),
-        subBlock(bitVector) {
+    explicit DSMESABSpecification(SABSubBlock& bitVector) : subBlockIndex(0), subBlock(bitVector) {
     }
 
     void setSubBlockLengthBytes(uint8_t bytes) {
@@ -93,7 +89,7 @@ public:
     // TODO do we really want this?
     DSMESABSpecification& operator=(const DSMESABSpecification& other) {
         this->subBlockIndex = other.subBlockIndex;
-        this->subBlock = other.subBlock;
+        this->subBlock      = other.subBlock;
         return (*this);
     }
 
@@ -136,7 +132,6 @@ inline Serializer& operator<<(Serializer& serializer, DSMESABSpecification& b) {
 
     return serializer;
 }
-
 }
 
 #endif

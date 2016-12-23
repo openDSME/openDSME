@@ -66,10 +66,10 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
     }
 
     DSMEPANDescriptor& operator=(const DSMEPANDescriptor& other) {
-        this->superframeSpec = other.superframeSpec;
-        this->pendingAddresses = other.pendingAddresses;
+        this->superframeSpec     = other.superframeSpec;
+        this->pendingAddresses   = other.pendingAddresses;
         this->dsmeSuperframeSpec = other.dsmeSuperframeSpec;
-        this->timeSyncSpec = other.timeSyncSpec;
+        this->timeSyncSpec       = other.timeSyncSpec;
         this->beaconBitmap.setSDBitmapLengthBytes(other.beaconBitmap.getSDBitmapLengthBytes(), false);
         this->beaconBitmap.copyBitsFrom(other.beaconBitmap);
         return *this;
@@ -81,13 +81,13 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
 
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
-        size += 2; // Superframe Specification
+        size += 2;                                         // Superframe Specification
         size += pendingAddresses.getSerializationLength(); // Pending Address
-        size += 1; // DSME Superframe Specification
-        size += 8; // Time Synchronization Specification
-        size += beaconBitmap.getSerializationLength(); // Beacon Bitmap
-        size += 0; // Channel Hopping Specification (not yet implemented)
-        size += 0; // Group ACK Specification (not yet implemented)
+        size += 1;                                         // DSME Superframe Specification
+        size += 8;                                         // Time Synchronization Specification
+        size += beaconBitmap.getSerializationLength();     // Beacon Bitmap
+        size += 0;                                         // Channel Hopping Specification (not yet implemented)
+        size += 0;                                         // Group ACK Specification (not yet implemented)
         return size;
     }
 
@@ -99,7 +99,6 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         serializer << beaconBitmap;
     }
 };
-
 }
 
 #endif

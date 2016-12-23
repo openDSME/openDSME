@@ -48,8 +48,7 @@ namespace dsme {
 
 /* Function DEFINITIONS ******************************************************/
 
-BeaconBitmap::BeaconBitmap() :
-    sdIndex(0) {
+BeaconBitmap::BeaconBitmap() : sdIndex(0) {
 }
 
 void BeaconBitmap::setSDIndex(uint16_t SDIndex) {
@@ -141,8 +140,8 @@ uint16_t BeaconBitmap::getAllocatedCount() const {
 
 uint8_t BeaconBitmap::getSerializationLength() const {
     uint8_t size = 0;
-    size += 2; // SD Index
-    size += 2; // SD Bitmap Length
+    size += 2;                                        // SD Index
+    size += 2;                                        // SD Bitmap Length
     size += BITVECTOR_BYTE_LENGTH(sdBitmap.length()); // SD Bitmap
     return size;
 }
@@ -163,5 +162,4 @@ Serializer& operator<<(Serializer& serializer, BeaconBitmap& b) {
 
     return serializer;
 }
-
 }

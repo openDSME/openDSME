@@ -47,14 +47,12 @@
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {
-class AssociateRequestCmd: public DSMEMessageElement {
+class AssociateRequestCmd : public DSMEMessageElement {
 public:
-    AssociateRequestCmd() :
-        capabilityInformation{0} {
+    AssociateRequestCmd() : capabilityInformation{0} {
     }
 
-    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) :
-        capabilityInformation(capabilityInformation) {
+    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) : capabilityInformation(capabilityInformation) {
     }
 
     const CapabilityInformation& getCapabilityInformation() const {
@@ -82,19 +80,18 @@ public:
             uint8_t info;
             serializer << info;
             capabilityInformation.alternatePANCoordinator = info & (1 << 0);
-            capabilityInformation.deviceType = info & (1 << 1);
-            capabilityInformation.powerSource = info & (1 << 2);
-            capabilityInformation.receiverOnWhenIdle = info & (1 << 3);
-            capabilityInformation.associationType = info & (1 << 4);
-            capabilityInformation.securityCapability = info & (1 << 6);
-            capabilityInformation.allocateAddress = info & (1 << 7);
+            capabilityInformation.deviceType              = info & (1 << 1);
+            capabilityInformation.powerSource             = info & (1 << 2);
+            capabilityInformation.receiverOnWhenIdle      = info & (1 << 3);
+            capabilityInformation.associationType         = info & (1 << 4);
+            capabilityInformation.securityCapability      = info & (1 << 6);
+            capabilityInformation.allocateAddress         = info & (1 << 7);
         }
     }
 
 private:
     CapabilityInformation capabilityInformation;
 };
-
 }
 
 #endif /* ASSOCIATEREQUESTCMD_H_ */

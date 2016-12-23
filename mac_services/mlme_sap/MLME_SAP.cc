@@ -47,16 +47,8 @@
 namespace dsme {
 namespace mlme_sap {
 
-MLME_SAP::MLME_SAP(DSMELayer& dsme) :
-    dsme(dsme),
-    associate(dsme),
-    disassociate(dsme),
-    dsme_gts(dsme),
-    poll(dsme),
-    reset(dsme),
-    scan(dsme),
-    start(dsme),
-    sync(dsme) {
+MLME_SAP::MLME_SAP(DSMELayer& dsme)
+    : dsme(dsme), associate(dsme), disassociate(dsme), dsme_gts(dsme), poll(dsme), reset(dsme), scan(dsme), start(dsme), sync(dsme) {
     this->dsme.setMLME(this);
 }
 

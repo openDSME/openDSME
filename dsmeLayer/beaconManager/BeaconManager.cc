@@ -50,38 +50,33 @@
 
 namespace dsme {
 
-BeaconManager::BeaconManager(DSMELayer& dsme) :
-    dsme(dsme),
+BeaconManager::BeaconManager(DSMELayer& dsme)
+    : dsme(dsme),
 
-    isBeaconAllocationSent(false),
-    isBeaconAllocated(false),
-    lastHeardBeaconTimestamp(0),
-    lastKnownBeaconIntervalStart(0),
+      isBeaconAllocationSent(false),
+      isBeaconAllocated(false),
+      lastHeardBeaconTimestamp(0),
+      lastKnownBeaconIntervalStart(0),
 
-    numBeaconCollision(0),
-    missedBeacons(0),
-    doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
+      numBeaconCollision(0),
+      missedBeacons(0),
+      doneCallback(DELEGATE(&BeaconManager::sendDone, *this)),
 
-    currentScanChannel(0),
-    scanning(false),
-    scanType(ScanType::ED),
-    storedMacPANId(0),
-    currentScanChannelIndex(0),
-    superframesForEachChannel(0),
-    superframesLeftForScan(0) {
+      currentScanChannel(0),
+      scanning(false),
+      scanType(ScanType::ED),
+      storedMacPANId(0),
+      currentScanChannelIndex(0),
+      superframesForEachChannel(0),
+      superframesLeftForScan(0) {
 }
 
 void BeaconManager::initialize() {
-    dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(
-        BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-        false);
-    heardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-                                        false);
-    neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(
-        BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()),
-        false);
+    dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    heardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
 
-    isBeaconAllocated = false;
+    isBeaconAllocated      = false;
     isBeaconAllocationSent = false;
 
     // PAN Coordinator starts network with beacon
@@ -94,11 +89,11 @@ void BeaconManager::initialize() {
     }
 
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
-    lastHeardBeaconTimestamp = 0;
+    lastHeardBeaconTimestamp     = 0;
 }
 
 void BeaconManager::reset() {
-    isBeaconAllocated = false;
+    isBeaconAllocated      = false;
     isBeaconAllocationSent = false;
 
     if(dsme.getMAC_PIB().macIsPANCoord) {
@@ -110,7 +105,7 @@ void BeaconManager::reset() {
     }
 
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
-    lastHeardBeaconTimestamp = 0;
+    lastHeardBeaconTimestamp     = 0;
 
     this->heardBeacons.fill(false);
     this->neighborOrOwnHeardBeacons.fill(false);
@@ -118,8 +113,7 @@ void BeaconManager::reset() {
 
 void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t startSlotTime, uint32_t lateness) {
     if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
-        uint16_t currentSDIndex = currentSuperframe
-                                  + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
+        uint16_t currentSDIndex = currentSuperframe + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
         if(currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
             sendEnhancedBeacon(startSlotTime, lateness);
         }
@@ -144,7 +138,7 @@ void BeaconManager::sendEnhancedBeacon(uint32_t startSlotTime, uint32_t lateness
 
     if(dsme.getMAC_PIB().macIsPANCoord) {
         lastKnownBeaconIntervalStart = startSlotTime;
-        lastHeardBeaconTimestamp = dsmePANDescriptor.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
+        lastHeardBeaconTimestamp     = dsmePANDescriptor.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
     }
 
     if(!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
@@ -164,7 +158,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     cmd.setCmdId(CommandFrameIdentifier::BEACON_REQUEST);
     cmd.prependTo(msg);
 
-    //TODO Header IEEE802.15.4-2012 5.3.7.2.1 p.97
+    // TODO Header IEEE802.15.4-2012 5.3.7.2.1 p.97
     msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
 
@@ -202,9 +196,9 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // -8 symbols for preamble
     // -2 symbols for SFD
-    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / symbolDurationInMicroseconds;
-    lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter()
-                                   - lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
+    uint32_t offset              = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / symbolDurationInMicroseconds;
+    lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter() -
+                                   lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
@@ -218,10 +212,8 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "
-              << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord
-              << ", isBeaconAllocated:" << isBeaconAllocated
-              << ", isBeaconAllocationSent:" << isBeaconAllocationSent
-              << ".");
+              << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord << ", isBeaconAllocated:" << isBeaconAllocated
+              << ", isBeaconAllocationSent:" << isBeaconAllocationSent << ".");
     if(dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
         LOG_INFO("Attempting to reserve slot for own BEACON.");
         if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
@@ -238,7 +230,6 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
     }
 
     // TODO if isAllocationsent and allocated Index now is allocated -> cancel!
-
 }
 
 void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
@@ -289,7 +280,7 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
 }
 
 void BeaconManager::handleBeaconRequest(DSMEMessage* msg) {
-    //TODO
+    // TODO
     if(!this->dsme.getMAC_PIB().macIsCoord && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Received BEACON-REQUEST, turning into a coordinator now.");
         this->dsme.getMAC_PIB().macIsCoord = true;
@@ -337,7 +328,7 @@ void BeaconManager::handleBeaconCollision(DSMEMessage* msg) {
 void BeaconManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     if(cmdId == DSME_BEACON_ALLOCATION_NOTIFICATION && status == DataStatus::SUCCESS) {
         if(dsme.getMAC_PIB().macIsCoord && isBeaconAllocationSent) {
-            isBeaconAllocated = true;
+            isBeaconAllocated      = true;
             isBeaconAllocationSent = false;
         }
     }
@@ -375,13 +366,13 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
 
     mlme_sap::BEACON_NOTIFY_indication_parameters params;
 
-    params.bsn = msg->getHeader().getSequenceNumber();
+    params.bsn                         = msg->getHeader().getSequenceNumber();
     params.panDescriptor.coordAddrMode = msg->getHeader().getSrcAddrMode();
-    params.panDescriptor.coordPANId = msg->getHeader().getDstPANId();
-    params.panDescriptor.coordAddress = msg->getHeader().getSrcAddr();
+    params.panDescriptor.coordPANId    = msg->getHeader().getDstPANId();
+    params.panDescriptor.coordAddress  = msg->getHeader().getSrcAddr();
     params.panDescriptor.channelNumber = this->dsme.getPHY_PIB().phyCurrentChannel;
-    params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
-    params.panDescriptor.timestamp = msg->getReceptionSymbolCounter();
+    params.panDescriptor.channelPage   = this->dsme.getPHY_PIB().phyCurrentPage;
+    params.panDescriptor.timestamp     = msg->getReceptionSymbolCounter();
 
     //  TODO fill in the other indication_parameters,
     //  some of the info is already included in the PANDesriptor.
@@ -389,7 +380,7 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
     //    params.addrList;
     //    params.sduLength;
     //    params.sdu;
-    params.eBSN = msg->getHeader().getSequenceNumber();
+    params.eBSN       = msg->getHeader().getSequenceNumber();
     params.beaconType = msg->getHeader().isEnhancedBeacon();
 
     params.panDescriptor.dsmePANDescriptor.decapsulateFrom(msg);
@@ -443,8 +434,8 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, const channel
     this->scanType = ScanType::ENHANCEDACTIVESCAN;
     this->scanning = true;
 
-    this->scanChannels = scanChannels;
-    this->storedMacPANId = this->dsme.getMAC_PIB().macPANId;
+    this->scanChannels               = scanChannels;
+    this->storedMacPANId             = this->dsme.getMAC_PIB().macPANId;
     this->dsme.getMAC_PIB().macPANId = 0xffff;
 
     setScanDuration(scanDuration);
@@ -469,8 +460,8 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, const channelList_t&
     this->scanType = ScanType::PASSIVE;
     this->scanning = true;
 
-    this->scanChannels = scanChannels;
-    this->storedMacPANId = this->dsme.getMAC_PIB().macPANId;
+    this->scanChannels               = scanChannels;
+    this->storedMacPANId             = this->dsme.getMAC_PIB().macPANId;
     this->dsme.getMAC_PIB().macPANId = 0xffff;
 
     setScanDuration(scanDuration);
@@ -513,14 +504,14 @@ void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t curren
             MAC_PIB& mac_pip = this->dsme.getMAC_PIB();
             PHY_PIB& phy_pip = this->dsme.getPHY_PIB();
 
-            params.lossReason = LossReason::BEACON_LOST;
-            params.panId = mac_pip.macPANId;
+            params.lossReason    = LossReason::BEACON_LOST;
+            params.panId         = mac_pip.macPANId;
             params.channelNumber = phy_pip.phyCurrentChannel;
-            params.channelPage = phy_pip.phyCurrentPage;
+            params.channelPage   = phy_pip.phyCurrentPage;
             params.securityLevel = 0;
-            params.keyIdMode = 0;
-            params.keySource = nullptr;
-            params.keyIndex = 0;
+            params.keyIdMode     = 0;
+            params.keySource     = nullptr;
+            params.keyIndex      = 0;
 
             this->dsme.stopTrackingBeacons();
             this->dsme.getMLME_SAP().getSYNC_LOSS().notify_indication(params);
@@ -544,19 +535,19 @@ void BeaconManager::channelScanPassiveComplete() {
 
     LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
-        this->scanning = false;
+        this->scanning                   = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
 
         mlme_sap::SCAN_confirm_parameters params;
 
         if(this->dsme.getMAC_PIB().macAutoRequest) {
             params.panDescriptorList = panDescriptorList;
-            params.resultListSize = panDescriptorList.size();
+            params.resultListSize    = panDescriptorList.size();
         } else {
             params.resultListSize = 0;
         }
 
-        params.status = ScanStatus::SUCCESS;
+        params.status   = ScanStatus::SUCCESS;
         params.scanType = this->scanType;
 
         LOG_INFO("Notify confirm");
@@ -586,19 +577,19 @@ void BeaconManager::channelScanEnhancedActiveComplete() {
 
     LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
-        this->scanning = false;
+        this->scanning                   = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
 
         mlme_sap::SCAN_confirm_parameters params;
 
         if(this->dsme.getMAC_PIB().macAutoRequest) {
             params.panDescriptorList = panDescriptorList;
-            params.resultListSize = panDescriptorList.size();
+            params.resultListSize    = panDescriptorList.size();
         } else {
             params.resultListSize = 0;
         }
 
-        params.status = ScanStatus::SUCCESS;
+        params.status   = ScanStatus::SUCCESS;
         params.scanType = this->scanType;
 
         this->dsme.getMLME_SAP().getSCAN().notify_confirm(params);
@@ -620,5 +611,4 @@ void BeaconManager::singleBeaconScanEnhancedActiveReceived(PANDescriptor& panDes
         }
     }
 }
-
 }

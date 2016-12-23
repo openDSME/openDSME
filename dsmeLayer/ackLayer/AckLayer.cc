@@ -47,12 +47,12 @@
 
 namespace dsme {
 
-AckLayer::AckLayer(DSMELayer& dsme) :
-    FSM<AckLayer, AckEvent>(&AckLayer::stateIdle),
-    dsme(dsme),
-    busy(false),
-    pendingMessage(nullptr),
-    internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
+AckLayer::AckLayer(DSMELayer& dsme)
+    : FSM<AckLayer, AckEvent>(&AckLayer::stateIdle),
+      dsme(dsme),
+      busy(false),
+      pendingMessage(nullptr),
+      internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 
 void AckLayer::reset() {
@@ -70,7 +70,7 @@ bool AckLayer::sendButKeep(DSMEMessage* msg, done_callback_t doneCallback) {
 
     DSME_ASSERT(pendingMessage == nullptr);
 
-    this->pendingMessage = msg;
+    this->pendingMessage       = msg;
     this->externalDoneCallback = doneCallback;
     AckEvent e;
     e.signal = AckEvent::SEND_REQUEST;
@@ -79,7 +79,6 @@ bool AckLayer::sendButKeep(DSMEMessage* msg, done_callback_t doneCallback) {
 }
 
 void AckLayer::receive(DSMEMessage* msg) {
-
     IEEE802154eMACHeader& header = msg->getHeader();
 
     /*
@@ -105,9 +104,10 @@ void AckLayer::receive(DSMEMessage* msg) {
 
     /* filter messages not for this device */
     bool throwawayMessage = false;
-    if(this->dsme.getMAC_PIB().macAssociatedPANCoord && header.hasDestinationPANId() && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId
-            && header.getDstPANId() != IEEE802154eMACHeader::BROADCAST_PAN) {
-        LOG_DEBUG("Mismatching PAN-ID: " << header.getDstPANId() << " instead of " << this->dsme.getMAC_PIB().macPANId << " from " << header.getSrcAddr().getShortAddress());
+    if(this->dsme.getMAC_PIB().macAssociatedPANCoord && header.hasDestinationPANId() && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId &&
+       header.getDstPANId() != IEEE802154eMACHeader::BROADCAST_PAN) {
+        LOG_DEBUG("Mismatching PAN-ID: " << header.getDstPANId() << " instead of " << this->dsme.getMAC_PIB().macPANId << " from "
+                                         << header.getSrcAddr().getShortAddress());
         throwawayMessage = true;
     } else if(!header.getDestAddr().isBroadcast()) {
         if(header.getDstAddrMode() == SHORT_ADDRESS && header.getDestAddr().getShortAddress() != this->dsme.getMAC_PIB().macShortAddress) {
@@ -128,10 +128,10 @@ void AckLayer::receive(DSMEMessage* msg) {
     if(busy) {
         wasBusy = true;
         LOG_DEBUG("Throwing away packet, ACKLayer was busy.");
-        //DSME_SIM_ASSERT(false);
+        // DSME_SIM_ASSERT(false);
     } else {
         wasBusy = false;
-        busy = true;
+        busy    = true;
     }
     dsme_atomicEnd();
 
@@ -156,7 +156,7 @@ void AckLayer::dispatchTimer() {
 
 void AckLayer::sendDone(bool success) {
     AckEvent e;
-    e.signal = AckEvent::SEND_DONE;
+    e.signal  = AckEvent::SEND_DONE;
     e.success = success;
     dispatch(e);
 }
@@ -212,13 +212,14 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 return FSM_HANDLED;
             }
 
-            // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to be set 5.3.11.5.2)
+            // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
+            // be set 5.3.11.5.2)
             if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
                 LOG_DEBUG("sending ACK");
 
                 // keep the received message and set up the acknowledgement as new pending message
                 DSMEMessage* receivedMessage = pendingMessage;
-                pendingMessage = dsme.getPlatform().getEmptyMessage();
+                pendingMessage               = dsme.getPlatform().getEmptyMessage();
                 if(pendingMessage == nullptr) {
                     DSME_ASSERT(false);
                     dsme_atomicBegin();
@@ -274,7 +275,8 @@ fsmReturnStatus AckLayer::stateTx(AckEvent& event) {
             } else {
                 // ACK requested?
                 if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
-                    // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to be set 5.3.11.5.2)
+                    // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit
+                    // has to be set 5.3.11.5.2)
                     // unless an acknowledgment shall be sent from an upper layer (can not be interfered from the standard)
 
                     return transition(&AckLayer::stateWaitForAck);
@@ -306,8 +308,8 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
 
         case AckEvent::TIMER_FIRED:
             dsme.getEventDispatcher().stopACKTimer();
-            LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr " <<
-                      pendingMessage->getHeader().getDestAddr().getShortAddress());
+            LOG_DEBUG("ACK timer fired for seqNum: " << (uint16_t)pendingMessage->getHeader().getSequenceNumber() << " dstAddr "
+                                                     << pendingMessage->getHeader().getDestAddr().getShortAddress());
             externalDoneCallback(ACK_FAILED, pendingMessage);
             return transition(&AckLayer::stateIdle);
 
@@ -326,5 +328,4 @@ fsmReturnStatus AckLayer::stateTxAck(AckEvent& event) {
             return catchAll(event);
     }
 }
-
 }

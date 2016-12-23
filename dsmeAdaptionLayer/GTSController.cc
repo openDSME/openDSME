@@ -46,7 +46,7 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
 
-constexpr int16_t K_P_POS =  0;
+constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 30;
 constexpr int16_t K_D_POS = 26;
 
@@ -58,14 +58,8 @@ constexpr uint16_t SCALING = 128;
 
 namespace dsme {
 
-GTSControllerData::GTSControllerData() :
-    address(0xffff),
-    messagesInLastMultisuperframe(0),
-    messagesOutLastMultisuperframe(0),
-    error_sum(0),
-    last_error(0),
-    control(1) {
-
+GTSControllerData::GTSControllerData()
+    : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
 }
 
 GTSController::GTSController() {
@@ -96,12 +90,11 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 
 void GTSController::multisuperframeEvent() {
     for(GTSControllerData& data : this->links) {
-
         uint16_t w = data.messagesInLastMultisuperframe;
         uint16_t y = data.messagesOutLastMultisuperframe;
 
-        int16_t e = w - y;
-        int16_t d = e - data.last_error;
+        int16_t e  = w - y;
+        int16_t d  = e - data.last_error;
         int16_t& i = data.error_sum;
         int16_t& u = data.control;
 
@@ -123,8 +116,8 @@ void GTSController::multisuperframeEvent() {
         LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
         LOG_DEBUG("");
 
-        data.last_error = e;
-        data.messagesInLastMultisuperframe = 0;
+        data.last_error                     = e;
+        data.messagesInLastMultisuperframe  = 0;
         data.messagesOutLastMultisuperframe = 0;
     }
 }
@@ -154,7 +147,7 @@ static uint16_t abs(int16_t v) {
 
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
-    int16_t control = 0;
+    int16_t control  = 0;
     for(const GTSControllerData& d : this->links) {
         if(abs(control) < abs(d.control)) {
             control = d.control;

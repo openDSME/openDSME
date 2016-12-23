@@ -56,7 +56,7 @@ void IEEE802154eMACHeader::serialize(Serializer& serializer) {
          * Use the member deserializeFrom(...) instead.
          */
         const uint8_t* data = serializer.getDataRef();
-        bool success = this->deserializeFrom(data, 127);
+        bool success        = this->deserializeFrom(data, 127);
         serializer.getDataRef() += getSerializationLength();
         DSME_ASSERT(success);
     }
@@ -85,15 +85,14 @@ void IEEE802154eMACHeader::finalize() {
         }
     } else {
         // Frame version field value is 0b10
-        if((getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS)
-                || (getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS)) {
+        if((getSrcAddrMode() == SHORT_ADDRESS && getDstAddrMode() != NO_ADDRESS) || (getDstAddrMode() == SHORT_ADDRESS && getSrcAddrMode() != NO_ADDRESS)) {
             // Footnote
             compressionIfEqual = true;
         } else if(getDstAddrMode() == NO_ADDRESS && getSrcAddrMode() != NO_ADDRESS) {
             // Row 5 of Table 7-2
             panIDCompression = 0;
-            hasDstPAN = false;
-            hasSrcPAN = true;
+            hasDstPAN        = false;
+            hasSrcPAN        = true;
         } else {
             hasSrcPAN = false;
             hasDstPAN = (dstPAN != IEEE802154eMACHeader::BROADCAST_PAN);
@@ -113,10 +112,10 @@ void IEEE802154eMACHeader::finalize() {
             // Probably a mistake in the standard - the footnote says zero,
             // while the text about the old versions says one
             panIDCompression = 1;
-            hasSrcPAN = false;
+            hasSrcPAN        = false;
         } else {
             panIDCompression = 0;
-            hasSrcPAN = true;
+            hasSrcPAN        = true;
         }
     }
 
@@ -138,8 +137,8 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
     *(buffer++) = getFrameControlLowByte();
     *(buffer++) = getFrameControlHighByte();
 
-    //LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " << frameControl.panIDCompression);
-
+    // LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " <<
+    // frameControl.panIDCompression);
 
     /* serialize sequence number */
     if(hasSequenceNumber()) {
@@ -154,8 +153,8 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
 
     if(destinationAddressLength() == 2) {
         uint16_t shortDstAddr = dstAddr.getShortAddress();
-        *(buffer++) = shortDstAddr & 0xFF;
-        *(buffer++) = shortDstAddr >> 8;
+        *(buffer++)           = shortDstAddr & 0xFF;
+        *(buffer++)           = shortDstAddr >> 8;
     } else if(destinationAddressLength() == 8) {
         buffer << dstAddr;
     }
@@ -168,8 +167,8 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
 
     if(sourceAddressLength() == 2) {
         uint16_t shortSrcAddr = srcAddr.getShortAddress();
-        *(buffer++) = shortSrcAddr & 0xFF;
-        *(buffer++) = shortSrcAddr >> 8;
+        *(buffer++)           = shortSrcAddr & 0xFF;
+        *(buffer++)           = shortSrcAddr >> 8;
     } else if(sourceAddressLength() == 8) {
         buffer << srcAddr;
     }
@@ -181,11 +180,12 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     }
 
     /* deserialize frame control */
-    uint8_t fcLow = *(buffer++);
+    uint8_t fcLow  = *(buffer++);
     uint8_t fcHigh = *(buffer++);
     this->setFrameControl(fcLow, fcHigh);
 
-    //LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " << this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
+    // LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " <<
+    // this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
 
     if(payloadLength < getSerializationLength()) {
         return false;
@@ -234,5 +234,4 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
 
     return true;
 }
-
 }

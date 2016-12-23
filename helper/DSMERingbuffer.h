@@ -50,7 +50,8 @@ namespace dsme {
 
 typedef uint8_t ringbuffer_size_t;
 
-template <typename T, ringbuffer_size_t N> class DSMERingBuffer {
+template <typename T, ringbuffer_size_t N>
+class DSMERingBuffer {
 private:
     T buffer[N];
     ringbuffer_size_t head;
@@ -61,7 +62,6 @@ private:
     }
 
 public:
-
     DSMERingBuffer() : buffer{}, head(0), tail(0) {
     }
 
@@ -113,7 +113,6 @@ public:
         dsme_atomicEnd();
         return;
     }
-
 };
 
 } /* dsme */

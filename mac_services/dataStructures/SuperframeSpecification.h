@@ -61,14 +61,12 @@ public:
         };
         uint16_t specWord;
     };
-
 };
 
 inline Serializer& operator<<(Serializer& serializer, SuperframeSpecification& spec) {
     serializer << spec.specWord;
     return serializer;
 }
-
 }
 
 #endif

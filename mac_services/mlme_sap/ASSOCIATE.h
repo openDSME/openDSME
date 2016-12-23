@@ -63,7 +63,6 @@ struct ASSOCIATE_indication_parameters {
     uint8_t* lowLatencyNetworkInfo;
     uint16_t channelOffset;
     uint8_t hoppingSequenceID;
-
 };
 
 struct ASSOCIATE_confirm_parameters {
@@ -82,8 +81,7 @@ struct ASSOCIATE_confirm_parameters {
 /*
  * These primitives are used when a device becomes associated with a PAN (IEEE 802.15.4-2011 6.2.2 and IEEE 802.15.4e-2012 updates )
  */
-class ASSOCIATE : public IndicationBase<ASSOCIATE_indication_parameters>,
-    public ConfirmBase<ASSOCIATE_confirm_parameters> {
+class ASSOCIATE : public IndicationBase<ASSOCIATE_indication_parameters>, public ConfirmBase<ASSOCIATE_confirm_parameters> {
 public:
     explicit ASSOCIATE(DSMELayer& dsme);
 
@@ -98,10 +96,9 @@ public:
         uint8_t keyIdMode;
         uint8_t* keySource;
         uint8_t keyIndex;
-        uint8_t* lowLatencyNetworkInfo; //only needed for LLDN networks
-        uint16_t channelOffset; //To be ignored, when in channel adaption mode
-        uint8_t hoppingSequenceID; //To be ignored, when in channel adaption mode
-
+        uint8_t* lowLatencyNetworkInfo; // only needed for LLDN networks
+        uint16_t channelOffset;         // To be ignored, when in channel adaption mode
+        uint8_t hoppingSequenceID;      // To be ignored, when in channel adaption mode
     };
 
     struct response_parameters {
@@ -116,13 +113,11 @@ public:
         uint16_t channelOffset;
         uint16_t hoppingSequenceLength;
         uint8_t* hoppingSequence;
-
     };
 
     void request(request_parameters&);
 
     void response(response_parameters&);
-
 
 private:
     DSMELayer& dsme;

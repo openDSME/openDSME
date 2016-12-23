@@ -57,7 +57,7 @@ class PHY_PIB {
 public:
     explicit PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly = false);
 
-    PHY_PIB() = delete;
+    PHY_PIB()               = delete;
     PHY_PIB(const PHY_PIB&) = delete;
     PHY_PIB& operator=(const PHY_PIB&) = delete;
 

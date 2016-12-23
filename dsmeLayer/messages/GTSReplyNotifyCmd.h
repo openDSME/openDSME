@@ -48,7 +48,7 @@
 
 namespace dsme {
 
-class GTSReplyNotifyCmd: public DSMEMessageElement {
+class GTSReplyNotifyCmd : public DSMEMessageElement {
 protected:
     /*
      * Last variables of DSME GTS reply command. (IEEE 802.15.4e-2012 5.3.11.5)
@@ -59,23 +59,17 @@ protected:
     DSMESABSpecification SABSpec;
 
 public:
-    GTSReplyNotifyCmd() :
-        destinationAddress(0),
-        channelOffset(0) {
+    GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0) {
     }
 
-    //in channel hopping mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification& SABSpec) :
-        destinationAddress(destinationAddress),
-        channelOffset(channelOffset),
-        SABSpec(SABSpec) {
+    // in channel hopping mode
+    GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification& SABSpec)
+        : destinationAddress(destinationAddress), channelOffset(channelOffset), SABSpec(SABSpec) {
     }
 
-    //in channel adaption mode
-    GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification& SABSpec) :
-        destinationAddress(destinationAddress),
-        channelOffset(0),
-        SABSpec(SABSpec) {
+    // in channel adaption mode
+    GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification& SABSpec)
+        : destinationAddress(destinationAddress), channelOffset(0), SABSpec(SABSpec) {
     }
 
     uint16_t getDestinationAddress() const {
@@ -104,7 +98,6 @@ public:
         serializer << SABSpec;
     }
 };
-
 }
 
 #endif

@@ -70,26 +70,25 @@ public:
 
 public:
     PANDescriptor& operator=(const PANDescriptor& other) {
-        this->coordAddrMode = other.coordAddrMode;
-        this->coordPANId = other.coordPANId;
-        this->coordAddress = other.coordAddress;
-        this->channelNumber = other.channelNumber;
-        this->channelPage = other.channelPage;
-        this->GTSPermit = other.GTSPermit;
-        this->linkQuality = other.linkQuality;
-        this->timestamp = other.timestamp;
+        this->coordAddrMode  = other.coordAddrMode;
+        this->coordPANId     = other.coordPANId;
+        this->coordAddress   = other.coordAddress;
+        this->channelNumber  = other.channelNumber;
+        this->channelPage    = other.channelPage;
+        this->GTSPermit      = other.GTSPermit;
+        this->linkQuality    = other.linkQuality;
+        this->timestamp      = other.timestamp;
         this->securityStatus = other.securityStatus;
-        this->securityLevel = other.securityLevel;
-        this->keyIdMode = other.keyIdMode;
-        this->keySource = other.keySource;
-        this->keyIndex = other.keyIndex;
-        this->codeList = other.codeList;
+        this->securityLevel  = other.securityLevel;
+        this->keyIdMode      = other.keyIdMode;
+        this->keySource      = other.keySource;
+        this->keyIndex       = other.keyIndex;
+        this->codeList       = other.codeList;
 
         this->dsmePANDescriptor = other.dsmePANDescriptor;
         return *this;
     }
 };
-
 }
 
 #endif

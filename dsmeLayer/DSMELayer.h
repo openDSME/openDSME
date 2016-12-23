@@ -65,7 +65,6 @@
 #include "gtsManager/GTSManager.h"
 #include "messageDispatcher/MessageDispatcher.h"
 
-
 namespace dsme {
 
 /*
@@ -239,7 +238,6 @@ protected:
      */
     void updateDisplay();
 };
-
 }
 
 #endif

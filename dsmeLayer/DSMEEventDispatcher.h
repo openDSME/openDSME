@@ -102,7 +102,6 @@ public:
     }
 #endif
 };
-
 }
 
 #endif

@@ -84,7 +84,7 @@ struct ACTPosition {
 class DSMEAllocationCounterTable {
 public:
     typedef RBTree<ACTElement, ACTPosition>::iterator iterator;
-    typedef bool(*condition_t)(ACTElement);
+    typedef bool (*condition_t)(ACTElement);
 
     DSMEAllocationCounterTable();
 
@@ -109,7 +109,8 @@ public:
     uint16_t getNumAllocatedTxGTS(uint16_t address);
 
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress = false);
-    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition, bool checkAddress = false);
+    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition,
+                     bool checkAddress = false);
     void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state);
 
 private:
@@ -120,13 +121,12 @@ private:
     uint8_t numGTSlots;
     uint8_t numChannels;
 
-    BitVector<MAX_SUPERFRAMES_PER_MULTI_SUPERFRAME* MAX_GTSLOTS> bitmap;
+    BitVector<MAX_SUPERFRAMES_PER_MULTI_SUPERFRAME * MAX_GTSLOTS> bitmap;
     RBTree<ACTElement, ACTPosition> act;
 
     // TODO integrate this nicely into the NeighborQueue
     RBTree<uint16_t, uint16_t> numAllocatedTxSlots;
 };
-
 }
 
 #endif
