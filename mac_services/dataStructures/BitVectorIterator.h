@@ -56,9 +56,9 @@ class BitVectorIterator {
 public:
     BitVectorIterator(BitVectorBase* instance, bit_vector_size_t position, bool value);
 
-    BitVectorIterator(const BitVectorIterator&) = default;
+    BitVectorIterator(const BitVectorIterator&);
 
-    BitVectorIterator(BitVectorIterator&&) = default;
+    BitVectorIterator(BitVectorIterator&&);
 
     ~BitVectorIterator();
 

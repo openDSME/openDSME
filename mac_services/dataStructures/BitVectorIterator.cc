@@ -44,10 +44,14 @@
 
 namespace dsme {
 
-BitVectorIterator::BitVectorIterator(BitVectorBase* instance, bit_vector_size_t position, bool value) {
-    this->instance = instance;
-    this->position = position;
-    this->value    = value;
+BitVectorIterator::BitVectorIterator(BitVectorBase* instance, bit_vector_size_t position, bool value) : instance(instance), position(position), value(value) {
+}
+
+BitVectorIterator::BitVectorIterator(const BitVectorIterator& other) : instance(other.instance), position(other.position), value(other.value) {
+}
+
+BitVectorIterator::BitVectorIterator(BitVectorIterator&& other) : instance(other.instance), position(other.position), value(other.value) {
+    other.instance = nullptr;
 }
 
 BitVectorIterator::~BitVectorIterator() {

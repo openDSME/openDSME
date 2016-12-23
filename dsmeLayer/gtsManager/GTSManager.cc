@@ -478,8 +478,8 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
             params.srcAddrMode = event.header.getFrameControl().srcAddrMode;
             params.srcAddr     = event.header.getSrcAddr();
             params.dstAddrMode = event.header.getFrameControl().dstAddrMode;
-            params.dstAddr = event.header.getDestAddr(); // TODO: Header destination address of GTS destination address?
-            params.status = CommStatus::SUCCESS;
+            params.dstAddr     = event.header.getDestAddr(); // TODO: Header destination address of GTS destination address?
+            params.status      = CommStatus::SUCCESS;
 
             dsme.getMLME_SAP().getCOMM_STATUS().notify_indication(params);
 

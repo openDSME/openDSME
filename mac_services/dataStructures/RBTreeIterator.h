@@ -69,7 +69,12 @@ public:
     RBTreeIterator();
 
     RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode);
-    virtual ~RBTreeIterator();
+
+    RBTreeIterator(const RBTreeIterator&);
+
+    RBTreeIterator(RBTreeIterator&&);
+
+    ~RBTreeIterator();
 
     RBTreeIterator<T, K>& operator=(const RBTreeIterator<T, K>&);
     RBTreeIterator<T, K>& operator++();
@@ -97,6 +102,16 @@ RBTreeIterator<T, K>::RBTreeIterator() : instance(nullptr), currentNode(nullptr)
 
 template <typename T, typename K>
 RBTreeIterator<T, K>::RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode) : instance(instance), currentNode(initialNode) {
+}
+
+template <typename T, typename K>
+RBTreeIterator<T, K>::RBTreeIterator(const RBTreeIterator& other) : instance(other.instance), currentNode(other.currentNode) {
+}
+
+template <typename T, typename K>
+RBTreeIterator<T, K>::RBTreeIterator(RBTreeIterator&& other) : instance(other.instance), currentNode(other.currentNode) {
+    other.instance    = nullptr;
+    other.currentNode = nullptr;
 }
 
 template <typename T, typename K>
