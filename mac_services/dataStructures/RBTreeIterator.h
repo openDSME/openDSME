@@ -61,13 +61,6 @@ class RBTreeIterator {
     friend class RBTree<T, K>;
 
 public:
-    /*
-     * Somehow this is required for successful compilation.
-     * TODO: Find out why
-     * DO NOT USE, does not create usefull iterators
-     */
-    RBTreeIterator();
-
     RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode);
 
     RBTreeIterator(const RBTreeIterator&);
@@ -77,6 +70,8 @@ public:
     ~RBTreeIterator();
 
     RBTreeIterator<T, K>& operator=(const RBTreeIterator<T, K>&);
+    RBTreeIterator<T, K>& operator=(RBTreeIterator<T, K>&&);
+
     RBTreeIterator<T, K>& operator++();
 
     RBTreeIterator<T, K> operator++(int);
@@ -95,10 +90,6 @@ private:
     const RBTree<T, K>* instance;
     RBNode<T, K>* currentNode;
 };
-
-template <typename T, typename K>
-RBTreeIterator<T, K>::RBTreeIterator() : instance(nullptr), currentNode(nullptr) {
-}
 
 template <typename T, typename K>
 RBTreeIterator<T, K>::RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode) : instance(instance), currentNode(initialNode) {
@@ -122,6 +113,16 @@ template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>& other) {
     this->instance    = other.instance;
     this->currentNode = other.currentNode;
+    return *this;
+}
+
+template <typename T, typename K>
+RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(RBTreeIterator<T, K>&& other) {
+    this->instance    = other.instance;
+    this->currentNode = other.currentNode;
+
+    other.instance    = nullptr;
+    other.currentNode = nullptr;
     return *this;
 }
 

@@ -64,6 +64,16 @@ BitVectorIterator& BitVectorIterator::operator=(const BitVectorIterator& other) 
     return *this;
 }
 
+BitVectorIterator& BitVectorIterator::operator=(BitVectorIterator&& other) {
+    this->instance = other.instance;
+    this->position = other.position;
+    this->value    = other.value;
+
+    other.instance = nullptr;
+
+    return *this;
+}
+
 BitVectorIterator& BitVectorIterator::operator++() {
     uint16_t max = instance->bitSize;
     if(this->position == max) {
