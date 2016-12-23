@@ -93,6 +93,7 @@ void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
             break;
         default:
             DSME_ASSERT(false);
+            return;
     }
     bool dispatchSuccessful = dispatch(signal);
     DSME_ASSERT(dispatchSuccessful);

@@ -62,7 +62,7 @@ private:
 
 public:
 
-    DSMERingBuffer() : head(0), tail(0) {
+    DSMERingBuffer() : buffer{}, head(0), tail(0) {
     }
 
     virtual ~DSMERingBuffer() {

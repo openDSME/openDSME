@@ -50,7 +50,7 @@ namespace dsme {
 template<typename C>
 class ConfirmBase {
 public:
-    ConfirmBase() : confirm_received(false) {
+    ConfirmBase() : confirm_received(false), last_confirm{} {
     }
 
     void confirm(Delegate<void(C&)> callback) {

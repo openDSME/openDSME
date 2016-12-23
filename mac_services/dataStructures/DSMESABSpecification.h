@@ -44,7 +44,6 @@
 #define DSMESABSPECIFICATION_H
 
 #include "../../../dsme_settings.h"
-#include "../../../dsme_platform.h"
 #include "DSMEBitVector.h"
 
 namespace dsme {
@@ -53,13 +52,13 @@ class DSMESABSpecification {
 public:
     typedef BitVector<MAX_GTSLOTS* MAX_CHANNELS* MAX_SAB_UNITS> SABSubBlock;
 
+    DSMESABSpecification() :
+        subBlockIndex(0) {
+    }
+
     explicit DSMESABSpecification(uint8_t subBlockLengthBytes) :
         subBlockIndex(0) {
         subBlock.initialize(subBlockLengthBytes * 8);
-    }
-
-    explicit DSMESABSpecification() :
-        subBlockIndex(0) {
     }
 
     explicit DSMESABSpecification(SABSubBlock& bitVector) :
@@ -68,7 +67,6 @@ public:
     }
 
     void setSubBlockLengthBytes(uint8_t bytes) {
-        DSME_ASSERT(bytes > 0);
         subBlock.setLength(bytes * 8);
     }
 
