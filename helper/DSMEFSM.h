@@ -61,7 +61,7 @@ public:
         signal(signal) {
     }
 
-    explicit FSMEvent():
+    FSMEvent():
         signal(EMPTY_SIGNAL) {
     }
 

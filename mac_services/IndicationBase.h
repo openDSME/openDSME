@@ -50,7 +50,7 @@ namespace dsme {
 template<typename I>
 class IndicationBase {
 public:
-    IndicationBase() : indication_received(false) {
+    IndicationBase() : indication_received(false), last_indication{} {
     }
 
     void indication(Delegate<void(I&)> callback) {

@@ -110,8 +110,9 @@ public:
         dstPAN = BROADCAST_PAN;
         srcPAN = BROADCAST_PAN;
 
+        hasDstPAN = false;
         hasSrcPAN = false;
-        srcPAN = false;
+
         finalized = false;
     }
 

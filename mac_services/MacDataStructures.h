@@ -63,7 +63,8 @@ template<typename T, uint8_t S>
 class MacStaticList {
 public:
     MacStaticList() :
-        length(0) {
+        length(0),
+        array{} {
     }
 
     explicit MacStaticList(const MacStaticList& other) :

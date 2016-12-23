@@ -307,6 +307,10 @@ void GTSHelper::sendDeallocationRequest(uint16_t address, Direction direction, D
     params.direction = direction;
     params.prioritizedChannelAccess = Priority::LOW;
 
+    params.numSlot = 0;               // ignored
+    params.preferredSuperframeID = 0; // ignored
+    params.preferredSlotID = 0;       // ignored
+
     params.dsmeSABSpecification = sabSpecification;
 
     params.securityLevel = 0;
