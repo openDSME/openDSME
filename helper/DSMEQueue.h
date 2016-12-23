@@ -50,7 +50,7 @@ namespace dsme {
 template <typename C, uint16_t MAX_SIZE>
 class DSMEQueue {
 public:
-    DSMEQueue() : next_back(0), size(0) {
+    DSMEQueue() : queue{}, next_back(0), size(0) {
     }
 
     // assumes queue is not full

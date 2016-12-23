@@ -250,10 +250,10 @@ bool RBTree<T, K>::insert(T obj, K key) {
                 current = current->rightChild;
             } // end if
         }     // end while
+
         /*
          * correct position for insertion found
          */
-
         while(true) {
             RBNode<T, K> *P, *G, *U;
             P = node->parent;
