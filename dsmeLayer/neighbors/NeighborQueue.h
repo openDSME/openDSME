@@ -65,7 +65,7 @@ class DSMEMessage;
 /*
  * @template-param N maximum number of neighbors
  */
-template<uint8_t N>
+template <uint8_t N>
 class NeighborQueue {
 public:
     typedef RBTree<NeighborListEntry<DSMEMessage>, IEEE802154MacAddress>::iterator iterator;
@@ -117,17 +117,17 @@ private:
 
 /* FUNCTION DEFINITIONS ******************************************************/
 
-template<uint8_t N>
+template <uint8_t N>
 typename NeighborQueue<N>::iterator NeighborQueue<N>::begin() {
     return neighbors.begin();
 }
 
-template<uint8_t N>
+template <uint8_t N>
 const typename NeighborQueue<N>::iterator NeighborQueue<N>::end() const {
     return neighbors.end();
 }
 
-template<uint8_t N>
+template <uint8_t N>
 void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
     if(neighbors.size() < N) {
         neighbors.insert(NeighborListEntry<DSMEMessage>(neighbor), neighbor.address);
@@ -137,7 +137,7 @@ void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
     }
 }
 
-template<uint8_t N>
+template <uint8_t N>
 void NeighborQueue<N>::eraseNeighbor(iterator& neighbor) {
     if(neighbor != neighbors.end()) {
         queue.flush(*neighbor, false);
@@ -146,17 +146,17 @@ void NeighborQueue<N>::eraseNeighbor(iterator& neighbor) {
     return;
 }
 
-template<uint8_t N>
+template <uint8_t N>
 neighbor_size_t NeighborQueue<N>::getNumNeighbors() const {
     return neighbors.size();
 }
 
-template<uint8_t N>
+template <uint8_t N>
 typename NeighborQueue<N>::iterator NeighborQueue<N>::findByAddress(const IEEE802154MacAddress& address) {
     return neighbors.find(address);
 }
 
-template<uint8_t N>
+template <uint8_t N>
 queue_size_t NeighborQueue<N>::getPacketsInQueue(const iterator& neighbor) const {
     if(neighbor != end()) {
         return neighbor->queueSize;
@@ -165,36 +165,34 @@ queue_size_t NeighborQueue<N>::getPacketsInQueue(const iterator& neighbor) const
     }
 }
 
-template<uint8_t N>
+template <uint8_t N>
 bool NeighborQueue<N>::isQueueEmpty(iterator& neighbor) {
     return (neighbor->queueSize == 0);
 }
 
-template<uint8_t N>
+template <uint8_t N>
 DSMEMessage* NeighborQueue<N>::front(iterator& neighbor) {
     return queue.front(*neighbor);
 }
 
-template<uint8_t N>
+template <uint8_t N>
 DSMEMessage* NeighborQueue<N>::popFront(iterator& neighbor) {
     return queue.pop_front(*neighbor);
 }
 
-template<uint8_t N>
+template <uint8_t N>
 void NeighborQueue<N>::pushBack(iterator& neighbor, DSMEMessage* msg) {
     queue.push_back(*neighbor, msg);
     return;
 }
 
-template<uint8_t N>
+template <uint8_t N>
 void NeighborQueue<N>::flushQueues(bool keepFront) {
     for(iterator i = neighbors.begin(); i != neighbors.end(); ++i) {
         queue.flush(*i, keepFront);
     }
     return;
 }
-
 }
 
 #endif
-

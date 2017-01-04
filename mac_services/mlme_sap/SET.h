@@ -52,9 +52,8 @@ namespace mlme_sap {
 
 struct SET_confirm_parameters {
     Set_Status status;
-    //TODO PIBAttribute class for the type?
+    // TODO PIBAttribute class for the type?
     uint8_t* pibAttribute;
-
 };
 
 /*
@@ -62,14 +61,12 @@ struct SET_confirm_parameters {
  */
 class SET : public ConfirmBase<SET_confirm_parameters> {
 public:
-
     struct request_parameters {
         uint8_t* pibAttribute;
         void* pibAttributeValue;
     };
 
     void request(request_parameters);
-
 };
 
 } /* mlme_sap */

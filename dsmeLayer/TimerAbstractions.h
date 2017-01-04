@@ -47,19 +47,17 @@
 
 namespace dsme {
 
-template<typename T>
+template <typename T>
 class ReadonlyTimerAbstraction {
 public:
-    typedef uint32_t ((T::*getter_t)());
+    typedef uint32_t((T::*getter_t)());
 
-    ReadonlyTimerAbstraction() :
-        getter_instance(nullptr),
-        getter(nullptr) {
+    ReadonlyTimerAbstraction() : getter_instance(nullptr), getter(nullptr) {
     }
 
     void initialize(T* instance, getter_t getter) {
         this->getter_instance = instance;
-        this->getter = getter;
+        this->getter          = getter;
     }
 
     inline operator uint32_t() const volatile {
@@ -71,19 +69,17 @@ private:
     getter_t getter;
 };
 
-template<typename T>
+template <typename T>
 class WriteonlyTimerAbstraction {
 public:
     typedef void (T::*setter_t)(uint32_t);
 
-    WriteonlyTimerAbstraction() :
-        setter_instance(nullptr),
-        setter(nullptr) {
+    WriteonlyTimerAbstraction() : setter_instance(nullptr), setter(nullptr) {
     }
 
     void initialize(T* instance, setter_t setter) {
         setter_instance = instance;
-        this->setter = setter;
+        this->setter    = setter;
     }
 
     inline void operator=(uint32_t value) volatile {

@@ -60,7 +60,6 @@ struct BEACON_NOTIFY_indication_parameters {
     uint8_t* sdu;
     uint8_t eBSN;
     uint8_t beaconType;
-
 };
 
 /*

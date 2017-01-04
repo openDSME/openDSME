@@ -50,19 +50,12 @@ namespace dsme {
 
 class FSMEvent {
 public:
-    enum : uint8_t {
-        EMPTY_SIGNAL = 0,
-        ENTRY_SIGNAL,
-        EXIT_SIGNAL,
-        USER_SIGNAL_START
-    };
+    enum : uint8_t { EMPTY_SIGNAL = 0, ENTRY_SIGNAL, EXIT_SIGNAL, USER_SIGNAL_START };
 
-    explicit FSMEvent(uint8_t signal):
-        signal(signal) {
+    explicit FSMEvent(uint8_t signal) : signal(signal) {
     }
 
-    explicit FSMEvent():
-        signal(EMPTY_SIGNAL) {
+    FSMEvent() : signal(EMPTY_SIGNAL) {
     }
 
     uint8_t signal;
@@ -77,16 +70,15 @@ typedef enum : uint8_t {
 /**
  * Template for implementing a finite state machine (FSM).
  */
-template<typename C, typename E>
+template <typename C, typename E>
 class FSM {
 public:
-    typedef fsmReturnStatus(C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
     /**
      * Created FSM is put into initial state
      */
-    explicit FSM(const state_t& initial) :
-        state(initial), dispatchBusy(false) {
+    explicit FSM(const state_t& initial) : state(initial), dispatchBusy(false) {
     }
 
     inline fsmReturnStatus transition(state_t next) {
@@ -104,7 +96,7 @@ public:
         bool wasBusy;
 
         dsme_atomicBegin();
-        wasBusy = dispatchBusy;
+        wasBusy      = dispatchBusy;
         dispatchBusy = true;
         dsme_atomicEnd();
 
@@ -112,20 +104,20 @@ public:
             return false;
         }
 
-        state_t s = state;
+        state_t s         = state;
         fsmReturnStatus r = (((C*)this)->*state)(event);
 
         while(r == FSM_TRANSITION) {
             /* call the exit action from last state, reuse the already processed 'event' to deliver this */
             event.signal = E::EXIT_SIGNAL;
-            r = (((C*)this)->*s)(event);
+            r            = (((C*)this)->*s)(event);
             DSME_ASSERT(r != FSM_TRANSITION);
 
             s = state;
 
             /* call entry action of new state, reuse the already processed 'event' to deliver this */
             event.signal = E::ENTRY_SIGNAL;
-            r = (((C*)this)->*state)(event);
+            r            = (((C*)this)->*state)(event);
         }
         dispatchBusy = false;
         return true;

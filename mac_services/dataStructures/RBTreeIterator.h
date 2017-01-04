@@ -45,32 +45,33 @@
 
 #define RBTREE_ITERATOR_POSTORDER
 
-#include "RBTree.h"
 #include "RBNode.h"
+#include "RBTree.h"
 
 namespace dsme {
 
-template<typename T, typename K>
+template <typename T, typename K>
 class RBTree;
 
-template<typename T, typename K>
+template <typename T, typename K>
 struct RBNode;
 
-template<typename T, typename K>
+template <typename T, typename K>
 class RBTreeIterator {
-    friend class RBTree<T, K> ;
-public:
-    /*
-     * Somehow this is required for successful compilation.
-     * TODO: Find out why
-     * DO NOT USE, does not create usefull iterators
-     */
-    RBTreeIterator();
+    friend class RBTree<T, K>;
 
+public:
     RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode);
-    virtual ~RBTreeIterator();
+
+    RBTreeIterator(const RBTreeIterator&);
+
+    RBTreeIterator(RBTreeIterator&&);
+
+    ~RBTreeIterator();
 
     RBTreeIterator<T, K>& operator=(const RBTreeIterator<T, K>&);
+    RBTreeIterator<T, K>& operator=(RBTreeIterator<T, K>&&);
+
     RBTreeIterator<T, K>& operator++();
 
     RBTreeIterator<T, K> operator++(int);
@@ -90,26 +91,38 @@ private:
     RBNode<T, K>* currentNode;
 };
 
-template<typename T, typename K>
-RBTreeIterator<T, K>::RBTreeIterator() :
-    instance(nullptr),
-    currentNode(nullptr) {
+template <typename T, typename K>
+RBTreeIterator<T, K>::RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode) : instance(instance), currentNode(initialNode) {
 }
 
-template<typename T, typename K>
-RBTreeIterator<T, K>::RBTreeIterator(const RBTree<T, K>* instance, RBNode<T, K>* initialNode) :
-    instance(instance),
-    currentNode(initialNode) {
+template <typename T, typename K>
+RBTreeIterator<T, K>::RBTreeIterator(const RBTreeIterator& other) : instance(other.instance), currentNode(other.currentNode) {
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
+RBTreeIterator<T, K>::RBTreeIterator(RBTreeIterator&& other) : instance(other.instance), currentNode(other.currentNode) {
+    other.instance    = nullptr;
+    other.currentNode = nullptr;
+}
+
+template <typename T, typename K>
 RBTreeIterator<T, K>::~RBTreeIterator() {
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>& other) {
-    this->instance = other.instance;
+    this->instance    = other.instance;
     this->currentNode = other.currentNode;
+    return *this;
+}
+
+template <typename T, typename K>
+RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(RBTreeIterator<T, K>&& other) {
+    this->instance    = other.instance;
+    this->currentNode = other.currentNode;
+
+    other.instance    = nullptr;
+    other.currentNode = nullptr;
     return *this;
 }
 
@@ -117,7 +130,7 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>
 /**
  * iterate over Tree in postorder
  */
-template<typename T, typename K>
+template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
     RBNode<T, K>* parent;
     /*end iterator does not increment */
@@ -153,12 +166,12 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
         } else {
             return *this;
         }
-    } //endwhile
+    } // endwhile
 }
 
 #else
 
-template<typename T, typename K>
+template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
     if(this->currentNode == nullptr) {
         return *this;
@@ -177,8 +190,7 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
             if(n->parent == nullptr) {
                 this->currentNode = nullptr;
                 break;
-            } else if(n == n->parent->leftChild
-                      && n->parent->rightChild != nullptr) {
+            } else if(n == n->parent->leftChild && n->parent->rightChild != nullptr) {
                 this->currentNode = n->parent->rightChild;
                 break;
             } else {
@@ -191,45 +203,45 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
 
 #endif
 
-template<typename T, typename K>
+template <typename T, typename K>
 RBTreeIterator<T, K> RBTreeIterator<T, K>::operator++(int) {
     RBTreeIterator<T, K> old = *this;
     ++(*this);
     return old;
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 T& RBTreeIterator<T, K>::operator*() {
     return this->currentNode->getContent();
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 T* RBTreeIterator<T, K>::operator->() {
     return &(this->currentNode->getContent());
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 const T* RBTreeIterator<T, K>::operator->() const {
     return &(this->currentNode->getContent());
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 RBNode<T, K>* RBTreeIterator<T, K>::node() {
     return this->currentNode;
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 bool RBTreeIterator<T, K>::operator==(const RBTreeIterator<T, K>& other) const {
     return (this->instance == other.instance && this->currentNode == other.currentNode);
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 bool RBTreeIterator<T, K>::operator!=(const RBTreeIterator<T, K>& other) const {
     return !((*this) == other);
 }
 
 #ifdef RBTREE_ITERATOR_POSTORDER
-template<typename T, typename K>
+template <typename T, typename K>
 RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<T, K>* rootNode) {
     if(rootNode == nullptr) {
         return RBTreeIterator(instance, rootNode);
@@ -245,13 +257,11 @@ RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<
     }
 }
 #else
-template<typename T, typename K>
-RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance,
-        RBNode<T, K>* rootNode) {
+template <typename T, typename K>
+RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<T, K>* rootNode) {
     return RBTreeIterator(instance, rootNode);
 }
 #endif
-
 }
 
 #endif

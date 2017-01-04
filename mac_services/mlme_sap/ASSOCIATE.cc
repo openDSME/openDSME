@@ -50,17 +50,15 @@
 namespace dsme {
 namespace mlme_sap {
 
-ASSOCIATE::ASSOCIATE(DSMELayer& dsme) :
-    dsme(dsme) {
+ASSOCIATE::ASSOCIATE(DSMELayer& dsme) : dsme(dsme) {
 }
 
 /* IEEE802.15.4-2011 6.2.2.1 */
 void ASSOCIATE::request(request_parameters& params) {
-
-    //update PHY and MAC PIB attributes
+    // update PHY and MAC PIB attributes
     dsme.getPlatform().setChannelNumber(params.channelNumber); // TODO Move -> AssociationManager
     dsme.getPHY_PIB().phyCurrentPage = params.channelPage;
-    dsme.getMAC_PIB().macPANId = params.coordPANId;
+    dsme.getMAC_PIB().macPANId       = params.coordPANId;
     if(params.coordAddrMode == AddrMode::SHORT_ADDRESS) {
         dsme.getMAC_PIB().macCoordShortAddress = params.coordAddress.getShortAddress();
     } else {
@@ -70,11 +68,9 @@ void ASSOCIATE::request(request_parameters& params) {
     AssociateRequestCmd associateRequestCmd(params.capabilityInformation);
     AssociationManager& associationManager = dsme.getAssociationManager();
     associationManager.sendAssociationRequest(associateRequestCmd, params);
-
 }
 
 void ASSOCIATE::response(response_parameters& params) {
-
     AssociateReplyCmd reply(params.assocShortAddress, params.status);
     AssociationManager& associationManager = dsme.getAssociationManager();
 
@@ -84,7 +80,6 @@ void ASSOCIATE::response(response_parameters& params) {
          */
     }
     associationManager.sendAssociationReply(reply, params.deviceAddress);
-
 }
 
 } /* mlme_sap */

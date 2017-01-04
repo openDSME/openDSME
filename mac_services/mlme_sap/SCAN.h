@@ -71,7 +71,6 @@ struct SCAN_confirm_parameters {
  */
 class SCAN : public ConfirmBase<SCAN_confirm_parameters> {
 public:
-
     explicit SCAN(DSMELayer& dsme);
     struct request_parameters {
         ScanType scanType;
@@ -86,7 +85,6 @@ public:
         uint8_t frameControlOptions;
         uint16_t headerIElist;
         uint16_t payloadIElist;
-
     };
 
     void request(request_parameters&);

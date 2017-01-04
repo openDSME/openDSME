@@ -48,23 +48,22 @@ Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec
     uint8_t s;
 
     if(serializer.getType() == SERIALIZATION) {
-        s = spec.multiSuperframeOrder  << 0;
+        s = spec.multiSuperframeOrder << 0;
         s |= spec.macChannelDiversityMode << 4;
-        s |= spec.GACKFlag             << 5;
-        s |= spec.CAPReductionFlag     << 6;
-        s |= spec.deferredBeaconFlag   << 7;
+        s |= spec.GACKFlag << 5;
+        s |= spec.CAPReductionFlag << 6;
+        s |= spec.deferredBeaconFlag << 7;
         serializer << s;
     } else {
         serializer << s;
 
-        spec.multiSuperframeOrder = (s >> 0) & 0x15;
+        spec.multiSuperframeOrder    = (s >> 0) & 0x15;
         spec.macChannelDiversityMode = (s >> 4) & 0x1;
-        spec.GACKFlag = (s >> 5) & 0x1;
-        spec.CAPReductionFlag = (s >> 6) & 0x1;
-        spec.deferredBeaconFlag = (s >> 7) & 0x1;
+        spec.GACKFlag                = (s >> 5) & 0x1;
+        spec.CAPReductionFlag        = (s >> 6) & 0x1;
+        spec.deferredBeaconFlag      = (s >> 7) & 0x1;
     }
 
     return serializer;
 }
-
 }

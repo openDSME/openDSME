@@ -48,8 +48,7 @@
 namespace dsme {
 namespace mcps_sap {
 
-DATA::DATA(DSMELayer& dsme) :
-    dsme(dsme) {
+DATA::DATA(DSMELayer& dsme) : dsme(dsme) {
 }
 
 /*
@@ -58,16 +57,16 @@ DATA::DATA(DSMELayer& dsme) :
  */
 void DATA::request(request_parameters& params) {
     DSMEMessage* dsmemsg = params.msdu;
-    IDSMEMessage* msg = dsmemsg;
+    IDSMEMessage* msg    = dsmemsg;
 
     if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
         mcps_sap::DATA_confirm_parameters confirmParams;
-        confirmParams.msduHandle = dsmemsg;
-        confirmParams.Timestamp = 0;
+        confirmParams.msduHandle      = dsmemsg;
+        confirmParams.Timestamp       = 0;
         confirmParams.RangingReceived = false;
-        confirmParams.status = DataStatus::INVALID_GTS; // TODO better status?
-        confirmParams.AckPayload = nullptr;
-        confirmParams.gtsTX = params.gtsTX;
+        confirmParams.status          = DataStatus::INVALID_GTS; // TODO better status?
+        confirmParams.AckPayload      = nullptr;
+        confirmParams.gtsTX           = params.gtsTX;
         notify_confirm(confirmParams);
         return;
     }
@@ -91,43 +90,43 @@ void DATA::request(request_parameters& params) {
 
     if(params.gtsTX) {
         // TODO use short address!
-        IEEE802154MacAddress& dest = msg->getHeader().getDestAddr();
+        IEEE802154MacAddress& dest                    = msg->getHeader().getDestAddr();
         NeighborQueue<MAX_NEIGHBORS>::iterator destIt = dsme.getMessageDispatcher().getNeighborQueue().findByAddress(dest);
 
         DSMEAllocationCounterTable& macDSMEACT = dsme.getMAC_PIB().macDSMEACT;
-        uint16_t numAllocatedSlots = macDSMEACT.getNumAllocatedTxGTS(dest.getShortAddress());
+        uint16_t numAllocatedSlots             = macDSMEACT.getNumAllocatedTxGTS(dest.getShortAddress());
 
         if(destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
-            confirmParams.Timestamp = 0;
+            confirmParams.msduHandle      = dsmemsg;
+            confirmParams.Timestamp       = 0;
             confirmParams.RangingReceived = false;
-            confirmParams.status = DataStatus::INVALID_GTS;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.status          = DataStatus::INVALID_GTS;
+            confirmParams.AckPayload      = nullptr;
+            confirmParams.gtsTX           = params.gtsTX;
             notify_confirm(confirmParams);
             return;
         }
 
         if(!this->dsme.getMessageDispatcher().sendInGTS(dsmemsg, destIt)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
-            confirmParams.Timestamp = 0;
+            confirmParams.msduHandle      = dsmemsg;
+            confirmParams.Timestamp       = 0;
             confirmParams.RangingReceived = false;
-            confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.status          = DataStatus::TRANSACTION_OVERFLOW;
+            confirmParams.AckPayload      = nullptr;
+            confirmParams.gtsTX           = params.gtsTX;
             notify_confirm(confirmParams);
         }
     } else {
         if(!this->dsme.getMessageDispatcher().sendInCAP(dsmemsg)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
-            confirmParams.Timestamp = 0;
+            confirmParams.msduHandle      = dsmemsg;
+            confirmParams.Timestamp       = 0;
             confirmParams.RangingReceived = false;
-            confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.status          = DataStatus::TRANSACTION_OVERFLOW;
+            confirmParams.AckPayload      = nullptr;
+            confirmParams.gtsTX           = params.gtsTX;
             notify_confirm(confirmParams);
         }
     }

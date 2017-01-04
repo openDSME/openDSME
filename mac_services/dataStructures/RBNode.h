@@ -49,18 +49,16 @@
 namespace dsme {
 
 /* ENUM **********************************************************************/
-enum color_t {
-    RED, BLACK
-};
+enum color_t { RED, BLACK };
 
 /* CLASSES *******************************************************************/
-template<typename T, typename K>
+template <typename T, typename K>
 class RBTree;
 
-template<typename T, typename K>
+template <typename T, typename K>
 class RBTreeIterator;
 
-template<typename T, typename K>
+template <typename T, typename K>
 struct RBNode {
     RBNode(T content, K key);
     virtual ~RBNode();
@@ -73,7 +71,7 @@ struct RBNode {
     /*
      * Pointer to construct the tree
      */
-    RBNode<T, K>* leftChild, *rightChild, *parent;
+    RBNode<T, K> *leftChild, *rightChild, *parent;
 
     /*
      * Key to identify object
@@ -89,23 +87,20 @@ struct RBNode {
      * Color of the node (Red-Black-Tree)
      */
     color_t color;
-
 };
 /* FUNCTION DEFINITIONS ******************************************************/
-template<typename T, typename K>
-RBNode<T, K>::RBNode(T content, K key) :
-    leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
+template <typename T, typename K>
+RBNode<T, K>::RBNode(T content, K key) : leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 RBNode<T, K>::~RBNode() {
     /* no action required */
 }
 
-template<typename T, typename K>
+template <typename T, typename K>
 T& RBNode<T, K>::getContent() {
     return content;
 }
-
 }
 #endif /* RBNODE_H_ */

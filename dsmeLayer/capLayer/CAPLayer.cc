@@ -47,20 +47,15 @@
 
 namespace dsme {
 
-CAPLayer::CAPLayer(DSMELayer& dsme) :
-    DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle),
-    dsme(dsme),
-    NB(0),
-    NR(0),
-    totalNBs(0),
-    doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+CAPLayer::CAPLayer(DSMELayer& dsme)
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
 void CAPLayer::reset() {
     transition(&CAPLayer::stateIdle);
-    this->NB = 0;
+    this->NB       = 0;
     this->totalNBs = 0;
-    this->NR = 0;
+    this->NR       = 0;
 
     while(!this->queue.empty()) {
         this->queue.pop();
@@ -93,6 +88,7 @@ void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
             break;
         default:
             DSME_ASSERT(false);
+            return;
     }
     bool dispatchSuccessful = dispatch(signal);
     DSME_ASSERT(dispatchSuccessful);
@@ -130,8 +126,8 @@ fsmReturnStatus CAPLayer::choiceRebackoff() {
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
     LOG_DEBUG_PURE("Ci" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        NB = 0;
-        NR = 0;
+        NB       = 0;
+        NR       = 0;
         totalNBs = 0;
 
         if(!queue.empty()) {
@@ -241,26 +237,26 @@ uint16_t CAPLayer::symbolsRequired() {
     symbols += 8; // CCA
     symbols += msg->getTotalSymbols();
     symbols += dsme.getMAC_PIB().macAckWaitDuration; // ACK
-    symbols += 10; // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
+    symbols += 10;                                   // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
     return symbols;
 }
 
 void CAPLayer::actionStartBackoffTimer() {
-    uint8_t backoffExp = dsme.getMAC_PIB().macMinBE + NB;
-    uint8_t maxBE = dsme.getMAC_PIB().macMaxBE;
-    backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
-    uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t) backoffExp);
+    uint8_t backoffExp          = dsme.getMAC_PIB().macMinBE + NB;
+    uint8_t maxBE               = dsme.getMAC_PIB().macMaxBE;
+    backoffExp                  = backoffExp <= maxBE ? backoffExp : maxBE;
+    uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
-    uint32_t now = dsme.getPlatform().getSymbolCounter();
+    uint32_t now     = dsme.getPlatform().getSymbolCounter();
 
-    uint32_t symbolsPerSlot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t symbolsPerSlot       = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     uint32_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, symbolsPerSlot); // including backoff
     uint32_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
-    uint32_t CAPStart = now - symbolsSinceCAPStart;
+    uint32_t CAPStart             = now - symbolsSinceCAPStart;
 
-    uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
-    uint8_t fullCAPs = backoffSinceCAPStart / (dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
+    uint16_t blockedEnd                  = symbolsRequired() + PRE_EVENT_SHIFT;
+    uint8_t fullCAPs                     = backoffSinceCAPStart / (dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
     uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots() + 1) * symbolsPerSlot + blockedEnd);
 
     backoffSinceCAPStart += fullCAPs * blockedSymbolsPerSuperframe;

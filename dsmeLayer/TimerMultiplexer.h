@@ -51,26 +51,22 @@
 #ifdef STATISTICS_MONITOR_LATENESS
 #define BIN_COUNT (16)
 #define BIN_WIDTH (16)
-#define MAXIMUM_LATENESS_ALLOWED ((BIN_COUNT-1) * (BIN_WIDTH))
+#define MAXIMUM_LATENESS_ALLOWED ((BIN_COUNT - 1) * (BIN_WIDTH))
 #endif
 
 namespace dsme {
 
-template<typename T, typename R, typename G, typename S>
+template <typename T, typename R, typename G, typename S>
 class TimerMultiplexer {
 protected:
     typedef T timer_t;
     typedef void (R::*handler_t)(int32_t lateness);
 
-    TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G>& now, WriteonlyTimerAbstraction<S>& timer) :
-        lastDispatchSymbolCounter(0),
-        currentDispatchSymbolCounter(0),
-        instance(instance),
-        _NOW(now),
-        _TIMER(timer) {
+    TimerMultiplexer(R* instance, ReadonlyTimerAbstraction<G>& now, WriteonlyTimerAbstraction<S>& timer)
+        : lastDispatchSymbolCounter(0), currentDispatchSymbolCounter(0), instance(instance), _NOW(now), _TIMER(timer) {
         for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
-            this->handlers[i] = nullptr;
+            this->handlers[i]      = nullptr;
         }
 
 #ifdef STATISTICS_MONITOR_LATENESS
@@ -83,7 +79,7 @@ protected:
     }
 
     void _initialize() {
-        this->lastDispatchSymbolCounter = _NOW;
+        this->lastDispatchSymbolCounter    = _NOW;
         this->currentDispatchSymbolCounter = this->lastDispatchSymbolCounter;
     }
 
@@ -91,7 +87,7 @@ protected:
         this->lastDispatchSymbolCounter = _NOW;
         for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
-            this->handlers[i] = nullptr;
+            this->handlers[i]      = nullptr;
         }
 
         _TIMER = _NOW - 1;
@@ -107,27 +103,25 @@ protected:
         dsme_atomicEnd();
     }
 
-    template<T E>
+    template <T E>
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         this->history.addEvent(nextEventSymbolCounter, E);
 
         if(nextEventSymbolCounter <= this->currentDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
-            LOG_ERROR("now:" << now
-                      << ", nextEvent: " << nextEventSymbolCounter
-                      << ", lastDispatch: " << this->lastDispatchSymbolCounter
-                      << ", Event " << (uint16_t)E);
+            LOG_ERROR("now:" << now << ", nextEvent: " << nextEventSymbolCounter << ", lastDispatch: " << this->lastDispatchSymbolCounter << ", Event "
+                             << (uint16_t)E);
             history.printEvents();
             DSME_ASSERT(false);
         }
 
         this->symbols_until[E] = nextEventSymbolCounter - this->lastDispatchSymbolCounter;
-        this->handlers[E] = handler;
+        this->handlers[E]      = handler;
         return;
     }
 
-    template<T E>
+    template <T E>
     inline void _stopTimer() {
         this->symbols_until[E] = -1;
         return;

@@ -48,8 +48,7 @@
 namespace dsme {
 namespace mlme_sap {
 
-DISASSOCIATE::DISASSOCIATE(DSMELayer& dsme) :
-    dsme(dsme) {
+DISASSOCIATE::DISASSOCIATE(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void DISASSOCIATE::request(request_parameters& params) {

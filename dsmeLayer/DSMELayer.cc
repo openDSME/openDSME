@@ -48,30 +48,30 @@
 
 namespace dsme {
 
-DSMELayer::DSMELayer() :
-    phy_pib(nullptr),
-    mac_pib(nullptr),
-    mcps_sap(nullptr),
-    mlme_sap(nullptr),
+DSMELayer::DSMELayer()
+    : phy_pib(nullptr),
+      mac_pib(nullptr),
+      mcps_sap(nullptr),
+      mlme_sap(nullptr),
 
-    platform(nullptr),
-    eventDispatcher(*this),
+      platform(nullptr),
+      eventDispatcher(*this),
 
-    ackLayer(*this),
-    capLayer(*this),
-    associationManager(*this),
-    beaconManager(*this),
-    gtsManager(*this),
-    messageDispatcher(*this),
+      ackLayer(*this),
+      capLayer(*this),
+      associationManager(*this),
+      beaconManager(*this),
+      gtsManager(*this),
+      messageDispatcher(*this),
 
-    currentSlot(0),
-    currentSuperframe(0),
-    currentMultiSuperframe(0),
-    nextSlot(0),
-    nextSuperframe(0),
-    nextMultiSuperframe(0),
-    trackingBeacons(false),
-    lastSlotTime(0) {
+      currentSlot(0),
+      currentSuperframe(0),
+      currentMultiSuperframe(0),
+      nextSlot(0),
+      nextSuperframe(0),
+      nextMultiSuperframe(0),
+      trackingBeacons(false),
+      lastSlotTime(0) {
 }
 
 DSMELayer::~DSMELayer() {
@@ -82,8 +82,8 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
 
     this->platform->setReceiveDelegate(DELEGATE(&MessageDispatcher::receive, this->messageDispatcher));
 
-    this->currentSlot = 0;
-    this->currentSuperframe = 0;
+    this->currentSlot            = 0;
+    this->currentSuperframe      = 0;
     this->currentMultiSuperframe = 0;
 
     this->eventDispatcher.initialize();
@@ -122,8 +122,8 @@ void DSMELayer::reset() {
     this->mac_pib->macDsn = platform->getRandom();
     this->ackLayer.reset();
 
-    this->currentSlot = 0;
-    this->currentSuperframe = 0;
+    this->currentSlot            = 0;
+    this->currentSuperframe      = 0;
     this->currentMultiSuperframe = 0;
 
     dsme_atomicEnd();
@@ -139,9 +139,9 @@ void DSMELayer::preSlotEvent(void) {
 
     // calculate slot position
     uint16_t slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
-    nextSlot = slotsSinceLastKnownBeaconIntervalStart % aNumSuperframeSlots;
-    uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
-    nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    nextSlot                                        = slotsSinceLastKnownBeaconIntervalStart % aNumSuperframeSlots;
+    uint16_t superframe                             = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
+    nextSuperframe                                  = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     superframe /= getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     nextMultiSuperframe = superframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();
 
@@ -149,8 +149,8 @@ void DSMELayer::preSlotEvent(void) {
 }
 
 void DSMELayer::slotEvent(int32_t lateness) {
-    currentSlot = nextSlot;
-    currentSuperframe = nextSuperframe;
+    currentSlot            = nextSlot;
+    currentSuperframe      = nextSuperframe;
     currentMultiSuperframe = nextMultiSuperframe;
 
     if(getMAC_PIB().macShortAddress == 1) {
@@ -167,7 +167,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     if(this->trackingBeacons) {
-        auto now = platform->getSymbolCounter();
+        auto now           = platform->getSymbolCounter();
         this->lastSlotTime = now - (now - beaconManager.getLastKnownBeaconIntervalStart()) % getMAC_PIB().helper.getSymbolsPerSlot();
     }
 
@@ -203,18 +203,17 @@ void DSMELayer::handleStartOfCFP() {
 
 uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift) {
     // Add one superframe to account for times where the shifted time is larger than the current time
-    return (time - (beaconManager.getLastKnownBeaconIntervalStart() + shift)
-            + aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot())
-           % (aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot());
+    return (time - (beaconManager.getLastKnownBeaconIntervalStart() + shift) + aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot()) %
+           (aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot());
 }
 
 bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
-    uint32_t symbolsPerSlot = getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t symbolsPerSlot              = getMAC_PIB().helper.getSymbolsPerSlot();
     uint16_t symbolsSinceSuperframeStart = getSymbolsSinceSuperframeStart(time, 0);
-    uint16_t capStart = symbolsPerSlot; // after beacon slot
-    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
-    //LOG_INFO(capStart << " " << symbolsSinceSuperframeStart << " " << duration << " " << capEnd);
-    return (symbolsSinceSuperframeStart >= capStart) // after beacon slot
+    uint16_t capStart                    = symbolsPerSlot; // after beacon slot
+    uint32_t capEnd                      = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
+    // LOG_INFO(capStart << " " << symbolsSinceSuperframeStart << " " << duration << " " << capEnd);
+    return (symbolsSinceSuperframeStart >= capStart)              // after beacon slot
            && (symbolsSinceSuperframeStart + duration <= capEnd); // before pre-event of first GTS
 
     // Unrealistic, but helpful example for
@@ -250,6 +249,4 @@ void DSMELayer::stopTrackingBeacons() {
 bool DSMELayer::isTrackingBeacons() const {
     return this->trackingBeacons;
 }
-
-
 }

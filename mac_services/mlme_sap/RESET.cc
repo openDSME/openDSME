@@ -47,8 +47,7 @@
 namespace dsme {
 namespace mlme_sap {
 
-RESET::RESET(DSMELayer& dsme) :
-    dsme(dsme) {
+RESET::RESET(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void RESET::request(request_parameters& params) {

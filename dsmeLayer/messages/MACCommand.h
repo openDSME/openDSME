@@ -43,8 +43,8 @@
 #ifndef MACCOMMAND_H
 #define MACCOMMAND_H
 
-#include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {
 
@@ -74,6 +74,5 @@ public:
         serializer << cmdId;
     }
 };
-
 }
 #endif

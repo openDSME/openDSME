@@ -49,25 +49,18 @@ namespace dsme {
 
 /* CONSTRUCTORS & DESTRUCTOR *************************************************/
 
-BitVectorBase::BitVectorBase(uint8_t* byte_array) :
-    bitSize(0),
-    byte_array(byte_array),
-    endSetIterator(this, 0, true),
-    endUnsetIterator(this, 0, false) {
+BitVectorBase::BitVectorBase(uint8_t* byte_array) : bitSize(0), byte_array(byte_array), endSetIterator(this, 0, true), endUnsetIterator(this, 0, false) {
 }
 
 void BitVectorBase::initialize(bit_vector_size_t bitSize, bool initial_fill) {
-    this->bitSize = bitSize;
-    this->endSetIterator = BitVectorIterator(this, bitSize, true);
+    this->bitSize          = bitSize;
+    this->endSetIterator   = BitVectorIterator(this, bitSize, true);
     this->endUnsetIterator = BitVectorIterator(this, bitSize, false);
     this->fill(initial_fill);
 }
 
-BitVectorBase::BitVectorBase(uint8_t* byte_array, const BitVectorBase& other) :
-    bitSize(other.bitSize),
-    byte_array(byte_array),
-    endSetIterator(this, other.bitSize, true),
-    endUnsetIterator(this, other.bitSize, false) {
+BitVectorBase::BitVectorBase(uint8_t* byte_array, const BitVectorBase& other)
+    : bitSize(other.bitSize), byte_array(byte_array), endSetIterator(this, other.bitSize, true), endUnsetIterator(this, other.bitSize, false) {
     this->copyFrom(other);
 }
 
@@ -135,7 +128,7 @@ void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t their
     }
 
     if((theirOffset % 8) == 0) {
-        bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
+        bit_vector_size_t fullBytes  = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (theirOffset / 8);
 
         for(bit_vector_size_t i = 0; i < fullBytes; i++) {
@@ -160,7 +153,7 @@ void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size
     }
 
     if((myOffset % 8) == 0) {
-        bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
+        bit_vector_size_t fullBytes  = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (myOffset / 8);
 
         for(bit_vector_size_t i = 0; i < fullBytes; i++) {
@@ -185,7 +178,7 @@ void BitVectorBase::setOperationComplement(const BitVectorBase& other, bit_vecto
     }
 
     if((myOffset % 8) == 0) {
-        bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
+        bit_vector_size_t fullBytes  = BITVECTOR_BYTE_LENGTH(other.bitSize + 1) - 1;
         bit_vector_size_t offsetByte = (myOffset / 8);
 
         for(bit_vector_size_t i = 0; i < fullBytes; i++) {
@@ -222,7 +215,7 @@ bool BitVectorBase::isZero() const {
 }
 
 bit_vector_size_t BitVectorBase::count(bool value) const {
-    bit_vector_size_t count = 0;
+    bit_vector_size_t count     = 0;
     bit_vector_size_t fullBytes = BITVECTOR_BYTE_LENGTH(this->bitSize + 1) - 1;
 
     for(bit_vector_size_t i = 0; i < fullBytes; i++) {
@@ -280,5 +273,4 @@ Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv) {
 
     return serializer;
 }
-
 }

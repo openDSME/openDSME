@@ -62,7 +62,6 @@ struct COMM_STATUS_indication_parameters {
     uint8_t keyIdMode;
     uint8_t* keySource;
     uint8_t keyIndex;
-
 };
 /*
  *  (IEEE 802.15.4-2011 6.2.4.2)

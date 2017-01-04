@@ -40,19 +40,16 @@
  * SUCH DAMAGE.
  */
 
+#include "ScanHelper.h"
 #include "../../dsme_platform.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
 #include "../mac_services/mlme_sap/MLME_SAP.h"
 #include "DSMEAdaptionLayer.h"
-#include "ScanHelper.h"
 
 namespace dsme {
 
-ScanHelper::ScanHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-    dsmeAdaptionLayer(dsmeAdaptionLayer),
-    recordedPanDescriptors(0),
-    passiveScanCounter(0),
-    syncActive(false) {
+ScanHelper::ScanHelper(DSMEAdaptionLayer& dsmeAdaptionLayer)
+    : dsmeAdaptionLayer(dsmeAdaptionLayer), recordedPanDescriptors(0), passiveScanCounter(0), syncActive(false) {
 }
 
 void ScanHelper::initialize(channelList_t& scanChannels) {
@@ -81,7 +78,7 @@ void ScanHelper::startScan() {
     mlme_sap::SCAN::request_parameters params;
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
-    if(((uint16_t)this->passiveScanCounter) > random_value) {
+    if(((uint16_t) this->passiveScanCounter) > random_value) {
         LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
@@ -90,17 +87,17 @@ void ScanHelper::startScan() {
     }
     this->passiveScanCounter++;
 
-    params.scanChannels = scanChannels;
-    params.scanDuration = 6;
-    params.channelPage = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
-    params.linkQualityScan = false;
+    params.scanChannels        = scanChannels;
+    params.scanDuration        = 6;
+    params.channelPage         = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
+    params.securityLevel       = 0;
+    params.keyIdMode           = 0;
+    params.keySource           = nullptr;
+    params.keyIndex            = 0;
+    params.linkQualityScan     = false;
     params.frameControlOptions = 0;
-    params.headerIElist = 0;
-    params.payloadIElist = 0;
+    params.headerIElist        = 0;
+    params.payloadIElist       = 0;
 
     this->dsmeAdaptionLayer.getMLME_SAP().getSCAN().request(params);
     return;
@@ -109,7 +106,7 @@ void ScanHelper::startScan() {
 void ScanHelper::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params) {
     if(params.lossReason == LossReason::BEACON_LOST) {
         LOG_ERROR("Beacon tracking lost.");
-        //DSME_SIM_ASSERT(false); TODO
+        // DSME_SIM_ASSERT(false); TODO
     } else {
         LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
         DSME_ASSERT(false);
@@ -141,17 +138,11 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
         this->scanAndSyncCompleteDelegate(&this->panDescriptorToSyncTo);
     }
 
-    //TODO CROSS-LAYER-CALLS, no interface for this information
+    // TODO CROSS-LAYER-CALLS, no interface for this information
     LOG_INFO("Checking whether to become a coordinator: "
-             << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
-             << ", isCoordinator:" << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
-             << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength())
-             << ".");
-    if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord
-            && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord
-            && heardCoordinators.getLength() < 2
-      ) {
-
+             << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord << ", isCoordinator:"
+             << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength()) << ".");
+    if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord && heardCoordinators.getLength() < 2) {
         uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 3;
         if(random_value < 1) {
             mlme_sap::START::request_parameters request_params;
@@ -192,9 +183,9 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
 
     mlme_sap::SYNC::request_parameters syncParams;
     syncParams.channelNumber = this->panDescriptorToSyncTo.channelNumber;
-    syncParams.channelPage = this->panDescriptorToSyncTo.channelPage;
-    syncParams.trackBeacon = true;
-    this->syncActive = true;
+    syncParams.channelPage   = this->panDescriptorToSyncTo.channelPage;
+    syncParams.trackBeacon   = true;
+    this->syncActive         = true;
     this->dsmeAdaptionLayer.getMLME_SAP().getSYNC().request(syncParams);
 
     return;

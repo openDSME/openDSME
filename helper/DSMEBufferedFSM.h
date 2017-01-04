@@ -52,20 +52,19 @@ namespace dsme {
 /**
  * Template for implementing a finite state machine (FSM).
  */
-template<typename C, typename E, ringbuffer_size_t S>
+template <typename C, typename E, ringbuffer_size_t S>
 class DSMEBufferedFSM {
 public:
-    typedef fsmReturnStatus(C::*state_t)(E& event);
+    typedef fsmReturnStatus (C::*state_t)(E& event);
 
     /**
      * Created FSM is put into initial state
      */
-    DSMEBufferedFSM(const state_t& initial) :
-        state(initial), dispatchBusy(false) {
+    DSMEBufferedFSM(const state_t& initial) : state(initial), dispatchBusy(false) {
     }
 
-    template <typename ...Args>
-    bool dispatch(uint16_t signal, Args& ... args) {
+    template <typename... Args>
+    bool dispatch(uint16_t signal, Args&... args) {
         bool canAdd;
         bool isBusy;
         bool returnValue;
@@ -85,7 +84,7 @@ public:
             returnValue = canAdd;
         } else {
             DSME_ASSERT(canAdd);
-            returnValue = true;
+            returnValue        = true;
             this->dispatchBusy = true;
         }
 
@@ -114,27 +113,26 @@ private:
         while(eventBuffer.hasCurrent()) {
             E* currentEvent = this->eventBuffer.current();
 
-            state_t s = state;
-            fsmReturnStatus r = (((C*) this)->*state)(*currentEvent);
+            state_t s         = state;
+            fsmReturnStatus r = (((C*)this)->*state)(*currentEvent);
 
             while(r == FSM_TRANSITION) {
                 /* call the exit action from last state, reuse the already processed 'currentEvent' to deliver this */
                 currentEvent->signal = E::EXIT_SIGNAL;
-                r = (((C*)this)->*s)(*currentEvent);
+                r                    = (((C*)this)->*s)(*currentEvent);
                 DSME_ASSERT(r != FSM_TRANSITION);
 
                 s = state;
 
                 /* call entry action of new state, reuse the already processed 'currentEvent' to deliver this */
                 currentEvent->signal = E::ENTRY_SIGNAL;
-                r = (((C*) this)->*state)(*currentEvent);
+                r                    = (((C*)this)->*state)(*currentEvent);
             }
             this->eventBuffer.advanceCurrent();
         }
         dispatchBusy = false;
         return;
     }
-
 
     state_t state;
     bool dispatchBusy;

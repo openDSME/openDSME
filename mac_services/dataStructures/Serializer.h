@@ -45,15 +45,11 @@
 
 #include <stdint.h>
 
-enum serialization_type_t {
-    SERIALIZATION,
-    DESERIALIZATION
-};
+enum serialization_type_t { SERIALIZATION, DESERIALIZATION };
 
 class Serializer {
 public:
-    Serializer(uint8_t* data, serialization_type_t type)
-        : data(data), type(type) {
+    Serializer(uint8_t* data, serialization_type_t type) : data(data), type(type) {
     }
 
     Serializer& operator<<(uint16_t& value) {

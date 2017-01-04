@@ -56,7 +56,7 @@ namespace dsme {
 constexpr uint8_t aBaseSlotDuration = 60;
 
 /* The number of slots contained in any superframe. */
-//constexpr uint8_t aNumSuperframeSlots = 16;
+// constexpr uint8_t aNumSuperframeSlots = 16;
 
 /* The number of symbols forming a superframe when the superframe order is equal to zero. */
 constexpr uint16_t aBaseSuperframeDuration = aBaseSlotDuration * aNumSuperframeSlots;

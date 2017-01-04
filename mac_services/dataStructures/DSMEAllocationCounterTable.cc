@@ -47,16 +47,13 @@
 
 using namespace dsme;
 
-DSMEAllocationCounterTable::DSMEAllocationCounterTable() :
-    numSuperFramesPerMultiSuperframe(0),
-    numGTSlots(0),
-    numChannels(0) {
+DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
 }
 
 void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {
     this->numSuperFramesPerMultiSuperframe = numSuperFramesPerMultiSuperframe;
-    this->numGTSlots = numGTSlots;
-    this->numChannels = numChannels;
+    this->numGTSlots                       = numGTSlots;
+    this->numChannels                      = numChannels;
     bitmap.initialize(numSuperFramesPerMultiSuperframe * numGTSlots, false);
 }
 
@@ -79,10 +76,9 @@ void DSMEAllocationCounterTable::clear() {
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t superframeID, uint8_t gtSlotID) {
     ACTPosition pos;
     pos.superframeID = superframeID;
-    pos.gtSlotID = gtSlotID;
+    pos.gtSlotID     = gtSlotID;
     return act.find(pos);
 }
-
 
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
     LOG_DEBUG_PREFIX;
@@ -98,7 +94,7 @@ void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superfra
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {
     if(state == ACTState::REMOVED) {
         LOG_DEBUG("Slot to be REMOVED is not in ACT -> Do nothing.");
-        //DSME_ASSERT(false);
+        // DSME_ASSERT(false);
         return true;
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
@@ -110,8 +106,8 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
 
     ACTPosition pos;
     pos.superframeID = superframeID;
-    pos.gtSlotID = gtSlotID;
-    bool success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
+    pos.gtSlotID     = gtSlotID;
+    bool success     = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
 
     if(success) {
         if(direction == TX) {
@@ -137,7 +133,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     DSME_ASSERT(it != act.end());
 
     uint16_t superframeID = it->getSuperframeID();
-    uint8_t gtSlotID = it->getGTSlotID();
+    uint8_t gtSlotID      = it->getGTSlotID();
 
     printChange("dealloc", it->superframeID, it->slotID, it->channel, it->direction, it->address);
 
@@ -194,13 +190,11 @@ static const char* stateToString(ACTState state) {
 }
 
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress) {
-    setACTState(subBlock, state, direction, deviceAddress, [](ACTElement e) {
-        return true;
-    }, checkAddress);
+    setACTState(subBlock, state, direction, deviceAddress, [](ACTElement e) { return true; }, checkAddress);
 }
 
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition,
-        bool checkAddress) {
+                                             bool checkAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
@@ -211,24 +205,24 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
         GTS gts = GTS::GTSfromAbsoluteIndex((*it) + subBlock.getSubBlockIndex() * numGTSlots * numChannels, numGTSlots, numChannels,
                                             numSuperFramesPerMultiSuperframe);
 
-        LOG_DEBUG("search slot "
-                  << (uint16_t)gts.slotID
-                  << " " << (uint16_t)gts.superframeID
-                  << " (" << (uint16_t)gts.channel << ")");
+        LOG_DEBUG("search slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " (" << (uint16_t)gts.channel << ")");
         DSMEAllocationCounterTable::iterator actit = find(gts.superframeID, gts.slotID);
 
         if(actit != end()) {
             if(actit->getChannel() != gts.channel) {
-                LOG_DEBUG("Request too late, GTS" << "used on other channel");
-                //DSME_ASSERT(false);
+                LOG_DEBUG("Request too late, GTS"
+                          << "used on other channel");
+                // DSME_ASSERT(false);
                 continue;
             }
             if(checkAddress && actit->getAddress() != deviceAddress) {
-                LOG_DEBUG("Request too late, GTS " << "used towards other device");
+                LOG_DEBUG("Request too late, GTS "
+                          << "used towards other device");
                 continue;
             }
             if(!condition(*actit)) {
-                LOG_DEBUG("Request too late, GTS " << "does not fulfill condition");
+                LOG_DEBUG("Request too late, GTS "
+                          << "does not fulfill condition");
                 continue;
             }
         }
@@ -243,23 +237,15 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
             if(deviceAddress != 0xFFFF) {
                 bool added = add(gts.superframeID, gts.slotID, gts.channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
-                LOG_DEBUG("add slot "
-                          << (uint16_t)gts.slotID
-                          << " " << (uint16_t)gts.superframeID
-                          << " " << (uint16_t)gts.channel
-                          << " as " << stateToString(state));
+                LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << (uint16_t)gts.channel << " as "
+                                      << stateToString(state));
             } else {
                 /* setACTStateIfExists(...) was called */
             }
         } else {
-            LOG_DEBUG("set slot "
-                      << (uint16_t)actit->getGTSlotID()
-                      << " " << (uint16_t)actit->getSuperframeID()
-                      << " " << (uint16_t)actit->getChannel()
-                      << " to " << stateToString(state));
+            LOG_DEBUG("set slot " << (uint16_t)actit->getGTSlotID() << " " << (uint16_t)actit->getSuperframeID() << " " << (uint16_t)actit->getChannel()
+                                  << " to " << stateToString(state));
             actit->setState(state);
         }
     }
 }
-
-

@@ -59,7 +59,7 @@ class MAC_PIB {
 public:
     explicit MAC_PIB(PHY_PIB&);
 
-    MAC_PIB() = delete;
+    MAC_PIB()               = delete;
     MAC_PIB(const MAC_PIB&) = delete;
     MAC_PIB& operator=(const MAC_PIB&) = delete;
 

@@ -57,7 +57,7 @@ public:
 
     uint8_t superframesInCurrentState;
     CommandFrameIdentifier cmdToSend; // Only valid in state SENDING
-    DSMEMessage* msgToSend; // Only valid in state SENDING
+    DSMEMessage* msgToSend;           // Only valid in state SENDING
 
     // Only valid in states SENDING_REQUEST, SENDING_RESPONSE, WAIT_FOR_REPLY and WAIT_FOR_NOTIFY
     // For SENDING_RESPONSE and WAIT_FOR_NOTIFY, actually a COMM_STATUS is sent up, but saving the confirm params is helpful anyway

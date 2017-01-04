@@ -40,35 +40,34 @@
  * SUCH DAMAGE.
  */
 
+#include "DSMEAdaptionLayer.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
 #include "../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
 #include "../mac_services/mlme_sap/RESET.h"
-#include "DSMEAdaptionLayer.h"
 
 namespace dsme {
 
-DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme) :
-    dsme(dsme),
-    associationHelper(*this),
-    gtsAllocationHelper(*this),
-    scanHelper(*this),
+DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme)
+    : dsme(dsme),
+      associationHelper(*this),
+      gtsAllocationHelper(*this),
+      scanHelper(*this),
 
-    mcps_sap(nullptr),
-    mlme_sap(nullptr),
-    phy_pib(nullptr),
-    mac_pib(nullptr),
+      mcps_sap(nullptr),
+      mlme_sap(nullptr),
+      phy_pib(nullptr),
+      mac_pib(nullptr),
 
-    scanOrSyncInProgress(false),
-    associationInProgress(false) {
-
+      scanOrSyncInProgress(false),
+      associationInProgress(false) {
 }
 
 void DSMEAdaptionLayer::initialize(channelList_t& scanChannels) {
     this->mcps_sap = &(dsme.getMCPS_SAP());
     this->mlme_sap = &(dsme.getMLME_SAP());
-    this->phy_pib = &(dsme.getPHY_PIB());
-    this->mac_pib = &(dsme.getMAC_PIB());
+    this->phy_pib  = &(dsme.getPHY_PIB());
+    this->mac_pib  = &(dsme.getMAC_PIB());
 
     this->associationHelper.initialize();
     this->gtsAllocationHelper.initialize();
@@ -204,9 +203,9 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
         // for the user of the MCPS, but it is specified like this... TODO
         params.frameControlOption_pan_id_suppressed = true;
 
-        params.msdu = msg;
-        params.msduHandle = 0; //TODO
-        params.ackTX = true;
+        params.msdu       = msg;
+        params.msduHandle = 0; // TODO
+        params.ackTX      = true;
 
         /* TODO
         if(dsme.getDSMESettings().optimizations) {
@@ -217,17 +216,17 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
         params.gtsTX = !dst.isBroadcast();
         //}
 
-        params.indirectTX = false;
-        params.securityLevel = 0;
-        params.keyIdMode = 0;
-        params.keySource = nullptr;
-        params.keyIndex = 0;
-        params.uwbprf = PRF_OFF;
-        params.ranging = NON_RANGING;
+        params.indirectTX                   = false;
+        params.securityLevel                = 0;
+        params.keyIdMode                    = 0;
+        params.keySource                    = nullptr;
+        params.keyIndex                     = 0;
+        params.uwbprf                       = PRF_OFF;
+        params.ranging                      = NON_RANGING;
         params.uwbPreambleSymbolRepetitions = 0;
-        params.dataRate = 0; // DSSS -> 0
+        params.dataRate                     = 0; // DSSS -> 0
 
-        params.frameControlOption_ies_included = false;
+        params.frameControlOption_ies_included       = false;
         params.frameControlOption_seq_num_suppressed = false;
 
         params.sendMultipurpose = false;
@@ -275,24 +274,22 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
         if(oldestEntry->message == msg) {
             this->retryBuffer.advanceCurrent();
             DSME_ASSERT(this->retryBuffer.hasNext());
-            this->retryBuffer.next()->message = msg;
+            this->retryBuffer.next()->message              = msg;
             this->retryBuffer.next()->initialSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
             return true;
         }
 
         if(!oldestEntry->message->currentlySending) {
             uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
-            LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress()
-                      << ": Retry-Queue overflow ("
-                      << currentSymbolCounter - oldestEntry->initialSymbolCounter
-                      << " symbols old)");
+            LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress() << ": Retry-Queue overflow ("
+                                  << currentSymbolCounter - oldestEntry->initialSymbolCounter << " symbols old)");
             DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
         }
     }
     if(this->retryBuffer.hasNext()) {
-        this->retryBuffer.next()->message = msg;
+        this->retryBuffer.next()->message              = msg;
         this->retryBuffer.next()->initialSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
         this->retryBuffer.advanceNext();
         return true; /* Do NOT release current message yet */
@@ -369,15 +366,15 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
     DSME_ASSERT(!this->associationInProgress);
 
     if(panDescriptor != nullptr) {
-        LOG_INFO("PAN found on channel " << (uint16_t) panDescriptor->channelNumber << ", coordinator is "
-                 << panDescriptor->coordAddress.getShortAddress() << " on PAN " << panDescriptor->coordPANId << ".");
+        LOG_INFO("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
+                                         << " on PAN " << panDescriptor->coordPANId << ".");
 
         this->associationInProgress = true;
-        this->scanOrSyncInProgress = false;
-        this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
-                                          panDescriptor->channelNumber);
+        this->scanOrSyncInProgress  = false;
+        this->associationHelper.associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress, panDescriptor->channelNumber);
     } else {
-        LOG_INFO("Channel scan did not yield any PANs." << " Trying again!");
+        LOG_INFO("Channel scan did not yield any PANs."
+                 << " Trying again!");
         this->scanHelper.startScan();
     }
     return;

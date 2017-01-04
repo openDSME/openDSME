@@ -47,12 +47,11 @@
 
 namespace dsme {
 namespace mlme_sap {
-SYNC::SYNC(DSMELayer& dsme) :
-    dsme(dsme) {
+SYNC::SYNC(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void SYNC::request(request_parameters& params) {
-    dsme.getPHY_PIB().phyCurrentPage = params.channelPage;
+    dsme.getPHY_PIB().phyCurrentPage    = params.channelPage;
     dsme.getPHY_PIB().phyCurrentChannel = params.channelNumber;
     dsme.startTrackingBeacons();
 }

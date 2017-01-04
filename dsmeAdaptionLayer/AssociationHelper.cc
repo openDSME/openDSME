@@ -40,16 +40,15 @@
  * SUCH DAMAGE.
  */
 
+#include "AssociationHelper.h"
 #include "../../dsme_platform.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
 #include "../mac_services/pib/MAC_PIB.h"
-#include "AssociationHelper.h"
 #include "DSMEAdaptionLayer.h"
 
 namespace dsme {
 
-AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) :
-    dsmeAdaptionLayer(dsmeAdaptionLayer) {
+AssociationHelper::AssociationHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
 
 void AssociationHelper::initialize() {
@@ -73,28 +72,28 @@ void AssociationHelper::setDisassociationCompleteDelegate(disassociationComplete
 void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress coordAddress, uint8_t channel) {
     CapabilityInformation capabilityInformation;
     capabilityInformation.alternatePANCoordinator = false;
-    capabilityInformation.deviceType = 1;
-    capabilityInformation.powerSource = 0;
-    capabilityInformation.receiverOnWhenIdle = 1;
-    capabilityInformation.associationType = 1; // TODO: FastA? 1 -> yes, 0 -> no
-    capabilityInformation.reserved = 0;
-    capabilityInformation.securityCapability = 0;
-    capabilityInformation.allocateAddress = 1;
+    capabilityInformation.deviceType              = 1;
+    capabilityInformation.powerSource             = 0;
+    capabilityInformation.receiverOnWhenIdle      = 1;
+    capabilityInformation.associationType         = 1; // TODO: FastA? 1 -> yes, 0 -> no
+    capabilityInformation.reserved                = 0;
+    capabilityInformation.securityCapability      = 0;
+    capabilityInformation.allocateAddress         = 1;
 
     mlme_sap::ASSOCIATE::request_parameters params;
-    params.channelNumber = channel;
-    params.channelPage = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
-    params.coordAddrMode = SHORT_ADDRESS;
-    params.coordPANId = coordPANId;
-    params.coordAddress = coordAddress;
+    params.channelNumber         = channel;
+    params.channelPage           = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
+    params.coordAddrMode         = SHORT_ADDRESS;
+    params.coordPANId            = coordPANId;
+    params.coordAddress          = coordAddress;
     params.capabilityInformation = capabilityInformation;
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
+    params.securityLevel         = 0;
+    params.keyIdMode             = 0;
+    params.keySource             = nullptr;
+    params.keyIndex              = 0;
     params.lowLatencyNetworkInfo = nullptr;
-    params.channelOffset = 0;
-    params.hoppingSequenceID = 0;
+    params.channelOffset         = 0;
+    params.hoppingSequenceID     = 0;
 
     // TODO start timer for macMaxFrameTotalWaitTime, report NO_DATA on timeout
     this->dsmeAdaptionLayer.getMLME_SAP().getASSOCIATE().request(params);
@@ -102,20 +101,19 @@ void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE80
 }
 void AssociationHelper::disassociate() {
     mlme_sap::DISASSOCIATE::request_parameters params;
-    params.deviceAddrMode = SHORT_ADDRESS;
-    params.deviceAddress = this->dsmeAdaptionLayer.getMAC_PIB().macExtendedAddress;
-    params.devicePANId = this->dsmeAdaptionLayer.getMAC_PIB().macPANId;
+    params.deviceAddrMode     = SHORT_ADDRESS;
+    params.deviceAddress      = this->dsmeAdaptionLayer.getMAC_PIB().macExtendedAddress;
+    params.devicePANId        = this->dsmeAdaptionLayer.getMAC_PIB().macPANId;
     params.disassociateReason = DEVICE_WISH_TO_LEAVE;
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
-    params.txIndirect = false;
+    params.securityLevel      = 0;
+    params.keyIdMode          = 0;
+    params.keySource          = nullptr;
+    params.keyIndex           = 0;
+    params.txIndirect         = false;
 
     this->dsmeAdaptionLayer.getMLME_SAP().getDISASSOCIATE().request(params);
     return;
 }
-
 
 bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
     return this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord;
@@ -126,17 +124,17 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
 
     mlme_sap::ASSOCIATE::response_parameters response_params;
 
-    response_params.deviceAddress = params.deviceAddress;
-    response_params.assocShortAddress = params.deviceAddress.a4();
-    response_params.status = AssociationStatus::SUCCESS;
-    response_params.securityLevel = 0;
-    response_params.keyIdMode = 0;
-    response_params.keySource = nullptr;
-    response_params.keyIndex = 0;
+    response_params.deviceAddress         = params.deviceAddress;
+    response_params.assocShortAddress     = params.deviceAddress.a4();
+    response_params.status                = AssociationStatus::SUCCESS;
+    response_params.securityLevel         = 0;
+    response_params.keyIdMode             = 0;
+    response_params.keySource             = nullptr;
+    response_params.keyIndex              = 0;
     response_params.lowLatencyNetworkInfo = nullptr;
-    response_params.channelOffset = 0;
+    response_params.channelOffset         = 0;
     response_params.hoppingSequenceLength = 0;
-    response_params.hoppingSequence = nullptr;
+    response_params.hoppingSequence       = nullptr;
 
     // TODO update list of associated devices
 

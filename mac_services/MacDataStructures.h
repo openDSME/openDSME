@@ -47,27 +47,23 @@
 
 namespace dsme {
 
-template<typename TK, typename TV>
+template <typename TK, typename TV>
 class MacTuple {
 public:
-    MacTuple(const TK& key, const TV& value) :
-        key(key),
-        value(value) {
+    MacTuple(const TK& key, const TV& value) : key(key), value(value) {
     }
 
     TK key;
     TV value;
 };
 
-template<typename T, uint8_t S>
+template <typename T, uint8_t S>
 class MacStaticList {
 public:
-    MacStaticList() :
-        length(0) {
+    MacStaticList() : length(0), array{} {
     }
 
-    explicit MacStaticList(const MacStaticList& other) :
-        length(other.length) {
+    explicit MacStaticList(const MacStaticList& other) : length(other.length) {
         for(uint8_t i = 0; i < length; i++) {
             this->array[i] = other.array[i];
         }
@@ -81,8 +77,7 @@ public:
         return *this;
     }
 
-    explicit MacStaticList(uint8_t length) :
-        length(length) {
+    explicit MacStaticList(uint8_t length) : length(length) {
     }
 
     ~MacStaticList() {
@@ -135,7 +130,6 @@ private:
     uint8_t length;
     T array[S];
 };
-
 }
 /* dsme */
 

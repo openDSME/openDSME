@@ -52,7 +52,7 @@ class IEEE802154MacAddress {
 public:
     IEEE802154MacAddress(const IEEE802154MacAddress& other);
 
-    explicit IEEE802154MacAddress();
+    IEEE802154MacAddress();
 
     explicit IEEE802154MacAddress(uint16_t shortPart);
 
@@ -177,7 +177,6 @@ inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& a
 
     return buffer;
 }
-
 }
 
 #endif

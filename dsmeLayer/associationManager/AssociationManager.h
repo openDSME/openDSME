@@ -83,12 +83,11 @@ private:
     static constexpr uint16_t BROADCAST_PAN_ID = 0xffff;
 
     bool actionPending = false;
-    bool messageSent = false;
+    bool messageSent   = false;
     CommandFrameIdentifier currentAction;
 
     uint8_t superframesSinceAssociationSent;
 };
-
 }
 
 #endif /* ASSOCIATIONMANAGER_H_ */

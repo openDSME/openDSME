@@ -63,9 +63,6 @@ public:
 
     virtual void serialize(Serializer& serializer) = 0;
 };
-
-
-
 }
 
 #endif

@@ -50,23 +50,23 @@
 namespace dsme {
 
 enum CommandFrameIdentifier {
-    ASSOCIATION_REQUEST = 0x01,
-    ASSOCIATION_RESPONSE = 0x02,
-    DISASSOCIATION_NOTIFICATION = 0x03,
-    DATA_REQUEST = 0x04,
-    BEACON_REQUEST = 0x07,
-    DSME_ASSOCIATION_REQUEST = 0x13,
-    DSME_ASSOCIATION_RESPONSE = 0x14,
-    DSME_GTS_REQUEST = 0x15,
-    DSME_GTS_REPLY = 0x16,
-    DSME_GTS_NOTIFY = 0x17,
+    ASSOCIATION_REQUEST                 = 0x01,
+    ASSOCIATION_RESPONSE                = 0x02,
+    DISASSOCIATION_NOTIFICATION         = 0x03,
+    DATA_REQUEST                        = 0x04,
+    BEACON_REQUEST                      = 0x07,
+    DSME_ASSOCIATION_REQUEST            = 0x13,
+    DSME_ASSOCIATION_RESPONSE           = 0x14,
+    DSME_GTS_REQUEST                    = 0x15,
+    DSME_GTS_REPLY                      = 0x16,
+    DSME_GTS_NOTIFY                     = 0x17,
     DSME_BEACON_ALLOCATION_NOTIFICATION = 0x1a,
-    DSME_BEACON_COLLISION_NOTIFICATION = 0x1b
+    DSME_BEACON_COLLISION_NOTIFICATION  = 0x1b
 };
 
 struct CapabilityInformation {
     bool alternatePANCoordinator : 1;
-    bool deviceType : 1; //FFD = 1 or RFD = 0
+    bool deviceType : 1; // FFD = 1 or RFD = 0
     bool powerSource : 1;
     bool receiverOnWhenIdle : 1;
     bool associationType : 1;
@@ -84,26 +84,20 @@ struct HoppingDescriptor {
     uint8_t* channelOffsetBitmap;
 };
 
-enum ManagementType {
-    DEALLOCATION = 0x00,
-    ALLOCATION = 0x01,
-    DUPLICATED_ALLOCATION_NOTIFICATION = 0x02,
-    REDUCE = 0x03,
-    RESTART = 0x04,
-    EXPIRATION = 0x05
-};
+enum ManagementType { DEALLOCATION = 0x00, ALLOCATION = 0x01, DUPLICATED_ALLOCATION_NOTIFICATION = 0x02, REDUCE = 0x03, RESTART = 0x04, EXPIRATION = 0x05 };
 
-enum Direction {
-    TX = 0x00, RX = 0x01
-};
+enum Direction { TX = 0x00, RX = 0x01 };
 
-enum Priority {
-    LOW = 0x00, HIGH = 0x01
-};
+enum Priority { LOW = 0x00, HIGH = 0x01 };
 
 struct GTSStatus {
     enum GTS_Status {
-        SUCCESS, DENIED, INVALID_PARAMETER, NO_ACK, NO_DATA, CHANNEL_ACCESS_FAILURE,
+        SUCCESS,
+        DENIED,
+        INVALID_PARAMETER,
+        NO_ACK,
+        NO_DATA,
+        CHANNEL_ACCESS_FAILURE,
         /* (table 44t IEEE 802.15.4e-2012 6.2.21.1.4) */
         NO_SHORT_ADDRESS,
 
@@ -128,14 +122,12 @@ struct InfoStatus {
     };
 };
 
-enum LinkStatusRPT_Status {
-    CHANNEL_ACCESS_FAILURE, NO_ACK, SUCCESS
-};
+enum LinkStatusRPT_Status { CHANNEL_ACCESS_FAILURE, NO_ACK, SUCCESS };
 
 struct AssociationStatus {
     enum Association_Status {
-        SUCCESS = 0x00,
-        PAN_AT_CAPACITY = 0x01,
+        SUCCESS           = 0x00,
+        PAN_AT_CAPACITY   = 0x01,
         PAN_ACCESS_DENIED = 0x02,
         CHANNEL_ACCESS_FAILURE,
         NO_ACK,
@@ -188,15 +180,11 @@ struct CommStatus {
 };
 
 struct GetStatus {
-    enum Get_Status {
-        SUCCESS, UNSUPPORTED_ATTRIBUTE
-    };
+    enum Get_Status { SUCCESS, UNSUPPORTED_ATTRIBUTE };
 };
 
 struct ResetStatus {
-    enum Reset_Status {
-        SUCCESS
-    };
+    enum Reset_Status { SUCCESS };
 };
 
 struct ScanStatus {
@@ -215,9 +203,7 @@ struct ScanStatus {
 };
 
 struct SetStatus {
-    enum Set_Status {
-        SUCCESS, READ_ONLY, UNSUPPORTED_ATTRIBUTE, INVALID_INDEX, INVALID_PARAMETER
-    };
+    enum Set_Status { SUCCESS, READ_ONLY, UNSUPPORTED_ATTRIBUTE, INVALID_INDEX, INVALID_PARAMETER };
 };
 
 struct PollStatus {
@@ -263,50 +249,37 @@ struct SecurityStatus {
 };
 
 enum ScanType {
-    ED = 0x00,
-    ACTIVE = 0x01,
-    PASSIVE = 0x02,
-    ORPHAN = 0x03,
+    ED                           = 0x00,
+    ACTIVE                       = 0x01,
+    PASSIVE                      = 0x02,
+    ORPHAN                       = 0x03,
     ASYMMETRICMULTICHANNELACTIVE = 0x04,
-    CHANNELPROBE = 0x05,
-    MULTICHANNELHELLO = 0x06,
-    ENHANCEDACTIVESCAN = 0x07
+    CHANNELPROBE                 = 0x05,
+    MULTICHANNELHELLO            = 0x06,
+    ENHANCEDACTIVESCAN           = 0x07
 };
 
 struct LossReason {
-    enum Loss_Reason {
-        PAN_ID_CONFLICT, REALIGNMENT, BEACON_LOST, SUPERFRAME_OVERLAP
-    };
+    enum Loss_Reason { PAN_ID_CONFLICT, REALIGNMENT, BEACON_LOST, SUPERFRAME_OVERLAP };
 };
 
-enum AddrMode {
-    NO_ADDRESS = 0x00, SIMPLE_ADDRESS = 0x01, SHORT_ADDRESS = 0x02, EXTENDED_ADDRESS = 0x03
-};
+enum AddrMode { NO_ADDRESS = 0x00, SIMPLE_ADDRESS = 0x01, SHORT_ADDRESS = 0x02, EXTENDED_ADDRESS = 0x03 };
 
-enum Info {
-    TIMESTAMP = 0x00, DSMESABSPECIFICATION = 0x01, DSMEPANDESCRIPTOR = 0x02
-};
+enum Info { TIMESTAMP = 0x00, DSMESABSPECIFICATION = 0x01, DSMEPANDESCRIPTOR = 0x02 };
 
-enum FrameControlOptionFlags {
-    PAN_ID_SUPPRESSED = 0x00, IES_INCLUDED = 0x01, SEQ_NO_SUPPRESSED = 0x02
-};
+enum FrameControlOptionFlags { PAN_ID_SUPPRESSED = 0x00, IES_INCLUDED = 0x01, SEQ_NO_SUPPRESSED = 0x02 };
 
 enum DisassociateReason {
-    COORD_WISH_DEVICE_TO_LEAVE = 0x01, DEVICE_WISH_TO_LEAVE = 0x02
+    COORD_WISH_DEVICE_TO_LEAVE = 0x01,
+    DEVICE_WISH_TO_LEAVE       = 0x02
 
 };
 
-enum UWBPRFMode {
-    PRF_OFF = 0, NOMINAL_4_M = 4, NOMINAL_16_M = 16, NOMINAL_64_M = 64
-};
+enum UWBPRFMode { PRF_OFF = 0, NOMINAL_4_M = 4, NOMINAL_16_M = 16, NOMINAL_64_M = 64 };
 
-enum RangingMode {
-    NON_RANGING, ALL_RANGING, PHY_HEADER_ONLY
-};
+enum RangingMode { NON_RANGING, ALL_RANGING, PHY_HEADER_ONLY };
 
-enum ReceivedRangingMode {
-    NO_RANGING_REQUESTED, RANGING_ACTIVE, RANGING_REQUESTED_BUT_NOT_SUPPORTED
-};
+enum ReceivedRangingMode { NO_RANGING_REQUESTED, RANGING_ACTIVE, RANGING_REQUESTED_BUT_NOT_SUPPORTED };
 
 struct DataStatus {
     enum Data_Status {
@@ -327,9 +300,7 @@ struct DataStatus {
 };
 
 struct PurgeStatus {
-    enum Purge_status {
-        SUCCESS, INVALID_HANDLE
-    };
+    enum Purge_status { SUCCESS, INVALID_HANDLE };
 };
 
 } /* dsme */

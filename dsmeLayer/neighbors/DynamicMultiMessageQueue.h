@@ -64,7 +64,7 @@ typedef uint8_t queue_size_t;
  * @template-param S size of allocated chunks
  * @template-param M max number of chunks to allocate
  */
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 class DynamicMultiMessageQueue {
 private:
     /**
@@ -73,8 +73,7 @@ private:
      * @template-param S size of allocated chunks
      */
     struct Chunk {
-        Chunk() :
-            next(nullptr) {
+        Chunk() : next(nullptr) {
             /* link all free slots inside the new chunks */
             for(uint8_t i = 0; i < S - 1; i++) {
                 data[i].next = &(data[i + 1]);
@@ -144,17 +143,16 @@ private:
 
 /* FUNCTION DEFINITIONS ******************************************************/
 
-template<typename T, uint8_t S, uint8_t M>
-DynamicMultiMessageQueue<T, S, M>::DynamicMultiMessageQueue() :
-    chunkList(new Chunk()), chunkCount(1), full(false) {
+template <typename T, uint8_t S, uint8_t M>
+DynamicMultiMessageQueue<T, S, M>::DynamicMultiMessageQueue() : chunkList(new Chunk()), chunkCount(1), full(false) {
     this->lastChunk = this->chunkList;
     this->freeFront = &(this->lastChunk->data[0]);
-    this->freeBack = &(this->lastChunk->data[S - 1]);
+    this->freeBack  = &(this->lastChunk->data[S - 1]);
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 DynamicMultiMessageQueue<T, S, M>::~DynamicMultiMessageQueue() {
-    Chunk* next, *toDelete = this->chunkList;
+    Chunk *next, *toDelete = this->chunkList;
     while(toDelete != nullptr) {
         next = toDelete->next;
         delete toDelete;
@@ -162,9 +160,8 @@ DynamicMultiMessageQueue<T, S, M>::~DynamicMultiMessageQueue() {
     }
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor, T* msg) {
-
     if(this->full) {
         /* '-> all slots are used and no new chunk could be allocated */
         return;
@@ -181,7 +178,7 @@ void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor
     }
 
     entry->value = msg;
-    entry->next = nullptr;
+    entry->next  = nullptr;
 
     if(neighbor.messageBack != nullptr) {
         neighbor.messageBack->next = entry;
@@ -195,13 +192,13 @@ void DynamicMultiMessageQueue<T, S, M>::push_back(NeighborListEntry<T>& neighbor
     neighbor.queueSize++;
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 T* DynamicMultiMessageQueue<T, S, M>::pop_front(NeighborListEntry<T>& neighbor) {
     if(neighbor.queueSize > 0) {
         /* '-> queue contains messages for this neighbor */
 
         MessageQueueEntry<T>* entry = neighbor.messageFront;
-        T* msg = entry->value;
+        T* msg                      = entry->value;
 
         neighbor.messageFront = entry->next;
 
@@ -220,26 +217,26 @@ T* DynamicMultiMessageQueue<T, S, M>::pop_front(NeighborListEntry<T>& neighbor) 
     }
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 T* DynamicMultiMessageQueue<T, S, M>::front(const NeighborListEntry<T>& neighbor) {
     return (neighbor.messageFront != nullptr) ? neighbor.messageFront->value : nullptr;
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bool keepFront) {
     MessageQueueEntry<T>* entry = neighbor.messageFront;
 
     if(keepFront && entry != nullptr) {
         /* keep existing first entry */
         MessageQueueEntry<T>* temp = entry;
-        entry = entry->next;
-        temp->next = nullptr;
+        entry                      = entry->next;
+        temp->next                 = nullptr;
 
         neighbor.queueSize = 1;
     } else {
         /* discard first entry or list already empty */
         neighbor.messageFront = nullptr;
-        neighbor.queueSize = 0;
+        neighbor.queueSize    = 0;
     }
 
     if(entry != nullptr) {
@@ -257,17 +254,17 @@ void DynamicMultiMessageQueue<T, S, M>::flush(NeighborListEntry<T>& neighbor, bo
     entry = entry->next;
 
     while(entry != nullptr) {
-        entry->value = nullptr;
+        entry->value         = nullptr;
         this->freeBack->next = entry;
-        this->freeBack = entry;
-        entry = entry->next;
+        this->freeBack       = entry;
+        entry                = entry->next;
     }
 
     neighbor.messageBack = neighbor.messageFront;
     return;
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 inline void DynamicMultiMessageQueue<T, S, M>::addToFree(MessageQueueEntry<T>* entry) {
     entry->value = nullptr;
 
@@ -282,26 +279,25 @@ inline void DynamicMultiMessageQueue<T, S, M>::addToFree(MessageQueueEntry<T>* e
     return;
 }
 
-template<typename T, uint8_t S, uint8_t M>
+template <typename T, uint8_t S, uint8_t M>
 void DynamicMultiMessageQueue<T, S, M>::tryAllocateChunk() {
     if(this->chunkCount < M) {
         /* '-> allocate new chunk */
         this->lastChunk->next = new Chunk();
-        this->lastChunk = this->lastChunk->next;
+        this->lastChunk       = this->lastChunk->next;
 
         this->freeFront = &(this->lastChunk->data[0]);
-        this->freeBack = &(this->lastChunk->data[S - 1]);
+        this->freeBack  = &(this->lastChunk->data[S - 1]);
 
         this->chunkCount++;
         this->full = false;
     } else {
         /* '-> no space for new chunks */
         this->freeFront = nullptr;
-        this->freeBack = nullptr;
-        this->full = true;
+        this->freeBack  = nullptr;
+        this->full      = true;
     }
 }
-
 }
 
 #endif /* DYNAMICMULTIMESSAGEQUEUE_H_ */
