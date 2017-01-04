@@ -194,6 +194,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
                     dsme.getBeaconManager().handleBeaconRequest(msg);
                     break;
                 default:
+                    LOG_ERROR((uint16_t)cmd.getCmdId());
                     DSME_ASSERT(false);
             }
             dsme.getPlatform().releaseMessage(msg);
@@ -210,6 +211,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
         }
 
         default: {
+            LOG_ERROR((uint16_t)macHdr.getFrameType());
             DSME_ASSERT(false); // TODO handle other frame types
         }
     }
