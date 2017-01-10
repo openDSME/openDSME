@@ -300,7 +300,16 @@ void MessageDispatcher::handleGTS() {
             // transmit from gtsQueue
             DSME_ASSERT(lastSendGTSNeighbor == neighborQueue.end());
 
+            IEEE802154MacAddress adr = IEEE802154MacAddress(currentACTElement->getAddress());
             lastSendGTSNeighbor = neighborQueue.findByAddress(IEEE802154MacAddress(currentACTElement->getAddress()));
+            if(lastSendGTSNeighbor == neighborQueue.end()) {
+								LOG_INFO("MessageDispatcher-handleGTS: neighborQueue.size: " << ((uint8_t) neighborQueue.getNumNeighbors()));
+								LOG_INFO("MessageDispatcher-handleGTS: neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+								for (auto it : neighborQueue) {
+									LOG_INFO("MessageDispatcher-handleGTS: neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4() << DECOUT);
+								}
+								DSME_ASSERT(false);
+            }
             if(neighborQueue.isQueueEmpty(lastSendGTSNeighbor)) {
                 lastSendGTSNeighbor = neighborQueue.end();
                 numUnusedTxGts++;
