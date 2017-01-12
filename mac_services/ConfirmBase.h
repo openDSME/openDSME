@@ -44,6 +44,7 @@
 #define CONFIRMBASE_H_
 
 #include "../helper/DSMEDelegate.h"
+#include "../../dsme_platform.h"
 
 namespace dsme {
 
@@ -74,6 +75,7 @@ public:
             /* if callback is set, parameter will not be saved */
             this->callback_confirm(params);
         } else {
+            DSME_ASSERT(this->confirm_received == false);
             this->last_confirm     = params;
             this->confirm_received = true;
         }

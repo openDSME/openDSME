@@ -76,6 +76,9 @@ void CAPLayer::dispatchCCAResult(bool success) {
 }
 
 void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
+    cometos::getCout() << "CAPLayer Resp " << (int)response << cometos::endl;
+    DSME_ASSERT(queue.front() == msg); // will be deleted in actionPopMessage
+
     uint8_t signal;
     switch(response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
@@ -201,7 +204,8 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
-            DSME_ASSERT(false);
+            return choiceRebackoff();
+//            DSME_ASSERT(false);
         }
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {

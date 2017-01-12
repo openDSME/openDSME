@@ -52,6 +52,8 @@ namespace dsme {
 
 class IDSMEMessage {
 public:
+    virtual ~IDSMEMessage() {}
+
     virtual void prependFrom(DSMEMessageElement* msg) = 0;
 
     virtual void decapsulateTo(DSMEMessageElement* msg) = 0;
