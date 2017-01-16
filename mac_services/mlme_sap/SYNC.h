@@ -43,7 +43,7 @@
 #ifndef SYNC_H_
 #define SYNC_H_
 
-#include <cstdint>
+#include <stdint.h>
 
 namespace dsme {
 class DSMELayer;
