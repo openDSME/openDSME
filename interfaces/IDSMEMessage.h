@@ -52,7 +52,7 @@ namespace dsme {
 
 class IDSMEMessage {
 public:
-    virtual ~IDSMEMessage() {};
+    virtual ~IDSMEMessage() = default;
 
     virtual void prependFrom(DSMEMessageElement* msg) = 0;
 
