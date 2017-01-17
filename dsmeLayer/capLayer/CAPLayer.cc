@@ -97,13 +97,22 @@ void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
 bool CAPLayer::pushMessage(DSMEMessage* msg) {
     LOG_DEBUG("push " << (uint64_t)msg);
 
+    bool pushed = false;
+
+    dsme_atomicBegin();
     if(queue.full()) {
-        return false;
+        pushed = false;
     } else {
         queue.push(msg);
-        dispatch(CSMAEvent::MSG_PUSHED);
-        return true;
+        pushed = true;
     }
+    dsme_atomicEnd();
+
+    if(pushed) {
+        dispatch(CSMAEvent::MSG_PUSHED);
+    }
+
+    return pushed;
 }
 
 /*****************************
