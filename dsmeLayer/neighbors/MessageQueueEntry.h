@@ -50,7 +50,7 @@ namespace dsme {
 template <typename T>
 struct MessageQueueEntry {
     MessageQueueEntry();
-    virtual ~MessageQueueEntry();
+    virtual ~MessageQueueEntry() = default;
 
     T* value;
     MessageQueueEntry* next;
@@ -60,10 +60,6 @@ struct MessageQueueEntry {
 
 template <typename T>
 MessageQueueEntry<T>::MessageQueueEntry() : value(nullptr), next(nullptr) {
-}
-
-template <typename T>
-MessageQueueEntry<T>::~MessageQueueEntry() {
 }
 }
 

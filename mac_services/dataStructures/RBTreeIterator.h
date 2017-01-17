@@ -67,7 +67,7 @@ public:
 
     RBTreeIterator(RBTreeIterator&&);
 
-    ~RBTreeIterator();
+    ~RBTreeIterator() = default;
 
     RBTreeIterator<T, K>& operator=(const RBTreeIterator<T, K>&);
     RBTreeIterator<T, K>& operator=(RBTreeIterator<T, K>&&);
@@ -106,10 +106,6 @@ RBTreeIterator<T, K>::RBTreeIterator(RBTreeIterator&& other) : instance(other.in
 }
 
 template <typename T, typename K>
-RBTreeIterator<T, K>::~RBTreeIterator() {
-}
-
-template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(const RBTreeIterator<T, K>& other) {
     this->instance = other.instance;
     this->currentNode = other.currentNode;
@@ -133,8 +129,9 @@ RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator=(RBTreeIterator<T, K>&& oth
 template <typename T, typename K>
 RBTreeIterator<T, K>& RBTreeIterator<T, K>::operator++() {
     RBNode<T, K>* parent;
-    /*end iterator does not increment */
+
     if(this->currentNode == nullptr) {
+        /* '-> end iterator does not increment */
         return *this;
     }
     parent = this->currentNode->parent;
@@ -246,6 +243,10 @@ RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<
     if(rootNode == nullptr) {
         return RBTreeIterator(instance, rootNode);
     }
+
+    /*
+     * iterate to the node in the bottom-left
+     */
     while(true) {
         if(rootNode->leftChild != nullptr) {
             rootNode = rootNode->leftChild;

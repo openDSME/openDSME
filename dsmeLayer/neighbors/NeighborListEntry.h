@@ -60,7 +60,7 @@ template <typename T>
 struct NeighborListEntry : public Neighbor {
 public:
     explicit NeighborListEntry(Neighbor& neighbor);
-    virtual ~NeighborListEntry();
+    virtual ~NeighborListEntry() = default;
 
     MessageQueueEntry<T>* messageFront;
     MessageQueueEntry<T>* messageBack;
@@ -72,10 +72,6 @@ public:
 
 template <typename T>
 NeighborListEntry<T>::NeighborListEntry(Neighbor& neighbor) : Neighbor(neighbor), messageFront(nullptr), messageBack(nullptr), queueSize(0) {
-}
-
-template <typename T>
-NeighborListEntry<T>::~NeighborListEntry() {
 }
 }
 

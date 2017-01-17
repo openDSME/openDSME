@@ -62,9 +62,6 @@ GTSControllerData::GTSControllerData()
     : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
 }
 
-GTSController::GTSController() {
-}
-
 void GTSController::registerIncomingMessage(uint16_t address) {
     LOG_DEBUG("Controller-Incoming");
 

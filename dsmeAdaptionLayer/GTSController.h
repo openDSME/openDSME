@@ -67,7 +67,7 @@ class GTSController {
 public:
     typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
 
-    GTSController();
+    GTSController() = default;
 
     void registerIncomingMessage(uint16_t address);
 

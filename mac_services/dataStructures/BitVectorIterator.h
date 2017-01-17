@@ -60,7 +60,7 @@ public:
 
     BitVectorIterator(BitVectorIterator&&);
 
-    ~BitVectorIterator();
+    ~BitVectorIterator() = default;
 
     BitVectorIterator& operator=(const BitVectorIterator&);
     BitVectorIterator& operator=(BitVectorIterator&&);

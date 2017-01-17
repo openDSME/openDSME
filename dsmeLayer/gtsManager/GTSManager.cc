@@ -51,6 +51,48 @@
 
 namespace dsme {
 
+void GTSEvent::fill(void) {
+}
+
+void GTSEvent::fill(DSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
+    switch(cmdId) {
+        case CommandFrameIdentifier::DSME_GTS_REQUEST:
+            this->requestCmd.decapsulateFrom(msg);
+            this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
+            break;
+        case CommandFrameIdentifier::DSME_GTS_REPLY:
+        case CommandFrameIdentifier::DSME_GTS_NOTIFY:
+            this->replyNotifyCmd.decapsulateFrom(msg);
+            this->deviceAddr = this->replyNotifyCmd.getDestinationAddress();
+            break;
+        default:
+            this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
+            break;
+    }
+    this->management = management;
+    this->cmdId = cmdId;
+    this->dataStatus = dataStatus;
+}
+
+void GTSEvent::fill(uint16_t& deviceAddr, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
+    this->deviceAddr = deviceAddr;
+    this->management = management;
+    this->replyNotifyCmd = replyNotifyCmd;
+}
+
+void GTSEvent::fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestCmd& requestCmd) {
+    this->deviceAddr = deviceAddr;
+    this->management = management;
+    this->requestCmd = requestCmd;
+}
+
+void GTSEvent::fill(DSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
+    this->deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
+    this->header = msg->getHeader();
+    this->management = management;
+    this->replyNotifyCmd = replyNotifyCmd;
+}
+
 GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle, &GTSManager::stateBusy), dsme(dsme), actUpdater(dsme) {
 }
 

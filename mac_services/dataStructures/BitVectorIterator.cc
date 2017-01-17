@@ -54,9 +54,6 @@ BitVectorIterator::BitVectorIterator(BitVectorIterator&& other) : instance(other
     other.instance = nullptr;
 }
 
-BitVectorIterator::~BitVectorIterator() {
-}
-
 BitVectorIterator& BitVectorIterator::operator=(const BitVectorIterator& other) {
     this->instance = other.instance;
     this->position = other.position;

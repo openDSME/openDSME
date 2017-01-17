@@ -114,8 +114,7 @@ public:
     void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state);
 
 private:
-    DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) {
-    }
+    DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) = delete;
 
     uint16_t numSuperFramesPerMultiSuperframe;
     uint8_t numGTSlots;

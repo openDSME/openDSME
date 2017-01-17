@@ -80,8 +80,7 @@ public:
     explicit MacStaticList(uint8_t length) : length(length) {
     }
 
-    ~MacStaticList() {
-    }
+    ~MacStaticList() = default;
 
     uint8_t getLength() const {
         return this->length;

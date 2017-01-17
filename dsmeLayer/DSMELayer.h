@@ -78,8 +78,6 @@ namespace mcps_sap {
 class MCPS_SAP;
 }
 
-class DSMEPlatform;
-
 /**
  * IEEE802.15.4
  * Deterministic and synchronous multi-channel extension
@@ -89,7 +87,7 @@ class DSMELayer {
 
 public:
     DSMELayer();
-    ~DSMELayer();
+    ~DSMELayer() = default;
 
     void initialize(IDSMEPlatform* platform);
     void start();

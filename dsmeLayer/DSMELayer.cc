@@ -74,9 +74,6 @@ DSMELayer::DSMELayer()
       lastSlotTime(0) {
 }
 
-DSMELayer::~DSMELayer() {
-}
-
 void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->platform = platform;
 

@@ -45,6 +45,7 @@
 
 #include <stdint.h>
 
+#include "../../../DSMEMessage.h"
 #include "../../helper/DSMEBufferedMultiFSM.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
@@ -84,47 +85,15 @@ public:
     DataStatus::Data_Status dataStatus;
 
 private:
-    static void fill(void) {
-    }
+    static void fill(void);
 
-    void fill(DSMEMessage*& msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
-        switch(cmdId) {
-            case CommandFrameIdentifier::DSME_GTS_REQUEST:
-                this->requestCmd.decapsulateFrom(msg);
-                this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
-                break;
-            case CommandFrameIdentifier::DSME_GTS_REPLY:
-            case CommandFrameIdentifier::DSME_GTS_NOTIFY:
-                this->replyNotifyCmd.decapsulateFrom(msg);
-                this->deviceAddr = this->replyNotifyCmd.getDestinationAddress();
-                break;
-            default:
-                this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
-                break;
-        }
-        this->management = management;
-        this->cmdId = cmdId;
-        this->dataStatus = dataStatus;
-    }
+    void fill(DSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus);
 
-    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
-        this->deviceAddr = deviceAddr;
-        this->management = management;
-        this->replyNotifyCmd = replyNotifyCmd;
-    }
+    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd);
 
-    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestCmd& requestCmd) {
-        this->deviceAddr = deviceAddr;
-        this->management = management;
-        this->requestCmd = requestCmd;
-    }
+    void fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestCmd& requestCmd);
 
-    void fill(DSMEMessage*& msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
-        this->deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
-        this->header = msg->getHeader();
-        this->management = management;
-        this->replyNotifyCmd = replyNotifyCmd;
-    }
+    void fill(DSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd);
 };
 
 class GTSManager;

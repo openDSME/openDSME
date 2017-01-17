@@ -56,7 +56,7 @@ template <typename T, typename K>
 struct RBNode;
 
 /*
- * generic implementation for an RB-Tree
+ * generic implementation of an RB-Tree
  * advantage: balanced binary search tree -> find() in maximal O(log n) steps
  */
 template <typename T, typename K>
@@ -66,24 +66,23 @@ public:
     typedef uint8_t tree_size_t;
 
     /*
-     * initialize membervariables
+     * initializes tree members
      */
     RBTree();
 
     /*
-     * It is only valid if postorder RBTreeIterator is used.
-     *
+     * Is only valid if postorder RBTreeIterator is used!
      */
     virtual ~RBTree();
 
     /*
-     * do not allow duplication of a tree
+     * Do not allow duplication of a tree.
      */
     RBTree(const RBTree&) = delete;
     RBTree& operator=(const RBTree&) = delete;
 
     /*
-     * stores new object at correct position
+     * Stores new object at correct position
      * @Param obj: object to be inserted
      *        key: key to identify the object
      * @return true, if insert was successful
@@ -91,29 +90,29 @@ public:
     bool insert(T obj, K key);
 
     /*
-     * removes object and reconstruct a new RBTree
+     * Removes object and reconstruct a new RBTree
      * @Param iterator that points to node that shall be removed
      */
     void remove(iterator& iter);
 
     /*
-     * find object with key key
+     * Find object with key key
      * @Param key: key to identify the object
      */
     iterator find(K key);
 
     /*
-     * return number of elements in the RBTree
+     * Return number of elements in the RBTree
      */
     tree_size_t size() const;
 
     /*
-     * return iterator to root
+     * Return iterator to root
      */
     iterator begin();
 
     /*
-     * return null iterator
+     * Return null-iterator
      */
     iterator end();
     const iterator end() const;
@@ -217,21 +216,21 @@ bool RBTree<T, K>::insert(T obj, K key) {
     }
     if(m_size == 0) {
         node = new RBNode<T, K>(obj, key);
-        // tree was empty -> inserted object becomes root
+        /* '-> tree was empty -> inserted object becomes root */
         node->parent = nullptr;
         node->color = BLACK; // Transformation_1: tree was empty before
         root = node;
     } else {
-        // tree was not empty
+        /* '-> tree was not empty */
         RBNode<T, K>* current = root;
         while(true) {
             if(key == current->key) {
-                // double key means same node -> no insert necessary
+                /* '-> duplicate key means same node -> no insert necessary */
                 return false;
             } else if(key < current->key) {
-                // key is smaller -> left path
+                /* '-> key is smaller -> left path */
                 if(current->leftChild == nullptr) {
-                    // has no left child -> current node sets his child -> position found
+                    /* '-> has no left-side child -> current node sets his child -> position found */
                     node = new RBNode<T, K>(obj, key);
                     node->parent = current;
                     current->leftChild = node;
@@ -239,17 +238,17 @@ bool RBTree<T, K>::insert(T obj, K key) {
                 }
                 current = current->leftChild;
             } else if(key > current->key) {
-                // key is bigger -> right path
+                /* '-> key is larger -> right path */
                 if(current->rightChild == nullptr) {
-                    // has no right child -> current node sets his child -> position found
+                    /* '-> has no right-side child -> current node sets his child -> position found */
                     node = new RBNode<T, K>(obj, key);
                     node->parent = current;
                     current->rightChild = node;
                     break;
                 }
                 current = current->rightChild;
-            } // end if
-        }     // end while
+            }
+        } // end while
 
         /*
          * correct position for insertion found
@@ -257,8 +256,8 @@ bool RBTree<T, K>::insert(T obj, K key) {
         while(true) {
             RBNode<T, K> *P, *G, *U;
             P = node->parent;
-            G = grandparent(node); // grandparent from node
-            U = uncle(node);       // uncle from node
+            G = grandparent(node); // grandparent of node
+            U = uncle(node);       // uncle of node
 
             if(P == nullptr || P->color == BLACK) {      // Transformation_2 : parent node is BLACK
                 break;                                   // nothing to do
@@ -270,35 +269,41 @@ bool RBTree<T, K>::insert(T obj, K key) {
                 continue; // Iteration
             }
 
-            /*Transformation_4: P == RED , U != RED
-             * node and P are different direction children ( one is a leftchild and the other a rightchild)
+            /*
+             * Transformation_4: P == RED , U != RED
+             * node and P are different direction children ( one is a left-side child and the other a right-side child)
              */
             if(node == P->rightChild && (G == nullptr || P == G->leftChild)) { // Transformation_4R
-                // node is right from parent, parent is left from grandparent
+                /* '-> node is right of parent, parent is left of grandparent */
                 rotate_left(P);
-                // node becomes parent from P, both are now left children
 
+                /*
+                 * node becomes parent of P, both are now left-side children
+                 */
                 node = P;         // new problem node
                 P = node->parent; // new parent(red)
 
             } else if(node == P->leftChild && (G == nullptr || P == G->rightChild)) { // Transformation_4L
-                // node is left from parent, parent is right from grandparent
+                /* '->  node is left of parent, parent is right of grandparent */
                 rotate_right(P);
-                // node becomes parent from P, both are now right children
 
+                /*
+                 * node becomes parent of P, both are now right-side children
+                 */
                 node = P;         // new problem node
                 P = node->parent; // new parent(red)
             }
 
-            /* Transformation_5: P == RED , U != RED,
+            /*
+             * Transformation_5: P == RED , U != RED,
              * node and P are both same direction child (both right or both left)
              */
             if(G != nullptr) {
                 if(node == P->leftChild && P == G->leftChild) { // Transformation_5L
-                    // node and P are left children
+                    /* '-> node and P are left-side children */
                     rotate_right(G);
                 } else { // Transformation_5R
-                    // node and P are right children
+                    /* '-> node and P are right-side children */
                     rotate_left(G);
                 }
 
@@ -320,7 +325,9 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
      * sib: is sibling of node
      */
 
-    /* the problem will at most move up to the root*/
+    /*
+     * the problem will at most move up to the root
+     */
     while(node->parent != nullptr) {
         /*
          * in each iteration sibling and parent have to be set to the actual value
@@ -343,7 +350,7 @@ void RBTree<T, K>::balanceTree(RBNode<T, K>* node) {
         }
         /*
          * case 2: sibling of problem node is BLACK
-         *         both children are BLACK or their are no children.
+         *         both children are BLACK or there are no children.
          */
         if(sib->color == BLACK && (sib->rightChild == nullptr || sib->rightChild->color == BLACK) &&
            (sib->leftChild == nullptr || sib->leftChild->color == BLACK)) {
