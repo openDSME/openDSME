@@ -142,6 +142,10 @@ void DSMELayer::preSlotEvent(void) {
     superframe /= getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     nextMultiSuperframe = superframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();
 
+    if(nextSlot == 0) {
+        beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, lastSlotTime);
+    }
+
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe);
 }
 
@@ -154,7 +158,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
         LOG_DEBUG(DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
     }
 
-    if(lateness > 200) { // TODO reduce
+    if(lateness > 100) { // TODO reduce
         LOG_ERROR("lateness " << lateness);
         DSME_ASSERT(false);
     }
@@ -172,10 +176,10 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     /* handle slot */
     if(currentSlot == 0) {
-        beaconManager.superframeEvent(currentSuperframe, currentMultiSuperframe, slotStartTime, lateness);
+        beaconManager.superframeEvent(lateness);
     }
 
-    messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe);
+    messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);
 
     if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot() + 1) {
         platform->scheduleStartOfCFP();

@@ -74,8 +74,8 @@ public:
         return lastKnownBeaconIntervalStart;
     }
 
-    // TODO data sizes
-    void superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t slotStartTime, uint32_t lateness);
+    void preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t slotStartTime);
+    void superframeEvent(int32_t lateness);
 
     // TODO data size
     uint16_t getNumHeardBeacons() const;
@@ -135,7 +135,7 @@ protected:
     /**
      * Send an enhanced Beacon directly
      */
-    void sendEnhancedBeacon(uint32_t startSlotTime, uint32_t lateness);
+    void prepareEnhancedBeacon(uint32_t startSlotTime);
 
     /**
      * Send an enhanced Beacon request in scan primitive
@@ -182,6 +182,7 @@ private:
 
     uint16_t superframesForEachChannel;
     uint16_t superframesLeftForScan;
+    bool transmissionPending;
 };
 
 } /* dsme */

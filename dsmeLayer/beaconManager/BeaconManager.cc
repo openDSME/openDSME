@@ -68,7 +68,8 @@ BeaconManager::BeaconManager(DSMELayer& dsme)
       storedMacPANId(0),
       currentScanChannelIndex(0),
       superframesForEachChannel(0),
-      superframesLeftForScan(0) {
+      superframesLeftForScan(0),
+      transmissionPending(false) {
 }
 
 void BeaconManager::initialize() {
@@ -111,20 +112,32 @@ void BeaconManager::reset() {
     this->neighborOrOwnHeardBeacons.fill(false);
 }
 
-void BeaconManager::superframeEvent(uint16_t currentSuperframe, uint16_t currentMultiSuperframe, uint32_t startSlotTime, uint32_t lateness) {
+void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t startSlotTime) {
     if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
-        uint16_t currentSDIndex = currentSuperframe + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * currentMultiSuperframe;
-        if(currentSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
-            sendEnhancedBeacon(startSlotTime, lateness);
+        uint16_t nextSDIndex = nextSuperframe + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
+        if(nextSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
+            prepareEnhancedBeacon(startSlotTime);
         }
     }
 }
 
-void BeaconManager::sendEnhancedBeacon(uint32_t startSlotTime, uint32_t lateness) {
+void BeaconManager::superframeEvent(int32_t lateness) {
+    if(transmissionPending) {
+        if(lateness > 1) {
+            dsme.getAckLayer().abortPreparedTransmission();
+        }
+        else {
+            dsme.getAckLayer().sendNowIfPending();
+        }
+    }
+}
+
+void BeaconManager::prepareEnhancedBeacon(uint32_t startSlotTime) {
+    ASSERT(!transmissionPending);
     DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(startSlotTime * symbolDurationInMicroseconds);
-    dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(lateness * symbolDurationInMicroseconds);
+    dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
@@ -141,10 +154,11 @@ void BeaconManager::sendEnhancedBeacon(uint32_t startSlotTime, uint32_t lateness
         lastHeardBeaconTimestamp = dsmePANDescriptor.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
     }
 
-    if(!dsme.getAckLayer().sendButKeep(msg, doneCallback)) {
+    if(!dsme.getAckLayer().prepareSendingCopy(msg, doneCallback)) {
         // message could not be sent
         dsme.getPlatform().releaseMessage(msg);
     } else {
+        transmissionPending = true;
         LOG_DEBUG("Beacon sent");
     }
 
@@ -342,6 +356,7 @@ uint16_t BeaconManager::getNumHeardBeacons() const {
 
 void BeaconManager::sendDone(enum AckLayerResponse result, DSMEMessage* msg) {
     dsme.getPlatform().releaseMessage(msg);
+    transmissionPending = false;
 }
 
 void BeaconManager::handleBeacon(DSMEMessage* msg) {

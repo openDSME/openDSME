@@ -209,9 +209,11 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(!dsme.getAckLayer().sendButKeep(queue.front(), doneCallback)) {
+        if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             DSME_ASSERT(false);
         }
+        dsme.getAckLayer().sendNowIfPending();
+
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;

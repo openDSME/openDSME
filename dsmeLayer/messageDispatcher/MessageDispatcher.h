@@ -121,7 +121,7 @@ public:
      *
      * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
-    bool handleSlotEvent(uint8_t slot, uint8_t superframe);
+    bool handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness);
 
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
@@ -134,7 +134,7 @@ protected:
      * Called on start of every GTSlot.
      * Switch channel for reception or transmit from queue in allocated slots.
      */
-    void handleGTS();
+    void handleGTS(int32_t lateness);
 
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.

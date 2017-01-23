@@ -133,9 +133,9 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     return true;
 }
 
-bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe) {
+bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {
     if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {
-        handleGTS();
+        handleGTS(lateness);
     }
     return true;
 }
@@ -195,8 +195,8 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
                     dsme.getBeaconManager().handleBeaconRequest(msg);
                     break;
                 default:
-                    LOG_ERROR((uint16_t)cmd.getCmdId());
-                    DSME_ASSERT(false);
+                    LOG_ERROR("Invalid cmd ID " << (uint16_t)cmd.getCmdId());
+                    //DSME_ASSERT(false);
             }
             dsme.getPlatform().releaseMessage(msg);
             break;
@@ -291,7 +291,7 @@ bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
     return true;
 }
 
-void MessageDispatcher::handleGTS() {
+void MessageDispatcher::handleGTS(int32_t lateness) {
     if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe() &&
        currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
         if(currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
@@ -320,9 +320,14 @@ void MessageDispatcher::handleGTS() {
 
                 // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
 
-                DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= msg->getTotalSymbols());
+                DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >=
+                        lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().macAckWaitDuration + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
-                if(!dsme.getAckLayer().sendButKeep(msg, doneGTS)) {
+                bool result = dsme.getAckLayer().prepareSendingCopy(msg, doneGTS);
+                if(result) {
+                    dsme.getAckLayer().sendNowIfPending();
+                }
+                else {
                     // message could not be sent
                     DSME_ASSERT(false); // the ACK layer is still busy, but we have an assigned slot, something is wrong, probably DSMECSMA::symbolsRequired()
                     neighborQueue.popFront(lastSendGTSNeighbor);

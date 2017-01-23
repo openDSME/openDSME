@@ -48,7 +48,7 @@
 
 namespace dsme {
 
-enum AckLayerResponse { SEND_FAILED, NO_ACK_REQUESTED, ACK_FAILED, ACK_SUCCESSFUL };
+enum AckLayerResponse { SEND_FAILED, NO_ACK_REQUESTED, ACK_FAILED, ACK_SUCCESSFUL, SEND_ABORTED };
 
 class DSMEMessage;
 class DSMELayer;
@@ -56,7 +56,9 @@ class DSMELayer;
 class AckEvent : public FSMEvent {
 public:
     enum : uint8_t {
-        SEND_REQUEST = USER_SIGNAL_START,
+        PREPARE_SEND_REQUEST = USER_SIGNAL_START,
+        START_TRANSMISSION,
+        ABORT_TRANSMISSION,
         RECEIVE_REQUEST,
         SEND_DONE,
         TIMER_FIRED,
@@ -79,7 +81,10 @@ public:
      * Only waits for an acknowledgment if the AR bit in the frame control field is set.
      * @return true, if message was accepted and the doneCallback is pending
      */
-    bool sendButKeep(DSMEMessage* msg, done_callback_t doneCallback);
+    bool prepareSendingCopy(DSMEMessage* msg, done_callback_t doneCallback);
+    void sendNowIfPending();
+    void abortPreparedTransmission();
+
     void sendAdditionalAck(uint8_t seqNum);
     void receive(DSMEMessage* msg);
     void dispatchTimer();
@@ -87,6 +92,7 @@ public:
 private:
     void sendDone(bool success);
     fsmReturnStatus stateIdle(AckEvent& event);
+    fsmReturnStatus statePreparingTx(AckEvent& event);
     fsmReturnStatus stateTx(AckEvent& event);
     fsmReturnStatus stateWaitForAck(AckEvent& event);
     fsmReturnStatus stateTxAck(AckEvent& event);
