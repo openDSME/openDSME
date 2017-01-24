@@ -115,10 +115,6 @@ void AssociationHelper::disassociate() {
     return;
 }
 
-bool AssociationHelper::isAssociatedDevice(IEEE802154MacAddress address) {
-    return this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord;
-}
-
 void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters& params) {
     LOG_INFO("Association requested from 0x" << params.deviceAddress.getShortAddress() << ".");
 
