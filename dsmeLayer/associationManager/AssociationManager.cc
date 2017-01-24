@@ -50,7 +50,7 @@
 namespace dsme {
 
 AssociationManager::AssociationManager(DSMELayer& dsme)
-    : dsme(dsme), currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST), superframesSinceAssociationSent(0) {
+    : dsme(dsme), messageSent(false), currentAction(CommandFrameIdentifier::ASSOCIATION_REQUEST), superframesSinceAssociationSent(0) {
 }
 
 void AssociationManager::reset() {
@@ -121,6 +121,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     }
     currentAction = CommandFrameIdentifier::ASSOCIATION_RESPONSE;
     actionPending = true;
+    DSME_ASSERT(!messageSent);
     dsme_atomicEnd();
 
     LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
@@ -156,6 +157,7 @@ void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
         return;
     }
     actionPending = false;
+    messageSent = false;
     dsme_atomicEnd();
 
     AssociateReplyCmd reply;
@@ -187,9 +189,19 @@ void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
  ****************************************************************************/
 void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req, mlme_sap::DISASSOCIATE::request_parameters& params) {
     dsme_atomicBegin();
-    DSME_ASSERT(!actionPending);
+    if(actionPending) {
+        dsme_atomicEnd();
+        mlme_sap::DISASSOCIATE_confirm_parameters params;
+
+        // TODO: This should be a TRANSACTION_OVERFLOW, but the standard does not support this
+        params.status = DisassociationStatus::CHANNEL_ACCESS_FAILURE;
+        this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(params);
+        return;
+    }
+
     currentAction = CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION;
     actionPending = true;
+    DSME_ASSERT(!messageSent);
     dsme_atomicEnd();
 
     messageSent = false;
@@ -336,6 +348,7 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         // macResponseWaitTime is given in aBaseSuperframeDurations (that do not include the superframe order)
         if(superframesSinceAssociationSent * (1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
             actionPending = false;
+            messageSent = false;
             switch(this->currentAction) {
                 case CommandFrameIdentifier::ASSOCIATION_REQUEST: {
                     mlme_sap::ASSOCIATE_confirm_parameters associate_params;
