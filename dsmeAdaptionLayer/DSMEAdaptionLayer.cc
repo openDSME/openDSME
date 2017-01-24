@@ -174,12 +174,6 @@ void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
         LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
         callback_confirm(msg, DataStatus::TRANSACTION_OVERFLOW);
         return;
-    } else if(this->getMAC_PIB().macIsCoord) {
-        if(!associationHelper.isAssociatedDevice(dst)) {
-            LOG_INFO("Discarding message for " << dst.getShortAddress() << " because it is not associated.");
-            dsme.getPlatform().releaseMessage(msg);
-            return;
-        }
     }
 
     LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");

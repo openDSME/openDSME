@@ -68,8 +68,6 @@ public:
 
     void disassociate();
 
-    bool isAssociatedDevice(IEEE802154MacAddress address);
-
 private:
     void handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters& params);
     void handleASSOCIATION_confirm(mlme_sap::ASSOCIATE_confirm_parameters& params);
