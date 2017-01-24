@@ -62,6 +62,13 @@ GTSControllerData::GTSControllerData()
     : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
 }
 
+void GTSController::reset() {
+    while(this->links.size() > 0) {
+        auto it = this->links.begin();
+        this->links.remove(it);
+    }
+}
+
 void GTSController::registerIncomingMessage(uint16_t address) {
     LOG_DEBUG("Controller-Incoming");
 
@@ -111,7 +118,7 @@ void GTSController::multisuperframeEvent() {
         LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
         LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
         LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
-        LOG_DEBUG("");
+        LOG_DEBUG_PURE(LOG_ENDL);
 
         data.last_error = e;
         data.messagesInLastMultisuperframe = 0;

@@ -69,6 +69,8 @@ public:
 
     GTSController() = default;
 
+    void reset();
+
     void registerIncomingMessage(uint16_t address);
 
     void registerOutgoingMessage(uint16_t address);

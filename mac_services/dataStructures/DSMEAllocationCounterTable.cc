@@ -67,9 +67,15 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::end() {
 
 void DSMEAllocationCounterTable::clear() {
     while(this->act.size() != 0) {
-        DSMEAllocationCounterTable::iterator current = this->act.begin();
-        this->act.remove(current);
+        auto it = this->act.begin();
+        this->act.remove(it);
     }
+
+    while(this->numAllocatedTxSlots.size() != 0) {
+        auto it = this->numAllocatedTxSlots.begin();
+        this->numAllocatedTxSlots.remove(it);
+    }
+
     this->bitmap.fill(false);
 }
 

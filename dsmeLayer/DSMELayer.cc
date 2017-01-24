@@ -164,8 +164,6 @@ void DSMELayer::slotEvent(int32_t lateness) {
         DSME_ASSERT(false);
     }
 
-    auto slotStartTime = this->lastSlotTime;
-
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     if(this->trackingBeacons) {
