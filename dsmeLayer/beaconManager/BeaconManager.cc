@@ -377,6 +377,11 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
         return;
     }
 
+    if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
+        LOG_INFO("Only track beacons by coordinator -> discard");
+        return;
+    }
+
     /* Data exist or no macAutoRequest -> create indication */
 
     mlme_sap::BEACON_NOTIFY_indication_parameters params;
