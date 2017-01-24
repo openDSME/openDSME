@@ -335,6 +335,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
                             params.status = CommStatus::Comm_Status::NO_ACK;
                             break;
+                        case DataStatus::TRANSACTION_EXPIRED:
                         case DataStatus::CHANNEL_ACCESS_FAILURE:
                             if(event.management.status == GTSStatus::SUCCESS) {
                                 actUpdater.approvalAccessFailure(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
@@ -344,7 +345,12 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                                 DSME_ASSERT(false);
                             }
 
-                            params.status = CommStatus::Comm_Status::CHANNEL_ACCESS_FAILURE;
+                            if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE) {
+                                params.status = CommStatus::Comm_Status::TRANSACTION_EXPIRED;
+                            }
+                            else {
+                                params.status = CommStatus::Comm_Status::CHANNEL_ACCESS_FAILURE;
+                            }
                             break;
                         default:
                             DSME_ASSERT(false);
