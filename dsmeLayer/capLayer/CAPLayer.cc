@@ -86,6 +86,9 @@ void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
         case AckLayerResponse::SEND_FAILED:
             signal = CSMAEvent::SEND_FAILED;
             break;
+        case AckLayerResponse::SEND_ABORTED:
+            signal = CSMAEvent::SEND_ABORTED;
+            break;
         default:
             DSME_ASSERT(false);
             return;
@@ -230,6 +233,9 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
             NR++;
             return transition(&CAPLayer::stateBackoff);
         }
+    } else if(event.signal == CSMAEvent::SEND_ABORTED) {
+        actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
+        return transition(&CAPLayer::stateIdle);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
