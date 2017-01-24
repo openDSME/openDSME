@@ -86,9 +86,10 @@ void GTSController::registerIncomingMessage(uint16_t address) {
 
 void GTSController::registerOutgoingMessage(uint16_t address) {
     iterator it = this->links.find(address);
-    DSME_ASSERT(it != this->links.end());
+    if(it != this->links.end()) {
+        it->messagesOutLastMultisuperframe++;
+    }
 
-    it->messagesOutLastMultisuperframe++;
     return;
 }
 

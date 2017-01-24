@@ -229,6 +229,9 @@ protected:
 
     bool trackingBeacons;
     uint32_t lastSlotTime;
+    bool resetPending;
+
+    void doReset();
 
     /**
      * Called every slot to display node status in GUI

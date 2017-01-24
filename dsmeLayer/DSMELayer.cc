@@ -71,7 +71,8 @@ DSMELayer::DSMELayer()
       nextSuperframe(0),
       nextMultiSuperframe(0),
       trackingBeacons(false),
-      lastSlotTime(0) {
+      lastSlotTime(0),
+      resetPending(false) {
 }
 
 void DSMELayer::initialize(IDSMEPlatform* platform) {
@@ -102,6 +103,12 @@ void DSMELayer::start() {
 }
 
 void DSMELayer::reset() {
+    ASSERT(!resetPending);
+    resetPending = true;
+}
+
+void DSMELayer::doReset() {
+    ASSERT(resetPending);
     LOG_WARN("Performing a complete reset of the DSME MLME.");
 
     dsme_atomicBegin();
@@ -129,9 +136,16 @@ void DSMELayer::reset() {
     /* restart slot timer */
     this->lastSlotTime = this->platform->getSymbolCounter();
     this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
+
+    resetPending = false;
 }
 
 void DSMELayer::preSlotEvent(void) {
+    if(resetPending) {
+        doReset();
+        return;
+    }
+
     // calculate time within next slot
     uint32_t cnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart() + macSIFSPeriod + 1;
 
@@ -151,6 +165,11 @@ void DSMELayer::preSlotEvent(void) {
 }
 
 void DSMELayer::slotEvent(int32_t lateness) {
+    if(resetPending) {
+        doReset();
+        return;
+    }
+
     currentSlot = nextSlot;
     currentSuperframe = nextSuperframe;
     currentMultiSuperframe = nextMultiSuperframe;

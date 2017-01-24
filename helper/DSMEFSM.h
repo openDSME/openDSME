@@ -123,6 +123,11 @@ public:
         return true;
     }
 
+protected:
+    bool isDispatchBusy() {
+        return dispatchBusy;
+    }
+
 private:
     state_t state;
     bool dispatchBusy;

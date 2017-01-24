@@ -56,6 +56,7 @@ AckLayer::AckLayer(DSMELayer& dsme)
 }
 
 void AckLayer::reset() {
+    ASSERT(!isDispatchBusy());
     AckEvent e;
     e.signal = AckEvent::RESET;
     dispatch(e);
