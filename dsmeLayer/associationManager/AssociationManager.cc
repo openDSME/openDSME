@@ -67,7 +67,15 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
     dsme_atomicBegin();
-    DSME_ASSERT(!actionPending);
+    if(actionPending) {
+        dsme_atomicEnd();
+        mlme_sap::ASSOCIATE_confirm_parameters params;
+
+        // TODO: This should be a TRANSACTION_OVERFLOW, but the standard does not support this
+        params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
+        this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
+        return;
+    }
     currentAction = CommandFrameIdentifier::ASSOCIATION_REQUEST;
     actionPending = true;
     dsme_atomicEnd();
