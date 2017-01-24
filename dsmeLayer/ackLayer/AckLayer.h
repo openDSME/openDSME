@@ -63,6 +63,7 @@ public:
         SEND_DONE,
         TIMER_FIRED,
         ACK_RECEIVED,
+        RESET
     };
 
     bool success;   // only valid for SEND_DONE
@@ -96,6 +97,7 @@ private:
     fsmReturnStatus stateTx(AckEvent& event);
     fsmReturnStatus stateWaitForAck(AckEvent& event);
     fsmReturnStatus stateTxAck(AckEvent& event);
+    fsmReturnStatus stateAbort(AckEvent& event);
 
     fsmReturnStatus catchAll(AckEvent& event);
 

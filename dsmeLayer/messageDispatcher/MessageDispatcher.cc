@@ -433,6 +433,10 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage*
             currentACTElement->incrementIdleCounter();
             params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
             break;
+        case AckLayerResponse::SEND_ABORTED:
+            LOG_DEBUG("SEND_ABORTED during GTS");
+            params.status = DataStatus::TRANSACTION_EXPIRED;
+            break;
         default:
             DSME_ASSERT(false);
     }

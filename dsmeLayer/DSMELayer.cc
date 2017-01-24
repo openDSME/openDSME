@@ -106,6 +106,8 @@ void DSMELayer::reset() {
 
     dsme_atomicBegin();
 
+    this->ackLayer.reset();
+
     /* stop all timers */
     this->eventDispatcher.reset();
 
@@ -117,7 +119,6 @@ void DSMELayer::reset() {
     this->capLayer.reset();
 
     this->mac_pib->macDsn = platform->getRandom();
-    this->ackLayer.reset();
 
     this->currentSlot = 0;
     this->currentSuperframe = 0;
