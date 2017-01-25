@@ -60,13 +60,14 @@ class RBTreeIterator;
 
 template <typename T, typename K>
 struct RBNode {
-    RBNode(T content, K key);
+    RBNode(const T& content, const K& key);
     virtual ~RBNode() = default;
 
     /*
      * Get the object stored in the node
      */
     T& getContent();
+    const T& getContent() const;
 
     /*
      * Pointers to construct the tree
@@ -90,11 +91,16 @@ struct RBNode {
 };
 /* FUNCTION DEFINITIONS ******************************************************/
 template <typename T, typename K>
-RBNode<T, K>::RBNode(T content, K key) : leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
+RBNode<T, K>::RBNode(const T& content, const K& key) : leftChild(nullptr), rightChild(nullptr), parent(nullptr), key(key), content(content), color(RED) {
 }
 
 template <typename T, typename K>
 T& RBNode<T, K>::getContent() {
+    return content;
+}
+
+template <typename T, typename K>
+const T& RBNode<T, K>::getContent() const {
     return content;
 }
 }

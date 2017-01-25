@@ -189,16 +189,26 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     }
 }
 
-void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr) {
+bool BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr) {
     if(dsme.getMAC_PIB().macIsPANCoord) {
         /* '-> This function should not be called for PAN-coordinators */
         DSME_ASSERT(false);
     }
 
     if(this->scanning) {
-        /* '-> Do not handle beacon as PAN coordinator or while scanning */
-        LOG_INFO("Currently scanning for PANs -> discard.");
-        return;
+        /* '-> Do not handle beacons while scanning */
+        LOG_INFO("Currently scanning for PANs -> don't handle as enhanced beacon.");
+        return false;
+    }
+
+    LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
+    heardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
+    neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
+    neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
+
+    if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
+        LOG_INFO("Only track beacons by coordinator -> discard");
+        return true;
     }
 
     /* Reset the number of missed beacons */
@@ -215,14 +225,6 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
                                    lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
 
-    LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
-    // update heardBeacons and neighborHeardBeacons
-    heardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
-    neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
-    neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
-    if(dsme.getMAC_PIB().macIsCoord) {
-        dsmePANDescriptor.getBeaconBitmap().set(descr.getBeaconBitmap().getSDIndex(), true);
-    }
 
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "
@@ -243,7 +245,7 @@ void BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
         }
     }
 
-    // TODO if isAllocationsent and allocated Index now is allocated -> cancel!
+    return false;
 }
 
 void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
@@ -281,14 +283,20 @@ void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
 }
 
 void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
-    // TODO check if self has sent allocation to same slot -> abort CSMA transmission
     BeaconNotificationCmd beaconAlloc;
     beaconAlloc.decapsulateFrom(msg);
 
-    if(heardBeacons.get(beaconAlloc.getBeaconSDIndex())) {
-        sendBeaconCollisionNotification(beaconAlloc.getBeaconSDIndex(), msg->getHeader().getSrcAddr());
+    uint16_t ownBeaconSDIndex = this->dsmePANDescriptor.getBeaconBitmap().getSDIndex();
+    uint16_t heardBeaconSDIndex = beaconAlloc.getBeaconSDIndex();
+
+    bool collidesWithOwnBeacon = this->isBeaconAllocated && (ownBeaconSDIndex == heardBeaconSDIndex);
+    bool collidesWithHeardBeacon = this->heardBeacons.get(heardBeaconSDIndex);
+
+    if(collidesWithOwnBeacon || collidesWithHeardBeacon ) {
+        sendBeaconCollisionNotification(heardBeaconSDIndex, msg->getHeader().getSrcAddr());
     } else {
-        heardBeacons.set(beaconAlloc.getBeaconSDIndex(), true);
+        this->heardBeacons.set(heardBeaconSDIndex, true);
+        this->neighborOrOwnHeardBeacons.set(heardBeaconSDIndex, true);
         // TODO when to remove heardBeacons in case of collision elsewhere?
     }
 }
@@ -377,36 +385,32 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
         return;
     }
 
-    if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
-        LOG_INFO("Only track beacons by coordinator -> discard");
-        return;
-    }
-
     /* Data exist or no macAutoRequest -> create indication */
 
     mlme_sap::BEACON_NOTIFY_indication_parameters params;
-
-    params.bsn = msg->getHeader().getSequenceNumber();
-    params.panDescriptor.coordAddrMode = msg->getHeader().getSrcAddrMode();
-    params.panDescriptor.coordPANId = msg->getHeader().getDstPANId();
-    params.panDescriptor.coordAddress = msg->getHeader().getSrcAddr();
-    params.panDescriptor.channelNumber = this->dsme.getPHY_PIB().phyCurrentChannel;
-    params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
-    params.panDescriptor.timestamp = msg->getReceptionSymbolCounter();
-
-    //  TODO fill in the other indication_parameters,
-    //  some of the info is already included in the PANDesriptor.
-    //    params.pendAddrSpec;
-    //    params.addrList;
-    //    params.sduLength;
-    //    params.sdu;
-    params.eBSN = msg->getHeader().getSequenceNumber();
-    params.beaconType = msg->getHeader().isEnhancedBeacon();
-
     params.panDescriptor.dsmePANDescriptor.decapsulateFrom(msg);
 
-    handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
-    this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
+    bool beaconDiscarded = handleEnhancedBeacon(msg, params.panDescriptor.dsmePANDescriptor);
+
+    if(!beaconDiscarded) {
+        params.bsn = msg->getHeader().getSequenceNumber();
+        params.panDescriptor.coordAddrMode = msg->getHeader().getSrcAddrMode();
+        params.panDescriptor.coordPANId = msg->getHeader().getDstPANId();
+        params.panDescriptor.coordAddress = msg->getHeader().getSrcAddr();
+        params.panDescriptor.channelNumber = this->dsme.getPHY_PIB().phyCurrentChannel;
+        params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
+        params.panDescriptor.timestamp = msg->getReceptionSymbolCounter();
+        //  TODO fill in the other indication_parameters,
+        //  some of the info is already included in the PANDesriptor.
+        //    params.pendAddrSpec;
+        //    params.addrList;
+        //    params.sduLength;
+        //    params.sdu;
+        params.eBSN = msg->getHeader().getSequenceNumber();
+        params.beaconType = msg->getHeader().isEnhancedBeacon();
+
+        this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
+    }
 
     if(this->scanning) {
         switch(this->scanType) {

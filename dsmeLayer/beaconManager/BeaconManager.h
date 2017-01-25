@@ -68,7 +68,7 @@ public:
     /**
      * Called on reception of an EnhancedBeacon
      */
-    void handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr);
+    bool handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr);
 
     uint32_t getLastKnownBeaconIntervalStart() const {
         return lastKnownBeaconIntervalStart;
