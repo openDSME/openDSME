@@ -97,6 +97,9 @@ public:
     virtual void updateVisual() = 0;
 
     virtual void scheduleStartOfCFP() = 0;
+
+    // Beacons with LQI lower than this will not be considered when deciding for a coordinator to associate to
+    virtual uint8_t getMinCoordinatorLQI() = 0;
 };
 
 } /* dsme */

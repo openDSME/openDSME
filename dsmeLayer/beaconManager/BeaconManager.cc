@@ -400,6 +400,7 @@ void BeaconManager::handleBeacon(DSMEMessage* msg) {
         params.panDescriptor.channelNumber = this->dsme.getPHY_PIB().phyCurrentChannel;
         params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
         params.panDescriptor.timestamp = msg->getReceptionSymbolCounter();
+        params.panDescriptor.linkQuality = msg->getLQI();
         //  TODO fill in the other indication_parameters,
         //  some of the info is already included in the PANDesriptor.
         //    params.pendAddrSpec;

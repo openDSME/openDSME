@@ -165,21 +165,36 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
 void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
     DSME_ASSERT(!this->syncActive);
 
+    PanDescriptorList* list;
+
     if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
-        if(this->recordedPanDescriptors.size() > 0) {
-            this->panDescriptorToSyncTo = this->recordedPanDescriptors[0];
-        } else {
-            this->scanAndSyncCompleteDelegate(nullptr);
-            return;
-        }
-    } else {
-        if(params.panDescriptorList.size() > 0) {
-            this->panDescriptorToSyncTo = params.panDescriptorList[0];
-        } else {
-            this->scanAndSyncCompleteDelegate(nullptr);
-            return;
+        list = &this->recordedPanDescriptors;
+    }
+    else {
+        list = &params.panDescriptorList;
+    }
+
+    if(list->size() == 0) {
+        this->scanAndSyncCompleteDelegate(nullptr);
+        return;
+    }
+
+    uint8_t bestLQI = 0;
+    uint8_t bestLQIIdx = 0xFF;
+
+    for(uint8_t i = 0; i < list->size(); i++) {
+        if((*list)[i].linkQuality > bestLQI) {
+            bestLQI = (*list)[i].linkQuality;
+            bestLQIIdx = i;
         }
     }
+
+    if(bestLQI < this->dsmeAdaptionLayer.getDSME().getPlatform().getMinCoordinatorLQI()) {
+        this->scanAndSyncCompleteDelegate(nullptr);
+        return;
+    }
+
+    this->panDescriptorToSyncTo = (*list)[bestLQIIdx];
 
     mlme_sap::SYNC::request_parameters syncParams;
     syncParams.channelNumber = this->panDescriptorToSyncTo.channelNumber;
