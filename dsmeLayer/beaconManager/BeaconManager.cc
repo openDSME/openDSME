@@ -125,8 +125,7 @@ void BeaconManager::superframeEvent(int32_t lateness) {
     if(transmissionPending) {
         if(lateness > 1) {
             dsme.getAckLayer().abortPreparedTransmission();
-        }
-        else {
+        } else {
             dsme.getAckLayer().sendNowIfPending();
         }
     }
@@ -225,7 +224,6 @@ bool BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
                                    lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
     lastHeardBeaconTimestamp = descr.getTimeSyncSpec().getBeaconTimestampMicroSeconds();
 
-
     // Coordinator device request free beacon slots
     LOG_DEBUG("Checking if beacon has to be allocated: "
               << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord << ", isBeaconAllocated:" << isBeaconAllocated
@@ -292,7 +290,7 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
     bool collidesWithOwnBeacon = this->isBeaconAllocated && (ownBeaconSDIndex == heardBeaconSDIndex);
     bool collidesWithHeardBeacon = this->heardBeacons.get(heardBeaconSDIndex);
 
-    if(collidesWithOwnBeacon || collidesWithHeardBeacon ) {
+    if(collidesWithOwnBeacon || collidesWithHeardBeacon) {
         sendBeaconCollisionNotification(heardBeaconSDIndex, msg->getHeader().getSrcAddr());
     } else {
         this->heardBeacons.set(heardBeaconSDIndex, true);

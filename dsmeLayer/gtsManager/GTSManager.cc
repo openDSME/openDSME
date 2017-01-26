@@ -347,8 +347,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
                             if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE) {
                                 params.status = CommStatus::Comm_Status::TRANSACTION_EXPIRED;
-                            }
-                            else {
+                            } else {
                                 params.status = CommStatus::Comm_Status::CHANNEL_ACCESS_FAILURE;
                             }
                             break;

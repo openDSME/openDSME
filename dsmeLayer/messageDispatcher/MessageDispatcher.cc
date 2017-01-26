@@ -196,7 +196,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
                     break;
                 default:
                     LOG_ERROR("Invalid cmd ID " << (uint16_t)cmd.getCmdId());
-                    //DSME_ASSERT(false);
+                    // DSME_ASSERT(false);
             }
             dsme.getPlatform().releaseMessage(msg);
             break;
@@ -321,13 +321,12 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
 
                 DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >=
-                        lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().macAckWaitDuration + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
+                            lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().macAckWaitDuration + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
                 bool result = dsme.getAckLayer().prepareSendingCopy(msg, doneGTS);
                 if(result) {
                     dsme.getAckLayer().sendNowIfPending();
-                }
-                else {
+                } else {
                     // message could not be sent
                     DSME_ASSERT(false); // the ACK layer is still busy, but we have an assigned slot, something is wrong, probably DSMECSMA::symbolsRequired()
                     neighborQueue.popFront(lastSendGTSNeighbor);

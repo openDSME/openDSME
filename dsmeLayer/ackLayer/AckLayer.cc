@@ -393,5 +393,4 @@ fsmReturnStatus AckLayer::stateAbort(AckEvent& event) {
             return catchAll(event);
     }
 }
-
 }

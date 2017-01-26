@@ -169,8 +169,7 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
 
     if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
         list = &this->recordedPanDescriptors;
-    }
-    else {
+    } else {
         list = &params.panDescriptorList;
     }
 

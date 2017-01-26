@@ -73,7 +73,6 @@ public:
     RBTreeIterator<T, K>& operator=(RBTreeIterator<T, K>&&);
 
     RBTreeIterator<T, K>& operator++();
-
     RBTreeIterator<T, K> operator++(int);
 
     T& operator*();

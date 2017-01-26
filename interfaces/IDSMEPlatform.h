@@ -66,7 +66,7 @@ public:
      * This might lead to an additional memory copy in the platform
      */
     virtual bool prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txEndCallback) = 0;
-    
+
     virtual bool sendNow() = 0;
 
     virtual void abortPreparedTransmission() = 0;
