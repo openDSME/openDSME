@@ -74,8 +74,8 @@ public:
         return lastKnownBeaconIntervalStart;
     }
 
-    void preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t slotStartTime);
-    void superframeEvent(int32_t lateness);
+    void preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t nextSlotTime);
+    void superframeEvent(int32_t lateness, uint32_t currentSlotTime);
 
     // TODO data size
     uint16_t getNumHeardBeacons() const;
@@ -120,7 +120,6 @@ protected:
     bool isBeaconAllocationSent;
     bool isBeaconAllocated;
 
-    uint32_t lastHeardBeaconTimestamp; // TODO size?
     uint32_t lastKnownBeaconIntervalStart;
 
     BeaconBitmap heardBeacons;

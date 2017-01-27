@@ -103,12 +103,8 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
     DSMEAllocationCounterTable& act = dsme.getMAC_PIB().macDSMEACT;
 
-    if(nextSlot == 0) {
-        // next slot will be the beacon frame
-        uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
-        dsme.getPlatform().setChannelNumber(commonChannel);
-        currentACTElement = act.end();
-    } else if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+    if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+        // next slot will be GTS
         unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             currentACTElement = act.find(nextSuperframe, nextGTS);
@@ -127,6 +123,9 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             currentACTElement = act.end();
         }
     } else {
+        // next slot will be the beacon frame or CAP
+        uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
+        dsme.getPlatform().setChannelNumber(commonChannel);
         currentACTElement = act.end();
     }
 

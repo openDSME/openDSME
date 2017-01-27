@@ -71,7 +71,7 @@ DSMELayer::DSMELayer()
       nextSuperframe(0),
       nextMultiSuperframe(0),
       trackingBeacons(false),
-      lastSlotTime(0),
+      nextSlotTime(0),
       resetPending(false) {
 }
 
@@ -98,8 +98,7 @@ void DSMELayer::start() {
     }
 
     /* start the timer initially */
-    this->lastSlotTime = this->platform->getSymbolCounter();
-    this->lastSlotTime = this->eventDispatcher.setupSlotTimer(this->lastSlotTime);
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter());
 }
 
 void DSMELayer::reset() {
@@ -134,8 +133,7 @@ void DSMELayer::doReset() {
     dsme_atomicEnd();
 
     /* restart slot timer */
-    this->lastSlotTime = this->platform->getSymbolCounter();
-    this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter());
 
     resetPending = false;
 }
@@ -147,7 +145,7 @@ void DSMELayer::preSlotEvent(void) {
     }
 
     // calculate time within next slot
-    uint32_t cnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart() + macSIFSPeriod + 1;
+    uint32_t cnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart() + PRE_EVENT_SHIFT + 1;
 
     // calculate slot position
     uint16_t slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
@@ -158,7 +156,7 @@ void DSMELayer::preSlotEvent(void) {
     nextMultiSuperframe = superframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();
 
     if(nextSlot == 0) {
-        beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, lastSlotTime);
+        beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
     }
 
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe);
@@ -183,18 +181,23 @@ void DSMELayer::slotEvent(int32_t lateness) {
         DSME_ASSERT(false);
     }
 
+    uint32_t currentSlotTime;
+
     // TODO set timer to next relevant slot only!
     // TODO in that case currentSlot might be used even if no slotEvent was called before -> calculate then
     if(this->trackingBeacons) {
         auto now = platform->getSymbolCounter();
-        this->lastSlotTime = now - (now - beaconManager.getLastKnownBeaconIntervalStart()) % getMAC_PIB().helper.getSymbolsPerSlot();
+        currentSlotTime = now - (now - beaconManager.getLastKnownBeaconIntervalStart()) % getMAC_PIB().helper.getSymbolsPerSlot();
+    }
+    else {
+        currentSlotTime = this->nextSlotTime;
     }
 
-    this->lastSlotTime = eventDispatcher.setupSlotTimer(this->lastSlotTime);
+    this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime);
 
     /* handle slot */
     if(currentSlot == 0) {
-        beaconManager.superframeEvent(lateness);
+        beaconManager.superframeEvent(lateness, currentSlotTime);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);

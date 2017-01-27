@@ -228,7 +228,7 @@ protected:
     uint16_t nextMultiSuperframe;
 
     bool trackingBeacons;
-    uint32_t lastSlotTime;
+    uint32_t nextSlotTime;
     bool resetPending;
 
     void doReset();
