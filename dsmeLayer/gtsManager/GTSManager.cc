@@ -54,7 +54,7 @@ namespace dsme {
 void GTSEvent::fill(void) {
 }
 
-void GTSEvent::fill(DSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
+void GTSEvent::fill(IDSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus) {
     switch(cmdId) {
         case CommandFrameIdentifier::DSME_GTS_REQUEST:
             this->requestCmd.decapsulateFrom(msg);
@@ -86,7 +86,7 @@ void GTSEvent::fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestC
     this->requestCmd = requestCmd;
 }
 
-void GTSEvent::fill(DSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
+void GTSEvent::fill(IDSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd) {
     this->deviceAddr = msg->getHeader().getSrcAddr().getShortAddress();
     this->header = msg->getHeader();
     this->management = management;
@@ -159,7 +159,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         case GTSEvent::MLME_REQUEST_ISSUED: {
             preparePendingConfirm(event);
 
-            DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+            IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
             event.requestCmd.prependTo(msg);
 
@@ -179,7 +179,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         case GTSEvent::MLME_RESPONSE_ISSUED: {
             preparePendingConfirm(event);
 
-            DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+            IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
             event.replyNotifyCmd.prependTo(msg);
 
             uint16_t destinationShortAddress;
@@ -451,7 +451,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
             if(event.management.status == GTSStatus::SUCCESS) {
                 /* the requesting node has to notify its one hop neighbors */
-                DSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
+                IDSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);
                 event.replyNotifyCmd.prependTo(msg_notify);
                 if(!sendGTSCommand(fsmId, msg_notify, event.management, CommandFrameIdentifier::DSME_GTS_NOTIFY,
@@ -618,7 +618,7 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
     int8_t fsmId = event.getFsmId();
     DSME_ASSERT(event.signal == GTSEvent::MLME_RESPONSE_ISSUED);
 
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     event.replyNotifyCmd.prependTo(msg);
 
     LOG_INFO("Negative GTS response " << event.replyNotifyCmd.getDestinationAddress() << " TRANSACTION_OVERFLOW");
@@ -668,7 +668,7 @@ bool GTSManager::handleMLMEResponse(GTSManagement& man, GTSReplyNotifyCmd& reply
     return dispatch(fsmId, GTSEvent::MLME_RESPONSE_ISSUED, destinationAddress, man, reply);
 }
 
-bool GTSManager::handleGTSRequest(DSMEMessage* msg) {
+bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     // This can be directly passed to the upper layer.
     // There is no need to go over the state machine!
     uint16_t sourceAddr = msg->getHeader().getSrcAddr().getShortAddress();
@@ -696,7 +696,7 @@ bool GTSManager::handleGTSRequest(DSMEMessage* msg) {
     return true;
 }
 
-bool GTSManager::handleGTSResponse(DSMEMessage* msg) {
+bool GTSManager::handleGTSResponse(IDSMEMessage* msg) {
     GTSManagement management;
     GTSReplyNotifyCmd replyNotifyCmd;
     management.decapsulateFrom(msg);
@@ -725,7 +725,7 @@ bool GTSManager::handleGTSResponse(DSMEMessage* msg) {
     return true;
 }
 
-bool GTSManager::handleGTSNotify(DSMEMessage* msg) {
+bool GTSManager::handleGTSNotify(IDSMEMessage* msg) {
     GTSManagement management;
 
     management.decapsulateFrom(msg);
@@ -785,7 +785,7 @@ bool GTSManager::handleStartOfCFP(uint8_t superframe) {
     }
 }
 
-bool GTSManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
+bool GTSManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     GTSManagement management;
     management.decapsulateFrom(msg);
 
@@ -857,7 +857,7 @@ bool GTSManager::checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabS
 
     if(duplicateFound) {
         LOG_INFO("Duplicate found");
-        DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+        IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
         dupReq.prependTo(msg);
         GTSManagement man;
         man.type = ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION;
@@ -888,7 +888,7 @@ bool GTSManager::isTimeoutPending(uint8_t fsmId) {
     return (data[fsmId].superframesInCurrentState * (1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime);
 }
 
-bool GTSManager::sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent) {
+bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent) {
     man.prependTo(msg);
 
     MACCommand cmd;
@@ -966,7 +966,7 @@ int8_t GTSManager::getFsmIdForResponse(uint16_t destinationAddress) {
     }
 }
 
-int8_t GTSManager::getFsmIdFromResponseForMe(DSMEMessage* msg) {
+int8_t GTSManager::getFsmIdFromResponseForMe(IDSMEMessage* msg) {
     uint16_t srcAddress = msg->getHeader().getSrcAddr().getShortAddress();
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         if(getState(i) == &GTSManager::stateWaitForResponse && data[i].responsePartnerAddress == srcAddress) {
@@ -976,7 +976,7 @@ int8_t GTSManager::getFsmIdFromResponseForMe(DSMEMessage* msg) {
     return GTS_STATE_MULTIPLICITY;
 }
 
-int8_t GTSManager::getFsmIdFromNotifyForMe(DSMEMessage* msg) {
+int8_t GTSManager::getFsmIdFromNotifyForMe(IDSMEMessage* msg) {
     uint16_t srcAddress = msg->getHeader().getSrcAddr().getShortAddress();
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         if(getState(i) == &GTSManager::stateWaitForNotify && data[i].notifyPartnerAddress == srcAddress) {

@@ -65,18 +65,18 @@ private:
     DSMELayer& dsme;
 
 public:
-    void sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg);
+    void sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg);
 
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(DSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs);
 
-    bool sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
+    bool sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
 
-    bool sendInCAP(DSMEMessage* msg);
+    bool sendInCAP(IDSMEMessage* msg);
 
-    void receive(DSMEMessage* msg);
+    void receive(IDSMEMessage* msg);
 
     NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
         return neighborQueue;
@@ -128,7 +128,7 @@ protected:
 
     AckLayer::done_callback_t doneGTS;
 
-    DSMEMessage* dsmeAckFrame;
+    IDSMEMessage* dsmeAckFrame;
 
     /**
      * Called on start of every GTSlot.
@@ -139,7 +139,7 @@ protected:
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
-    void handleGTSFrame(DSMEMessage*);
+    void handleGTSFrame(IDSMEMessage*);
 
     long numTxGtsFrames = 0;
     long numRxAckFrames = 0;
@@ -156,7 +156,7 @@ protected:
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
-    void createDataIndication(DSMEMessage* msg);
+    void createDataIndication(IDSMEMessage* msg);
 };
 
 } /* dsme */

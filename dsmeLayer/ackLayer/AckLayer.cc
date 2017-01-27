@@ -56,13 +56,13 @@ AckLayer::AckLayer(DSMELayer& dsme)
 }
 
 void AckLayer::reset() {
-    ASSERT(!isDispatchBusy());
+    DSME_ASSERT(!isDispatchBusy());
     AckEvent e;
     e.signal = AckEvent::RESET;
     dispatch(e);
 }
 
-bool AckLayer::prepareSendingCopy(DSMEMessage* msg, done_callback_t doneCallback) {
+bool AckLayer::prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallback) {
     dsme_atomicBegin();
     if(busy) {
         dsme_atomicEnd();
@@ -98,7 +98,7 @@ void AckLayer::abortPreparedTransmission() {
     dispatch(e);
 }
 
-void AckLayer::receive(DSMEMessage* msg) {
+void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
     /*
@@ -241,7 +241,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 LOG_DEBUG("sending ACK");
 
                 // keep the received message and set up the acknowledgement as new pending message
-                DSMEMessage* receivedMessage = pendingMessage;
+                IDSMEMessage* receivedMessage = pendingMessage;
                 pendingMessage = dsme.getPlatform().getEmptyMessage();
                 if(pendingMessage == nullptr) {
                     DSME_ASSERT(false);
@@ -293,7 +293,7 @@ fsmReturnStatus AckLayer::statePreparingTx(AckEvent& event) {
     switch(event.signal) {
         case AckEvent::START_TRANSMISSION: {
             bool result = dsme.getPlatform().sendNow();
-            ASSERT(result);
+            DSME_ASSERT(result);
             return transition(&AckLayer::stateTx);
         }
         case AckEvent::RESET:

@@ -49,11 +49,11 @@
 
 namespace dsme {
 
-class DSMEMessage;
+class IDSMEMessage;
 
 class IDSMEPlatform {
 public:
-    typedef Delegate<void(DSMEMessage* msg)> receive_delegate_t;
+    typedef Delegate<void(IDSMEMessage* msg)> receive_delegate_t;
 
     /**
      * Sets the current channel for transmitting / receiving
@@ -65,7 +65,7 @@ public:
      * but keep the message (the caller has to ensure that the message is eventually released)
      * This might lead to an additional memory copy in the platform
      */
-    virtual bool prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txEndCallback) = 0;
+    virtual bool prepareSendingCopy(IDSMEMessage* msg, Delegate<void(bool)> txEndCallback) = 0;
 
     virtual bool sendNow() = 0;
 
@@ -74,17 +74,17 @@ public:
     /**
      * Send an ACK message, delay until aTurnaRoundTime after reception_time has expired
      */
-    virtual bool sendDelayedAck(DSMEMessage* ackMsg, DSMEMessage* receivedMsg, Delegate<void(bool)> txEndCallback) = 0;
+    virtual bool sendDelayedAck(IDSMEMessage* ackMsg, IDSMEMessage* receivedMsg, Delegate<void(bool)> txEndCallback) = 0;
 
     virtual void setReceiveDelegate(receive_delegate_t receiveDelegate) = 0;
 
     virtual bool isReceptionFromAckLayerPossible() = 0;
 
-    virtual void handleReceivedMessageFromAckLayer(DSMEMessage* message) = 0;
+    virtual void handleReceivedMessageFromAckLayer(IDSMEMessage* message) = 0;
 
-    virtual DSMEMessage* getEmptyMessage() = 0;
+    virtual IDSMEMessage* getEmptyMessage() = 0;
 
-    virtual void releaseMessage(DSMEMessage* msg) = 0;
+    virtual void releaseMessage(IDSMEMessage* msg) = 0;
 
     virtual bool startCCA() = 0;
 

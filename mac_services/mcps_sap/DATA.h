@@ -50,7 +50,7 @@
 
 namespace dsme {
 class DSMELayer;
-class DSMEMessage;
+class IDSMEMessage;
 
 namespace mcps_sap {
 
@@ -58,7 +58,7 @@ namespace mcps_sap {
  * IEEE 802.15.4-2011 6.3.2, Table 47,  IEEE 802.15.4e-2012 6.3.2, Table 47
  */
 struct DATA_confirm_parameters {
-    DSMEMessage* msduHandle;
+    IDSMEMessage* msduHandle;
     uint32_t Timestamp;
     bool RangingReceived;
     uint32_t RangingCounterStart;
@@ -90,7 +90,7 @@ struct DATA_indication_parameters {
     uint8_t msduLength;
     */
 
-    DSMEMessage* msdu;
+    IDSMEMessage* msdu;
     uint8_t mpduLinkQuality;
     uint8_t dsn;
     uint32_t timestamp;
@@ -129,7 +129,7 @@ public:
         uint8_t msduLength;
         */
 
-        DSMEMessage* msdu;
+        IDSMEMessage* msdu;
         uint8_t msduHandle;
         bool ackTX;
         bool gtsTX;

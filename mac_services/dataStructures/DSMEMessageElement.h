@@ -47,14 +47,14 @@
 
 namespace dsme {
 
-class DSMEMessage;
+class IDSMEMessage;
 
 class DSMEMessageElement {
 public:
     // TODO remove those
-    void prependTo(DSMEMessage* msg);
-    void decapsulateFrom(DSMEMessage* msg);
-    void copyFrom(DSMEMessage* msg);
+    void prependTo(IDSMEMessage* msg);
+    void decapsulateFrom(IDSMEMessage* msg);
+    void copyFrom(IDSMEMessage* msg);
 
     /**
      * The result is not valid before deserialization.

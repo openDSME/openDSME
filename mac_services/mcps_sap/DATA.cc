@@ -56,12 +56,11 @@ DATA::DATA(DSMELayer& dsme) : dsme(dsme) {
  * On receipt of the MCPS-DATA.request primitive, the MAC sublayer entity begins the transmission of the supplied MSDU.
  */
 void DATA::request(request_parameters& params) {
-    DSMEMessage* dsmemsg = params.msdu;
-    IDSMEMessage* msg = dsmemsg;
+    IDSMEMessage* msg = params.msdu;
 
     if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
         mcps_sap::DATA_confirm_parameters confirmParams;
-        confirmParams.msduHandle = dsmemsg;
+        confirmParams.msduHandle = msg;
         confirmParams.Timestamp = 0;
         confirmParams.RangingReceived = false;
         confirmParams.status = DataStatus::INVALID_GTS; // TODO better status?
@@ -71,7 +70,7 @@ void DATA::request(request_parameters& params) {
         return;
     }
 
-    dsmemsg->receivedViaMCPS = true;
+    msg->setReceivedViaMCPS(true);
 
     IEEE802154eMACHeader& header = msg->getHeader();
 
@@ -98,7 +97,7 @@ void DATA::request(request_parameters& params) {
 
         if(destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
+            confirmParams.msduHandle = msg;
             confirmParams.Timestamp = 0;
             confirmParams.RangingReceived = false;
             confirmParams.status = DataStatus::INVALID_GTS;
@@ -108,9 +107,9 @@ void DATA::request(request_parameters& params) {
             return;
         }
 
-        if(!this->dsme.getMessageDispatcher().sendInGTS(dsmemsg, destIt)) {
+        if(!this->dsme.getMessageDispatcher().sendInGTS(msg, destIt)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
+            confirmParams.msduHandle = msg;
             confirmParams.Timestamp = 0;
             confirmParams.RangingReceived = false;
             confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;
@@ -119,9 +118,9 @@ void DATA::request(request_parameters& params) {
             notify_confirm(confirmParams);
         }
     } else {
-        if(!this->dsme.getMessageDispatcher().sendInCAP(dsmemsg)) {
+        if(!this->dsme.getMessageDispatcher().sendInCAP(msg)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
-            confirmParams.msduHandle = dsmemsg;
+            confirmParams.msduHandle = msg;
             confirmParams.Timestamp = 0;
             confirmParams.RangingReceived = false;
             confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;

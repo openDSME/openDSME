@@ -65,7 +65,7 @@ public:
     explicit CAPLayer(DSMELayer& dsme);
 
     void reset();
-    bool pushMessage(DSMEMessage* msg);
+    bool pushMessage(IDSMEMessage* msg);
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
 
@@ -81,7 +81,7 @@ private:
     /*
      * External interfaces for use through callbacks
      */
-    void sendDone(AckLayerResponse response, DSMEMessage* msg);
+    void sendDone(AckLayerResponse response, IDSMEMessage* msg);
 
     /**
      * Actions
@@ -104,7 +104,7 @@ private:
     uint8_t NR;
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
-    DSMEQueue<DSMEMessage*, CAP_QUEUE_SIZE> queue;
+    DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
 };
 
 } /* dsme */

@@ -103,12 +103,12 @@ void DSMELayer::start() {
 }
 
 void DSMELayer::reset() {
-    ASSERT(!resetPending);
+    DSME_ASSERT(!resetPending);
     resetPending = true;
 }
 
 void DSMELayer::doReset() {
-    ASSERT(resetPending);
+    DSME_ASSERT(resetPending);
     LOG_WARN("Performing a complete reset of the DSME MLME.");
 
     dsme_atomicBegin();

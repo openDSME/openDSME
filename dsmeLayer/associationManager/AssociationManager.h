@@ -64,17 +64,17 @@ public:
     void reset();
 
     void sendAssociationRequest(AssociateRequestCmd& associateRequestCmd, mlme_sap::ASSOCIATE::request_parameters& params);
-    void handleAssociationRequest(DSMEMessage* msg);
+    void handleAssociationRequest(IDSMEMessage* msg);
     void sendAssociationReply(AssociateReplyCmd& reply, IEEE802154MacAddress& deviceAddress);
-    void handleAssociationReply(DSMEMessage* msg);
+    void handleAssociationReply(IDSMEMessage* msg);
 
     void sendDisassociationRequest(DisassociationNotifyCmd& req, mlme_sap::DISASSOCIATE::request_parameters& params);
-    void handleDisassociationRequest(DSMEMessage* msg);
+    void handleDisassociationRequest(IDSMEMessage* msg);
 
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
     void handleStartOfCFP(uint8_t superframe);
 

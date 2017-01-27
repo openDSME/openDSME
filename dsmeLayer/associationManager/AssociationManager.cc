@@ -82,7 +82,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
 
     messageSent = false;
 
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     req.prependTo(msg);
     MACCommand cmd;
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_REQUEST);
@@ -110,7 +110,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     }
 }
 
-void AssociationManager::handleAssociationRequest(DSMEMessage* msg) {
+void AssociationManager::handleAssociationRequest(IDSMEMessage* msg) {
     AssociateRequestCmd req;
     req.decapsulateFrom(msg);
 
@@ -134,7 +134,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
 
     LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
 
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     reply.prependTo(msg);
     MACCommand cmd;
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_RESPONSE);
@@ -157,7 +157,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     }
 }
 
-void AssociationManager::handleAssociationReply(DSMEMessage* msg) {
+void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
     dsme_atomicBegin();
     if(!actionPending || currentAction != CommandFrameIdentifier::ASSOCIATION_REQUEST) {
         // No association pending, for example because of an ACK timeout
@@ -214,7 +214,7 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
 
     messageSent = false;
 
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     req.prependTo(msg);
     MACCommand cmd;
     cmd.setCmdId(CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION);
@@ -249,7 +249,7 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
     }
 }
 
-void AssociationManager::handleDisassociationRequest(DSMEMessage* msg) {
+void AssociationManager::handleDisassociationRequest(IDSMEMessage* msg) {
     DisassociationNotifyCmd req;
     req.decapsulateFrom(msg);
 
@@ -263,7 +263,7 @@ void AssociationManager::handleDisassociationRequest(DSMEMessage* msg) {
 /**
  * Gets called when CSMA Message was sent down to the PHY
  */
-void AssociationManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
+void AssociationManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     dsme_atomicBegin();
     if(!actionPending) {
         // Already received a response

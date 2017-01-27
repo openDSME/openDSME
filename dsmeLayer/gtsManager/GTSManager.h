@@ -87,13 +87,13 @@ public:
 private:
     static void fill(void);
 
-    void fill(DSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus);
+    void fill(IDSMEMessage* msg, GTSManagement& management, CommandFrameIdentifier cmdId, DataStatus::Data_Status dataStatus);
 
     void fill(uint16_t& deviceAddr, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd);
 
     void fill(uint16_t& deviceAddr, GTSManagement& management, GTSRequestCmd& requestCmd);
 
-    void fill(DSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd);
+    void fill(IDSMEMessage* msg, GTSManagement& management, GTSReplyNotifyCmd& replyNotifyCmd);
 };
 
 class GTSManager;
@@ -140,7 +140,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the message, true otherwise
      */
-    bool handleGTSRequest(DSMEMessage* msg);
+    bool handleGTSRequest(IDSMEMessage* msg);
 
     /**
      * Update slot allocation
@@ -151,7 +151,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the message, true otherwise
      */
-    bool handleGTSResponse(DSMEMessage* msg);
+    bool handleGTSResponse(IDSMEMessage* msg);
 
     /**
      * Update slot allocation on reception of GTS Notify
@@ -161,7 +161,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the message, true otherwise
      */
-    bool handleGTSNotify(DSMEMessage* msg);
+    bool handleGTSNotify(IDSMEMessage* msg);
 
     /**
      * This shall be called at the start of every CFP.
@@ -183,7 +183,7 @@ public:
      *
      * @return false if the GTSManager is busy and can not handle the message, true otherwise
      */
-    bool onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
+    bool onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
 private:
     /**
@@ -206,7 +206,7 @@ private:
     /**
      * Internal helper
      */
-    bool sendGTSCommand(uint8_t fsmId, DSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
+    bool sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
     bool checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabSpec, uint16_t addr, bool allChannels);
     unsigned getNumAllocatedGTS(bool direction);
     void sendNotify(GTSReplyNotifyCmd& reply, uint16_t sourceAddr, GTSManagement& man);
@@ -222,8 +222,8 @@ private:
     int8_t getFsmIdIdle();
     int8_t getFsmIdForRequest();
     int8_t getFsmIdForResponse(uint16_t destinationAddress);
-    int8_t getFsmIdFromResponseForMe(DSMEMessage* msg);
-    int8_t getFsmIdFromNotifyForMe(DSMEMessage* msg);
+    int8_t getFsmIdFromResponseForMe(IDSMEMessage* msg);
+    int8_t getFsmIdFromNotifyForMe(IDSMEMessage* msg);
 
     bool hasBusyFsm();
 

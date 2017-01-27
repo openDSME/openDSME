@@ -75,7 +75,7 @@ void CAPLayer::dispatchCCAResult(bool success) {
     DSME_ASSERT(dispatchSuccessful);
 }
 
-void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
+void CAPLayer::sendDone(AckLayerResponse response, IDSMEMessage* msg) {
     uint8_t signal;
     switch(response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
@@ -97,7 +97,7 @@ void CAPLayer::sendDone(AckLayerResponse response, DSMEMessage* msg) {
     DSME_ASSERT(dispatchSuccessful);
 }
 
-bool CAPLayer::pushMessage(DSMEMessage* msg) {
+bool CAPLayer::pushMessage(IDSMEMessage* msg) {
     LOG_DEBUG("push " << (uint64_t)msg);
 
     bool pushed = false;
@@ -249,7 +249,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
  * Actions & Helpers
  *****************************/
 uint16_t CAPLayer::symbolsRequired() {
-    DSMEMessage* msg = queue.front();
+    IDSMEMessage* msg = queue.front();
     uint16_t symbols = 0;
     symbols += 8; // CCA
     symbols += msg->getTotalSymbols();
@@ -292,7 +292,7 @@ bool CAPLayer::enoughTimeLeft() {
 }
 
 void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
-    DSMEMessage* msg = queue.front();
+    IDSMEMessage* msg = queue.front();
     queue.pop();
 
     LOG_DEBUG("pop " << (uint64_t)msg);

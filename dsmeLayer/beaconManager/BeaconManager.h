@@ -68,7 +68,7 @@ public:
     /**
      * Called on reception of an EnhancedBeacon
      */
-    bool handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr);
+    bool handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& descr);
 
     uint32_t getLastKnownBeaconIntervalStart() const {
         return lastKnownBeaconIntervalStart;
@@ -80,7 +80,7 @@ public:
     // TODO data size
     uint16_t getNumHeardBeacons() const;
 
-    void handleBeacon(DSMEMessage* msg);
+    void handleBeacon(IDSMEMessage* msg);
 
     bool isScanning() const;
 
@@ -96,23 +96,23 @@ public:
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
     /**
      * Handle reception of beacon collision notification.
      * Update beacon allocation
      */
-    void handleBeaconCollision(DSMEMessage*);
+    void handleBeaconCollision(IDSMEMessage*);
 
     /**
      * Called on reception of an BeaconAllocationNotification
      */
-    void handleBeaconAllocation(DSMEMessage*);
+    void handleBeaconAllocation(IDSMEMessage*);
 
     /**
      * Called on reception of an BeaconRequest
      */
-    void handleBeaconRequest(DSMEMessage*);
+    void handleBeaconRequest(IDSMEMessage*);
 
 protected:
     DSMELayer& dsme;
@@ -152,7 +152,7 @@ protected:
      */
     void sendBeaconCollisionNotification(uint16_t beaconSDIndex, const IEEE802154MacAddress& addr);
 
-    void sendDone(enum AckLayerResponse result, DSMEMessage* msg);
+    void sendDone(enum AckLayerResponse result, IDSMEMessage* msg);
 
     AckLayer::done_callback_t doneCallback;
 

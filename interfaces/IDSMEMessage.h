@@ -72,6 +72,16 @@ public:
     virtual uint16_t getTotalSymbols() = 0;
 
     virtual IEEE802154eMACHeader& getHeader() = 0;
+
+    virtual uint8_t getLQI() = 0;
+
+    virtual bool getReceivedViaMCPS() = 0;
+
+    virtual void setReceivedViaMCPS(bool receivedViaMCPS) = 0;
+
+    virtual bool getCurrentlySending() = 0;
+
+    virtual void setCurrentlySending(bool currentlySending) = 0;
 };
 
 } /* dsme */

@@ -58,7 +58,7 @@ namespace dsme {
 /* TYPES *********************************************************************/
 
 typedef uint8_t neighbor_size_t;
-class DSMEMessage;
+class IDSMEMessage;
 
 /* CLASSES *******************************************************************/
 
@@ -68,7 +68,7 @@ class DSMEMessage;
 template <uint8_t N>
 class NeighborQueue {
 public:
-    typedef RBTree<NeighborListEntry<DSMEMessage>, IEEE802154MacAddress>::iterator iterator;
+    typedef RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator iterator;
 
     iterator begin();
 
@@ -98,11 +98,11 @@ public:
     queue_size_t getPacketsInQueue(const iterator& neighbor) const;
     bool isQueueEmpty(iterator& neighbor);
 
-    DSMEMessage* front(iterator& neighbor);
+    IDSMEMessage* front(iterator& neighbor);
 
-    DSMEMessage* popFront(iterator& neighbor);
+    IDSMEMessage* popFront(iterator& neighbor);
 
-    void pushBack(iterator& neighbor, DSMEMessage* msg);
+    void pushBack(iterator& neighbor, IDSMEMessage* msg);
 
     void flushQueues(bool keepFront);
 
@@ -111,8 +111,8 @@ public:
     }
 
 private:
-    DynamicMultiMessageQueue<DSMEMessage, TOTAL_GTS_QUEUE_SIZE, 1> queue;
-    RBTree<NeighborListEntry<DSMEMessage>, IEEE802154MacAddress> neighbors;
+    DynamicMultiMessageQueue<IDSMEMessage, TOTAL_GTS_QUEUE_SIZE, 1> queue;
+    RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress> neighbors;
 };
 
 /* FUNCTION DEFINITIONS ******************************************************/
@@ -130,7 +130,7 @@ const typename NeighborQueue<N>::iterator NeighborQueue<N>::end() const {
 template <uint8_t N>
 void NeighborQueue<N>::addNeighbor(Neighbor& neighbor) {
     if(neighbors.size() < N) {
-        neighbors.insert(NeighborListEntry<DSMEMessage>(neighbor), neighbor.address);
+        neighbors.insert(NeighborListEntry<IDSMEMessage>(neighbor), neighbor.address);
         return;
     } else {
         return;
@@ -171,17 +171,17 @@ bool NeighborQueue<N>::isQueueEmpty(iterator& neighbor) {
 }
 
 template <uint8_t N>
-DSMEMessage* NeighborQueue<N>::front(iterator& neighbor) {
+IDSMEMessage* NeighborQueue<N>::front(iterator& neighbor) {
     return queue.front(*neighbor);
 }
 
 template <uint8_t N>
-DSMEMessage* NeighborQueue<N>::popFront(iterator& neighbor) {
+IDSMEMessage* NeighborQueue<N>::popFront(iterator& neighbor) {
     return queue.pop_front(*neighbor);
 }
 
 template <uint8_t N>
-void NeighborQueue<N>::pushBack(iterator& neighbor, DSMEMessage* msg) {
+void NeighborQueue<N>::pushBack(iterator& neighbor, IDSMEMessage* msg) {
     queue.push_back(*neighbor, msg);
     return;
 }

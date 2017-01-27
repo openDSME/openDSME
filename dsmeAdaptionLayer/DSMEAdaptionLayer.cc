@@ -114,7 +114,7 @@ void DSMEAdaptionLayer::setConfirmCallback(confirmCallback_t callback_confirm) {
     return;
 }
 
-void DSMEAdaptionLayer::receiveIndication(DSMEMessage* msg) {
+void DSMEAdaptionLayer::receiveIndication(IDSMEMessage* msg) {
     if(this->callback_indication) {
         callback_indication(msg);
     }
@@ -125,8 +125,8 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
     if(this->retryBuffer.hasCurrent()) {
         DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
         do {
-            DSMEMessage* currentMessage = this->retryBuffer.current()->message;
-            DSME_ASSERT(!currentMessage->currentlySending);
+            IDSMEMessage* currentMessage = this->retryBuffer.current()->message;
+            DSME_ASSERT(!currentMessage->getCurrentlySending());
 
             this->retryBuffer.advanceCurrent();
             sendMessageDown(currentMessage, false);
@@ -134,7 +134,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
     }
 }
 
-void DSMEAdaptionLayer::sendMessage(DSMEMessage* msg) {
+void DSMEAdaptionLayer::sendMessage(IDSMEMessage* msg) {
     LOG_INFO("Sending DATA message");
 
     sendMessageDown(msg, true);
@@ -157,14 +157,14 @@ void DSMEAdaptionLayer::startAssociation() {
     }
 }
 
-void DSMEAdaptionLayer::sendMessageDown(DSMEMessage* msg, bool newMessage) {
+void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
     if(msg == nullptr) {
         /* '-> Error! */
         DSME_ASSERT(false);
         return;
     }
-    DSME_ASSERT(!msg->currentlySending);
-    msg->currentlySending = true;
+    DSME_ASSERT(!msg->getCurrentlySending());
+    msg->setCurrentlySending(true);
 
     msg->getHeader().setSrcAddr(this->mac_pib->macExtendedAddress);
     IEEE802154MacAddress& dst = msg->getHeader().getDestAddr();
@@ -260,7 +260,7 @@ void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameter
     return;
 }
 
-bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
+bool DSMEAdaptionLayer::queueMessageIfPossible(IDSMEMessage* msg) {
     if(!this->retryBuffer.hasNext()) {
         DSME_ASSERT(this->retryBuffer.hasCurrent());
 
@@ -273,7 +273,7 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
             return true;
         }
 
-        if(!oldestEntry->message->currentlySending) {
+        if(!oldestEntry->message->getCurrentlySending()) {
             uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
             LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress() << ": Retry-Queue overflow ("
                                   << currentSymbolCounter - oldestEntry->initialSymbolCounter << " symbols old)");
@@ -293,10 +293,10 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(DSMEMessage* msg) {
 
 void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params) {
     LOG_DEBUG("Received DATA confirm from MCPS");
-    DSMEMessage* msg = params.msduHandle;
+    IDSMEMessage* msg = params.msduHandle;
 
-    DSME_ASSERT(msg->currentlySending);
-    msg->currentlySending = false;
+    DSME_ASSERT(msg->getCurrentlySending());
+    msg->setCurrentlySending(false);
 
     if(params.status != DataStatus::SUCCESS) {
         /* TODO

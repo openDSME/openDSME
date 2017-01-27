@@ -50,7 +50,7 @@ namespace dsme {
 
 enum AckLayerResponse { SEND_FAILED, NO_ACK_REQUESTED, ACK_FAILED, ACK_SUCCESSFUL, SEND_ABORTED };
 
-class DSMEMessage;
+class IDSMEMessage;
 class DSMELayer;
 
 class AckEvent : public FSMEvent {
@@ -72,7 +72,7 @@ public:
 
 class AckLayer : private FSM<AckLayer, AckEvent> {
 public:
-    typedef Delegate<void(enum AckLayerResponse, DSMEMessage* msg)> done_callback_t;
+    typedef Delegate<void(enum AckLayerResponse, IDSMEMessage* msg)> done_callback_t;
 
     explicit AckLayer(DSMELayer& dsme);
 
@@ -82,12 +82,12 @@ public:
      * Only waits for an acknowledgment if the AR bit in the frame control field is set.
      * @return true, if message was accepted and the doneCallback is pending
      */
-    bool prepareSendingCopy(DSMEMessage* msg, done_callback_t doneCallback);
+    bool prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallback);
     void sendNowIfPending();
     void abortPreparedTransmission();
 
     void sendAdditionalAck(uint8_t seqNum);
-    void receive(DSMEMessage* msg);
+    void receive(IDSMEMessage* msg);
     void dispatchTimer();
 
 private:
@@ -108,7 +108,7 @@ private:
      */
     bool busy;
 
-    DSMEMessage* pendingMessage;
+    IDSMEMessage* pendingMessage;
     done_callback_t externalDoneCallback;
     const Delegate<void(bool)> internalDoneCallback;
 };

@@ -132,8 +132,8 @@ void BeaconManager::superframeEvent(int32_t lateness) {
 }
 
 void BeaconManager::prepareEnhancedBeacon(uint32_t startSlotTime) {
-    ASSERT(!transmissionPending);
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    DSME_ASSERT(!transmissionPending);
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(startSlotTime * symbolDurationInMicroseconds);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
@@ -165,7 +165,7 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t startSlotTime) {
 }
 
 void BeaconManager::sendEnhancedBeaconRequest() {
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     MACCommand cmd;
     cmd.setCmdId(CommandFrameIdentifier::BEACON_REQUEST);
@@ -188,7 +188,7 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     }
 }
 
-bool BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& descr) {
+bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& descr) {
     if(dsme.getMAC_PIB().macIsPANCoord) {
         /* '-> This function should not be called for PAN-coordinators */
         DSME_ASSERT(false);
@@ -248,7 +248,7 @@ bool BeaconManager::handleEnhancedBeacon(DSMEMessage* msg, DSMEPANDescriptor& de
 
 void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
     LOG_INFO("Attempting to allocate BEACON at index " << beaconSDIndex << ".");
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     BeaconNotificationCmd cmd;
     cmd.setBeaconSDIndex(beaconSDIndex);
@@ -280,7 +280,8 @@ void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
     }
 }
 
-void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
+void BeaconManager::handleBeaconAllocation(IDSMEMessage* msg) {
+    // TODO check if self has sent allocation to same slot -> abort CSMA transmission
     BeaconNotificationCmd beaconAlloc;
     beaconAlloc.decapsulateFrom(msg);
 
@@ -299,7 +300,7 @@ void BeaconManager::handleBeaconAllocation(DSMEMessage* msg) {
     }
 }
 
-void BeaconManager::handleBeaconRequest(DSMEMessage* msg) {
+void BeaconManager::handleBeaconRequest(IDSMEMessage* msg) {
     // TODO
     if(!this->dsme.getMAC_PIB().macIsCoord && this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         LOG_INFO("Received BEACON-REQUEST, turning into a coordinator now.");
@@ -312,7 +313,7 @@ void BeaconManager::sendBeaconCollisionNotification(uint16_t beaconSDIndex, cons
     LOG_INFO("Informing about BEACON-collision at index " << beaconSDIndex << ".");
     numBeaconCollision++;
 
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     BeaconNotificationCmd cmd;
     cmd.setBeaconSDIndex(beaconSDIndex);
@@ -336,7 +337,7 @@ void BeaconManager::sendBeaconCollisionNotification(uint16_t beaconSDIndex, cons
     }
 }
 
-void BeaconManager::handleBeaconCollision(DSMEMessage* msg) {
+void BeaconManager::handleBeaconCollision(IDSMEMessage* msg) {
     BeaconNotificationCmd cmd;
     cmd.decapsulateFrom(msg);
 
@@ -345,7 +346,7 @@ void BeaconManager::handleBeaconCollision(DSMEMessage* msg) {
     neighborOrOwnHeardBeacons.set(cmd.getBeaconSDIndex(), true);
 }
 
-void BeaconManager::onCSMASent(DSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
+void BeaconManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     if(cmdId == DSME_BEACON_ALLOCATION_NOTIFICATION && status == DataStatus::SUCCESS) {
         if(dsme.getMAC_PIB().macIsCoord && isBeaconAllocationSent) {
             isBeaconAllocated = true;
@@ -360,12 +361,12 @@ uint16_t BeaconManager::getNumHeardBeacons() const {
     return heardBeacons.getAllocatedCount();
 }
 
-void BeaconManager::sendDone(enum AckLayerResponse result, DSMEMessage* msg) {
+void BeaconManager::sendDone(enum AckLayerResponse result, IDSMEMessage* msg) {
     dsme.getPlatform().releaseMessage(msg);
     transmissionPending = false;
 }
 
-void BeaconManager::handleBeacon(DSMEMessage* msg) {
+void BeaconManager::handleBeacon(IDSMEMessage* msg) {
     if(dsme.getMAC_PIB().macIsPANCoord) {
         //* '-> do not handle beacon as PAN coordinator */
         LOG_INFO("A PAN-coordinator does not handle BEACONS -> discard");

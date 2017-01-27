@@ -53,7 +53,7 @@ POLL::POLL(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void POLL::request(request_parameters& params) {
-    DSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+    IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     /*IEEE802.15.4-2011 5.3.4*/
     MACCommand cmd;

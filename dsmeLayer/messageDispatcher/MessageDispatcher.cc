@@ -60,7 +60,7 @@ MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
 MessageDispatcher::~MessageDispatcher() {
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(!this->neighborQueue.isQueueEmpty(it)) {
-            DSMEMessage* msg = neighborQueue.popFront(it);
+            IDSMEMessage* msg = neighborQueue.popFront(it);
             this->dsme.getPlatform().releaseMessage(msg);
         }
     }
@@ -76,7 +76,7 @@ void MessageDispatcher::reset(void) {
 
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(!this->neighborQueue.isQueueEmpty(it)) {
-            DSMEMessage* msg = neighborQueue.popFront(it);
+            IDSMEMessage* msg = neighborQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
             params.msduHandle = msg;
             params.Timestamp = 0;
@@ -140,7 +140,7 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
     return true;
 }
 
-void MessageDispatcher::receive(DSMEMessage* msg) {
+void MessageDispatcher::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader macHdr = msg->getHeader();
 
     switch(macHdr.getFrameType()) {
@@ -219,7 +219,7 @@ void MessageDispatcher::receive(DSMEMessage* msg) {
     return;
 }
 
-void MessageDispatcher::createDataIndication(DSMEMessage* msg) {
+void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
     mcps_sap::DATA_indication_parameters params;
@@ -248,7 +248,7 @@ void MessageDispatcher::createDataIndication(DSMEMessage* msg) {
     this->dsme.getMCPS_SAP().getDATA().notify_indication(params);
 }
 
-bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt) {
+bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt) {
     DSME_ASSERT(!msg->getHeader().getDestAddr().isBroadcast());
     DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
     DSME_ASSERT(destIt != neighborQueue.end());
@@ -273,7 +273,7 @@ bool MessageDispatcher::sendInGTS(DSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>
     }
 }
 
-bool MessageDispatcher::sendInCAP(DSMEMessage* msg) {
+bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
     numUpperPacketsForCAP++;
     LOG_INFO("Inserting message into CAP queue.");
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
@@ -316,7 +316,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 lastSendGTSNeighbor = neighborQueue.end();
                 numUnusedTxGts++;
             } else {
-                DSMEMessage* msg = neighborQueue.front(lastSendGTSNeighbor);
+                IDSMEMessage* msg = neighborQueue.front(lastSendGTSNeighbor);
 
                 // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
 
@@ -340,7 +340,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
     }
 }
 
-void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
+void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     DSME_ASSERT(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end());
 
     numRxGtsFrames++;
@@ -355,8 +355,8 @@ void MessageDispatcher::handleGTSFrame(DSMEMessage* msg) {
     createDataIndication(msg);
 }
 
-void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs) {
-    if(msg->receivedViaMCPS) {
+void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs) {
+    if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
         params.Timestamp = 0; // TODO
@@ -404,7 +404,7 @@ void MessageDispatcher::onCSMASent(DSMEMessage* msg, DataStatus::Data_Status sta
     }
 }
 
-void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, DSMEMessage* msg) {
+void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg) {
     LOG_DEBUG("sendDoneGTS");
 
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());

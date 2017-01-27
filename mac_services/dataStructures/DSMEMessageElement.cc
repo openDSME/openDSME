@@ -47,15 +47,15 @@
 namespace dsme {
 
 // TODO remove those
-void DSMEMessageElement::prependTo(DSMEMessage* msg) {
+void DSMEMessageElement::prependTo(IDSMEMessage* msg) {
     msg->prependFrom(this);
 }
 
-void DSMEMessageElement::decapsulateFrom(DSMEMessage* msg) {
+void DSMEMessageElement::decapsulateFrom(IDSMEMessage* msg) {
     msg->decapsulateTo(this);
 }
 
-void DSMEMessageElement::copyFrom(DSMEMessage* msg) {
+void DSMEMessageElement::copyFrom(IDSMEMessage* msg) {
     msg->copyTo(this);
 }
 }

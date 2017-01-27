@@ -79,7 +79,7 @@ public:
 
 struct DSMEAdaptionLayerBufferEntry {
 public:
-    DSMEMessage* message;
+    IDSMEMessage* message;
     uint32_t initialSymbolCounter;
 };
 
@@ -89,8 +89,8 @@ public:
  */
 class DSMEAdaptionLayer {
 public:
-    typedef Delegate<void(DSMEMessage* msg)> indicationCallback_t;
-    typedef Delegate<void(DSMEMessage* msg, DataStatus::Data_Status dataStatus)> confirmCallback_t;
+    typedef Delegate<void(IDSMEMessage* msg)> indicationCallback_t;
+    typedef Delegate<void(IDSMEMessage* msg, DataStatus::Data_Status dataStatus)> confirmCallback_t;
 
     explicit DSMEAdaptionLayer(DSMELayer&);
 
@@ -106,7 +106,7 @@ public:
 
     DSMELayer& getDSME();
 
-    void sendMessage(DSMEMessage* msg);
+    void sendMessage(IDSMEMessage* msg);
 
     void setIndicationCallback(indicationCallback_t);
 
@@ -120,11 +120,11 @@ public:
     DSMEAdaptionLayerSettings settings;
 
 private:
-    void sendMessageDown(DSMEMessage* msg, bool newMessage);
+    void sendMessageDown(IDSMEMessage* msg, bool newMessage);
 
-    void receiveIndication(DSMEMessage* msg);
+    void receiveIndication(IDSMEMessage* msg);
 
-    bool queueMessageIfPossible(DSMEMessage* msg);
+    bool queueMessageIfPossible(IDSMEMessage* msg);
 
     void handleDataIndication(mcps_sap::DATA_indication_parameters& params);
 
