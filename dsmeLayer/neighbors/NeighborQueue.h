@@ -50,7 +50,7 @@
 #include "../../../dsme_settings.h"
 #include "../../mac_services/dataStructures/RBTree.h"
 #include "../../mac_services/dataStructures/RBTreeIterator.h"
-#include "DynamicMultiMessageQueue.h"
+#include "MultiMessageQueue.h"
 #include "Neighbor.h"
 
 namespace dsme {
@@ -111,7 +111,7 @@ public:
     }
 
 private:
-    DynamicMultiMessageQueue<IDSMEMessage, TOTAL_GTS_QUEUE_SIZE, 1> queue;
+    MultiMessageQueue<IDSMEMessage, TOTAL_GTS_QUEUE_SIZE> queue;
     RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress> neighbors;
 };
 
