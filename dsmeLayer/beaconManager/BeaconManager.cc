@@ -133,7 +133,7 @@ void BeaconManager::superframeEvent(int32_t lateness, uint32_t currentSlotTime) 
 }
 
 void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
-    ASSERT(!transmissionPending);
+    DSME_ASSERT(!transmissionPending);
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * symbolDurationInMicroseconds);
