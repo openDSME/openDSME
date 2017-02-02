@@ -149,11 +149,11 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
+    transmissionPending = true;
     if(!dsme.getAckLayer().prepareSendingCopy(msg, doneCallback)) {
         // message could not be sent
         dsme.getPlatform().releaseMessage(msg);
     } else {
-        transmissionPending = true;
         LOG_DEBUG("Beacon sent");
     }
 

@@ -311,6 +311,10 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::CHANNEL_ACCESS_FAILURE;
                             break;
+                        case DataStatus::TRANSACTION_EXPIRED:
+                            actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+                            data[fsmId].pendingConfirm.status = GTSStatus::TRANSACTION_OVERFLOW; // TODO TRANSACTION_EXPIRED not available!
+                            break;
                         default:
                             DSME_ASSERT(false);
                     }

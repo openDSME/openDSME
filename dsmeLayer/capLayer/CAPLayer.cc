@@ -213,7 +213,8 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
-            DSME_ASSERT(false);
+            // currently receiving external interference
+            return choiceRebackoff();
         }
         dsme.getAckLayer().sendNowIfPending();
 

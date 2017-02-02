@@ -212,7 +212,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 
         default: {
             LOG_ERROR((uint16_t)macHdr.getFrameType());
-            DSME_ASSERT(false); // TODO handle other frame types
+            dsme.getPlatform().releaseMessage(msg);
         }
     }
     return;
@@ -326,10 +326,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 if(result) {
                     dsme.getAckLayer().sendNowIfPending();
                 } else {
-                    // message could not be sent
-                    DSME_ASSERT(false); // the ACK layer is still busy, but we have an assigned slot, something is wrong, probably DSMECSMA::symbolsRequired()
-                    neighborQueue.popFront(lastSendGTSNeighbor);
-                    lastSendGTSNeighbor = neighborQueue.end();
+                    // message could not be sent -> probably currently receiving external interference
+                    sendDoneGTS(AckLayerResponse::SEND_FAILED, msg);
                 }
 
                 // statistics
