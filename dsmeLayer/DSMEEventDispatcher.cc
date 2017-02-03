@@ -86,14 +86,12 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 /********** Setup Methods **********/
 
 uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
-    auto symbols_per_slot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t symbols_per_slot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     uint32_t next_slot_time = lastSlotTime + symbols_per_slot;
-    uint32_t pre_slot_time = next_slot_time - PRE_EVENT_SHIFT;
 
     dsme_atomicBegin();
-    if(pre_slot_time <= NOW + 1) {
+    if(next_slot_time - PRE_EVENT_SHIFT <= NOW + 1) {
         next_slot_time += symbols_per_slot;
-        pre_slot_time += symbols_per_slot;
     }
     DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
     DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);

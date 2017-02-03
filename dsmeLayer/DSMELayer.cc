@@ -188,8 +188,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     if(this->trackingBeacons) {
         auto now = platform->getSymbolCounter();
         currentSlotTime = now - (now - beaconManager.getLastKnownBeaconIntervalStart()) % getMAC_PIB().helper.getSymbolsPerSlot();
-    }
-    else {
+    } else {
         currentSlotTime = this->nextSlotTime;
     }
 
