@@ -82,6 +82,10 @@ public:
     virtual bool getCurrentlySending() = 0;
 
     virtual void setCurrentlySending(bool currentlySending) = 0;
+
+    virtual void increaseRetryCounter() = 0;
+
+    virtual uint8_t getRetryCounter() = 0;
 };
 
 } /* dsme */

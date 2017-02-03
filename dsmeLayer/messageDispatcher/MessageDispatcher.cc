@@ -406,6 +406,17 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
+
+    if(response != AckLayerResponse::NO_ACK_REQUESTED
+       && response != AckLayerResponse::ACK_SUCCESSFUL) {
+        // not successful -> retry?
+        if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
+            msg->increaseRetryCounter();
+            lastSendGTSNeighbor = neighborQueue.end();
+            return; // will stay at front of queue
+        }
+    }
+
     neighborQueue.popFront(lastSendGTSNeighbor);
     lastSendGTSNeighbor = neighborQueue.end();
 
