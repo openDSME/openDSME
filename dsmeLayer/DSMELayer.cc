@@ -130,6 +130,8 @@ void DSMELayer::doReset() {
     this->currentSuperframe = 0;
     this->currentMultiSuperframe = 0;
 
+    this->trackingBeacons = false;
+
     dsme_atomicEnd();
 
     /* restart slot timer */
