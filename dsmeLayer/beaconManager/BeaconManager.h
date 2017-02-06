@@ -77,9 +77,6 @@ public:
     void preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t nextSlotTime);
     void superframeEvent(int32_t lateness, uint32_t currentSlotTime);
 
-    // TODO data size
-    uint16_t getNumHeardBeacons() const;
-
     void handleBeacon(IDSMEMessage* msg);
 
     bool isScanning() const;
@@ -122,7 +119,6 @@ protected:
 
     uint32_t lastKnownBeaconIntervalStart;
 
-    BeaconBitmap heardBeacons;
     BeaconBitmap neighborOrOwnHeardBeacons;
 
     DSMEPANDescriptor dsmePANDescriptor;

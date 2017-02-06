@@ -319,8 +319,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
 
                 // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
 
-                DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >=
-                            lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().macAckWaitDuration + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
+                DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().helper.getAckWaitDuration() +
+                                                                                10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
                 bool result = dsme.getAckLayer().prepareSendingCopy(msg, doneGTS);
                 if(result) {

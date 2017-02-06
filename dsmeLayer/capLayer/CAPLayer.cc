@@ -254,8 +254,8 @@ uint16_t CAPLayer::symbolsRequired() {
     uint16_t symbols = 0;
     symbols += 8; // CCA
     symbols += msg->getTotalSymbols();
-    symbols += dsme.getMAC_PIB().macAckWaitDuration; // ACK
-    symbols += 10;                                   // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
+    symbols += dsme.getMAC_PIB().helper.getAckWaitDuration(); // ACK
+    symbols += 10;                                            // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
     return symbols;
 }
 

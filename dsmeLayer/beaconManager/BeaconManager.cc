@@ -73,7 +73,7 @@ BeaconManager::BeaconManager(DSMELayer& dsme)
 
 void BeaconManager::initialize() {
     dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
-    heardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    this->dsme.getMAC_PIB().macSdBitmap.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
     neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
 
     isBeaconAllocated = false;
@@ -106,7 +106,7 @@ void BeaconManager::reset() {
 
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
 
-    this->heardBeacons.fill(false);
+    this->dsme.getMAC_PIB().macSdBitmap.fill(false);
     this->neighborOrOwnHeardBeacons.fill(false);
 }
 
@@ -198,7 +198,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     }
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
-    heardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
+    this->dsme.getMAC_PIB().macSdBitmap.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
 
@@ -266,7 +266,7 @@ void BeaconManager::sendBeaconAllocationNotification(uint16_t beaconSDIndex) {
 
     // Update PANDDescription
     dsmePANDescriptor.getBeaconBitmap().setSDIndex(beaconSDIndex);
-    dsmePANDescriptor.getBeaconBitmap().copyBitsFrom(heardBeacons);
+    dsmePANDescriptor.getBeaconBitmap().copyBitsFrom(this->dsme.getMAC_PIB().macSdBitmap);
 
     isBeaconAllocationSent = true;
 
@@ -285,12 +285,12 @@ void BeaconManager::handleBeaconAllocation(IDSMEMessage* msg) {
     uint16_t heardBeaconSDIndex = beaconAlloc.getBeaconSDIndex();
 
     bool collidesWithOwnBeacon = this->isBeaconAllocated && (ownBeaconSDIndex == heardBeaconSDIndex);
-    bool collidesWithHeardBeacon = this->heardBeacons.get(heardBeaconSDIndex);
+    bool collidesWithHeardBeacon = this->dsme.getMAC_PIB().macSdBitmap.get(heardBeaconSDIndex);
 
     if(collidesWithOwnBeacon || collidesWithHeardBeacon) {
         sendBeaconCollisionNotification(heardBeaconSDIndex, msg->getHeader().getSrcAddr());
     } else {
-        this->heardBeacons.set(heardBeaconSDIndex, true);
+        this->dsme.getMAC_PIB().macSdBitmap.set(heardBeaconSDIndex, true);
         this->neighborOrOwnHeardBeacons.set(heardBeaconSDIndex, true);
         // TODO when to remove heardBeacons in case of collision elsewhere?
     }
@@ -351,10 +351,6 @@ void BeaconManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, 
     }
 
     dsme.getPlatform().releaseMessage(msg);
-}
-
-uint16_t BeaconManager::getNumHeardBeacons() const {
-    return heardBeacons.getAllocatedCount();
 }
 
 void BeaconManager::sendDone(enum AckLayerResponse result, IDSMEMessage* msg) {

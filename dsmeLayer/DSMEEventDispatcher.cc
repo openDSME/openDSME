@@ -111,7 +111,7 @@ void DSMEEventDispatcher::setupCSMATimer(uint32_t absSymCnt) {
 
 void DSMEEventDispatcher::setupACKTimer() {
     dsme_atomicBegin();
-    uint32_t ackTimeout = dsme.getMAC_PIB().macAckWaitDuration + NOW;
+    uint32_t ackTimeout = dsme.getMAC_PIB().helper.getAckWaitDuration() + NOW;
     DSMETimerMultiplexer::_startTimer<ACK_TIMER>(ackTimeout, &DSMEEventDispatcher::fireACKTimer);
     DSMETimerMultiplexer::_scheduleTimer();
     dsme_atomicEnd();

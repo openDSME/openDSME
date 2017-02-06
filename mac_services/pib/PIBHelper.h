@@ -76,6 +76,8 @@ public:
 
     uint8_t getSubBlockLengthBytes() const;
 
+    uint16_t getAckWaitDuration() const;
+
 private:
     PHY_PIB& phy_pib;
     MAC_PIB& mac_pib;

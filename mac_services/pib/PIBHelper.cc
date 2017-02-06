@@ -107,4 +107,8 @@ uint8_t PIBHelper::getSubBlockLengthBytes() const {
     return (getNumGTSlots() * getNumChannels() - 1) / 8 + 1;
 }
 
+uint16_t PIBHelper::getAckWaitDuration() const {
+    return aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet;
+}
+
 } /* dsme */
