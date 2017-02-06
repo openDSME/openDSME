@@ -94,6 +94,7 @@ void BeaconManager::initialize() {
 void BeaconManager::reset() {
     isBeaconAllocated = false;
     isBeaconAllocationSent = false;
+    missedBeacons = 0;
 
     if(dsme.getMAC_PIB().macIsPANCoord) {
         dsmePANDescriptor.getBeaconBitmap().setSDIndex(0);
