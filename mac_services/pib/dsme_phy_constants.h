@@ -45,18 +45,31 @@
 
 namespace dsme {
 
-/*
- * This file contains all PHY constants as defined in IEEE 802.15.4-2011, 9.2, Table 70
+/**
+ * This file contains all PHY constants as defined in IEEE 802.15.4-2015, 11.3, Table 11-1
  */
 
-/* The maximum PSDU size (in octets) the PHY shall be able to receive. */
-constexpr uint8_t aMaxPHYPacketSize = 127;
+/*******************
+ *                 *
+ * FOR O-QPSK ONLY *
+ *                 *
+ *******************/
 
-/* RX-to-TX or TX-to-RX turnaround time (in symbol periods), as defined in 8.2.1 and 8.2.2. */
-constexpr uint8_t aTurnaroundTimeSymbols = 12;
+/** The maximum PSDU size (in octets) the PHY shall be able to receive. */
+constexpr uint8_t aMaxPHYPacketSize{127};
 
-constexpr uint8_t symbolDurationInMicroseconds = 16;
+/** RX-to-TX or TX-to-RX turnaround time (in symbol periods), as defined in 10.2.1 and 10.2.2 */
+constexpr uint8_t aTurnaroundTime{12};
 
-} /* dsme */
+/** The delay in microseconds between the start of the SFD and the LEIP, as described in 19.6. */
+constexpr uint16_t aLeipDelayTime{815};
+
+/** The time required to perform CCA detection. **/
+constexpr uint8_t aCcaTime{8};
+
+/** CUSTOM-ATTRIBUTE: The duration of one symbol in microseconds */
+constexpr uint8_t aSymbolDuration{16};
+
+} /* namespace dsme */
 
 #endif /* PHY_CONSTANTS_H */

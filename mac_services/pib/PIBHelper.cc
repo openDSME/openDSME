@@ -42,6 +42,7 @@
 
 #include "PIBHelper.h"
 
+#include "../../../dsme_platform.h"
 #include "MAC_PIB.h"
 #include "PHY_PIB.h"
 #include "dsme_mac_constants.h"

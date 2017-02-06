@@ -136,7 +136,7 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     DSME_ASSERT(!transmissionPending);
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
-    dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * symbolDurationInMicroseconds);
+    dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * aSymbolDuration);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
@@ -215,7 +215,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
 
     // -8 symbols for preamble
     // -2 symbols for SFD
-    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / symbolDurationInMicroseconds;
+    uint32_t offset = descr.getTimeSyncSpec().getBeaconOffsetTimestampMicroSeconds() / aSymbolDuration;
     lastKnownBeaconIntervalStart = msg->getStartOfFrameDelimiterSymbolCounter() -
                                    lastHeardBeaconSDIndex * aNumSuperframeSlots * dsme.getMAC_PIB().helper.getSymbolsPerSlot() - 8 - 2 - offset;
 
