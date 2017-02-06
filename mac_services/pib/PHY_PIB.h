@@ -55,39 +55,35 @@ typedef MacStaticList<uint8_t, 16> channelList_t;
  */
 class PHY_PIB {
 public:
-    explicit PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly = false);
-
-    PHY_PIB() = delete;
-    PHY_PIB(const PHY_PIB&) = delete;
-    PHY_PIB& operator=(const PHY_PIB&) = delete;
-
+    PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly = false);
     ~PHY_PIB();
 
-    /* The RF channel to use for all following transmissions and receptions, 8.1.2. */
-    /* Though it is not clearly described in the standard, we assume this value shall not be changed during channel
+    /** The RF channel to use for all following transmissions and receptions, 10.1.2.
+     * Though it is not clearly described in the standard, we assume this value shall not be changed during channel
      * hopping or channel adaption. For example IEEE 802.15.4-2015 6.3.3.4 does only mention the channel of MLME-START
      * shall be written to this value, so there seems to be no other way to store the common channel.
      */
-    uint8_t phyCurrentChannel;
+    uint8_t phyCurrentChannel{11};
 
-    /* Each entry in the list consists of a channel page and a list of channel numbers supported for that channel page. */
+    /** The transmit power of the device in dBm. */
+    int16_t phyTxPower{0};
+
+    /** This is the current PHY channel page. This is used in conjunction with phyCurrentChannel to uniquely identify the channel currently being used. */
+    uint8_t phyCurrentPage{0};
+
+    /** Each entry in the list consists of a channel page and a list of channel numbers supported for that channel page. */
     MacStaticList<MacTuple<uint8_t, channelList_t>*, 8> phyChannelsSupported;
 
-    /* This is the current PHY channel page. This is used in conjunction with phyCurrentChannel to
-     * uniquely identify the channel currently being used. */
-    uint8_t phyCurrentPage;
-
-    /* The duration of the synchronization header (SHR) in symbols for the current PHY. */
-    const uint8_t phySHRDuration;
+    /** TRUE if ranging is supported, FALSE otherwise. */
+    bool phyRanging{false};
 
     /* The number of symbols per octet for the current PHY. For the UWB PHY this is defined in 14.2.3. For the CSS PHY,
      * 1.3 corresponds to 1 Mb/s while 5.3 corresponds to 250 kb/s. */
-    const float phySymbolsPerOctet;
+    const float phySymbolsPerOctet{2.0};
 
-    /* The maximum number of symbols in a frame, as defined in 9.4. */
-    const uint16_t phyMaxFrameDuration;
+    uint8_t phySHRDuration;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* PHY_PIB_H_ */
