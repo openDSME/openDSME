@@ -138,7 +138,7 @@ void DSMEAdaptionLayer::sendMessage(IDSMEMessage* msg) {
     LOG_INFO("Sending DATA message");
 
     sendMessageDown(msg, true);
-    sendRetryBuffer();
+    // sendRetryBuffer();
 }
 
 void DSMEAdaptionLayer::startAssociation() {

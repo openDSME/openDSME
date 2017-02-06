@@ -407,8 +407,9 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
 
-    if(response != AckLayerResponse::NO_ACK_REQUESTED
-       && response != AckLayerResponse::ACK_SUCCESSFUL) {
+    if(response != AckLayerResponse::NO_ACK_REQUESTED && response != AckLayerResponse::ACK_SUCCESSFUL) {
+        currentACTElement->incrementIdleCounter();
+
         // not successful -> retry?
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
