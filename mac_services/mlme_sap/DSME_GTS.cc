@@ -108,5 +108,5 @@ void DSME_GTS::response(response_parameters& params) {
     }
 }
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */

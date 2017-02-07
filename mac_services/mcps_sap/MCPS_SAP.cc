@@ -65,5 +65,5 @@ uint8_t MCPS_SAP::getMessageCount(const IEEE802154MacAddress& addr) const {
     return this->dsme.getMessageDispatcher().getNeighborQueue().getPacketsInQueue(it);
 }
 
-} /* mcps_sap */
-} /* dsme */
+} /* namespace mcps_sap */
+} /* namespace dsme */

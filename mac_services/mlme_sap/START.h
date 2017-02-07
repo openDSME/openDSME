@@ -95,7 +95,7 @@ private:
     DSMELayer& dsme;
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* START_H_ */

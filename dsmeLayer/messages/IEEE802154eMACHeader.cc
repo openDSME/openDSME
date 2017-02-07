@@ -234,4 +234,5 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
 
     return true;
 }
-}
+
+} /* namespace dsme */

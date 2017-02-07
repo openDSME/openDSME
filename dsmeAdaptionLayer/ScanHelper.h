@@ -54,7 +54,7 @@ class DSMEAdaptionLayer;
 namespace mlme_sap {
 struct BEACON_NOTIFY_indication_parameters;
 struct SCAN_confirm_parameters;
-}
+} /* namespace mlme_sap */
 
 struct DSMEPANDescriptor;
 
@@ -93,6 +93,6 @@ private:
     bool syncActive;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* SCANHELPER_H_ */

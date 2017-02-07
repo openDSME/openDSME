@@ -69,7 +69,7 @@ public:
     void request(request_parameters);
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* SET_H_ */

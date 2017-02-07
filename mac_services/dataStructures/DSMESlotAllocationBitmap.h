@@ -85,6 +85,6 @@ private:
     uint8_t numChannels;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* DSMESLOTALLOCATIONBITMAP_H_ */

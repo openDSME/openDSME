@@ -63,4 +63,5 @@ void GTSManagement::serialize(Serializer& serializer) {
         status = GTSStatus::GTS_Status((man >> 5) & 0x07);
     }
 }
-}
+
+} /* namespace dsme */

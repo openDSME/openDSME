@@ -52,4 +52,4 @@ GTSData::GTSData()
       responsePartnerAddress(IEEE802154MacAddress::NO_SHORT_ADDRESS) {
 }
 
-} /* dsme */
+} /* namespace dsme */

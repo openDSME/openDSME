@@ -86,6 +86,6 @@ private:
     Delegate<void(I&)> callback_indication;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* INDICATIONBASE_H_ */

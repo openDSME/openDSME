@@ -5,7 +5,9 @@ import ntpath
 
 def main():
     output, errors = Popen(['grep -rn --include \*.h "#ifndef"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
-    print(errors.decode())
+    error_message = errors.decode()
+    if error_message != '':
+        print(error_message)
 
     violations = []
 
@@ -63,9 +65,10 @@ def main():
             violations.append(parts[0] + 'Line before #endif should be empty: ' + pre_closeline)
             continue
 
-    print(str('\n').join(violations))
+    if len(violations) > 0:
+        print(str('\n').join(violations))
 
-    print(str(len(violations)) + " violations found.")
+    print(str(len(violations)) + " violations among include guards found.")
 
 if __name__ == "__main__":
     main()

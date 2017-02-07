@@ -56,13 +56,13 @@ class DSMELayer;
 namespace mlme_sap {
 class MLME_SAP;
 struct SYNC_LOSS_indication_parameters;
-}
+} /* namespace mlme_sap */
 
 namespace mcps_sap {
 class MCPS_SAP;
 struct DATA_indication_parameters;
 struct DATA_confirm_parameters;
-}
+} /* namespace mcps_sap */
 
 class MAC_PIB;
 class PHY_PIB;
@@ -160,6 +160,6 @@ private:
     DSMERingBuffer<DSMEAdaptionLayerBufferEntry, UPPER_LAYER_QUEUE_SIZE> retryBuffer;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* DSMEADAPTIONLAYER_H_ */

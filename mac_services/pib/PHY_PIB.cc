@@ -73,4 +73,4 @@ PHY_PIB::~PHY_PIB() {
     }
 }
 
-} /* dsme */
+} /* namespace dsme */

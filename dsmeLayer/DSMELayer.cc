@@ -272,4 +272,5 @@ void DSMELayer::stopTrackingBeacons() {
 bool DSMELayer::isTrackingBeacons() const {
     return this->trackingBeacons;
 }
-}
+
+} /* namespace dsme */

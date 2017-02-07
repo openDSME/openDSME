@@ -413,4 +413,4 @@ void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disas
     reset();
 }
 
-} /* dsme */
+} /* namespace dsme */

@@ -157,7 +157,7 @@ private:
     DSMELayer& dsme;
 };
 
-} /* mcps_sap */
-} /* dsme */
+} /* namespace mcps_sap */
+} /* namespace dsme */
 
 #endif /* DATA_H_ */

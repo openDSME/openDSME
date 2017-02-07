@@ -384,4 +384,5 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         dsme_atomicEnd();
     }
 }
-}
+
+} /* namespace dsme */

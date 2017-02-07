@@ -51,6 +51,6 @@ namespace dsme {
 // TODO find a good maxValue
 typedef MacStaticList<PANDescriptor, 8> PanDescriptorList;
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* PANDESCRIPTORLIST_H_ */

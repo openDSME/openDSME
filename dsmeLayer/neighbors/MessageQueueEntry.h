@@ -61,6 +61,7 @@ struct MessageQueueEntry {
 template <typename T>
 MessageQueueEntry<T>::MessageQueueEntry() : value(nullptr), next(nullptr) {
 }
-}
+
+} /* namespace dsme */
 
 #endif /* MESSAGEQUEUEENTRY_H_ */

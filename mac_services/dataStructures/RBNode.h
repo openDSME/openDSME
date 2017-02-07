@@ -103,5 +103,7 @@ template <typename T, typename K>
 const T& RBNode<T, K>::getContent() const {
     return content;
 }
-}
+
+} /* namespace dsme */
+
 #endif /* RBNODE_H_ */

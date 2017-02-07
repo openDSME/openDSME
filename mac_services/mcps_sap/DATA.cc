@@ -132,5 +132,5 @@ void DATA::request(request_parameters& params) {
     return;
 }
 
-} /* mcps_sap */
-} /* dsme */
+} /* namespace mcps_sap */
+} /* namespace dsme */

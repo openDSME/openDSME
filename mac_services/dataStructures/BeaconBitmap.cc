@@ -162,4 +162,5 @@ Serializer& operator<<(Serializer& serializer, BeaconBitmap& b) {
 
     return serializer;
 }
-}
+
+} /* namespace dsme */

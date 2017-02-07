@@ -96,5 +96,5 @@ SYNC_LOSS& MLME_SAP::getSYNC_LOSS() {
     return this->sync_loss;
 }
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */

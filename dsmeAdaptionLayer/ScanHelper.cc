@@ -205,4 +205,4 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
     return;
 }
 
-} /* dsme */
+} /* namespace dsme */

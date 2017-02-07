@@ -65,5 +65,5 @@ void RESET::request(request_parameters& params) {
     return;
 }
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */

@@ -87,6 +87,6 @@ private:
     RBTree<GTSControllerData, uint16_t> links;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* GTSCONTROLLER_H_ */

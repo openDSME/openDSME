@@ -86,6 +86,6 @@ private:
     Delegate<void(C&)> callback_confirm;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* CONFIRMBASE_H_ */

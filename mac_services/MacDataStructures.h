@@ -129,7 +129,7 @@ private:
     uint8_t length;
     T array[S];
 };
-}
-/* dsme */
+
+} /* namespace dsme */
 
 #endif /* MACDATASTRUCTURES_H_ */

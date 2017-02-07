@@ -1000,4 +1000,4 @@ bool GTSManager::hasBusyFsm() {
     return busyFsm;
 }
 
-} /* dsme */
+} /* namespace dsme */

@@ -269,6 +269,7 @@ inline void MultiMessageQueue<T, S>::addToFree(MessageQueueEntry<T>* entry) {
     this->freeBack = entry;
     return;
 }
-}
+
+} /* namespace dsme */
 
 #endif /* MULTIMESSAGEQUEUE_H_ */

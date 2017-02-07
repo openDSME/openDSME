@@ -79,6 +79,6 @@ private:
     disassociationCompleteDelegate_t disassociationCompleteDelegate;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* ASSOCIATIONHELPER_H_ */

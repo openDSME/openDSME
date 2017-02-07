@@ -58,4 +58,5 @@ void DSMEMessageElement::decapsulateFrom(IDSMEMessage* msg) {
 void DSMEMessageElement::copyFrom(IDSMEMessage* msg) {
     msg->copyTo(this);
 }
-}
+
+} /* namespace dsme */

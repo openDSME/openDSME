@@ -271,4 +271,5 @@ Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv) {
 
     return serializer;
 }
-}
+
+} /* namespace dsme */

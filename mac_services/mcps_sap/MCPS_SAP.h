@@ -67,7 +67,7 @@ private:
     PURGE purge;
 };
 
-} /* mcps_sap */
-} /* dsme */
+} /* namespace mcps_sap */
+} /* namespace dsme */
 
 #endif /* MCPS_SAP_H_ */

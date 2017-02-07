@@ -455,4 +455,4 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
 }
 
-} /* dsme */
+} /* namespace dsme */

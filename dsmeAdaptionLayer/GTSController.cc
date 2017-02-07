@@ -162,4 +162,4 @@ uint16_t GTSController::getPriorityLink() {
     return address;
 }
 
-} /* dsme */
+} /* namespace dsme */

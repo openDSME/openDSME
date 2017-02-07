@@ -143,4 +143,5 @@ bool IEEE802154MacAddress::operator==(const IEEE802154MacAddress& other) const {
 bool IEEE802154MacAddress::operator!=(const IEEE802154MacAddress& other) const {
     return !((*this) == other);
 }
-}
+
+} /* namespace dsme */

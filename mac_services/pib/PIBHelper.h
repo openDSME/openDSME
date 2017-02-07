@@ -83,6 +83,6 @@ private:
     MAC_PIB& mac_pib;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
 #endif /* PIBHELPER_H_ */

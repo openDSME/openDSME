@@ -73,6 +73,7 @@ public:
 template <typename T>
 NeighborListEntry<T>::NeighborListEntry(Neighbor& neighbor) : Neighbor(neighbor), messageFront(nullptr), messageBack(nullptr), queueSize(0) {
 }
-}
+
+} /* namespace dsme */
 
 #endif /* NEIGHBORLISTENTRY_H_ */

@@ -639,5 +639,7 @@ void RBTree<T, K>::rotate_left(RBNode<T, K>* x) {
         leftgrandchild->parent = x;
     }
 }
-}
+
+} /* namespace dsme */
+
 #endif /* RBTREE_H_ */

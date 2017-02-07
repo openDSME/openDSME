@@ -303,4 +303,4 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs);
 }
 
-} /* dsme */
+} /* namespace dsme */

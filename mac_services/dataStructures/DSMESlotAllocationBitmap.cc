@@ -80,4 +80,4 @@ bool DSMESlotAllocationBitmap::isOccupied(abs_slot_idx_t idx) {
     return occupied.get(idx);
 }
 
-} /* dsme */
+} /* namespace dsme */

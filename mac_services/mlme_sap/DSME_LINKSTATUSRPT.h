@@ -74,7 +74,7 @@ public:
     void request(request_parameters);
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* DSME_LINKSTATUSRPT_H_ */

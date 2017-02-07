@@ -82,5 +82,5 @@ void ASSOCIATE::response(response_parameters& params) {
     associationManager.sendAssociationReply(reply, params.deviceAddress);
 }
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */

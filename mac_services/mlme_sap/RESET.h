@@ -72,7 +72,7 @@ private:
     DSMELayer& dsme;
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* RESET_H_ */

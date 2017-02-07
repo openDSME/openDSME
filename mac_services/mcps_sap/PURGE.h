@@ -72,7 +72,7 @@ public:
 private:
 };
 
-} /* mcps_sap */
-} /* dsme */
+} /* namespace mcps_sap */
+} /* namespace dsme */
 
 #endif /* PURGE_H_ */

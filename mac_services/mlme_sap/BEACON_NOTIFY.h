@@ -70,7 +70,7 @@ public:
     // only indication
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* BEACON_NOTIFY_H_ */

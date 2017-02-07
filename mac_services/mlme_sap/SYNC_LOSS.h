@@ -70,7 +70,7 @@ public:
      */
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* SYNC_LOSS_H_ */

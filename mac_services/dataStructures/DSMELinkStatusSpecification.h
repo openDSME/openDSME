@@ -62,5 +62,7 @@ public:
     uint8_t linkStatusDescriptorCount;
     LinkStatusDescriptors* linkStatusList;
 };
-}
+
+} /* namespace dsme */
+
 #endif /* DSMELINKSTATUSSPECIFICATION_H_ */

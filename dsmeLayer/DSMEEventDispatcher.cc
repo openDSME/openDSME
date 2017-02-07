@@ -126,4 +126,4 @@ void DSMEEventDispatcher::stopACKTimer() {
     return;
 }
 
-} /* dsme */
+} /* namespace dsme */

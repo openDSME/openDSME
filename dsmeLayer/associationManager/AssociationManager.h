@@ -88,6 +88,7 @@ private:
 
     uint8_t superframesSinceAssociationSent;
 };
-}
+
+} /* namespace dsme */
 
 #endif /* ASSOCIATIONMANAGER_H_ */

@@ -49,4 +49,4 @@ namespace dsme {
 MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) : helper(phy_pib, *this) {
 }
 
-} /* dsme */
+} /* namespace dsme */

@@ -99,4 +99,5 @@ bool operator==(const BitVectorIterator& lhs, const BitVectorIterator& rhs) {
 bool operator!=(const BitVectorIterator& lhs, const BitVectorIterator& rhs) {
     return !(lhs == rhs);
 }
-}
+
+} /* namespace dsme */

@@ -81,6 +81,7 @@ private:
     uint16_t shortAddr;
     AssociationStatus::Association_Status status;
 };
-}
+
+} /* namespace dsme */
 
 #endif /* ASSOCIATEREPLYCMD_H_ */

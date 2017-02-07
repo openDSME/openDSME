@@ -496,4 +496,4 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
     return;
 }
 
-} /* dsme */
+} /* namespace dsme */

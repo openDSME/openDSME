@@ -57,7 +57,7 @@ namespace mlme_sap {
 struct DSME_GTS_indication_parameters;
 struct DSME_GTS_confirm_parameters;
 struct COMM_STATUS_indication_parameters;
-}
+} /* namespace mlme_sap */
 
 class GTSHelper {
 public:

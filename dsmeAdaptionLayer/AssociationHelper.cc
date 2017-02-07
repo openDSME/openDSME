@@ -148,4 +148,4 @@ void AssociationHelper::handleDISASSOCIATION_confirm(mlme_sap::DISASSOCIATE_conf
     return;
 }
 
-} /* dsme */
+} /* namespace dsme */

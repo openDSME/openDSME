@@ -92,7 +92,7 @@ private:
     SYNC_LOSS sync_loss;
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* MLME_SAP_H_ */

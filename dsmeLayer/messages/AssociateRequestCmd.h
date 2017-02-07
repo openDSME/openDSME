@@ -92,6 +92,7 @@ public:
 private:
     CapabilityInformation capabilityInformation;
 };
-}
+
+} /* namespace dsme */
 
 #endif /* ASSOCIATEREQUESTCMD_H_ */

@@ -66,4 +66,5 @@ Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec
 
     return serializer;
 }
-}
+
+} /* namespace dsme */

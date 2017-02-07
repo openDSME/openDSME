@@ -74,6 +74,7 @@ public:
 private:
     DisassociateReason reason;
 };
-}
+
+} /* namespace dsme */
 
 #endif /* DISASSOCIATIONNOTIFYCMD_H_ */

@@ -627,4 +627,5 @@ void BeaconManager::singleBeaconScanEnhancedActiveReceived(PANDescriptor& panDes
         }
     }
 }
-}
+
+} /* namespace dsme */

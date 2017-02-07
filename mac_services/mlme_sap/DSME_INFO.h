@@ -84,7 +84,7 @@ public:
     void request(request_parameters);
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* DSME_INFO_H_ */

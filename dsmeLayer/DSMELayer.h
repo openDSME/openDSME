@@ -72,11 +72,11 @@ namespace dsme {
  */
 namespace mlme_sap {
 class MLME_SAP;
-}
+} /* namespace mlme_sap */
 
 namespace mcps_sap {
 class MCPS_SAP;
-}
+} /* namespace mcps_sap */
 
 /**
  * IEEE802.15.4

@@ -192,4 +192,4 @@ Direction ACTUpdater::invert(Direction direction) {
     return dir;
 }
 
-} /* dsme */
+} /* namespace dsme */

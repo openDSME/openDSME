@@ -71,7 +71,7 @@ public:
     // only indication
 };
 
-} /* mlme_sap */
-} /* dsme */
+} /* namespace mlme_sap */
+} /* namespace dsme */
 
 #endif /* COMM_STATUS_H_ */
