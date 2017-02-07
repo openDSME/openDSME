@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef COMMON_H_
-#define COMMON_H_
+#ifndef DSME_COMMON_H_
+#define DSME_COMMON_H_
 
 #include <stdint.h>
 
@@ -303,6 +303,6 @@ struct PurgeStatus {
     enum Purge_status { SUCCESS, INVALID_HANDLE };
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* COMMON_H_ */
+#endif /* DSME_COMMON_H_ */

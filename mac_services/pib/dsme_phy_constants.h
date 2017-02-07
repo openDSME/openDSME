@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef PHY_CONSTANTS_H
-#define PHY_CONSTANTS_H
+#ifndef DSME_PHY_CONSTANTS_H_
+#define DSME_PHY_CONSTANTS_H_
 
 namespace dsme {
 
@@ -72,4 +72,4 @@ constexpr uint8_t aSymbolDuration{16};
 
 } /* namespace dsme */
 
-#endif /* PHY_CONSTANTS_H */
+#endif /* DSME_PHY_CONSTANTS_H_ */

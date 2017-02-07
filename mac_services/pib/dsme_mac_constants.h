@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MAC_CONSTANTS_H
-#define MAC_CONSTANTS_H
+#ifndef DSME_MAC_CONSTANTS_H_
+#define DSME_MAC_CONSTANTS_H_
 
 #include "dsme_phy_constants.h"
 
@@ -82,4 +82,4 @@ constexpr uint8_t aRccnBaseSlotDuration{60};
 
 } /* namespace dsme */
 
-#endif /* MAC_CONSTANTS_H */
+#endif /* DSME_MAC_CONSTANTS_H_ */

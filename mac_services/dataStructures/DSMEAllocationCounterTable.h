@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEALLOCATIONCOUNTERTABLE_H
-#define DSMEALLOCATIONCOUNTERTABLE_H
+#ifndef DSMEALLOCATIONCOUNTERTABLE_H_
+#define DSMEALLOCATIONCOUNTERTABLE_H_
 
 #include "../../../dsme_settings.h"
 #include "ACTElement.h"
@@ -126,6 +126,7 @@ private:
     // TODO integrate this nicely into the NeighborQueue
     RBTree<uint16_t, uint16_t> numAllocatedTxSlots;
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMEALLOCATIONCOUNTERTABLE_H_ */

@@ -73,6 +73,7 @@ public:
 
     static GTS GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t numChannels, uint8_t numSuperframesPerMultiSuperframe);
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* GTS_H_ */

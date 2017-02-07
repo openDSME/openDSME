@@ -27,8 +27,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef DELEGATE_H
-#define DELEGATE_H
+#ifndef DSMEDELEGATE_H_
+#define DSMEDELEGATE_H_
 
 /**
  * Main template for delgates
@@ -97,4 +97,4 @@ DelegateFactory<T, return_type, params...> MakeDelegate(return_type (T::*)(param
 
 #define DELEGATE(func, thisPrtRef) (MakeDelegate(func).Create<func>(&thisPrtRef))
 
-#endif
+#endif /* DSMEDELEGATE_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MESSAGEDISPATCHER_H
-#define MESSAGEDISPATCHER_H
+#ifndef MESSAGEDISPATCHER_H_
+#define MESSAGEDISPATCHER_H_
 
 #include <stdint.h>
 #include "../../../dsme_platform.h"
@@ -159,6 +159,6 @@ protected:
     void createDataIndication(IDSMEMessage* msg);
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* MESSAGEDISPATCHER_H */
+#endif /* MESSAGEDISPATCHER_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef BEACONNOTIFICATIONCMD_H
-#define BEACONNOTIFICATIONCMD_H
+#ifndef BEACONNOTIFICATIONCMD_H_
+#define BEACONNOTIFICATIONCMD_H_
 
 namespace dsme {
 
@@ -72,6 +72,7 @@ public:
         serializer << beaconSDIndex;
     }
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* BEACONNOTIFICATIONCMD_H_ */

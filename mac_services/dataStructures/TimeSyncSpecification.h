@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef TIMESYNCSPECIFICATION_H
-#define TIMESYNCSPECIFICATION_H
+#ifndef TIMESYNCSPECIFICATION_H_
+#define TIMESYNCSPECIFICATION_H_
 
 namespace dsme {
 
@@ -87,6 +87,7 @@ inline Serializer& operator<<(Serializer& serializer, TimeSyncSpecification& spe
     serializer << spec.beaconOffsetTimestamp;
     return serializer;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* TIMESYNCSPECIFICATION_H_ */

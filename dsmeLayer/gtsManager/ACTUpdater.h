@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ACTUPDATER_H
-#define ACTUPDATER_H
+#ifndef ACTUPDATER_H_
+#define ACTUPDATER_H_
 
 #include <stdint.h>
 
@@ -81,6 +81,7 @@ private:
     DSMELayer& dsme;
     Direction invert(Direction direction);
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* ACTUPDATER_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IEEE802154EMACHEADER_H
-#define IEEE802154EMACHEADER_H
+#ifndef IEEE802154EMACHEADER_H_
+#define IEEE802154EMACHEADER_H_
 
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
@@ -440,5 +440,7 @@ public:
     bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
     void serializeTo(uint8_t*& buffer);
 };
-}
-#endif
+
+} /* namespace dsme */
+
+#endif /* IEEE802154EMACHEADER_H_ */

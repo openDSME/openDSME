@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSMANAGER_H
-#define GTSMANAGER_H
+#ifndef GTSMANAGER_H_
+#define GTSMANAGER_H_
 
 #include <stdint.h>
 
@@ -234,6 +234,7 @@ private:
     ACTUpdater actUpdater;
     GTSData data[GTS_STATE_MULTIPLICITY + 1];
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* GTSMANAGER_H_ */

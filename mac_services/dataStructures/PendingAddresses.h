@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef PENDINGADDRESSES_H
-#define PENDINGADDRESSES_H
+#ifndef PENDINGADDRESSES_H_
+#define PENDINGADDRESSES_H_
 
 namespace dsme {
 
@@ -72,6 +72,7 @@ inline Serializer& operator<<(Serializer& serializer, PendingAddresses& spec) {
     serializer << spec.specByte;
     return serializer;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* PENDINGADDRESSES_H_ */

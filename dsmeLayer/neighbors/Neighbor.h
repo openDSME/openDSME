@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef NEIGHBOR_H
-#define NEIGHBOR_H
+#ifndef NEIGHBOR_H_
+#define NEIGHBOR_H_
 
 /* INCLUDES ******************************************************************/
 
@@ -63,6 +63,7 @@ struct Neighbor {
 
     IEEE802154MacAddress address;
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* NEIGHBOR_H_ */

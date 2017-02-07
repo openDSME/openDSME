@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMESABSPECIFICATION_H
-#define DSMESABSPECIFICATION_H
+#ifndef DSMESABSPECIFICATION_H_
+#define DSMESABSPECIFICATION_H_
 
 #include "../../../dsme_settings.h"
 #include "DSMEBitVector.h"
@@ -132,6 +132,7 @@ inline Serializer& operator<<(Serializer& serializer, DSMESABSpecification& b) {
 
     return serializer;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMESABSPECIFICATION_H_ */

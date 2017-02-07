@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEPANDESCRIPTOR_H
-#define DSMEPANDESCRIPTOR_H
+#ifndef DSMEPANDESCRIPTOR_H_
+#define DSMEPANDESCRIPTOR_H_
 
 #include "../../mac_services/DSME_Common.h"
 #include "BeaconBitmap.h"
@@ -99,6 +99,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         serializer << beaconBitmap;
     }
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMEPANDESCRIPTOR_H_ */

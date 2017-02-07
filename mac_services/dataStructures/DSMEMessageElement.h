@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEMESSAGEELEMENT_H
-#define DSMEMESSAGEELEMENT_H
+#ifndef DSMEMESSAGEELEMENT_H_
+#define DSMEMESSAGEELEMENT_H_
 
 #include "Serializer.h"
 
@@ -63,6 +63,7 @@ public:
 
     virtual void serialize(Serializer& serializer) = 0;
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMEMESSAGEELEMENT_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IEEE802514MACADDRESS_H
-#define IEEE802514MACADDRESS_H
+#ifndef IEEE802154MACADDRESS_H_
+#define IEEE802154MACADDRESS_H_
 
 #include <stdint.h>
 #include "Serializer.h"
@@ -177,6 +177,7 @@ inline const uint8_t* operator>>(const uint8_t*& buffer, IEEE802154MacAddress& a
 
     return buffer;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* IEEE802154MACADDRESS_H_ */

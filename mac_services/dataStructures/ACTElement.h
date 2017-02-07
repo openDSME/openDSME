@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ACTELEMENT_H
-#define ACTELEMENT_H
+#ifndef ACTELEMENT_H_
+#define ACTELEMENT_H_
 
 #include "../../mac_services/DSME_Common.h"
 
@@ -150,6 +150,7 @@ private:
     // the slot on the other device is still VALID.
     ACTState state;
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* ACTELEMENT_H_ */

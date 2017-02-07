@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef BEACONBITMAP_H
-#define BEACONBITMAP_H
+#ifndef BEACONBITMAP_H_
+#define BEACONBITMAP_H_
 
 /* INCLUDES ******************************************************************/
 
@@ -136,6 +136,7 @@ private:
 };
 
 Serializer& operator<<(Serializer& serializer, BeaconBitmap& b);
-}
+
+} /* namespace dsme */
 
 #endif /* BEACONBITMAP_H_ */

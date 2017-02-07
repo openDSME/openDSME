@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEBUFFEREDMULTIFSM_H
-#define DSMEBUFFEREDMULTIFSM_H
+#ifndef DSMEBUFFEREDMULTIFSM_H_
+#define DSMEBUFFEREDMULTIFSM_H_
 
 #include <stdint.h>
 #include "DSMEFSM.h"
@@ -173,6 +173,6 @@ private:
     DSMERingBuffer<E, S> eventBuffer;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* DSMEBUFFEREDMULTIFSM_H */
+#endif /* DSMEBUFFEREDMULTIFSM_H_ */

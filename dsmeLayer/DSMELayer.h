@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMELAYER_H
-#define DSMELAYER_H
+#ifndef DSMELAYER_H_
+#define DSMELAYER_H_
 
 #include <stdint.h>
 
@@ -239,6 +239,7 @@ protected:
      */
     void updateDisplay();
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMELAYER_H_ */

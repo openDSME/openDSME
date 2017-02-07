@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef EVENTHISTORY_H
-#define EVENTHISTORY_H
+#ifndef EVENTHISTORY_H_
+#define EVENTHISTORY_H_
 
 #include <stdint.h>
 #include "dsme_platform.h"
@@ -93,6 +93,6 @@ private:
     uint8_t head;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* EVENTHISTORY_H */
+#endif /* EVENTHISTORY_H_ */

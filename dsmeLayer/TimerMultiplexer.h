@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef TIMERMULTIPLEXER_H
-#define TIMERMULTIPLEXER_H
+#ifndef TIMERMULTIPLEXER_H_
+#define TIMERMULTIPLEXER_H_
 
 #include <stdint.h>
 #include "EventHistory.h"
@@ -237,6 +237,6 @@ public:
 #endif
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* TIMERMULTIPLEXER_H */
+#endif /* TIMERMULTIPLEXER_H_ */

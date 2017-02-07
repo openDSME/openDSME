@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef CAPLAYER_H
-#define CAPLAYER_H
+#ifndef CAPLAYER_H_
+#define CAPLAYER_H_
 
 #include "../../helper/DSMEBufferedFSM.h"
 #include "../../helper/DSMEQueue.h"
@@ -107,6 +107,6 @@ private:
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* CAPLAYER_H */
+#endif /* CAPLAYER_H_ */

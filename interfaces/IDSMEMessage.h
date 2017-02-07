@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IDSMEMESSAGE_H
-#define IDSMEMESSAGE_H
+#ifndef IDSMEMESSAGE_H_
+#define IDSMEMESSAGE_H_
 
 #include <stdint.h>
 
@@ -88,6 +88,6 @@ public:
     virtual uint8_t getRetryCounter() = 0;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* IDSMEMESSAGE_H */
+#endif /* IDSMEMESSAGE_H_ */

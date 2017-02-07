@@ -40,7 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#pragma once
+#ifndef BITVECTORITERATOR_H_
+#define BITVECTORITERATOR_H_
 
 /* INCLDUDES *****************************************************************/
 
@@ -78,4 +79,7 @@ private:
     bit_vector_size_t position;
     bool value;
 };
-}
+
+} /* namespace dsme */
+
+#endif /* BITVECTORITERATOR_H_ */

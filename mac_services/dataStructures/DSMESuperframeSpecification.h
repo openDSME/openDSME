@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMESUPERFRAMESPECIFICATION_H
-#define DSMESUPERFRAMESPECIFICATION_H
+#ifndef DSMESUPERFRAMESPECIFICATION_H_
+#define DSMESUPERFRAMESPECIFICATION_H_
 
 #include "Serializer.h"
 
@@ -64,6 +64,7 @@ public:
 };
 
 Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec);
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMESUPERFRAMESPECIFICATION_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSME_BITVECTOR_H
-#define DSME_BITVECTOR_H
+#ifndef DSMEBITVECTOR_H_
+#define DSMEBITVECTOR_H_
 
 /* INCLDUDES *****************************************************************/
 
@@ -145,6 +145,6 @@ private:
     uint8_t array[BITVECTOR_BYTE_LENGTH(MAX_SIZE)];
 };
 
-} /* DSME */
+} /* namespace dsme */
 
-#endif /* DSME_BITVECTOR_H */
+#endif /* DSMEBITVECTOR_H_ */

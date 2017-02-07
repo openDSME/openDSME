@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef PANDESCRIPTOR_H
-#define PANDESCRIPTOR_H
+#ifndef PANDESCRIPTOR_H_
+#define PANDESCRIPTOR_H_
 
 #include "DSMEPANDescriptor.h"
 
@@ -89,6 +89,7 @@ public:
         return *this;
     }
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* PANDESCRIPTOR_H_ */

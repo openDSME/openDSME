@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef SUPERFRAMESPECIFICATION_H
-#define SUPERFRAMESPECIFICATION_H
+#ifndef SUPERFRAMESPECIFICATION_H_
+#define SUPERFRAMESPECIFICATION_H_
 
 #include "Serializer.h"
 
@@ -67,6 +67,7 @@ inline Serializer& operator<<(Serializer& serializer, SuperframeSpecification& s
     serializer << spec.specWord;
     return serializer;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* SUPERFRAMESPECIFICATION_H_ */

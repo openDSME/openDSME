@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSDATA_H
-#define GTSDATA_H
+#ifndef GTSDATA_H_
+#define GTSDATA_H_
 
 #include <stdint.h>
 
@@ -68,6 +68,6 @@ public:
     uint16_t responsePartnerAddress;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* GTSDATA_H */
+#endif /* GTSDATA_H_ */

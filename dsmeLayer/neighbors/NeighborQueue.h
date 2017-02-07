@@ -193,6 +193,7 @@ void NeighborQueue<N>::flushQueues(bool keepFront) {
     }
     return;
 }
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* NEIGHBORQUEUE_H_ */

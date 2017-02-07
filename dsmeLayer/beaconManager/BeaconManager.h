@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef BEACON_MANAGER_H
-#define BEACON_MANAGER_H
+#ifndef BEACONMANAGER_H_
+#define BEACONMANAGER_H_
 
 #include <stdint.h>
 
@@ -180,6 +180,6 @@ private:
     bool transmissionPending;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif
+#endif /* BEACONMANAGER_H_ */

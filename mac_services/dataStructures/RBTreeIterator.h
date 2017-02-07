@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef BITVECTORITERATOR_H_
-#define BITVECTORITERATOR_H_
+#ifndef RBTREEITERATOR_H_
+#define RBTREEITERATOR_H_
 
 #define RBTREE_ITERATOR_POSTORDER
 
@@ -262,6 +262,7 @@ RBTreeIterator<T, K> RBTreeIterator<T, K>::begin(RBTree<T, K>* instance, RBNode<
     return RBTreeIterator(instance, rootNode);
 }
 #endif
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* RBTREEITERATOR_H_ */

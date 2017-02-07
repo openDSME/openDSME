@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEEVENTDISPATCHER_H
-#define DSMEEVENTDISPATCHER_H
+#ifndef DSMEEVENTDISPATCHER_H_
+#define DSMEEVENTDISPATCHER_H_
 
 #include <stdint.h>
 #include "../interfaces/IDSMEPlatform.h"
@@ -102,6 +102,7 @@ public:
     }
 #endif
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMEEVENTDISPATCHER_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ACKLAYER_H
-#define ACKLAYER_H
+#ifndef ACKLAYER_H_
+#define ACKLAYER_H_
 
 #include "../../helper/DSMEDelegate.h"
 #include "../../helper/DSMEFSM.h"
@@ -112,6 +112,6 @@ private:
     done_callback_t externalDoneCallback;
     const Delegate<void(bool)> internalDoneCallback;
 };
-}
+} /* namespace dsme */
 
-#endif
+#endif /* ACKLAYER_H_ */

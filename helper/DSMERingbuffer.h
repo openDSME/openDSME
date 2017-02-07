@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMERINGBUFFER_H
-#define DSMERINGBUFFER_H
+#ifndef DSMERINGBUFFER_H_
+#define DSMERINGBUFFER_H_
 
 #include <stdint.h>
 #include "../../dsme_atomic.h"
@@ -114,6 +114,6 @@ public:
     }
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* DSMERINGBUFFER_H */
+#endif /* DSMERINGBUFFER_H_ */

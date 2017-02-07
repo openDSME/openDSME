@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSALLOCATIONHELPER_H_
-#define GTSALLOCATIONHELPER_H_
+#ifndef GTSHELPER_H_
+#define GTSHELPER_H_
 
 #include "../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
@@ -110,6 +110,6 @@ private:
     bool gtsConfirmPending;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* GTSALLOCATIONHELPER_H_ */
+#endif /* GTSHELPER_H_ */

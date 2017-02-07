@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSREPLYNOTIFYCMD_H
-#define GTSREPLYNOTIFYCMD_H
+#ifndef GTSREPLYNOTIFYCMD_H_
+#define GTSREPLYNOTIFYCMD_H_
 
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "GTSManagement.h"
@@ -98,6 +98,7 @@ public:
         serializer << SABSpec;
     }
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* GTSREPLYNOTIFYCMD_H_ */

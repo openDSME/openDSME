@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEQUEUE_H
-#define DSMEQUEUE_H
+#ifndef DSMEQUEUE_H_
+#define DSMEQUEUE_H_
 
 #include <stdint.h>
 
@@ -91,6 +91,7 @@ private:
     uint16_t next_back;
     uint16_t size;
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* DSMEQUEUE_H_ */

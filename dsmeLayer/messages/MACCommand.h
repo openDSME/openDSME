@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MACCOMMAND_H
-#define MACCOMMAND_H
+#ifndef MACCOMMAND_H_
+#define MACCOMMAND_H_
 
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
@@ -74,5 +74,7 @@ public:
         serializer << cmdId;
     }
 };
-}
-#endif
+
+} /* namespace dsme */
+
+#endif /* MACCOMMAND_H_ */

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSMANAGEMENT_H
-#define GTSMANAGEMENT_H
+#ifndef GTSMANAGEMENT_H_
+#define GTSMANAGEMENT_H_
 
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
@@ -73,6 +73,7 @@ public:
 
     virtual void serialize(Serializer& serializer);
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* GTSMANAGEMENT_H_ */

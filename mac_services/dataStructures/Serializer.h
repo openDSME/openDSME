@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef SERIALIZER_H
-#define SERIALIZER_H
+#ifndef SERIALIZER_H_
+#define SERIALIZER_H_
 
 #include <stdint.h>
 
@@ -91,4 +91,4 @@ private:
     serialization_type_t type;
 };
 
-#endif
+#endif /* SERIALIZER_H_ */

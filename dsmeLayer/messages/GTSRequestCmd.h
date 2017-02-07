@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSREQUESTCMD_H
-#define GTSREQUESTCMD_H
+#ifndef GTSREQUESTCMD_H_
+#define GTSREQUESTCMD_H_
 
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
@@ -108,6 +108,7 @@ public:
         serializer << SABSpec;
     }
 };
-}
 
-#endif
+} /* namespace dsme */
+
+#endif /* GTSREQUESTCMD_H_ */

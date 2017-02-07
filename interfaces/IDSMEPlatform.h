@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IDSMEPLATFORM_H
-#define IDSMEPLATFORM_H
+#ifndef IDSMEPLATFORM_H_
+#define IDSMEPLATFORM_H_
 
 #include <stdint.h>
 
@@ -102,6 +102,6 @@ public:
     virtual uint8_t getMinCoordinatorLQI() = 0;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* IDSMEPLATFORM_H */
+#endif /* IDSMEPLATFORM_H_ */

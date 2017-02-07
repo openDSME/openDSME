@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEFSM_H
-#define DSMEFSM_H
+#ifndef DSMEFSM_H_
+#define DSMEFSM_H_
 
 #include <stdint.h>
 #include "../../dsme_platform.h"
@@ -133,6 +133,6 @@ private:
     bool dispatchBusy;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* DSMEFSM_H */
+#endif /* DSMEFSM_H_ */

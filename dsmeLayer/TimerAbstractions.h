@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef TIMERABSTRACTIONS_H
-#define TIMERABSTRACTIONS_H
+#ifndef TIMERABSTRACTIONS_H_
+#define TIMERABSTRACTIONS_H_
 
 #include <stdint.h>
 
@@ -92,6 +92,6 @@ private:
     setter_t setter;
 };
 
-} /* dsme */
+} /* namespace dsme */
 
-#endif /* TIMERABSTRACTIONS_H */
+#endif /* TIMERABSTRACTIONS_H_ */
