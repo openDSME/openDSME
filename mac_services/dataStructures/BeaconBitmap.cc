@@ -4,7 +4,7 @@
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
  * described in the IEEE 802.15.4-2015 standard
  *
- * Authors: Florian Meier <florian.meier@tuhh.de>
+ * Authors: Florian Kauer <florian.kauer@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
  *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
  *
