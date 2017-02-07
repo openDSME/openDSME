@@ -11,12 +11,14 @@ def main():
 
     violations = []
 
-    for line in output.decode().splitlines():
+    lines = output.decode().splitlines()
+    lines.sort()
+    for line in lines:
 
         parts = line.split(':')
 
         if int(parts[1]) != 43 and int(parts[1]) != 30:
-            violations.append('Invalid file offset: ' + parts[0] + ", " + parts[1])
+            violations.append(parts[0] + ' Invalid file offset: ' + parts[1])
             continue
 
         filename = ntpath.basename(parts[0])
@@ -24,8 +26,7 @@ def main():
         checked_define = parts[2].split(' ')[1]
 
         if checked_define != filedefine:
-            violations.append('Checked define does not match filename: '
-                    + parts[0] + ', ' + checked_define + ' vs. ' + filedefine)
+            violations.append(parts[0] + ' Checked define does not match filename: ' + checked_define + ' vs. ' + filedefine)
             continue
 
         f = open(parts[0], 'r')
@@ -34,35 +35,34 @@ def main():
         defineline = contents[int(parts[1])]
 
         if defineline.split(' ')[0] != '#define':
-            violations.append(parts[0] + ", " + defineline)
+            violations.append(parts[0] + ' Next line does not #define: ' + defineline)
             continue
 
         define = defineline.split(' ')[1]
 
         if define != checked_define:
-            violations.append('#define does not match: ' + define + ' vs. ' + checked_define)
+            violations.append(parts[0] + ' #define does not match: ' + define + ' vs. ' + checked_define)
             continue
 
         closeline = contents[len(contents) - 1]
 
         if closeline.split(' ')[0] != '#endif':
-            violations.append('Guard not closed in correct line: ' + parts[0] + ", " + closeline)
+            violations.append(parts[0] + ' Guard not closed in correct line: ' + closeline)
             continue
 
         if len(closeline.split(' ')) != 4:
-            violations.append('No label for closed guard: ' + parts[0] + ", " + closeline)
+            violations.append(parts[0] + ' No label for closed guard: ' + closeline)
             continue
 
         closed_define = closeline.split(' ')[2]
 
         if closed_define != checked_define:
-            violations.append('#endif label does not match: '
-                    + parts[0] + ', ' + closed_define + ' vs. ' + checked_define)
+            violations.append(parts[0] + ' #endif label does not match: ' + closed_define + ' vs. ' + checked_define)
             continue
 
         pre_closeline = contents[len(contents) - 2]
         if pre_closeline != "":
-            violations.append(parts[0] + 'Line before #endif should be empty: ' + pre_closeline)
+            violations.append(parts[0] + ' Line before #endif should be empty: ' + pre_closeline)
             continue
 
     if len(violations) > 0:
