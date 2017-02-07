@@ -266,14 +266,16 @@ void CAPLayer::actionStartBackoffTimer() {
     uint16_t unitBackoffPeriods = dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
+    uint32_t symbolsPerSlot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
+
+    dsme_atomicBegin();
     uint32_t now = dsme.getPlatform().getSymbolCounter();
 
-    uint32_t symbolsPerSlot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     uint32_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, symbolsPerSlot); // including backoff
     uint32_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
     uint32_t CAPStart = now - symbolsSinceCAPStart;
 
-    uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
     uint8_t fullCAPs = backoffSinceCAPStart / (dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
     uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots() + 1) * symbolsPerSlot + blockedEnd);
 
@@ -283,6 +285,7 @@ void CAPLayer::actionStartBackoffTimer() {
     DSME_ASSERT(dsme.isWithinCAP(CAPStart + backoffSinceCAPStart, symbolsRequired()));
 
     dsme.getEventDispatcher().setupCSMATimer(CAPStart + backoffSinceCAPStart);
+    dsme_atomicEnd();
 
     LOG_DEBUG(now << " " << (CAPStart + backoffSinceCAPStart));
 }
