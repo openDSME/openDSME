@@ -67,9 +67,10 @@ bool AckLayer::prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallbac
     if(busy) {
         dsme_atomicEnd();
         return false;
+    } else {
+        busy = true;
+        dsme_atomicEnd();
     }
-    busy = true;
-    dsme_atomicEnd();
 
     DSME_ASSERT(pendingMessage == nullptr);
 

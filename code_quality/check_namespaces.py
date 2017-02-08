@@ -4,7 +4,7 @@ from subprocess import Popen, PIPE
 import ntpath
 
 def main():
-    output, errors = Popen(['egrep -rn --include \*.h --include \*.cc "^namespace"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
+    output, errors = Popen(['egrep -rn --include \*.h --include \*.cc "^\s*namespace"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
     error_message = errors.decode()
     if error_message != '':
         print(error_message)
@@ -53,7 +53,7 @@ def main():
     if len(violations) > 0:
         print(str('\n').join(violations))
 
-    print(str(len(violations)) + " violations among namespaces found.")
+    print(str(len(violations)) + ' violations among namespaces found in ' + str(len(lines)) + ' instances.')
 
 if __name__ == "__main__":
     main()

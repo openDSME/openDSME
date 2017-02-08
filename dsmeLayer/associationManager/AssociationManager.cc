@@ -75,10 +75,11 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
         params.status = AssociationStatus::CHANNEL_ACCESS_FAILURE;
         this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
         return;
+    } else {
+        currentAction = CommandFrameIdentifier::ASSOCIATION_REQUEST;
+        actionPending = true;
+        dsme_atomicEnd();
     }
-    currentAction = CommandFrameIdentifier::ASSOCIATION_REQUEST;
-    actionPending = true;
-    dsme_atomicEnd();
 
     messageSent = false;
 
@@ -126,11 +127,12 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     if(actionPending) {
         dsme_atomicEnd();
         return;
+    } else {
+        currentAction = CommandFrameIdentifier::ASSOCIATION_RESPONSE;
+        actionPending = true;
+        DSME_ASSERT(!messageSent);
+        dsme_atomicEnd();
     }
-    currentAction = CommandFrameIdentifier::ASSOCIATION_RESPONSE;
-    actionPending = true;
-    DSME_ASSERT(!messageSent);
-    dsme_atomicEnd();
 
     LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
 
@@ -155,6 +157,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
         // TODO
         dsme.getPlatform().releaseMessage(msg);
     }
+    return;
 }
 
 void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
@@ -163,10 +166,11 @@ void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
         // No association pending, for example because of an ACK timeout
         dsme_atomicEnd();
         return;
+    } else {
+        actionPending = false;
+        messageSent = false;
+        dsme_atomicEnd();
     }
-    actionPending = false;
-    messageSent = false;
-    dsme_atomicEnd();
 
     AssociateReplyCmd reply;
     reply.decapsulateFrom(msg);
@@ -190,6 +194,7 @@ void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
         this->dsme.getMAC_PIB().macPANId = 0xffff;
         this->dsme.getMAC_PIB().macShortAddress = 0xffff;
     }
+    return;
 }
 
 /*****************************************************************************
@@ -205,12 +210,12 @@ void AssociationManager::sendDisassociationRequest(DisassociationNotifyCmd& req,
         params.status = DisassociationStatus::CHANNEL_ACCESS_FAILURE;
         this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(params);
         return;
+    } else {
+        currentAction = CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION;
+        actionPending = true;
+        DSME_ASSERT(!messageSent);
+        dsme_atomicEnd();
     }
-
-    currentAction = CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION;
-    actionPending = true;
-    DSME_ASSERT(!messageSent);
-    dsme_atomicEnd();
 
     messageSent = false;
 
@@ -357,25 +362,20 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
         if(superframesSinceAssociationSent * (1 << dsme.getMAC_PIB().macSuperframeOrder) > dsme.getMAC_PIB().macResponseWaitTime) {
             actionPending = false;
             messageSent = false;
-            switch(this->currentAction) {
-                case CommandFrameIdentifier::ASSOCIATION_REQUEST: {
-                    mlme_sap::ASSOCIATE_confirm_parameters associate_params;
-                    associate_params.assocShortAddress = 0xFFFF;
-                    associate_params.status = AssociationStatus::NO_DATA;
-                    dsme_atomicEnd();
-                    this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
-                    break;
-                }
-                case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION: {
-                    mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
-                    disassociate_params.status = DisassociationStatus::SUCCESS; /* According to the standard, all failures mean disassociation */
-                    dsme_atomicEnd();
-                    this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
-                    break;
-                }
-                default:
-                    LOG_ERROR((int)this->currentAction);
-                    DSME_ASSERT(false);
+            if(this->currentAction == CommandFrameIdentifier::ASSOCIATION_REQUEST) {
+                mlme_sap::ASSOCIATE_confirm_parameters associate_params;
+                associate_params.assocShortAddress = 0xFFFF;
+                associate_params.status = AssociationStatus::NO_DATA;
+                dsme_atomicEnd();
+                this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(associate_params);
+            } else if(this->currentAction == CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION) {
+                mlme_sap::DISASSOCIATE_confirm_parameters disassociate_params;
+                disassociate_params.status = DisassociationStatus::SUCCESS; /* According to the standard, all failures mean disassociation */
+                dsme_atomicEnd();
+                this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
+            } else {
+                LOG_ERROR((int)this->currentAction);
+                DSME_ASSERT(false);
             }
         } else {
             dsme_atomicEnd();

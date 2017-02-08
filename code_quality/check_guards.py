@@ -68,7 +68,7 @@ def main():
     if len(violations) > 0:
         print(str('\n').join(violations))
 
-    print(str(len(violations)) + " violations among include guards found.")
+    print(str(len(violations)) + ' violations among include guards found in ' + str(len(lines)) + ' instances.')
 
 if __name__ == "__main__":
     main()
