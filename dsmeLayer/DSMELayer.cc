@@ -43,6 +43,7 @@
 #include "DSMELayer.h"
 
 #include "../../dsme_platform.h"
+#include "../helper/DSMEAtomic.h"
 #include "messages/IEEE802154eMACHeader.h"
 #include "messages/MACCommand.h"
 
@@ -110,29 +111,27 @@ void DSMELayer::doReset() {
     DSME_ASSERT(resetPending);
     LOG_WARN("Performing a complete reset of the DSME MLME.");
 
-    dsme_atomicBegin();
+    DSME_ATOMIC_BLOCK {
+        this->ackLayer.reset();
 
-    this->ackLayer.reset();
+        /* stop all timers */
+        this->eventDispatcher.reset();
 
-    /* stop all timers */
-    this->eventDispatcher.reset();
+        this->beaconManager.reset();
+        this->associationManager.reset();
+        this->gtsManager.reset();
+        this->messageDispatcher.reset();
 
-    this->beaconManager.reset();
-    this->associationManager.reset();
-    this->gtsManager.reset();
-    this->messageDispatcher.reset();
+        this->capLayer.reset();
 
-    this->capLayer.reset();
+        this->mac_pib->macDsn = platform->getRandom();
 
-    this->mac_pib->macDsn = platform->getRandom();
+        this->currentSlot = 0;
+        this->currentSuperframe = 0;
+        this->currentMultiSuperframe = 0;
 
-    this->currentSlot = 0;
-    this->currentSuperframe = 0;
-    this->currentMultiSuperframe = 0;
-
-    this->trackingBeacons = false;
-
-    dsme_atomicEnd();
+        this->trackingBeacons = false;
+    }
 
     /* restart slot timer */
     this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter());

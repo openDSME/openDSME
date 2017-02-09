@@ -45,6 +45,7 @@
 
 #include <stdint.h>
 #include "../../dsme_platform.h"
+#include "DSMEAtomic.h"
 
 namespace dsme {
 
@@ -82,23 +83,23 @@ public:
     }
 
     inline fsmReturnStatus transition(state_t next) {
-        dsme_atomicBegin();
-        state = next;
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            this->state = next;
+        }
         return FSM_TRANSITION;
     }
 
     const state_t& getState() {
-        return state;
+        return this->state;
     }
 
     bool dispatch(E& event) {
         bool wasBusy;
 
-        dsme_atomicBegin();
-        wasBusy = dispatchBusy;
-        dispatchBusy = true;
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            wasBusy = this->dispatchBusy;
+            this->dispatchBusy = true;
+        }
 
         if(wasBusy) {
             return false;

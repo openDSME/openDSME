@@ -42,7 +42,7 @@
 
 #include "AckLayer.h"
 
-#include "../../../dsme_platform.h"
+#include "../../helper/DSMEAtomic.h"
 #include "../DSMELayer.h"
 
 namespace dsme {
@@ -63,16 +63,15 @@ void AckLayer::reset() {
 }
 
 bool AckLayer::prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallback) {
-    dsme_atomicBegin();
-    if(busy) {
-        dsme_atomicEnd();
-        return false;
-    } else {
-        busy = true;
-        dsme_atomicEnd();
+    DSME_ATOMIC_BLOCK {
+        if(this->busy) {
+            return false;
+        } else {
+            this->busy = true;
+        }
     }
 
-    DSME_ASSERT(pendingMessage == nullptr);
+    DSME_ASSERT(this->pendingMessage == nullptr);
 
     this->pendingMessage = msg;
     this->externalDoneCallback = doneCallback;
@@ -144,21 +143,15 @@ void AckLayer::receive(IDSMEMessage* msg) {
     }
 
     /* also throw away the packet if the FSM is busy */
-    bool wasBusy;
-    dsme_atomicBegin();
-    if(busy) {
-        wasBusy = true;
-        LOG_DEBUG("Throwing away packet, ACKLayer was busy.");
-        // DSME_SIM_ASSERT(false);
-    } else {
-        wasBusy = false;
-        busy = true;
-    }
-    dsme_atomicEnd();
-
-    if(wasBusy) {
-        this->dsme.getPlatform().releaseMessage(msg);
-        return;
+    DSME_ATOMIC_BLOCK {
+        if(busy) {
+            LOG_DEBUG("Throwing away packet, ACKLayer was busy.");
+            this->dsme.getPlatform().releaseMessage(msg);
+            // DSME_SIM_ASSERT(false);
+            return;
+        } else {
+            busy = true;
+        }
     }
 
     this->pendingMessage = msg;
@@ -199,9 +192,9 @@ fsmReturnStatus AckLayer::catchAll(AckEvent& event) {
 fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
     switch(event.signal) {
         case AckEvent::ENTRY_SIGNAL:
-            dsme_atomicBegin();
-            busy = false;
-            dsme_atomicEnd();
+            DSME_ATOMIC_BLOCK {
+                this->busy = false;
+            }
             return FSM_HANDLED;
 
         case AckEvent::RESET:
@@ -218,9 +211,9 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 /* '-> currently busy (e.g. recent reception) */
                 externalDoneCallback(SEND_FAILED, pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
-                dsme_atomicBegin();
-                busy = false;
-                dsme_atomicEnd();
+                DSME_ATOMIC_BLOCK {
+                    this->busy = false;
+                }
                 return FSM_HANDLED;
             }
         }
@@ -229,9 +222,9 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             if(!dsme.getPlatform().isReceptionFromAckLayerPossible()) {
                 dsme.getPlatform().releaseMessage(pendingMessage);
                 pendingMessage = nullptr;
-                dsme_atomicBegin();
-                busy = false;
-                dsme_atomicEnd();
+                DSME_ATOMIC_BLOCK {
+                    this->busy = false;
+                }
                 return FSM_HANDLED;
             }
 
@@ -245,9 +238,9 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 pendingMessage = dsme.getPlatform().getEmptyMessage();
                 if(pendingMessage == nullptr) {
                     DSME_ASSERT(false);
-                    dsme_atomicBegin();
-                    busy = false;
-                    dsme_atomicEnd();
+                    DSME_ATOMIC_BLOCK {
+                        this->busy = false;
+                    }
                     return FSM_HANDLED;
                 }
 
@@ -270,17 +263,17 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
                     dsme.getPlatform().releaseMessage(pendingMessage);
                     pendingMessage = nullptr;
-                    dsme_atomicBegin();
-                    busy = false;
-                    dsme_atomicEnd();
+                    DSME_ATOMIC_BLOCK {
+                        this->busy = false;
+                    }
                     return FSM_HANDLED;
                 }
             } else {
                 dsme.getPlatform().handleReceivedMessageFromAckLayer(pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
-                dsme_atomicBegin();
-                busy = false;
-                dsme_atomicEnd();
+                DSME_ATOMIC_BLOCK {
+                    this->busy = false;
+                }
                 return FSM_HANDLED;
             }
 

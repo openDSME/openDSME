@@ -42,7 +42,7 @@
 
 #include "CAPLayer.h"
 
-#include "../../../dsme_platform.h"
+#include "../../helper/DSMEAtomic.h"
 #include "../DSMELayer.h"
 
 namespace dsme {
@@ -102,14 +102,14 @@ bool CAPLayer::pushMessage(IDSMEMessage* msg) {
 
     bool pushed = false;
 
-    dsme_atomicBegin();
-    if(queue.full()) {
-        pushed = false;
-    } else {
-        queue.push(msg);
-        pushed = true;
+    DSME_ATOMIC_BLOCK {
+        if(this->queue.full()) {
+            pushed = false;
+        } else {
+            this->queue.push(msg);
+            pushed = true;
+        }
     }
-    dsme_atomicEnd();
 
     if(pushed) {
         dispatch(CSMAEvent::MSG_PUSHED);
@@ -269,25 +269,23 @@ void CAPLayer::actionStartBackoffTimer() {
     uint32_t symbolsPerSlot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
 
-    dsme_atomicBegin();
-    uint32_t now = dsme.getPlatform().getSymbolCounter();
+    DSME_ATOMIC_BLOCK {
+        uint32_t now = dsme.getPlatform().getSymbolCounter();
 
-    uint32_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, symbolsPerSlot); // including backoff
-    uint32_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
-    uint32_t CAPStart = now - symbolsSinceCAPStart;
+        uint32_t symbolsSinceCAPStart = dsme.getSymbolsSinceSuperframeStart(now, symbolsPerSlot); // including backoff
+        uint32_t backoffSinceCAPStart = symbolsSinceCAPStart + backoff;
+        uint32_t CAPStart = now - symbolsSinceCAPStart;
 
-    uint8_t fullCAPs = backoffSinceCAPStart / (dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
-    uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots() + 1) * symbolsPerSlot + blockedEnd);
+        uint8_t fullCAPs = backoffSinceCAPStart / (dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot - blockedEnd);
+        uint16_t blockedSymbolsPerSuperframe = ((dsme.getMAC_PIB().helper.getNumGTSlots() + 1) * symbolsPerSlot + blockedEnd);
 
-    backoffSinceCAPStart += fullCAPs * blockedSymbolsPerSuperframe;
+        backoffSinceCAPStart += fullCAPs * blockedSymbolsPerSuperframe;
 
-    DSME_ASSERT(CAPStart + backoffSinceCAPStart >= now + backoff);
-    DSME_ASSERT(dsme.isWithinCAP(CAPStart + backoffSinceCAPStart, symbolsRequired()));
+        DSME_ASSERT(CAPStart + backoffSinceCAPStart >= now + backoff);
+        DSME_ASSERT(dsme.isWithinCAP(CAPStart + backoffSinceCAPStart, symbolsRequired()));
 
-    dsme.getEventDispatcher().setupCSMATimer(CAPStart + backoffSinceCAPStart);
-    dsme_atomicEnd();
-
-    LOG_DEBUG(now << " " << (CAPStart + backoffSinceCAPStart));
+        dsme.getEventDispatcher().setupCSMATimer(CAPStart + backoffSinceCAPStart);
+    }
 }
 
 bool CAPLayer::enoughTimeLeft() {

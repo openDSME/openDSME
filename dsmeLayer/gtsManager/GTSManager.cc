@@ -43,6 +43,7 @@
 #include "GTSManager.h"
 
 #include "../../../dsme_platform.h"
+#include "../../helper/DSMEAtomic.h"
 #include "../DSMELayer.h"
 #include "../messages/GTSReplyNotifyCmd.h"
 #include "../messages/GTSRequestCmd.h"
@@ -104,12 +105,12 @@ void GTSManager::initialize() {
 }
 
 void GTSManager::reset() {
-    dsme_atomicBegin();
-    for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
-        transition(i, &GTSManager::stateIdle);
-        this->data[i].msgToSend = nullptr;
+    DSME_ATOMIC_BLOCK {
+        for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
+            transition(i, &GTSManager::stateIdle);
+            this->data[i].msgToSend = nullptr;
+        }
     }
-    dsme_atomicEnd();
 
     this->dsme.getMAC_PIB().macDSMESAB.clear();
     this->dsme.getMAC_PIB().macDSMEACT.clear();

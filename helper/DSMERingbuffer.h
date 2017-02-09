@@ -44,7 +44,7 @@
 #define DSMERINGBUFFER_H_
 
 #include <stdint.h>
-#include "../../dsme_atomic.h"
+#include "../helper/DSMEAtomic.h"
 
 namespace dsme {
 
@@ -69,47 +69,47 @@ public:
 
     bool hasCurrent() {
         bool result;
-        dsme_atomicBegin();
-        result = this->tail != this->head;
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            result = this->tail != this->head;
+        }
         return result;
     }
 
     bool hasNext() {
         bool result;
-        dsme_atomicBegin();
-        result = next(this->tail) != this->head;
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            result = next(this->tail) != this->head;
+        }
         return result;
     }
 
     T* current() {
         T* result;
-        dsme_atomicBegin();
-        result = &(this->buffer[this->head]);
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            result = &(this->buffer[this->head]);
+        }
         return result;
     }
 
     T* next() {
         T* result;
-        dsme_atomicBegin();
-        result = &(this->buffer[this->tail]);
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            result = &(this->buffer[this->tail]);
+        }
         return result;
     }
 
     void advanceCurrent() {
-        dsme_atomicBegin();
-        this->head = next(this->head);
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            this->head = next(this->head);
+        }
         return;
     }
 
     void advanceNext() {
-        dsme_atomicBegin();
-        this->tail = next(this->tail);
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            this->tail = next(this->tail);
+        }
         return;
     }
 };

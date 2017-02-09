@@ -94,27 +94,25 @@ public:
         bool isBusy;
         bool returnValue;
 
-        dsme_atomicBegin();
+        DSME_ATOMIC_BLOCK {
+            canAdd = this->eventBuffer.hasNext();
+            DSME_ASSERT(canAdd); // TODO: Remove after testing? Should never trigger when S is chosen correctly.
 
-        canAdd = this->eventBuffer.hasNext();
-        DSME_ASSERT(canAdd); // TODO: Remove after testing? Should never trigger when S is chosen correctly.
+            if(canAdd) {
+                this->eventBuffer.next()->setFsmId(fsmId);
+                this->eventBuffer.next()->fill(signal, args...);
+                this->eventBuffer.advanceNext();
+            }
 
-        if(canAdd) {
-            this->eventBuffer.next()->setFsmId(fsmId);
-            this->eventBuffer.next()->fill(signal, args...);
-            this->eventBuffer.advanceNext();
+            isBusy = this->dispatchBusy;
+            if(isBusy) {
+                returnValue = canAdd;
+            } else {
+                DSME_ASSERT(canAdd);
+                returnValue = true;
+                this->dispatchBusy = true;
+            }
         }
-
-        isBusy = this->dispatchBusy;
-        if(isBusy) {
-            returnValue = canAdd;
-        } else {
-            DSME_ASSERT(canAdd);
-            returnValue = true;
-            this->dispatchBusy = true;
-        }
-
-        dsme_atomicEnd();
 
         if(!isBusy) {
             runUntilFinished();
@@ -126,9 +124,9 @@ public:
     inline fsmReturnStatus transition(int8_t fsmId, state_t next) {
         DSME_ASSERT(fsmId >= 0 && fsmId < N);
 
-        dsme_atomicBegin();
-        states[fsmId] = next;
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            this->states[fsmId] = next;
+        }
         return FSM_TRANSITION;
     }
 

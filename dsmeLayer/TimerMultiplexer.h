@@ -44,9 +44,10 @@
 #define TIMERMULTIPLEXER_H_
 
 #include <stdint.h>
+#include "../../dsme_platform.h"
+#include "../helper/DSMEAtomic.h"
 #include "EventHistory.h"
 #include "TimerAbstractions.h"
-#include "dsme_platform.h"
 
 #ifdef STATISTICS_MONITOR_LATENESS
 #define BIN_COUNT (16)
@@ -95,12 +96,10 @@ protected:
     }
 
     void _timerInterrupt() {
-        dsme_atomicBegin();
-
-        dispatchEvents();
-        _scheduleTimer();
-
-        dsme_atomicEnd();
+        DSME_ATOMIC_BLOCK {
+            dispatchEvents();
+            _scheduleTimer();
+        }
     }
 
     template <T E>

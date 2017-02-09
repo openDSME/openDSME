@@ -2,7 +2,7 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * described in the IEEE 802.15.4-2015 standard
+ * introduced in the IEEE 802.15.4e-2012 standard
  *
  * Authors: Florian Meier <florian.meier@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
@@ -40,38 +40,41 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSME_PHY_CONSTANTS_H_
-#define DSME_PHY_CONSTANTS_H_
+#ifndef DSMEATOMIC_H_
+#define DSMEATOMIC_H_
 
-#include <stdint.h>
+#include "../../dsme_atomic.h"
 
 namespace dsme {
 
-/**
- * This file contains all PHY constants as defined in IEEE 802.15.4-2015, 11.3, Table 11-1
- */
+namespace atomic_helper {
 
-/*******************
- *                 *
- * FOR O-QPSK ONLY *
- *                 *
- *******************/
+class AtomicActionWrapper {
+public:
+    AtomicActionWrapper() : activated(true) {
+        dsme_atomicBegin();
+    }
 
-/** The maximum PSDU size (in octets) the PHY shall be able to receive. */
-constexpr uint8_t aMaxPHYPacketSize{127};
+    ~AtomicActionWrapper() {
+        dsme_atomicEnd();
+    }
 
-/** RX-to-TX or TX-to-RX turnaround time (in symbol periods), as defined in 10.2.1 and 10.2.2 */
-constexpr uint8_t aTurnaroundTime{12};
+    inline explicit operator bool() {
+        return this->activated;
+    }
 
-/** The delay in microseconds between the start of the SFD and the LEIP, as described in 19.6. */
-constexpr uint16_t aLeipDelayTime{815};
+    inline void deactivate() {
+        this->activated = false;
+    }
 
-/** The time required to perform CCA detection. **/
-constexpr uint8_t aCcaTime{8};
+private:
+    bool activated;
+};
 
-/** CUSTOM-ATTRIBUTE: The duration of one symbol in microseconds */
-constexpr uint8_t aSymbolDuration{16};
+} /* namespace atomic_helper */
+
+#define DSME_ATOMIC_BLOCK for(atomic_helper::AtomicActionWrapper __instance{}; __instance; __instance.deactivate())
 
 } /* namespace dsme */
 
-#endif /* DSME_PHY_CONSTANTS_H_ */
+#endif /* DSMEATOMIC_H_ */

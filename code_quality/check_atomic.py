@@ -5,48 +5,28 @@ import ntpath
 import re
 
 def main():
-    output, errors = Popen(['egrep -rn --include \*.h --include \*.cc "^\s*dsme_atomicBegin\(\);$"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
+    violated = False
+
+    output, errors = Popen(['grep -rn --include \*.h --include \*.cc "dsme_atomicBegin();"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
     error_message = errors.decode()
     if error_message != '':
         print(error_message)
 
-    violations = []
+    if len(output.decode().splitlines()) != 1:
+        violated = True
+        print('Incorrect use of dsme_atomicBegin(): ' + str(output.decode().splitlines()))
 
-    lines = output.decode().splitlines()
-    lines.sort()
-    for line in lines:
-        parts = line.split(':')
+    output, errors = Popen(['grep -rn --include \*.h --include \*.cc "dsme_atomicEnd();"'], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE).communicate()
+    error_message = errors.decode()
+    if error_message != '':
+        print(error_message)
 
-        f = open(parts[0], 'r')
-        contents = f.read().splitlines()
-        f.close()
+    if len(output.decode().splitlines()) != 1:
+        violated = True
+        print('Incorrect use of dsme_atomicEnd(): ' + str(output.decode().splitlines()))
 
-        depth = 0;
-        i = int(parts[1])
-        closed = 0.0
-
-        pattern = re.compile('^\s*dsme_atomicEnd\(\);$')
-        while depth >= 0 and i < len(contents):
-            l = contents[i]
-
-            match = pattern.match(l)
-            if match:
-                closed += 1/pow(2, depth)
-                if closed == 1:
-                    break
-
-            depth = depth + l.count('{')
-            depth = depth - l.count('}')
-            i = i + 1
-
-        if closed != 1.0:
-            violations.append(parts[0] + ':' + parts[1] + ' Incorrect number of closing blocks: ' + str(closed))
-            continue
-
-    if len(violations) > 0:
-        print(str('\n').join(violations))
-
-    print(str(len(violations)) + ' violations among atomic blocks found in ' + str(len(lines)) + ' instances.')
+    if violated == False:
+        print('0 violations among atomic blocks found.')
 
 if __name__ == "__main__":
     main()

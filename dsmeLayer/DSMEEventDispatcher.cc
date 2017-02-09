@@ -41,7 +41,7 @@
  */
 
 #include "DSMEEventDispatcher.h"
-#include "../../dsme_platform.h"
+#include "../helper/DSMEAtomic.h"
 #include "DSMELayer.h"
 
 namespace dsme {
@@ -89,40 +89,40 @@ uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
     uint32_t symbols_per_slot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     uint32_t next_slot_time = lastSlotTime + symbols_per_slot;
 
-    dsme_atomicBegin();
-    if(next_slot_time - PRE_EVENT_SHIFT <= NOW + 1) {
-        next_slot_time += symbols_per_slot;
+    DSME_ATOMIC_BLOCK {
+        if(next_slot_time - PRE_EVENT_SHIFT <= NOW + 1) {
+            next_slot_time += symbols_per_slot;
+        }
+        DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
+        DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
+        DSMETimerMultiplexer::_scheduleTimer();
     }
-    DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
-    DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
-    DSMETimerMultiplexer::_scheduleTimer();
-    dsme_atomicEnd();
 
     return next_slot_time;
 }
 
 void DSMEEventDispatcher::setupCSMATimer(uint32_t absSymCnt) {
-    dsme_atomicBegin();
-    DSMETimerMultiplexer::_startTimer<CSMA_TIMER>(absSymCnt, &DSMEEventDispatcher::fireCSMATimer);
-    DSMETimerMultiplexer::_scheduleTimer();
-    dsme_atomicEnd();
+    DSME_ATOMIC_BLOCK {
+        DSMETimerMultiplexer::_startTimer<CSMA_TIMER>(absSymCnt, &DSMEEventDispatcher::fireCSMATimer);
+        DSMETimerMultiplexer::_scheduleTimer();
+    }
     return;
 }
 
 void DSMEEventDispatcher::setupACKTimer() {
-    dsme_atomicBegin();
-    uint32_t ackTimeout = dsme.getMAC_PIB().helper.getAckWaitDuration() + NOW;
-    DSMETimerMultiplexer::_startTimer<ACK_TIMER>(ackTimeout, &DSMEEventDispatcher::fireACKTimer);
-    DSMETimerMultiplexer::_scheduleTimer();
-    dsme_atomicEnd();
+    DSME_ATOMIC_BLOCK {
+        uint32_t ackTimeout = dsme.getMAC_PIB().helper.getAckWaitDuration() + NOW;
+        DSMETimerMultiplexer::_startTimer<ACK_TIMER>(ackTimeout, &DSMEEventDispatcher::fireACKTimer);
+        DSMETimerMultiplexer::_scheduleTimer();
+    }
     return;
 }
 
 void DSMEEventDispatcher::stopACKTimer() {
-    dsme_atomicBegin();
-    DSMETimerMultiplexer::_stopTimer<ACK_TIMER>();
-    DSMETimerMultiplexer::_scheduleTimer();
-    dsme_atomicEnd();
+    DSME_ATOMIC_BLOCK {
+        DSMETimerMultiplexer::_stopTimer<ACK_TIMER>();
+        DSMETimerMultiplexer::_scheduleTimer();
+    }
     return;
 }
 
