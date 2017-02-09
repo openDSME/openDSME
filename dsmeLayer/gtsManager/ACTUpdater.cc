@@ -46,7 +46,6 @@
 #include "../DSMELayer.h"
 #include "../messages/GTSReplyNotifyCmd.h"
 #include "../messages/GTSRequestCmd.h"
-#include "../messages/GTSRequestCmd.h"
 #include "../messages/MACCommand.h"
 
 namespace dsme {
