@@ -55,8 +55,10 @@ typedef MacStaticList<uint8_t, 16> channelList_t;
  */
 class PHY_PIB {
 public:
-    PHY_PIB(uint8_t phySHRDuration, bool useOneChannelOnly = false);
+    PHY_PIB();
     ~PHY_PIB();
+
+    void setDSSS2450ChannelPage(channelList_t& DSSS2450_channels);
 
     /** The RF channel to use for all following transmissions and receptions, 10.1.2.
      * Though it is not clearly described in the standard, we assume this value shall not be changed during channel
@@ -81,7 +83,7 @@ public:
      * 1.3 corresponds to 1 Mb/s while 5.3 corresponds to 250 kb/s. */
     const float phySymbolsPerOctet{2.0};
 
-    uint8_t phySHRDuration;
+    uint8_t phySHRDuration{10};
 };
 
 } /* namespace dsme */

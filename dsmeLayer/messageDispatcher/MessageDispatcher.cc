@@ -112,7 +112,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             // For RX also if INVALID or UNCONFIRMED!
             if((currentACTElement->getState() == VALID) || (currentACTElement->getDirection() == Direction::RX)) {
-                dsme.getPlatform().setChannelNumber(MIN_CHANNEL + currentACTElement->getChannel());
+                dsme.getPlatform().setChannelNumber(dsme.getMAC_PIB().helper.getChannels()[currentACTElement->getChannel()]);
             }
 
             // statistic
