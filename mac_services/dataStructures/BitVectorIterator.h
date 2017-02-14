@@ -45,7 +45,7 @@
 
 /* INCLDUDES *****************************************************************/
 
-#include <stdint.h>
+#include "../../helper/Integers.h"
 
 namespace dsme {
 

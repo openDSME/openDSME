@@ -45,10 +45,11 @@
 
 /* INCLUDES ******************************************************************/
 
-#include <stdint.h>
-
 #include "../../../dsme_settings.h"
-#include "DSMEBitVector.h"
+#include "../../helper/Integers.h"
+#include "./DSMEBitVector.h"
+
+class Serializer;
 
 namespace dsme {
 

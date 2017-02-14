@@ -40,11 +40,11 @@
  * SUCH DAMAGE.
  */
 
-#include "MAC_PIB.h"
-
-#include "dsme_mac_constants.h"
+#include "./MAC_PIB.h"
 
 namespace dsme {
+
+class PHY_PIB;
 
 MAC_PIB::MAC_PIB(PHY_PIB& phy_pib) : helper(phy_pib, *this) {
 }

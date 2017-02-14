@@ -40,8 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#include "RESET.h"
+#include "./RESET.h"
 
+#include "../../../dsme_platform.h"
 #include "../../dsmeLayer/DSMELayer.h"
 
 namespace dsme {

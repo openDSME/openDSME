@@ -43,6 +43,7 @@
 #ifndef PURGE_H_
 #define PURGE_H_
 
+#include "../../mac_services/DSME_Common.h"
 #include "../ConfirmBase.h"
 #include "../DSME_Common.h"
 

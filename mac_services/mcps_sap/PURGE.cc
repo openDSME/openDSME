@@ -40,9 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "PURGE.h"
-
-#include "../../dsmeLayer/DSMELayer.h"
+#include "./PURGE.h"
 
 namespace dsme {
 namespace mcps_sap {

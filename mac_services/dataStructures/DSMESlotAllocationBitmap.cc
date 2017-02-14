@@ -40,9 +40,12 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMESlotAllocationBitmap.h"
+#include "./DSMESlotAllocationBitmap.h"
 
-#include "dsme_platform.h"
+#include "./DSMEBitVector.h"
+#include "./DSMESABSpecification.h"
+#include "./DSMESlotAllocationBitmap.h"
+#include "./GTS.h"
 
 namespace dsme {
 

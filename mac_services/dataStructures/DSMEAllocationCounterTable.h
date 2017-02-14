@@ -44,10 +44,10 @@
 #define DSMEALLOCATIONCOUNTERTABLE_H_
 
 #include "../../../dsme_settings.h"
-#include "ACTElement.h"
-#include "DSMEBitVector.h"
-#include "DSMESABSpecification.h"
-#include "RBTree.h"
+#include "./ACTElement.h"
+#include "./DSMEBitVector.h"
+#include "./DSMESABSpecification.h"
+#include "./RBTree.h"
 
 namespace dsme {
 

@@ -40,13 +40,12 @@
  * SUCH DAMAGE.
  */
 
-#include "ACTUpdater.h"
+#include "./ACTUpdater.h"
 
 #include "../../../dsme_platform.h"
+#include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../DSMELayer.h"
-#include "../messages/GTSReplyNotifyCmd.h"
-#include "../messages/GTSRequestCmd.h"
-#include "../messages/MACCommand.h"
+#include "../messages/GTSManagement.h"
 
 namespace dsme {
 

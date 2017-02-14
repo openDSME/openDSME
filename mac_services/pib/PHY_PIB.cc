@@ -40,9 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "PHY_PIB.h"
-
-#include "dsme_mac_constants.h"
+#include "./PHY_PIB.h"
 
 namespace dsme {
 

@@ -43,7 +43,7 @@
 #ifndef MACDATASTRUCTURES_H_
 #define MACDATASTRUCTURES_H_
 
-#include <stdint.h>
+#include "../helper/Integers.h"
 
 namespace dsme {
 

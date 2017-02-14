@@ -43,6 +43,8 @@
 #ifndef TIMESYNCSPECIFICATION_H_
 #define TIMESYNCSPECIFICATION_H_
 
+#include "../../helper/Integers.h"
+
 namespace dsme {
 
 struct TimeSyncSpecification {

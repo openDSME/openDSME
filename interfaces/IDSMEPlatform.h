@@ -43,9 +43,8 @@
 #ifndef IDSMEPLATFORM_H_
 #define IDSMEPLATFORM_H_
 
-#include <stdint.h>
-
 #include "../helper/DSMEDelegate.h"
+#include "../helper/Integers.h"
 
 namespace dsme {
 

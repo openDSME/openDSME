@@ -42,9 +42,26 @@
 
 #include "./MessageDispatcher.h"
 
+#include "../../../dsme_platform.h"
+#include "../../../dsme_settings.h"
+#include "../../helper/DSMEDelegate.h"
+#include "../../helper/Integers.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/mcps_sap/DATA.h"
-#include "../../mac_services/mcps_sap/MCPS_SAP.h"
+#include "../../mac_services/pib/MAC_PIB.h"
+#include "../../mac_services/pib/PHY_PIB.h"
+#include "../../mac_services/pib/PIBHelper.h"
 #include "../DSMELayer.h"
+#include "../ackLayer/AckLayer.h"
+#include "../associationManager/AssociationManager.h"
+#include "../beaconManager/BeaconManager.h"
+#include "../capLayer/CAPLayer.h"
+#include "../gtsManager/GTSManager.h"
+#include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
 namespace dsme {

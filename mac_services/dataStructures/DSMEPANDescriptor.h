@@ -44,13 +44,13 @@
 #define DSMEPANDESCRIPTOR_H_
 
 #include "../../mac_services/DSME_Common.h"
-#include "BeaconBitmap.h"
-#include "DSMEMessageElement.h"
-#include "DSMESuperframeSpecification.h"
-#include "IEEE802154MacAddress.h"
-#include "PendingAddresses.h"
-#include "SuperframeSpecification.h"
-#include "TimeSyncSpecification.h"
+#include "./BeaconBitmap.h"
+#include "./DSMEMessageElement.h"
+#include "./DSMESuperframeSpecification.h"
+#include "./IEEE802154MacAddress.h"
+#include "./PendingAddresses.h"
+#include "./SuperframeSpecification.h"
+#include "./TimeSyncSpecification.h"
 
 namespace dsme {
 

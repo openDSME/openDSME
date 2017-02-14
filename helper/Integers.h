@@ -40,32 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEMESSAGEELEMENT_H_
-#define DSMEMESSAGEELEMENT_H_
+#ifndef INTEGERS_H_
+#define INTEGERS_H_
 
-#include "./Serializer.h"
+#include <stdint.h>
 
-class Serializer;
-
-namespace dsme {
-
-class IDSMEMessage;
-
-class DSMEMessageElement {
-public:
-    // TODO remove those
-    void prependTo(IDSMEMessage* msg);
-    void decapsulateFrom(IDSMEMessage* msg);
-    void copyFrom(IDSMEMessage* msg);
-
-    /**
-     * The result is not valid before deserialization.
-     */
-    virtual uint8_t getSerializationLength() = 0;
-
-    virtual void serialize(Serializer& serializer) = 0;
-};
-
-} /* namespace dsme */
-
-#endif /* DSMEMESSAGEELEMENT_H_ */
+#endif /* INTEGERS_H_ */

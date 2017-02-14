@@ -40,11 +40,15 @@
  * SUCH DAMAGE.
  */
 
-#include "POLL.h"
+#include "./POLL.h"
 
-#include "../../../dsme_platform.h"
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../../dsmeLayer/messageDispatcher/MessageDispatcher.h"
+#include "../../dsmeLayer/messages/IEEE802154eMACHeader.h"
 #include "../../dsmeLayer/messages/MACCommand.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../pib/MAC_PIB.h"
 
 namespace dsme {
 namespace mlme_sap {

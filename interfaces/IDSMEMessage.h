@@ -43,9 +43,8 @@
 #ifndef IDSMEMESSAGE_H_
 #define IDSMEMESSAGE_H_
 
-#include <stdint.h>
-
 #include "../dsmeLayer/messages/IEEE802154eMACHeader.h"
+#include "../helper/Integers.h"
 #include "../mac_services/dataStructures/DSMEMessageElement.h"
 
 namespace dsme {

@@ -43,10 +43,9 @@
 #ifndef DSMESLOTALLOCATIONBITMAP_H_
 #define DSMESLOTALLOCATIONBITMAP_H_
 
-#include <stdint.h>
-
-#include "DSMESABSpecification.h"
-#include "GTS.h"
+#include "../../helper/Integers.h"
+#include "./DSMESABSpecification.h"
+#include "./GTS.h"
 
 namespace dsme {
 

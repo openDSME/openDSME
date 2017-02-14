@@ -43,8 +43,6 @@
 #ifndef DSME_GTS_H_
 #define DSME_GTS_H_
 
-#include <stdint.h>
-
 #include "../../dsmeLayer/messages/GTSManagement.h"
 #include "../../dsmeLayer/messages/GTSReplyNotifyCmd.h"
 #include "../../dsmeLayer/messages/GTSRequestCmd.h"

@@ -40,12 +40,18 @@
  * SUCH DAMAGE.
  */
 
-#include "ASSOCIATE.h"
+#include "./ASSOCIATE.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../../dsmeLayer/associationManager/AssociationManager.h"
 #include "../../dsmeLayer/messages/AssociateReplyCmd.h"
 #include "../../dsmeLayer/messages/AssociateRequestCmd.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../DSME_Common.h"
+#include "../dataStructures/IEEE802154MacAddress.h"
+#include "../pib/MAC_PIB.h"
+#include "../pib/PHY_PIB.h"
+#include "./ASSOCIATE.h"
 
 namespace dsme {
 namespace mlme_sap {

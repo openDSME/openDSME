@@ -43,7 +43,7 @@
 #ifndef GTS_H_
 #define GTS_H_
 
-#include <stdint.h>
+#include "../../helper/Integers.h"
 
 namespace dsme {
 

@@ -43,7 +43,7 @@
 #ifndef TIMERABSTRACTIONS_H_
 #define TIMERABSTRACTIONS_H_
 
-#include <stdint.h>
+#include "../helper/Integers.h"
 
 namespace dsme {
 

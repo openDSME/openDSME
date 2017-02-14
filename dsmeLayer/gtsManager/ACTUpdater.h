@@ -43,8 +43,7 @@
 #ifndef ACTUPDATER_H_
 #define ACTUPDATER_H_
 
-#include <stdint.h>
-
+#include "../../helper/Integers.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../messages/GTSManagement.h"
@@ -52,6 +51,8 @@
 namespace dsme {
 
 class DSMELayer;
+class DSMESABSpecification;
+class GTSManagement;
 
 class ACTUpdater {
 public:

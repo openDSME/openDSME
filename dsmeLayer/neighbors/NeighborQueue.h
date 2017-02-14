@@ -45,13 +45,12 @@
 
 /* INCLUDES ******************************************************************/
 
-#include <stdint.h>
-
 #include "../../../dsme_settings.h"
+#include "../../helper/Integers.h"
 #include "../../mac_services/dataStructures/RBTree.h"
 #include "../../mac_services/dataStructures/RBTreeIterator.h"
-#include "MultiMessageQueue.h"
-#include "Neighbor.h"
+#include "./MultiMessageQueue.h"
+#include "./Neighbor.h"
 
 namespace dsme {
 

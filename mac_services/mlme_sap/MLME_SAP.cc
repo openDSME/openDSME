@@ -40,12 +40,25 @@
  * SUCH DAMAGE.
  */
 
-#include "MLME_SAP.h"
+#include "./MLME_SAP.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../../mac_services/mlme_sap/MLME_SAP.h"
 
 namespace dsme {
 namespace mlme_sap {
+
+class ASSOCIATE;
+class BEACON_NOTIFY;
+class COMM_STATUS;
+class DISASSOCIATE;
+class DSME_GTS;
+class POLL;
+class RESET;
+class SCAN;
+class START;
+class SYNC;
+class SYNC_LOSS;
 
 MLME_SAP::MLME_SAP(DSMELayer& dsme)
     : dsme(dsme), associate(dsme), disassociate(dsme), dsme_gts(dsme), poll(dsme), reset(dsme), scan(dsme), start(dsme), sync(dsme) {

@@ -43,13 +43,14 @@
 #ifndef GTSDATA_H_
 #define GTSDATA_H_
 
-#include <stdint.h>
-
+#include "../../helper/Integers.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/mlme_sap/DSME_GTS.h"
 #include "../messages/GTSManagement.h"
 
 namespace dsme {
+
+class IDSMEMessage;
 
 struct GTSData {
 public:

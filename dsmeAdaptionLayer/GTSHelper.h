@@ -43,20 +43,22 @@
 #ifndef GTSHELPER_H_
 #define GTSHELPER_H_
 
+#include "../mac_services/DSME_Common.h"
 #include "../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../mac_services/dataStructures/GTS.h"
 #include "../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "GTSController.h"
+#include "./GTSController.h"
 
 namespace dsme {
 
 class DSMEAdaptionLayer;
+class DSMESABSpecification;
 
 namespace mlme_sap {
-struct DSME_GTS_indication_parameters;
-struct DSME_GTS_confirm_parameters;
 struct COMM_STATUS_indication_parameters;
+struct DSME_GTS_confirm_parameters;
+struct DSME_GTS_indication_parameters;
 } /* namespace mlme_sap */
 
 class GTSHelper {

@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "SCAN.h"
+#include "./SCAN.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../../dsmeLayer/beaconManager/BeaconManager.h"

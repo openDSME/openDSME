@@ -43,10 +43,9 @@
 #ifndef RBTREE_H_
 #define RBTREE_H_
 
-#include "RBNode.h"
-#include "RBTreeIterator.h"
-
-#include <stdint.h>
+#include "../../helper/Integers.h"
+#include "./RBNode.h"
+#include "./RBTreeIterator.h"
 
 namespace dsme {
 

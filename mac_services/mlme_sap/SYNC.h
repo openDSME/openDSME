@@ -43,10 +43,11 @@
 #ifndef SYNC_H_
 #define SYNC_H_
 
-#include <stdint.h>
+#include "../../helper/Integers.h"
 
 namespace dsme {
 class DSMELayer;
+
 namespace mlme_sap {
 
 /*

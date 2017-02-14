@@ -43,7 +43,7 @@
 #ifndef SERIALIZER_H_
 #define SERIALIZER_H_
 
-#include <stdint.h>
+#include "../../helper/Integers.h"
 
 enum serialization_type_t { SERIALIZATION, DESERIALIZATION };
 

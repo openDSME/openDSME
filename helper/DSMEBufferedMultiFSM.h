@@ -43,9 +43,9 @@
 #ifndef DSMEBUFFEREDMULTIFSM_H_
 #define DSMEBUFFEREDMULTIFSM_H_
 
-#include <stdint.h>
-#include "DSMEFSM.h"
-#include "DSMERingbuffer.h"
+#include "./DSMEFSM.h"
+#include "./DSMERingbuffer.h"
+#include "./Integers.h"
 
 namespace dsme {
 

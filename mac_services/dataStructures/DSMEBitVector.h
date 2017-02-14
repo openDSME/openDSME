@@ -45,10 +45,11 @@
 
 /* INCLDUDES *****************************************************************/
 
-#include <stdint.h>
+#include "../../helper/Integers.h"
+#include "./BitVectorIterator.h"
+#include "./Serializer.h"
 
-#include "BitVectorIterator.h"
-#include "Serializer.h"
+class Serializer;
 
 /* DEFINES & MACROS **********************************************************/
 

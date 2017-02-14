@@ -40,11 +40,21 @@
  * SUCH DAMAGE.
  */
 
-#include "GTSManager.h"
+#include "./GTSManager.h"
 
 #include "../../../dsme_platform.h"
 #include "../../helper/DSMEAtomic.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
+#include "../../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/mlme_sap/COMM_STATUS.h"
+#include "../../mac_services/mlme_sap/DSME_GTS.h"
+#include "../../mac_services/pib/MAC_PIB.h"
+#include "../../mac_services/pib/PIBHelper.h"
 #include "../DSMELayer.h"
+#include "../messageDispatcher/MessageDispatcher.h"
 #include "../messages/GTSReplyNotifyCmd.h"
 #include "../messages/GTSRequestCmd.h"
 #include "../messages/MACCommand.h"

@@ -40,11 +40,15 @@
  * SUCH DAMAGE.
  */
 
-#include "AssociationHelper.h"
+#include "./AssociationHelper.h"
+
 #include "../../dsme_platform.h"
+#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../mac_services/mlme_sap/ASSOCIATE.h"
+#include "../mac_services/mlme_sap/DISASSOCIATE.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
 #include "../mac_services/pib/MAC_PIB.h"
-#include "DSMEAdaptionLayer.h"
+#include "./DSMEAdaptionLayer.h"
 
 namespace dsme {
 
@@ -69,7 +73,7 @@ void AssociationHelper::setDisassociationCompleteDelegate(disassociationComplete
     return;
 }
 
-void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress coordAddress, uint8_t channel) {
+void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress& coordAddress, uint8_t channel) {
     CapabilityInformation capabilityInformation;
     capabilityInformation.alternatePANCoordinator = false;
     capabilityInformation.deviceType = 1;

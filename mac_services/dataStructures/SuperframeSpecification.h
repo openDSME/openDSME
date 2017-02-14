@@ -43,7 +43,7 @@
 #ifndef SUPERFRAMESPECIFICATION_H_
 #define SUPERFRAMESPECIFICATION_H_
 
-#include "Serializer.h"
+#include "./Serializer.h"
 
 namespace dsme {
 

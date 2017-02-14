@@ -47,10 +47,11 @@
 #include "../DSME_Common.h"
 #include "../dataStructures/DSMEPANDescriptor.h"
 #include "../pib/PHY_PIB.h"
-#include "helper/PanDescriptorList.h"
+#include "./helper/PanDescriptorList.h"
 
 namespace dsme {
 class DSMELayer;
+
 namespace mlme_sap {
 
 struct SCAN_confirm_parameters {

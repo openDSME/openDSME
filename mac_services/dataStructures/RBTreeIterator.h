@@ -45,8 +45,8 @@
 
 #define RBTREE_ITERATOR_POSTORDER
 
-#include "RBNode.h"
-#include "RBTree.h"
+#include "./RBNode.h"
+#include "./RBTree.h"
 
 namespace dsme {
 

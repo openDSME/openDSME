@@ -43,7 +43,14 @@
 #include "DSMEAllocationCounterTable.h"
 
 #include "../../../dsme_platform.h"
-#include "GTS.h"
+#include "../../helper/Integers.h"
+#include "../DSME_Common.h"
+#include "./ACTElement.h"
+#include "./BitVectorIterator.h"
+#include "./DSMEBitVector.h"
+#include "./DSMESABSpecification.h"
+#include "./GTS.h"
+#include "./RBTree.h"
 
 using namespace dsme;
 

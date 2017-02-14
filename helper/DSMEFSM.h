@@ -43,9 +43,9 @@
 #ifndef DSMEFSM_H_
 #define DSMEFSM_H_
 
-#include <stdint.h>
 #include "../../dsme_platform.h"
-#include "DSMEAtomic.h"
+#include "./DSMEAtomic.h"
+#include "./Integers.h"
 
 namespace dsme {
 

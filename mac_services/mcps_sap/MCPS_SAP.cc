@@ -40,10 +40,13 @@
  * SUCH DAMAGE.
  */
 
-#include "MCPS_SAP.h"
+#include "./MCPS_SAP.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
-#include "../../dsmeLayer/neighbors/NeighborQueue.h"
+
+namespace dsme {
+class IEEE802154MacAddress;
+} /* namespace dsme */
 
 namespace dsme {
 namespace mcps_sap {

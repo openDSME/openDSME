@@ -43,6 +43,8 @@
 #ifndef BEACONNOTIFICATIONCMD_H_
 #define BEACONNOTIFICATIONCMD_H_
 
+#include "../../helper/Integers.h"
+
 namespace dsme {
 
 /*

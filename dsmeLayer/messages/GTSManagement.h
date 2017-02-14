@@ -43,8 +43,11 @@
 #ifndef GTSMANAGEMENT_H_
 #define GTSMANAGEMENT_H_
 
+#include "../../helper/Integers.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
+
+class Serializer;
 
 namespace dsme {
 

@@ -43,6 +43,8 @@
 #ifndef PENDINGADDRESSES_H_
 #define PENDINGADDRESSES_H_
 
+#include "../../helper/Integers.h"
+
 namespace dsme {
 
 class PendingAddresses {

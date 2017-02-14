@@ -43,7 +43,7 @@
 #ifndef PANDESCRIPTOR_H_
 #define PANDESCRIPTOR_H_
 
-#include "DSMEPANDescriptor.h"
+#include "./DSMEPANDescriptor.h"
 
 namespace dsme {
 

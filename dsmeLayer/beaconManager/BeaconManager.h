@@ -43,17 +43,18 @@
 #ifndef BEACONMANAGER_H_
 #define BEACONMANAGER_H_
 
-#include <stdint.h>
-
+#include "../../helper/Integers.h"
+#include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/BeaconBitmap.h"
 #include "../../mac_services/dataStructures/DSMEPANDescriptor.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "../../mac_services/mlme_sap/MLME_SAP.h"
 #include "../ackLayer/AckLayer.h"
 
 namespace dsme {
 
 class DSMELayer;
+class IDSMEMessage;
+class IEEE802154MacAddress;
 
 class BeaconManager {
     friend class mlme_sap::SCAN;

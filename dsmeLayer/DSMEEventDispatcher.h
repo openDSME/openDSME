@@ -43,13 +43,15 @@
 #ifndef DSMEEVENTDISPATCHER_H_
 #define DSMEEVENTDISPATCHER_H_
 
-#include <stdint.h>
+#include "../helper/Integers.h"
 #include "../interfaces/IDSMEPlatform.h"
-#include "TimerMultiplexer.h"
+#include "./TimerAbstractions.h"
+#include "./TimerMultiplexer.h"
 
 namespace dsme {
 
 class DSMELayer;
+class IDSMEPlatform;
 
 enum EventTimers {
     NEXT_PRE_SLOT,

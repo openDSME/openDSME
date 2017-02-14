@@ -45,8 +45,8 @@
 
 /* INCLUDES ******************************************************************/
 
-#include "MultiMessageQueue.h"
-#include "Neighbor.h"
+#include "./MultiMessageQueue.h"
+#include "./Neighbor.h"
 
 namespace dsme {
 

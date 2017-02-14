@@ -45,10 +45,9 @@
 
 /* INCLUDES ******************************************************************/
 
-#include <stdint.h>
-
-#include "MessageQueueEntry.h"
-#include "NeighborListEntry.h"
+#include "../../helper/Integers.h"
+#include "./MessageQueueEntry.h"
+#include "./NeighborListEntry.h"
 
 namespace dsme {
 

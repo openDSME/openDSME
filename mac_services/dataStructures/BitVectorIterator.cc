@@ -40,7 +40,10 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMEBitVector.h"
+#include "./BitVectorIterator.h"
+
+#include "../../helper/Integers.h"
+#include "./DSMEBitVector.h"
 
 namespace dsme {
 

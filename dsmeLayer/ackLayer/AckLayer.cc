@@ -40,10 +40,21 @@
  * SUCH DAMAGE.
  */
 
-#include "AckLayer.h"
+#include "./AckLayer.h"
 
+#include "../../../dsme_platform.h"
 #include "../../helper/DSMEAtomic.h"
+#include "../../helper/DSMEDelegate.h"
+#include "../../helper/DSMEFSM.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/pib/MAC_PIB.h"
+#include "../DSMEEventDispatcher.h"
 #include "../DSMELayer.h"
+#include "../ackLayer/AckLayer.h"
+#include "../messages/IEEE802154eMACHeader.h"
 
 namespace dsme {
 

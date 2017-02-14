@@ -40,13 +40,22 @@
  * SUCH DAMAGE.
  */
 
-#include "GTSHelper.h"
+#include "./GTSHelper.h"
+
 #include "../../dsme_platform.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
+#include "../helper/DSMEDelegate.h"
+#include "../interfaces/IDSMEPlatform.h"
+#include "../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../mac_services/dataStructures/DSMESlotAllocationBitmap.h"
+#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../mac_services/mcps_sap/MCPS_SAP.h"
-#include "../mac_services/pib/dsme_mac_constants.h"
-#include "DSMEAdaptionLayer.h"
+#include "../mac_services/mlme_sap/DSME_GTS.h"
+#include "../mac_services/mlme_sap/MLME_SAP.h"
+#include "../mac_services/pib/MAC_PIB.h"
+#include "../mac_services/pib/PIBHelper.h"
+#include "./DSMEAdaptionLayer.h"
 
 namespace dsme {
 

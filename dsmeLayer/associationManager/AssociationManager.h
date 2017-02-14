@@ -44,6 +44,10 @@
 #define ASSOCIATIONMANAGER_H_
 
 #include "../../../dsme_platform.h"
+#include "../../helper/Integers.h"
+#include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/mlme_sap/ASSOCIATE.h"
+#include "../../mac_services/mlme_sap/DISASSOCIATE.h"
 #include "../../mac_services/mlme_sap/MLME_SAP.h"
 #include "../messages/AssociateReplyCmd.h"
 #include "../messages/AssociateRequestCmd.h"
@@ -52,6 +56,11 @@
 namespace dsme {
 
 class DSMELayer;
+class AssociateReplyCmd;
+class AssociateRequestCmd;
+class DisassociationNotifyCmd;
+class IDSMEMessage;
+class IEEE802154MacAddress;
 
 /*
  * Manager for MLME Associate and MLME Disassociate

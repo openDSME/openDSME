@@ -43,14 +43,19 @@
 #ifndef ASSOCIATIONHELPER_H_
 #define ASSOCIATIONHELPER_H_
 
+#include "../helper/DSMEDelegate.h"
 #include "../mac_services/DSME_Common.h"
-#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "../mac_services/mlme_sap/ASSOCIATE.h"
-#include "../mac_services/mlme_sap/DISASSOCIATE.h"
 
 namespace dsme {
 
 class DSMEAdaptionLayer;
+class IEEE802154MacAddress;
+
+namespace mlme_sap {
+struct ASSOCIATE_confirm_parameters;
+struct ASSOCIATE_indication_parameters;
+struct DISASSOCIATE_confirm_parameters;
+} /* namespace mlme_sap */
 
 class AssociationHelper {
 public:
@@ -64,7 +69,7 @@ public:
     void setAssociationCompleteDelegate(associationCompleteDelegate_t delegate);
     void setDisassociationCompleteDelegate(disassociationCompleteDelegate_t delegate);
 
-    void associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress coordAddress, uint8_t channel);
+    void associate(uint16_t coordPANId, AddrMode addrMode, IEEE802154MacAddress& coordAddress, uint8_t channel);
 
     void disassociate();
 

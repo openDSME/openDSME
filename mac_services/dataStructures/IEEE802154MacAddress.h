@@ -43,8 +43,7 @@
 #ifndef IEEE802154MACADDRESS_H_
 #define IEEE802154MACADDRESS_H_
 
-#include <stdint.h>
-#include "Serializer.h"
+#include "./Serializer.h"
 
 namespace dsme {
 

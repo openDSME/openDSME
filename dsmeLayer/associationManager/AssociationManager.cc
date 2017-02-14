@@ -40,12 +40,21 @@
  * SUCH DAMAGE.
  */
 
-#include "AssociationManager.h"
+#include "./AssociationManager.h"
 
+#include "../../../dsme_platform.h"
 #include "../../helper/DSMEAtomic.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
 #include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMELayer.h"
+#include "../messageDispatcher/MessageDispatcher.h"
 #include "../messages/AssociateReplyCmd.h"
+#include "../messages/AssociateRequestCmd.h"
+#include "../messages/DisassociationNotifyCmd.h"
+#include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
 namespace dsme {

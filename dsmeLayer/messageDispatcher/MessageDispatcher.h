@@ -43,8 +43,8 @@
 #ifndef MESSAGEDISPATCHER_H_
 #define MESSAGEDISPATCHER_H_
 
-#include <stdint.h>
 #include "../../../dsme_platform.h"
+#include "../../helper/Integers.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../ackLayer/AckLayer.h"
 #include "../neighbors/NeighborQueue.h"

@@ -43,9 +43,8 @@
 #ifndef DSME_COMMON_H_
 #define DSME_COMMON_H_
 
-#include <stdint.h>
-
 #include "../helper/DSMEDelegate.h"
+#include "../helper/Integers.h"
 
 namespace dsme {
 

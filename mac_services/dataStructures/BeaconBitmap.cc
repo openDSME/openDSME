@@ -42,7 +42,9 @@
 
 /* INCLUDES ******************************************************************/
 
-#include "BeaconBitmap.h"
+#include "./BeaconBitmap.h"
+
+#include "./Serializer.h"
 
 namespace dsme {
 

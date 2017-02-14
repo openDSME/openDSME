@@ -40,10 +40,15 @@
  * SUCH DAMAGE.
  */
 
-#include "DATA.h"
+#include "./DATA.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../../dsmeLayer/messageDispatcher/MessageDispatcher.h"
 #include "../../dsmeLayer/messages/IEEE802154eMACHeader.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../dataStructures/DSMEAllocationCounterTable.h"
+#include "../dataStructures/IEEE802154MacAddress.h"
+#include "../pib/MAC_PIB.h"
 
 namespace dsme {
 namespace mcps_sap {

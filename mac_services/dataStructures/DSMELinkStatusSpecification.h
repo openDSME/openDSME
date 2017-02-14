@@ -43,6 +43,8 @@
 #ifndef DSMELINKSTATUSSPECIFICATION_H_
 #define DSMELINKSTATUSSPECIFICATION_H_
 
+#include "../../helper/Integers.h"
+
 namespace dsme {
 
 /*

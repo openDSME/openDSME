@@ -43,7 +43,6 @@
 #ifndef PHY_PIB_H_
 #define PHY_PIB_H_
 
-#include <stdint.h>
 #include "../MacDataStructures.h"
 
 namespace dsme {

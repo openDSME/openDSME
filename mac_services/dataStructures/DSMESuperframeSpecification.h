@@ -43,7 +43,10 @@
 #ifndef DSMESUPERFRAMESPECIFICATION_H_
 #define DSMESUPERFRAMESPECIFICATION_H_
 
-#include "Serializer.h"
+#include "../../helper/Integers.h"
+#include "./Serializer.h"
+
+class Serializer;
 
 namespace dsme {
 

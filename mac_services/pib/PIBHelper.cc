@@ -40,12 +40,14 @@
  * SUCH DAMAGE.
  */
 
-#include "PIBHelper.h"
+#include "./PIBHelper.h"
 
 #include "../../../dsme_platform.h"
-#include "MAC_PIB.h"
-#include "PHY_PIB.h"
-#include "dsme_mac_constants.h"
+#include "../MacDataStructures.h"
+#include "./MAC_PIB.h"
+#include "./PHY_PIB.h"
+#include "./dsme_mac_constants.h"
+#include "./dsme_phy_constants.h"
 
 namespace dsme {
 

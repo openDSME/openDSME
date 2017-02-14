@@ -40,10 +40,12 @@
  * SUCH DAMAGE.
  */
 
-#include "DISASSOCIATE.h"
+#include "./DISASSOCIATE.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../../dsmeLayer/associationManager/AssociationManager.h"
 #include "../../dsmeLayer/messages/DisassociationNotifyCmd.h"
+#include "./DISASSOCIATE.h"
 
 namespace dsme {
 namespace mlme_sap {

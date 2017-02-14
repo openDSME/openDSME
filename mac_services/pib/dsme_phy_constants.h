@@ -43,8 +43,6 @@
 #ifndef DSME_PHY_CONSTANTS_H_
 #define DSME_PHY_CONSTANTS_H_
 
-#include <stdint.h>
-
 namespace dsme {
 
 /**

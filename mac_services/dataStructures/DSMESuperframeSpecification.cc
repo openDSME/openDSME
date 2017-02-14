@@ -40,7 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMESuperframeSpecification.h"
+#include "./DSMESuperframeSpecification.h"
+
+#include "./Serializer.h"
 
 namespace dsme {
 

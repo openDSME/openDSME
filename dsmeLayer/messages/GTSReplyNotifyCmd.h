@@ -44,7 +44,7 @@
 #define GTSREPLYNOTIFYCMD_H_
 
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
-#include "GTSManagement.h"
+#include "./GTSManagement.h"
 
 namespace dsme {
 

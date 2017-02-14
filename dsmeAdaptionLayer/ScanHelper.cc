@@ -40,11 +40,21 @@
  * SUCH DAMAGE.
  */
 
-#include "ScanHelper.h"
+#include "./ScanHelper.h"
+
 #include "../../dsme_platform.h"
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
+#include "../interfaces/IDSMEPlatform.h"
+#include "../mac_services/DSME_Common.h"
+#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../mac_services/mlme_sap/BEACON_NOTIFY.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
-#include "DSMEAdaptionLayer.h"
+#include "../mac_services/mlme_sap/SCAN.h"
+#include "../mac_services/mlme_sap/START.h"
+#include "../mac_services/mlme_sap/SYNC.h"
+#include "../mac_services/mlme_sap/SYNC_LOSS.h"
+#include "../mac_services/pib/MAC_PIB.h"
+#include "./DSMEAdaptionLayer.h"
 
 namespace dsme {
 

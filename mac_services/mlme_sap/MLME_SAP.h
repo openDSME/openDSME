@@ -43,17 +43,17 @@
 #ifndef MLME_SAP_H_
 #define MLME_SAP_H_
 
-#include "ASSOCIATE.h"
-#include "BEACON_NOTIFY.h"
-#include "COMM_STATUS.h"
-#include "DISASSOCIATE.h"
-#include "DSME_GTS.h"
-#include "POLL.h"
-#include "RESET.h"
-#include "SCAN.h"
-#include "START.h"
-#include "SYNC.h"
-#include "SYNC_LOSS.h"
+#include "./ASSOCIATE.h"
+#include "./BEACON_NOTIFY.h"
+#include "./COMM_STATUS.h"
+#include "./DISASSOCIATE.h"
+#include "./DSME_GTS.h"
+#include "./POLL.h"
+#include "./RESET.h"
+#include "./SCAN.h"
+#include "./START.h"
+#include "./SYNC.h"
+#include "./SYNC_LOSS.h"
 
 namespace dsme {
 class DSMELayer;

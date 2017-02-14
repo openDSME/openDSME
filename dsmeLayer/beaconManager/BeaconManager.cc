@@ -40,12 +40,28 @@
  * SUCH DAMAGE.
  */
 
-#include "BeaconManager.h"
+#include "./BeaconManager.h"
 
 #include "../../../dsme_platform.h"
+#include "../../helper/DSMEDelegate.h"
+#include "../../interfaces/IDSMEMessage.h"
+#include "../../interfaces/IDSMEPlatform.h"
+#include "../../mac_services/dataStructures/DSMEBitVector.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/dataStructures/PANDescriptor.h"
+#include "../../mac_services/dataStructures/TimeSyncSpecification.h"
+#include "../../mac_services/mlme_sap/BEACON_NOTIFY.h"
+#include "../../mac_services/mlme_sap/MLME_SAP.h"
+#include "../../mac_services/mlme_sap/SCAN.h"
+#include "../../mac_services/mlme_sap/SYNC_LOSS.h"
+#include "../../mac_services/pib/MAC_PIB.h"
+#include "../../mac_services/pib/PIBHelper.h"
+#include "../../mac_services/pib/dsme_mac_constants.h"
+#include "../../mac_services/pib/dsme_phy_constants.h"
 #include "../DSMELayer.h"
+#include "../messageDispatcher/MessageDispatcher.h"
 #include "../messages/BeaconNotificationCmd.h"
+#include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
 namespace dsme {

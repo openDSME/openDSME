@@ -43,11 +43,17 @@
 #ifndef CAPLAYER_H_
 #define CAPLAYER_H_
 
+#include "../../../dsme_settings.h"
 #include "../../helper/DSMEBufferedFSM.h"
+#include "../../helper/DSMEFSM.h"
 #include "../../helper/DSMEQueue.h"
+#include "../../helper/Integers.h"
+#include "../../mac_services/DSME_Common.h"
 #include "../ackLayer/AckLayer.h"
 
 namespace dsme {
+
+class IDSMEMessage;
 
 class CSMAEvent : public FSMEvent {
 public:

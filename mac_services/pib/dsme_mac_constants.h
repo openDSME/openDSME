@@ -43,7 +43,7 @@
 #ifndef DSME_MAC_CONSTANTS_H_
 #define DSME_MAC_CONSTANTS_H_
 
-#include "dsme_phy_constants.h"
+#include "./dsme_phy_constants.h"
 
 namespace dsme {
 

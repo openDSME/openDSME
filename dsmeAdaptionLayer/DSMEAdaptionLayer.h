@@ -43,15 +43,20 @@
 #ifndef DSMEADAPTIONLAYER_H_
 #define DSMEADAPTIONLAYER_H_
 
-#include "AssociationHelper.h"
-#include "GTSHelper.h"
-#include "ScanHelper.h"
-
+#include "../../dsme_settings.h"
+#include "../helper/DSMEDelegate.h"
 #include "../helper/DSMERingbuffer.h"
+#include "../mac_services/DSME_Common.h"
+#include "../mac_services/pib/PHY_PIB.h"
+#include "./AssociationHelper.h"
+#include "./GTSHelper.h"
+#include "./ScanHelper.h"
 
 namespace dsme {
 
 class DSMELayer;
+class IDSMEMessage;
+class PANDescriptor;
 
 namespace mlme_sap {
 class MLME_SAP;
@@ -60,8 +65,8 @@ struct SYNC_LOSS_indication_parameters;
 
 namespace mcps_sap {
 class MCPS_SAP;
-struct DATA_indication_parameters;
 struct DATA_confirm_parameters;
+struct DATA_indication_parameters;
 } /* namespace mcps_sap */
 
 class MAC_PIB;

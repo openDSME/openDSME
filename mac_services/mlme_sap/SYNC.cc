@@ -40,10 +40,10 @@
  * SUCH DAMAGE.
  */
 
-#include "SYNC.h"
+#include "./SYNC.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
-#include "../../dsmeLayer/beaconManager/BeaconManager.h"
+#include "../pib/PHY_PIB.h"
 
 namespace dsme {
 namespace mlme_sap {

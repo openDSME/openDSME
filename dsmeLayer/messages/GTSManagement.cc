@@ -40,7 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#include "GTSManagement.h"
+#include "./GTSManagement.h"
+
+#include "../../mac_services/dataStructures/Serializer.h"
 
 namespace dsme {
 

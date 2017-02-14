@@ -43,12 +43,15 @@
 #ifndef POLL_H_
 #define POLL_H_
 
+#include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../ConfirmBase.h"
 #include "../DSME_Common.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
 
 namespace dsme {
 class DSMELayer;
+
 namespace mlme_sap {
 
 struct POLL_confirm_parameters {

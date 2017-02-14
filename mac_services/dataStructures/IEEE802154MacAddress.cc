@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "IEEE802154MacAddress.h"
+#include "./IEEE802154MacAddress.h"
 
 namespace dsme {
 

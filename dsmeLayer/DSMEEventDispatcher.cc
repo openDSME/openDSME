@@ -40,9 +40,14 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMEEventDispatcher.h"
+#include "./DSMEEventDispatcher.h"
+
 #include "../helper/DSMEAtomic.h"
-#include "DSMELayer.h"
+#include "../mac_services/pib/MAC_PIB.h"
+#include "../mac_services/pib/PIBHelper.h"
+#include "./DSMELayer.h"
+#include "./ackLayer/AckLayer.h"
+#include "./capLayer/CAPLayer.h"
 
 namespace dsme {
 

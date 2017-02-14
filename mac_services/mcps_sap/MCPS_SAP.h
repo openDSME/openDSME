@@ -43,11 +43,12 @@
 #ifndef MCPS_SAP_H_
 #define MCPS_SAP_H_
 
-#include "DATA.h"
-#include "PURGE.h"
+#include "./DATA.h"
+#include "./PURGE.h"
 
 namespace dsme {
 class DSMELayer;
+class IEEE802154MacAddress;
 
 namespace mcps_sap {
 

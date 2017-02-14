@@ -43,22 +43,23 @@
 #ifndef GTSMANAGER_H_
 #define GTSMANAGER_H_
 
-#include <stdint.h>
-
 #include "../../../DSMEMessage.h"
 #include "../../helper/DSMEBufferedMultiFSM.h"
+#include "../../helper/DSMEFSM.h"
+#include "../../helper/Integers.h"
 #include "../../mac_services/DSME_Common.h"
-#include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
-#include "../../mac_services/dataStructures/DSMESABSpecification.h"
-#include "../../mac_services/dataStructures/DSMESlotAllocationBitmap.h"
-#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/mlme_sap/DSME_GTS.h"
 #include "../messages/GTSManagement.h"
 #include "../messages/GTSReplyNotifyCmd.h"
 #include "../messages/GTSRequestCmd.h"
+#include "../messages/IEEE802154eMACHeader.h"
 #include "../neighbors/NeighborQueue.h"
-#include "ACTUpdater.h"
-#include "GTSData.h"
+#include "./ACTUpdater.h"
+#include "./GTSData.h"
+
+namespace dsme {
+class IDSMEMessage;
+} /* namespace dsme */
 
 constexpr uint8_t GTS_STATE_MULTIPLICITY = 4;
 

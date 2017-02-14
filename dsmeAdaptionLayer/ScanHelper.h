@@ -43,7 +43,9 @@
 #ifndef SCANHELPER_H_
 #define SCANHELPER_H_
 
-#include "../mac_services/mlme_sap/SYNC_LOSS.h"
+#include "../helper/DSMEDelegate.h"
+#include "../mac_services/MacDataStructures.h"
+#include "../mac_services/dataStructures/PANDescriptor.h"
 #include "../mac_services/mlme_sap/helper/PanDescriptorList.h"
 #include "../mac_services/pib/PHY_PIB.h"
 
@@ -52,6 +54,7 @@ namespace dsme {
 class DSMEAdaptionLayer;
 
 namespace mlme_sap {
+struct SYNC_LOSS_indication_parameters;
 struct BEACON_NOTIFY_indication_parameters;
 struct SCAN_confirm_parameters;
 } /* namespace mlme_sap */
@@ -78,7 +81,7 @@ private:
 
     void handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters&);
 
-    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params);
+    void handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters&);
 
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;

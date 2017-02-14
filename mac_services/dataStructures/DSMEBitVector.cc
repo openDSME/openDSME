@@ -42,7 +42,9 @@
 
 /* INCLDUDES *****************************************************************/
 
-#include "DSMEBitVector.h"
+#include "./DSMEBitVector.h"
+
+#include "./Serializer.h"
 
 namespace dsme {
 

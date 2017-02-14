@@ -43,8 +43,8 @@
 #ifndef DSMERINGBUFFER_H_
 #define DSMERINGBUFFER_H_
 
-#include <stdint.h>
-#include "../helper/DSMEAtomic.h"
+#include "./DSMEAtomic.h"
+#include "./Integers.h"
 
 namespace dsme {
 

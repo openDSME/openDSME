@@ -44,7 +44,7 @@
 #define DSMESABSPECIFICATION_H_
 
 #include "../../../dsme_settings.h"
-#include "DSMEBitVector.h"
+#include "./DSMEBitVector.h"
 
 namespace dsme {
 

@@ -40,9 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMEMessageElement.h"
+#include "./DSMEMessageElement.h"
 
-#include "../../../dsme_platform.h"
+#include "../../interfaces/IDSMEMessage.h"
 
 namespace dsme {
 

@@ -43,7 +43,7 @@
 #ifndef DSMEQUEUE_H_
 #define DSMEQUEUE_H_
 
-#include <stdint.h>
+#include "./Integers.h"
 
 namespace dsme {
 

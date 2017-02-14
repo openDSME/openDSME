@@ -43,14 +43,12 @@
 #ifndef PIBHELPER_H_
 #define PIBHELPER_H_
 
-#include <stdint.h>
-
-#include "PHY_PIB.h"
+#include "./PHY_PIB.h"
 
 namespace dsme {
 
-class PHY_PIB;
 class MAC_PIB;
+class PHY_PIB;
 
 class PIBHelper {
 public:

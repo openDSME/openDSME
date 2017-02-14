@@ -40,12 +40,15 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMELayer.h"
+#include "./DSMELayer.h"
 
 #include "../../dsme_platform.h"
+#include "../../dsme_settings.h"
 #include "../helper/DSMEAtomic.h"
-#include "messages/IEEE802154eMACHeader.h"
-#include "messages/MACCommand.h"
+#include "../interfaces/IDSMEPlatform.h"
+#include "../mac_services/pib/MAC_PIB.h"
+#include "../mac_services/pib/PIBHelper.h"
+#include "../mac_services/pib/dsme_mac_constants.h"
 
 namespace dsme {
 

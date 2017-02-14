@@ -43,29 +43,24 @@
 #ifndef DSMELAYER_H_
 #define DSMELAYER_H_
 
-#include <stdint.h>
-
 #include "../../dsme_platform.h"
+#include "../helper/DSMEDelegate.h"
 #include "../helper/DSMEFSM.h"
+#include "../helper/Integers.h"
 #include "../interfaces/IDSMEMessage.h"
 #include "../interfaces/IDSMEPlatform.h"
-#include "../mac_services/dataStructures/BeaconBitmap.h"
-#include "../mac_services/dataStructures/DSMEPANDescriptor.h"
-#include "../mac_services/dataStructures/DSMESuperframeSpecification.h"
-#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "../mac_services/dataStructures/SuperframeSpecification.h"
-#include "../mac_services/pib/MAC_PIB.h"
-#include "../mac_services/pib/PHY_PIB.h"
-#include "../mac_services/pib/dsme_mac_constants.h"
-#include "DSMEEventDispatcher.h"
-#include "ackLayer/AckLayer.h"
-#include "associationManager/AssociationManager.h"
-#include "beaconManager/BeaconManager.h"
-#include "capLayer/CAPLayer.h"
-#include "gtsManager/GTSManager.h"
-#include "messageDispatcher/MessageDispatcher.h"
+#include "./DSMEEventDispatcher.h"
+#include "./ackLayer/AckLayer.h"
+#include "./associationManager/AssociationManager.h"
+#include "./beaconManager/BeaconManager.h"
+#include "./capLayer/CAPLayer.h"
+#include "./gtsManager/GTSManager.h"
+#include "./messageDispatcher/MessageDispatcher.h"
 
 namespace dsme {
+
+class MAC_PIB;
+class PHY_PIB;
 
 /*
  * Forward declarations for MAC services:

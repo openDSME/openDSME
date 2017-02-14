@@ -47,8 +47,8 @@
 #include "../dataStructures/DSMEAllocationCounterTable.h"
 #include "../dataStructures/DSMESlotAllocationBitmap.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
-#include "PHY_PIB.h"
-#include "PIBHelper.h"
+#include "./PHY_PIB.h"
+#include "./PIBHelper.h"
 
 namespace dsme {
 
@@ -56,6 +56,8 @@ namespace dsme {
  * This class contains MAC PIB attributes as defined in IEEE 802.15.4-2011, 6.4.2, Table 52
  * and IEEE 802.15.4e-2012, 6.4.2, Table 52 and 802.15.4e-2012, 6.4.3.6, Table 52h-i.
  */
+class PHY_PIB;
+
 class MAC_PIB {
 public:
     explicit MAC_PIB(PHY_PIB&);

@@ -40,7 +40,9 @@
  * SUCH DAMAGE.
  */
 
-#include "GTSData.h"
+#include "./GTSData.h"
+
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 
 namespace dsme {
 

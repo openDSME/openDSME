@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "GTS.h"
+#include "./GTS.h"
 
 namespace dsme {
 const GTS GTS::UNDEFINED = GTS(0xffff, 0xffff, 0xff);
