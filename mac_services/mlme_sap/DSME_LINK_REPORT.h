@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSME_LINKSTATUSRPT_H_
-#define DSME_LINKSTATUSRPT_H_
+#ifndef DSME_LINK_REPORT_H_
+#define DSME_LINK_REPORT_H_
 
 #include "../ConfirmBase.h"
 #include "../DSME_Common.h"
@@ -51,12 +51,12 @@
 namespace dsme {
 namespace mlme_sap {
 
-struct DSME_LINKSTATUSRPT_indication_parameters {
+struct DSME_LINK_REPORT_indication_parameters {
     uint16_t dstAddr;
     DSMELinkStatusSpecification linkStatusSpecification;
 };
 
-struct DSME_LINKSTATUSRPT_confirm_parameters {
+struct DSME_LINK_REPORT_confirm_parameters {
     LinkStatusRPT_Status status;
 };
 
@@ -64,7 +64,7 @@ struct DSME_LINKSTATUSRPT_confirm_parameters {
  * The MLME-DSME-LINKSTATUSRPT primitives define how a source device reports the communication
  * link status between the source device and the destination device. (IEEE 802.15.4e-2012 6.2.21.3)
  */
-class DSME_LINKSTATUSRPT : public IndicationBase<DSME_LINKSTATUSRPT_indication_parameters>, public ConfirmBase<DSME_LINKSTATUSRPT_confirm_parameters> {
+class DSME_LINK_REPORT : public IndicationBase<DSME_LINK_REPORT_indication_parameters>, public ConfirmBase<DSME_LINK_REPORT_confirm_parameters> {
 public:
     struct request_parameters {
         uint16_t dstAddr;
@@ -77,4 +77,4 @@ public:
 } /* namespace mlme_sap */
 } /* namespace dsme */
 
-#endif /* DSME_LINKSTATUSRPT_H_ */
+#endif /* DSME_LINK_REPORT_H_ */
