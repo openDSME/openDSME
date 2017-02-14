@@ -10,6 +10,7 @@ def main():
         print(error_message)
 
     violations = []
+    include_dict = {}
 
     lines = output.decode().splitlines()
     lines.sort()
@@ -26,6 +27,23 @@ def main():
         if not os.path.isfile(combined):
             violations.append(parts[0] + ':' + parts[1] + ': File not found: ' + parts[2])
             continue
+
+        relative = os.path.relpath(combined, pathname)
+        if relative[0] != '.':
+            relative = './' + relative
+
+        if not include == relative:
+            violations.append(parts[0] + ':' + parts[1] + ': Non-minimal path: ' + include + ' vs. ' + relative)
+            continue
+
+        if not filename in include_dict:
+            include_dict[filename] = []
+
+        if combined in include_dict[filename]:
+            violations.append(parts[0] + ':' + parts[1] + ': Duplicate include: ' + parts[2])
+            continue
+
+        include_dict[filename].append(combined)
 
     if len(violations) > 0:
         print(str('\n').join(violations))

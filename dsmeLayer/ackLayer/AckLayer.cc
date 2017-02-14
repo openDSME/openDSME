@@ -53,7 +53,6 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMEEventDispatcher.h"
 #include "../DSMELayer.h"
-#include "../ackLayer/AckLayer.h"
 #include "../messages/IEEE802154eMACHeader.h"
 
 namespace dsme {

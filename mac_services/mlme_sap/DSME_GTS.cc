@@ -47,8 +47,7 @@
 #include "../../dsmeLayer/messages/GTSManagement.h"
 #include "../../dsmeLayer/messages/GTSReplyNotifyCmd.h"
 #include "../../dsmeLayer/messages/GTSRequestCmd.h"
-#include "../../mac_services/DSME_Common.h"
-#include "../../mac_services/mlme_sap/DSME_GTS.h"
+#include "../DSME_Common.h"
 #include "../dataStructures/DSMESuperframeSpecification.h"
 #include "../pib/MAC_PIB.h"
 

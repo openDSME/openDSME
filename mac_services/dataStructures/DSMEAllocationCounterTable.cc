@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "DSMEAllocationCounterTable.h"
+#include "./DSMEAllocationCounterTable.h"
 
 #include "../../../dsme_platform.h"
 #include "../../helper/Integers.h"

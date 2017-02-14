@@ -43,7 +43,7 @@
 #ifndef DSMEPANDESCRIPTOR_H_
 #define DSMEPANDESCRIPTOR_H_
 
-#include "../../mac_services/DSME_Common.h"
+#include "../DSME_Common.h"
 #include "./BeaconBitmap.h"
 #include "./DSMEMessageElement.h"
 #include "./DSMESuperframeSpecification.h"

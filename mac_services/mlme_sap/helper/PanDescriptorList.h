@@ -43,7 +43,7 @@
 #ifndef PANDESCRIPTORLIST_H_
 #define PANDESCRIPTORLIST_H_
 
-#include "../../../mac_services/MacDataStructures.h"
+#include "../../MacDataStructures.h"
 #include "../../dataStructures/PANDescriptor.h"
 
 namespace dsme {

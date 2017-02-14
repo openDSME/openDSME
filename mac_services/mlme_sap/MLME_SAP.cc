@@ -43,7 +43,6 @@
 #include "./MLME_SAP.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
-#include "../../mac_services/mlme_sap/MLME_SAP.h"
 
 namespace dsme {
 namespace mlme_sap {

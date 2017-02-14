@@ -43,7 +43,7 @@
 #ifndef ACTELEMENT_H_
 #define ACTELEMENT_H_
 
-#include "../../mac_services/DSME_Common.h"
+#include "../DSME_Common.h"
 
 namespace dsme {
 

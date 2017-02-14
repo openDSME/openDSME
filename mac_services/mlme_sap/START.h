@@ -43,8 +43,6 @@
 #ifndef START_H_
 #define START_H_
 
-#include "../../mac_services/DSME_Common.h"
-#include "../../mac_services/dataStructures/BeaconBitmap.h"
 #include "../ConfirmBase.h"
 #include "../DSME_Common.h"
 #include "../dataStructures/BeaconBitmap.h"

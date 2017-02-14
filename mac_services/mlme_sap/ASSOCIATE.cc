@@ -51,7 +51,6 @@
 #include "../dataStructures/IEEE802154MacAddress.h"
 #include "../pib/MAC_PIB.h"
 #include "../pib/PHY_PIB.h"
-#include "./ASSOCIATE.h"
 
 namespace dsme {
 namespace mlme_sap {

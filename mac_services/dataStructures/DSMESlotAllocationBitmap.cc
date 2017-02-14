@@ -44,7 +44,6 @@
 
 #include "./DSMEBitVector.h"
 #include "./DSMESABSpecification.h"
-#include "./DSMESlotAllocationBitmap.h"
 #include "./GTS.h"
 
 namespace dsme {
