@@ -43,11 +43,16 @@
 #include "DSMELayer.h"
 
 #include "../../dsme_platform.h"
+#include "../../DSMEPlatform.h"
 #include "../helper/DSMEAtomic.h"
 #include "messages/IEEE802154eMACHeader.h"
 #include "messages/MACCommand.h"
 
+extern dsme::DSMEPlatform m_dsme;
+
 namespace dsme {
+
+typedef Delegate<void(IDSMEMessage* msg)> receive_delegate_t;
 
 DSMELayer::DSMELayer()
     : phy_pib(nullptr),
@@ -78,8 +83,16 @@ DSMELayer::DSMELayer()
 
 void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->platform = platform;
+    LOG_INFO("platfrom points to " << HEXOUT << platform << DECOUT << LOG_ENDL);
+    LOG_INFO("m_dsme points to " << HEXOUT << &m_dsme << DECOUT << LOG_ENDL);
+    receive_delegate_t recDel = DELEGATE(&MessageDispatcher::receive, this->messageDispatcher);
+    asm volatile("bkpt 1");
+    ((DSMEPlatform*) this->platform)->bla();
+    m_dsme.setReceiveDelegate(recDel);
+    DSMEPlatform* plat = dynamic_cast<DSMEPlatform*>(this->platform);
+    LOG_INFO("plat points to " << HEXOUT << plat << DECOUT << LOG_ENDL);
+    plat->setReceiveDelegate(recDel);
 
-    this->platform->setReceiveDelegate(DELEGATE(&MessageDispatcher::receive, this->messageDispatcher));
 
     this->currentSlot = 0;
     this->currentSuperframe = 0;

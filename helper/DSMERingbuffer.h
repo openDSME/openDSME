@@ -65,7 +65,7 @@ public:
     DSMERingBuffer() : buffer{}, head(0), tail(0) {
     }
 
-    virtual ~DSMERingBuffer() = default;
+    virtual ~DSMERingBuffer() {}; // = default;
 
     bool hasCurrent() {
         bool result;
