@@ -3,34 +3,51 @@
 import os
 import os.path
 import re
+import sys
 
 class Class:
     def __init__(self, name):
         self.name = name
 
         self.has_primitive = {}
-        self.has_primitive['request']    = False
-        self.has_primitive['indication'] = False
-        self.has_primitive['response']   = False
-        self.has_primitive['confirm']    = False
+        self.parameters = {}
+
+        for primitive in ['confirm', 'indication', 'request', 'response']:
+            self.has_primitive[primitive] = False
+            self.parameters[primitive]    = []
 
     def addPrimitive(self, primitive):
         self.has_primitive[primitive] = True
 
     def __str__(self):
-        return str(sorted(self.has_primitive.items()))
+        return str(sorted(self.has_primitive.items())) + ' ' +  str(sorted(self.parameters.items()))
 
     def __repr__(self):
         return self.__str__()
 
+def process_parameters(declarations):
+
+    pattern = re.compile('\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);\n')
+    return pattern.findall(declarations)
+
 def main():
-    file_name = 'utils/standard_conformity/SAPs.txt'
+    if sys.stdout.isatty():
+        def red(string):
+            return '\x1B[0;31m' + string + '\033[0m'
+        def green(string):
+            return '\x1B[0;32m' + string + '\033[0m'
+    else:
+        def red(string):
+            return string
+        def green(string):
+            return string
+
 
     saps_standard = {}
     saps_implemented = {}
 
     pattern = re.compile('^(MLME|MCPS)\-([A-Z\-]+)\.([a-z]+)$')
-    for line in open(file_name):
+    for line in open('utils/standard_conformity/SAPs.txt'):
         match = pattern.match(line)
 
         if match:
@@ -47,9 +64,24 @@ def main():
             saps_standard[sap][group].addPrimitive(primitive)
 
         else:
-            print('ERROR')
             print(line)
-            return
+            assert(False)
+
+    pattern = re.compile('^(MLME|MCPS)\-([A-Z\-]+)\.([a-z]+)\((.*)\)$')
+    for line in open('utils/standard_conformity/primitives.txt'):
+        match = pattern.match(line)
+        if match:
+            sap = match.group(1).lower() + '_sap'
+            group = match.group(2).replace('-', '_')
+            primitive = match.group(3)
+            parameters = match.group(4)
+
+            lowercase = lambda s: s[:1].lower() + s[1:] if s else ''
+            saps_standard[sap][group].parameters[primitive] = [lowercase(c) for c in parameters.split(', ')]
+        else:
+            print(line)
+            assert(False)
+
 
     for sap in ['mlme_sap', 'mcps_sap']:
         saps_implemented[sap] = {}
@@ -70,24 +102,50 @@ def main():
                     if re.search('void response\(response_parameters&\);', content):
                         saps_implemented[sap][group].addPrimitive('response')
 
+                    declaration = '\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);\n'
+
+                    match = re.search('struct request_parameters {\n((' + declaration + ')*)\s*};', content)
+                    if match:
+                        saps_implemented[sap][group].parameters['request'] = process_parameters(match.group(1))
+
+                    match = re.search('struct response_parameters {\n((' + declaration + ')*)\s*};', content)
+                    if match:
+                        saps_implemented[sap][group].parameters['response'] = process_parameters(match.group(1))
+
+                    match = re.search('indication_parameters {\n((' + declaration + ')*)\s*};', content)
+                    if match:
+                        saps_implemented[sap][group].parameters['indication'] = process_parameters(match.group(1))
+
+                    match = re.search('confirm_parameters {\n((' + declaration + ')*)\s*};', content)
+                    if match:
+                        saps_implemented[sap][group].parameters['confirm'] = process_parameters(match.group(1))
+
+    skip         = '     '
+
     empty        = '  ┃  '
     spacing      = '  ┃'
     indent       = '  ┣━━'
     indent_end   = '  ┗━━'
-    indent_opt   = '  ┣┅┅'
 
+    empty_t      = '  │  '
     indent_t     = '  ├──'
     indent_t_end = '  └──'
 
+    empty_d      = '  ┆  '
+    indent_d     = '  ├┄┄'
+    indent_d_end = '  └┄┄'
+
     for sap, groups in sorted(saps_standard.items()):
         if sap in saps_implemented:
-            print('\x1B[0;32m' + sap + '\033[0m')
+            print(green(sap))
             print(spacing)
             for group, primitives in sorted(groups.items()):
                 if group in saps_standard[sap] and group in saps_implemented[sap]:
-                    print(indent + '\x1B[0;32m' + group + '\033[0m')
+                    print(indent + green(group))
                     for primitive, present in sorted(saps_standard[sap][group].has_primitive.items()):
                         current_indent = indent_t
+                        parameter_skip = empty_t
+
                         last_present = ''
 
                         for k, v in reversed(sorted(saps_standard[sap][group].has_primitive.items())):
@@ -97,18 +155,35 @@ def main():
 
                         if primitive == last_present:
                             current_indent = indent_t_end
+                            parameter_skip = skip
                         if present and saps_implemented[sap][group].has_primitive[primitive]:
-                            print(empty + current_indent + '\x1B[0;32m' + primitive + '\033[0m')
+                            print(empty + current_indent + green(primitive))
+                            parameters_standard = saps_standard[sap][group].parameters[primitive]
+                            parameters_implemented = saps_implemented[sap][group].parameters[primitive]
+
+                            for i, parameter in enumerate(parameters_standard):
+                                parameter_indent = indent_d
+                                if i == len(parameters_standard) - 1:
+                                    parameter_indent = indent_d_end
+
+                                if parameter in parameters_implemented:
+                                    print(empty + parameter_skip + parameter_indent + green(parameter))
+                                else:
+                                    print(empty + parameter_skip + parameter_indent + parameter)
+                            for i, parameter in enumerate(parameters_implemented):
+                                if parameter not in parameters_standard:
+                                    print(empty + parameter_skip + indent_d + red(parameter))
+
                         elif present:
                             print(empty + current_indent + primitive)
                         elif saps_implemented[sap][group].has_primitive[primitive]:
-                            print(empty + current_indent + '\x1B[0;31m' + primitive + '\033[0m')
+                            print(empty + current_indent + red(primitive))
                 else:
                     print(indent + group)
             if sap in saps_implemented:
                 for group, primitives in sorted(saps_implemented[sap].items()):
                     if group not in saps_standard[sap]:
-                        print(indent + '\x1B[0;31m' + group + '\033[0m')
+                        print(indent + red(group))
         else:
             print(sap)
             print(spacing)
@@ -119,10 +194,10 @@ def main():
 
     for sap, groups in sorted(saps_implemented.items()):
         if sap not in saps_standard:
-            print('\n\x1B[0;31m' + sap + '\033[0m')
+            print('\n' + red(sap))
             print(spacing)
             for group, primitives in groups.items():
-                print(indent + '\x1B[0;31m' + group + '\033[0m')
+                print(indent + red(group))
             print('  ┻\n')
 
 if __name__ == "__main__":
