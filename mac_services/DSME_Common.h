@@ -264,8 +264,6 @@ struct LossReason {
 
 enum AddrMode { NO_ADDRESS = 0x00, SIMPLE_ADDRESS = 0x01, SHORT_ADDRESS = 0x02, EXTENDED_ADDRESS = 0x03 };
 
-enum Info { TIMESTAMP = 0x00, DSMESABSPECIFICATION = 0x01, DSMEPANDESCRIPTOR = 0x02 };
-
 enum FrameControlOptionFlags { PAN_ID_SUPPRESSED = 0x00, IES_INCLUDED = 0x01, SEQ_NO_SUPPRESSED = 0x02 };
 
 enum DisassociateReason {
