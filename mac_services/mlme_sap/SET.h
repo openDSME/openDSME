@@ -66,7 +66,7 @@ public:
         void* pibAttributeValue;
     };
 
-    void request(request_parameters);
+    void request(request_parameters&);
 };
 
 } /* namespace mlme_sap */

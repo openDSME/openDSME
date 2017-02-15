@@ -71,7 +71,7 @@ public:
         uint32_t reportPeriod;
     };
 
-    void request(request_parameters);
+    void request(request_parameters&);
 };
 
 } /* namespace mlme_sap */

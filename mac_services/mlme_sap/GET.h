@@ -65,7 +65,7 @@ public:
         uint8_t* pibAttribute;
     };
 
-    void request(request_parameters);
+    void request(request_parameters&);
 };
 
 } /* namespace mlme_sap */
