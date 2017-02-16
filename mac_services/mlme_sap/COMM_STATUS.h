@@ -52,16 +52,16 @@ namespace dsme {
 namespace mlme_sap {
 
 struct COMM_STATUS_indication_parameters {
-    uint16_t pANId;
+    uint16_t panId;
     AddrMode srcAddrMode;
     IEEE802154MacAddress srcAddr;
     AddrMode dstAddrMode;
     IEEE802154MacAddress dstAddr;
     CommStatus::Comm_Status status;
-    uint8_t securityLevel;
-    uint8_t keyIdMode;
-    uint8_t* keySource;
-    uint8_t keyIndex;
+    NOT_IMPLEMENTED_t securityLevel;
+    NOT_IMPLEMENTED_t keyIdMode;
+    NOT_IMPLEMENTED_t keySource;
+    NOT_IMPLEMENTED_t keyIndex;
 };
 /*
  *  (IEEE 802.15.4-2011 6.2.4.2)

@@ -145,21 +145,16 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 
     mlme_sap::DSME_GTS::request_parameters params;
     params.deviceAddress = address;
-    params.managmentType = ManagementType::ALLOCATION;
+    params.managementType = ManagementType::ALLOCATION;
     params.direction = Direction::TX;
     params.prioritizedChannelAccess = Priority::LOW;
     params.numSlot = 1;
-    params.preferredSuperframeID = preferredGTS.superframeID;
-    params.preferredSlotID = preferredGTS.slotID;
+    params.preferredSuperframeId = preferredGTS.superframeID;
+    params.preferredSlotId = preferredGTS.slotID;
 
-    params.dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
-    params.dsmeSABSpecification.setSubBlockIndex(preferredGTS.superframeID);
-    macDSMESAB.getOccupiedSubBlock(params.dsmeSABSpecification, preferredGTS.superframeID);
-
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
+    params.dsmeSabSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
+    params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
+    macDSMESAB.getOccupiedSubBlock(params.dsmeSabSpecification, preferredGTS.superframeID);
 
     LOG_INFO("Requesting slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " for transmission to "
                                 << params.deviceAddress << ".");
@@ -168,7 +163,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     for(DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
         if(it->getSuperframeID() == preferredGTS.superframeID) {
             for(uint8_t channel = 0; channel < numChannels; channel++) {
-                params.dsmeSABSpecification.getSubBlock().set(it->getGTSlotID() * numChannels + channel, true);
+                params.dsmeSabSpecification.getSubBlock().set(it->getGTSlotID() * numChannels + channel, true);
             }
         }
     }
@@ -228,22 +223,22 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
     mlme_sap::DSME_GTS::response_parameters responseParams;
     responseParams.deviceAddress = params.deviceAddress;
-    responseParams.managmentType = params.managmentType;
+    responseParams.managementType = params.managementType;
     responseParams.direction = params.direction;
     responseParams.prioritizedChannelAccess = params.prioritizedChannelAccess;
     responseParams.channelOffset = 0;
 
     bool sendReply = true;
 
-    switch(params.managmentType) {
+    switch(params.managementType) {
         case ALLOCATION: {
-            responseParams.dsmeSABSpecification.setSubBlockLengthBytes(params.dsmeSABSpecification.getSubBlockLengthBytes());
-            responseParams.dsmeSABSpecification.setSubBlockIndex(params.dsmeSABSpecification.getSubBlockIndex());
+            responseParams.dsmeSabSpecification.setSubBlockLengthBytes(params.dsmeSabSpecification.getSubBlockLengthBytes());
+            responseParams.dsmeSabSpecification.setSubBlockIndex(params.dsmeSabSpecification.getSubBlockIndex());
 
-            findFreeSlots(params.dsmeSABSpecification, responseParams.dsmeSABSpecification, params.numSlot, params.preferredSuperframeID,
-                          params.preferredSlotID);
+            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
+                          params.preferredSlotId);
 
-            if(responseParams.dsmeSABSpecification.getSubBlock().isZero()) {
+            if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
                 LOG_WARN("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
             } else {
@@ -255,7 +250,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             // TODO what shall we do here? With this the deallocation could be to aggressive
             uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
             Direction direction;
-            responseParams.status = verifyDeallocation(params.dsmeSABSpecification, address, direction);
+            responseParams.status = verifyDeallocation(params.dsmeSabSpecification, address, direction);
 
             if(responseParams.status == GTSStatus::SUCCESS) {
                 // Now handled by the ACTUpdater this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);
@@ -269,7 +264,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
         }
         case DEALLOCATION: {
             Direction directionUnused;
-            responseParams.status = verifyDeallocation(params.dsmeSABSpecification, params.deviceAddress, directionUnused);
+            responseParams.status = verifyDeallocation(params.dsmeSabSpecification, params.deviceAddress, directionUnused);
 
             if(responseParams.status == GTSStatus::GTS_Status::SUCCESS) {
                 // TODO remove
@@ -278,7 +273,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
                 // Now handled by the ACTUpdater this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);
             }
 
-            responseParams.dsmeSABSpecification = params.dsmeSABSpecification;
+            responseParams.dsmeSabSpecification = params.dsmeSabSpecification;
             break;
         }
         case EXPIRATION:
@@ -288,7 +283,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             // TODO is this required?
             // this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, DEALLOCATED);
 
-            sendDeallocationRequest(params.deviceAddress, params.direction, params.dsmeSABSpecification);
+            sendDeallocationRequest(params.deviceAddress, params.direction, params.dsmeSabSpecification);
             sendReply = false;
             break;
         default:
@@ -306,20 +301,15 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 void GTSHelper::sendDeallocationRequest(uint16_t address, Direction direction, DSMESABSpecification& sabSpecification) {
     mlme_sap::DSME_GTS::request_parameters params;
     params.deviceAddress = address;
-    params.managmentType = ManagementType::DEALLOCATION;
+    params.managementType = ManagementType::DEALLOCATION;
     params.direction = direction;
     params.prioritizedChannelAccess = Priority::LOW;
 
     params.numSlot = 0;               // ignored
-    params.preferredSuperframeID = 0; // ignored
-    params.preferredSlotID = 0;       // ignored
+    params.preferredSuperframeId = 0; // ignored
+    params.preferredSlotId = 0;       // ignored
 
-    params.dsmeSABSpecification = sabSpecification;
-
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
+    params.dsmeSabSpecification = sabSpecification;
 
     LOG_INFO("Deallocating slot with " << params.deviceAddress << ".");
 
@@ -357,7 +347,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
 
     // TODO handle channel access failure! retransmission?
 
-    if(params.managmentType == ManagementType::ALLOCATION) {
+    if(params.managementType == ManagementType::ALLOCATION) {
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {

@@ -63,12 +63,12 @@ public:
     explicit POLL(DSMELayer& dsme);
     struct request_parameters {
         AddrMode coordAddrMode;
-        uint16_t coordPANId;
+        uint16_t coordPanId;
         IEEE802154MacAddress coordAddress;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
     };
 
     void request(request_parameters&);

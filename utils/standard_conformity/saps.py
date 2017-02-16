@@ -5,6 +5,8 @@ import os.path
 import re
 import sys
 
+declaration = '\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);.*\n'
+
 class Class:
     def __init__(self, name):
         self.name = name
@@ -27,7 +29,7 @@ class Class:
 
 def process_parameters(declarations):
 
-    pattern = re.compile('\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);\n')
+    pattern = re.compile(declaration)
     return pattern.findall(declarations)
 
 def main():
@@ -102,21 +104,20 @@ def main():
                     if re.search('void response\(response_parameters&\);', content):
                         saps_implemented[sap][group].addPrimitive('response')
 
-                    declaration = '\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);\n'
-
-                    match = re.search('struct request_parameters {\n((' + declaration + ')*)\s*};', content)
+                    regex = '{\n((' + declaration + ')*)\s*};'
+                    match = re.search('struct request_parameters ' + regex, content)
                     if match:
                         saps_implemented[sap][group].parameters['request'] = process_parameters(match.group(1))
 
-                    match = re.search('struct response_parameters {\n((' + declaration + ')*)\s*};', content)
+                    match = re.search('struct response_parameters ' + regex, content)
                     if match:
                         saps_implemented[sap][group].parameters['response'] = process_parameters(match.group(1))
 
-                    match = re.search('indication_parameters {\n((' + declaration + ')*)\s*};', content)
+                    match = re.search('indication_parameters ' + regex, content)
                     if match:
                         saps_implemented[sap][group].parameters['indication'] = process_parameters(match.group(1))
 
-                    match = re.search('confirm_parameters {\n((' + declaration + ')*)\s*};', content)
+                    match = re.search('confirm_parameters ' + regex, content)
                     if match:
                         saps_implemented[sap][group].parameters['confirm'] = process_parameters(match.group(1))
 
@@ -172,7 +173,7 @@ def main():
                                     print(empty + parameter_skip + parameter_indent + parameter)
                             for i, parameter in enumerate(parameters_implemented):
                                 if parameter not in parameters_standard:
-                                    print(empty + parameter_skip + indent_d + red(parameter))
+                                    print(empty + parameter_skip + indent_d_end + red(parameter))
 
                         elif present:
                             print(empty + current_indent + primitive)

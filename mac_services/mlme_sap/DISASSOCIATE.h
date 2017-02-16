@@ -56,17 +56,17 @@ namespace mlme_sap {
 struct DISASSOCIATE_indication_parameters {
     IEEE802154MacAddress deviceAddress;
     DisassociateReason disassociateReason;
-    uint8_t securityLevel;
-    uint8_t keyIdMode;
-    uint8_t* keySource;
-    uint8_t keyIndex;
+    NOT_IMPLEMENTED_t securityLevel;
+    NOT_IMPLEMENTED_t keyIdMode;
+    NOT_IMPLEMENTED_t keySource;
+    NOT_IMPLEMENTED_t keyIndex;
 };
 
 struct DISASSOCIATE_confirm_parameters {
-    DisassociationStatus::Disassociation_Status status;
     AddrMode deviceAddrMode;
-    uint16_t devicePANId;
+    uint16_t devicePanId;
     IEEE802154MacAddress deviceAddress;
+    DisassociationStatus::Disassociation_Status status;
 };
 
 /*
@@ -78,14 +78,14 @@ public:
     explicit DISASSOCIATE(DSMELayer& dsme);
     struct request_parameters {
         AddrMode deviceAddrMode;
-        uint16_t devicePANId;
+        uint16_t devicePanId;
         IEEE802154MacAddress deviceAddress;
         DisassociateReason disassociateReason;
-        bool txIndirect; // TRUE if the disassociation notification command is to be sent indirectly.
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
+        NOT_IMPLEMENTED_t txIndirect;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
     };
 
     void request(request_parameters&);

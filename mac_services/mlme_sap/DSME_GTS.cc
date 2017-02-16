@@ -60,8 +60,8 @@ static void notify_busy_confirm(T& params, DSME_GTS& dsme_gts) {
 
     busyConfirm.deviceAddress = params.deviceAddress;
     busyConfirm.direction = params.direction;
-    busyConfirm.dsmeSABSpecification = params.dsmeSABSpecification;
-    busyConfirm.managmentType = params.managmentType;
+    busyConfirm.dsmeSabSpecification = params.dsmeSabSpecification;
+    busyConfirm.managementType = params.managementType;
     busyConfirm.prioritizedChannelAccess = params.prioritizedChannelAccess;
     busyConfirm.status = GTSStatus::TRANSACTION_OVERFLOW;
     dsme_gts.notify_confirm(busyConfirm);
@@ -82,8 +82,8 @@ void DSME_GTS::request(request_parameters& params) {
     } else {
         GTSManager& gtsManager = dsme.getGTSManager();
 
-        GTSManagement gtsManagement(params.managmentType, params.direction, params.prioritizedChannelAccess);
-        GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeID, params.preferredSlotID, params.dsmeSABSpecification);
+        GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess);
+        GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeId, params.preferredSlotId, params.dsmeSabSpecification);
         bool busy = !gtsManager.handleMLMERequest(params.deviceAddress, gtsManagement, gtsRequestCmd);
 
         if(busy) {
@@ -97,16 +97,16 @@ void DSME_GTS::response(response_parameters& params) {
      - generate reply command (IEEE 802.15.4e-2012 5.3.11.5)
      */
     GTSManager& gtsManager = dsme.getGTSManager();
-    GTSManagement gtsManagement(params.managmentType, params.direction, params.prioritizedChannelAccess, params.status);
+    GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess, params.status);
 
     bool busy;
     if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
         // channel adaption mode
-        GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSABSpecification);
+        GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSabSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     } else {
         // channel hopping mode
-        GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSABSpecification);
+        GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSabSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     }
     if(busy) {

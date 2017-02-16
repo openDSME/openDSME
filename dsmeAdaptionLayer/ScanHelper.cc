@@ -100,14 +100,7 @@ void ScanHelper::startScan() {
     params.scanChannels = scanChannels;
     params.scanDuration = 6;
     params.channelPage = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
-    params.securityLevel = 0;
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
     params.linkQualityScan = false;
-    params.frameControlOptions = 0;
-    params.headerIElist = 0;
-    params.payloadIElist = 0;
 
     this->dsmeAdaptionLayer.getMLME_SAP().getSCAN().request(params);
     return;

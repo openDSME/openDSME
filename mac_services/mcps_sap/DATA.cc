@@ -66,11 +66,10 @@ void DATA::request(request_parameters& params) {
     if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
         mcps_sap::DATA_confirm_parameters confirmParams;
         confirmParams.msduHandle = msg;
-        confirmParams.Timestamp = 0;
-        confirmParams.RangingReceived = false;
+        confirmParams.timestamp = 0;
+        confirmParams.rangingReceived = false;
         confirmParams.status = DataStatus::INVALID_GTS; // TODO better status?
-        confirmParams.AckPayload = nullptr;
-        confirmParams.gtsTX = params.gtsTX;
+        confirmParams.gtsTX = params.gtsTx;
         notify_confirm(confirmParams);
         return;
     }
@@ -80,19 +79,15 @@ void DATA::request(request_parameters& params) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
     header.setFrameType(IEEE802154eMACHeader::DATA);
-
     header.setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     header.setSrcAddr(this->dsme.getMAC_PIB().macExtendedAddress);
+    header.setAckRequest(params.ackTx);
+    header.setSecurityEnabled(false);
+    header.overridePanIDCompression(params.panIdSuppressed);
+    header.setIEListPresent(false);
+    header.setSeqNumSuppression(params.seqNumSuppressed);
 
-    header.setAckRequest(params.ackTX);
-
-    header.setSecurityEnabled(params.securityLevel);
-
-    header.overridePanIDCompression(params.frameControlOption_pan_id_suppressed);
-    header.setIEListPresent(params.frameControlOption_ies_included);
-    header.setSeqNumSuppression(params.frameControlOption_seq_num_suppressed);
-
-    if(params.gtsTX) {
+    if(params.gtsTx) {
         // TODO use short address!
         IEEE802154MacAddress& dest = msg->getHeader().getDestAddr();
         NeighborQueue<MAX_NEIGHBORS>::iterator destIt = dsme.getMessageDispatcher().getNeighborQueue().findByAddress(dest);
@@ -103,11 +98,10 @@ void DATA::request(request_parameters& params) {
         if(destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
             mcps_sap::DATA_confirm_parameters confirmParams;
             confirmParams.msduHandle = msg;
-            confirmParams.Timestamp = 0;
-            confirmParams.RangingReceived = false;
+            confirmParams.timestamp = 0;
+            confirmParams.rangingReceived = false;
             confirmParams.status = DataStatus::INVALID_GTS;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.gtsTX = params.gtsTx;
             notify_confirm(confirmParams);
             return;
         }
@@ -115,22 +109,20 @@ void DATA::request(request_parameters& params) {
         if(!this->dsme.getMessageDispatcher().sendInGTS(msg, destIt)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
             confirmParams.msduHandle = msg;
-            confirmParams.Timestamp = 0;
-            confirmParams.RangingReceived = false;
+            confirmParams.timestamp = 0;
+            confirmParams.rangingReceived = false;
             confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.gtsTX = params.gtsTx;
             notify_confirm(confirmParams);
         }
     } else {
         if(!this->dsme.getMessageDispatcher().sendInCAP(msg)) {
             mcps_sap::DATA_confirm_parameters confirmParams;
             confirmParams.msduHandle = msg;
-            confirmParams.Timestamp = 0;
-            confirmParams.RangingReceived = false;
+            confirmParams.timestamp = 0;
+            confirmParams.rangingReceived = false;
             confirmParams.status = DataStatus::TRANSACTION_OVERFLOW;
-            confirmParams.AckPayload = nullptr;
-            confirmParams.gtsTX = params.gtsTX;
+            confirmParams.gtsTX = params.gtsTx;
             notify_confirm(confirmParams);
         }
     }

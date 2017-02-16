@@ -65,7 +65,7 @@ void POLL::request(request_parameters& params) {
     cmd.prependTo(msg);
 
     msg->getHeader().setDstAddrMode(params.coordAddrMode);
-    msg->getHeader().setDstPANId(params.coordPANId);
+    msg->getHeader().setDstPANId(params.coordPanId);
     msg->getHeader().setDstAddr(params.coordAddress);
 
     /* 0xffff means unassociated, 0xfffe means short address not yet allocated */

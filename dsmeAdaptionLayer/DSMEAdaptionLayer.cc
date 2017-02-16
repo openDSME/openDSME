@@ -201,11 +201,11 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         // Both PAN IDs are equal and we are using short addresses
         // so suppress the PAN ID -> This should not be the task
         // for the user of the MCPS, but it is specified like this... TODO
-        params.frameControlOption_pan_id_suppressed = true;
+        params.panIdSuppressed = true;
 
         params.msdu = msg;
         params.msduHandle = 0; // TODO
-        params.ackTX = true;
+        params.ackTx = true;
 
         /* TODO
         if(dsme.getDSMESettings().optimizations) {
@@ -213,25 +213,19 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         }
         else {
         */
-        params.gtsTX = !dst.isBroadcast();
+        params.gtsTx = !dst.isBroadcast();
         //}
 
-        params.indirectTX = false;
-        params.securityLevel = 0;
-        params.keyIdMode = 0;
-        params.keySource = nullptr;
-        params.keyIndex = 0;
-        params.uwbprf = PRF_OFF;
+        params.indirectTx = false;
         params.ranging = NON_RANGING;
         params.uwbPreambleSymbolRepetitions = 0;
         params.dataRate = 0; // DSSS -> 0
 
-        params.frameControlOption_ies_included = false;
-        params.frameControlOption_seq_num_suppressed = false;
+        params.seqNumSuppressed = false;
 
         params.sendMultipurpose = false;
 
-        if(params.gtsTX) {
+        if(params.gtsTx) {
             uint16_t srcAddr = this->dsme.getMAC_PIB().macShortAddress;
             if(srcAddr == 0xfffe) {
                 LOG_WARN("No short address allocated -> cannot request GTS!");
@@ -392,7 +386,7 @@ void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association
 
 void DSMEAdaptionLayer::reset() {
     mlme_sap::RESET::request_parameters params;
-    params.setDefaultPIB = false;
+    params.setDefaultPib = false;
 
     getMLME_SAP().getRESET().request(params);
 

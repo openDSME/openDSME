@@ -56,26 +56,33 @@ namespace mlme_sap {
 struct ASSOCIATE_indication_parameters {
     IEEE802154MacAddress deviceAddress;
     CapabilityInformation capabilityInformation;
-    uint8_t securityLevel;
-    uint8_t keyIdMode;
-    uint8_t* keySource;
-    uint8_t keyIndex;
-    uint8_t* lowLatencyNetworkInfo;
-    uint16_t channelOffset;
-    uint8_t hoppingSequenceID;
+    NOT_IMPLEMENTED_t securityLevel;
+    NOT_IMPLEMENTED_t keyIdMode;
+    NOT_IMPLEMENTED_t keySource;
+    NOT_IMPLEMENTED_t keyIndex;
+    NOT_IMPLEMENTED_t channelOffset;
+    NOT_IMPLEMENTED_t hoppingSequenceId;
+    NOT_IMPLEMENTED_t dsmeAssociation;
+    NOT_IMPLEMENTED_t direction;
+    NOT_IMPLEMENTED_t allocationOrder;
+    NOT_IMPLEMENTED_t hoppingSequenceRequest;
 };
 
 struct ASSOCIATE_confirm_parameters {
     uint16_t assocShortAddress;
     AssociationStatus::Association_Status status;
-    uint8_t securityLevel;
-    uint8_t keyIdMode;
-    uint8_t* keySource;
-    uint8_t keyIndex;
-    uint8_t* lowLatencyNetworkInfo;
-    uint16_t channelOffset;
-    uint16_t hoppingSequenceLength;
-    uint8_t* hoppingSequence;
+    NOT_IMPLEMENTED_t securityLevel;
+    NOT_IMPLEMENTED_t keyIdMode;
+    NOT_IMPLEMENTED_t keySource;
+    NOT_IMPLEMENTED_t keyIndex;
+    NOT_IMPLEMENTED_t channelOffset;
+    NOT_IMPLEMENTED_t hoppingSequence;
+    NOT_IMPLEMENTED_t dsmeAssociation;
+    NOT_IMPLEMENTED_t allocationOrder;
+    NOT_IMPLEMENTED_t biIndex;
+    NOT_IMPLEMENTED_t superframeId;
+    NOT_IMPLEMENTED_t slotId;
+    NOT_IMPLEMENTED_t channelIndex;
 };
 
 /*
@@ -89,30 +96,37 @@ public:
         uint8_t channelNumber;
         uint8_t channelPage;
         AddrMode coordAddrMode;
-        uint16_t coordPANId;
+        uint16_t coordPanId;
         IEEE802154MacAddress coordAddress;
         CapabilityInformation capabilityInformation;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
-        uint8_t* lowLatencyNetworkInfo; // only needed for LLDN networks
-        uint16_t channelOffset;         // To be ignored, when in channel adaption mode
-        uint8_t hoppingSequenceID;      // To be ignored, when in channel adaption mode
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
+        NOT_IMPLEMENTED_t channelOffset;     // To be ignored, when in channel adaption mode
+        NOT_IMPLEMENTED_t hoppingSequenceId; // To be ignored, when in channel adaption mode
+        NOT_IMPLEMENTED_t dsmeAssociation;
+        NOT_IMPLEMENTED_t direction;
+        NOT_IMPLEMENTED_t allocationOrder;
+        NOT_IMPLEMENTED_t hoppingSequenceRequest;
     };
 
     struct response_parameters {
         IEEE802154MacAddress deviceAddress;
         uint16_t assocShortAddress;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
+        NOT_IMPLEMENTED_t channelOffset;
+        NOT_IMPLEMENTED_t hoppingSequence;
+        NOT_IMPLEMENTED_t dsmeAssociation;
+        NOT_IMPLEMENTED_t allocationOrder;
+        NOT_IMPLEMENTED_t biIndex;
+        NOT_IMPLEMENTED_t superframeId;
+        NOT_IMPLEMENTED_t slotId;
+        NOT_IMPLEMENTED_t channelIndex;
         AssociationStatus::Association_Status status;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
-        uint8_t* lowLatencyNetworkInfo;
-        uint16_t channelOffset;
-        uint16_t hoppingSequenceLength;
-        uint8_t* hoppingSequence;
     };
 
     void request(request_parameters&);

@@ -414,7 +414,7 @@ void BeaconManager::handleBeacon(IDSMEMessage* msg) {
         //    params.addrList;
         //    params.sduLength;
         //    params.sdu;
-        params.eBSN = msg->getHeader().getSequenceNumber();
+        params.ebsn = msg->getHeader().getSequenceNumber();
         params.beaconType = msg->getHeader().isEnhancedBeacon();
 
         this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);

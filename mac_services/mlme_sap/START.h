@@ -76,17 +76,18 @@ public:
         bool panCoordinator; // true = become PanCoord of new Pan, false = begin using a new superframe configuration
         bool batteryLifeExtension;
         bool coordRealignment;
-        uint8_t coordRealignSecurityLevel;
-        uint8_t coordRealignKeyIdMode;
-        uint8_t* coordRealignKeySource;
-        uint8_t coordRealignKeyIndex;
-        uint8_t beaconSecurityLevel;
-        uint8_t beaconKeyIdMode;
-        uint8_t* beaconKeySource;
-        uint8_t beaconKeyIndex;
-        DSMESuperframeSpecification dsmeSuperframeSpecification;
-        BeaconBitmap beaconBitmap;
-        HoppingDescriptor hoppingDescriptor;
+        NOT_IMPLEMENTED_t coordRealignSecurityLevel;
+        NOT_IMPLEMENTED_t coordRealignKeyIdMode;
+        NOT_IMPLEMENTED_t coordRealignKeySource;
+        NOT_IMPLEMENTED_t coordRealignKeyIndex;
+        NOT_IMPLEMENTED_t beaconSecurityLevel;
+        NOT_IMPLEMENTED_t beaconKeyIdMode;
+        NOT_IMPLEMENTED_t beaconKeySource;
+        NOT_IMPLEMENTED_t beaconKeyIndex;
+        NOT_IMPLEMENTED_t headerIeList;
+        NOT_IMPLEMENTED_t payloadIeList;
+        NOT_IMPLEMENTED_t headerIeIdList;
+        NOT_IMPLEMENTED_t nestedIeSubIdList;
     };
 
     void request(request_parameters&);

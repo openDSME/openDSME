@@ -50,10 +50,9 @@ namespace dsme {
 namespace mlme_sap {
 
 struct GET_confirm_parameters {
-    Get_Status status;
-    // TODO PIBAttribute class for the type?
-    uint8_t* pibAttribute;
-    void* pibAttributeValue;
+    NOT_IMPLEMENTED_t pibAttribute;
+    NOT_IMPLEMENTED_t pibAttributeValue;
+    GetStatus::Get_Status status;
 };
 
 /*
@@ -62,7 +61,7 @@ struct GET_confirm_parameters {
 class GET : public ConfirmBase<GET_confirm_parameters> {
 public:
     struct request_parameters {
-        uint8_t* pibAttribute;
+        NOT_IMPLEMENTED_t pibAttribute;
     };
 
     void request(request_parameters&);

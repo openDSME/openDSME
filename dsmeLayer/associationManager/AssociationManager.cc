@@ -103,7 +103,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
     msg->getHeader().setSrcAddr(dsme.getMAC_PIB().macExtendedAddress);
     msg->getHeader().setSrcAddrMode(EXTENDED_ADDRESS);
     msg->getHeader().setDstAddrMode(params.coordAddrMode);
-    msg->getHeader().setDstPANId(params.coordPANId);
+    msg->getHeader().setDstPANId(params.coordPanId);
     msg->getHeader().setSrcPANId(BROADCAST_PAN_ID);
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);

@@ -55,15 +55,15 @@ class DSMELayer;
 namespace mlme_sap {
 
 struct SCAN_confirm_parameters {
-    ScanStatus::Scan_Status status;
     ScanType scanType;
     uint8_t channelPage;
-    uint16_t* unscannedChannels;
+    NOT_IMPLEMENTED_t unscannedChannels;
     uint8_t resultListSize;
-    uint8_t* energyDetectList;
+    NOT_IMPLEMENTED_t energyDetectList;
     PanDescriptorList panDescriptorList;
     uint8_t detectedCategory;
-    uint8_t* uwbEnergyDetectList;
+    NOT_IMPLEMENTED_t hrpUwbEnergyDetectList;
+    ScanStatus::Scan_Status status;
 };
 
 /*
@@ -78,14 +78,21 @@ public:
         channelList_t scanChannels;
         uint16_t scanDuration;
         uint8_t channelPage;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
         bool linkQualityScan;
-        uint8_t frameControlOptions;
-        uint16_t headerIElist;
-        uint16_t payloadIElist;
+        NOT_IMPLEMENTED_t panIdSuppressed;
+        NOT_IMPLEMENTED_t seqNumSuppressed;
+        NOT_IMPLEMENTED_t headerIeList;
+        NOT_IMPLEMENTED_t payloadIeList;
+        NOT_IMPLEMENTED_t headerIeIdList;
+        NOT_IMPLEMENTED_t nestedIeSubIdList;
+        NOT_IMPLEMENTED_t mpmScanDurationBPan;
+        NOT_IMPLEMENTED_t mpmScanDurationNbPan;
+        NOT_IMPLEMENTED_t mpmScan;
+        NOT_IMPLEMENTED_t mpmScanType;
     };
 
     void request(request_parameters&);

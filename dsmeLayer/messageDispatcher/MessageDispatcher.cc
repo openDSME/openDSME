@@ -96,13 +96,11 @@ void MessageDispatcher::reset(void) {
             IDSMEMessage* msg = neighborQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
             params.msduHandle = msg;
-            params.Timestamp = 0;
-            params.RangingReceived = false;
+            params.timestamp = 0;
+            params.rangingReceived = false;
             params.gtsTX = true;
             params.status = DataStatus::TRANSACTION_EXPIRED;
             params.numBackoffs = 0;
-            params.dsn = msg->getHeader().getSequenceNumber();
-            params.AckPayload = nullptr;
             this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
         }
     }
@@ -247,11 +245,6 @@ void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
     params.timestamp = msg->getStartOfFrameDelimiterSymbolCounter();
     params.securityLevel = header.isSecurityEnabled();
 
-    params.keyIdMode = 0;
-    params.keySource = nullptr;
-    params.keyIndex = 0;
-    params.uwbprf = PRF_OFF;
-    params.uwbPreambleSymbolRepetitions = 0;
     params.dataRate = 0; // DSSS -> 0
 
     params.rangingReceived = NO_RANGING_REQUESTED;
@@ -259,7 +252,7 @@ void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
     params.rangingCounterStop = 0;
     params.rangingTrackingInterval = 0;
     params.rangingOffset = 0;
-    params.rangingFOM = 0;
+    params.rangingFom = 0;
 
     this->dsme.getMCPS_SAP().getDATA().notify_indication(params);
 }
@@ -373,12 +366,10 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
     if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
-        params.Timestamp = 0; // TODO
-        params.RangingReceived = false;
+        params.timestamp = 0; // TODO
+        params.rangingReceived = false;
         params.status = status;
         params.numBackoffs = numBackoffs;
-        params.dsn = msg->getHeader().getSequenceNumber();
-        params.AckPayload = nullptr;
         params.gtsTX = false;
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     } else {
@@ -440,8 +431,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     mcps_sap::DATA_confirm_parameters params;
     params.msduHandle = msg;
-    params.Timestamp = 0; // TODO
-    params.RangingReceived = false;
+    params.timestamp = 0; // TODO
+    params.rangingReceived = false;
     params.gtsTX = true;
 
     switch(response) {
@@ -467,8 +458,6 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     params.numBackoffs = 0;
-    params.dsn = msg->getHeader().getSequenceNumber();
-    params.AckPayload = nullptr;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
 }
 

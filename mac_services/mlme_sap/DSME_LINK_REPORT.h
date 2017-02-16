@@ -53,7 +53,7 @@ namespace mlme_sap {
 
 struct DSME_LINK_REPORT_indication_parameters {
     uint16_t dstAddr;
-    DSMELinkStatusSpecification linkStatusSpecification;
+    DSMELinkStatusSpecification linkReportSpecification;
 };
 
 struct DSME_LINK_REPORT_confirm_parameters {

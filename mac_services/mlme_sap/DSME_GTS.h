@@ -59,23 +59,29 @@ namespace mlme_sap {
 
 struct DSME_GTS_indication_parameters {
     uint16_t deviceAddress;
-    ManagementType managmentType;
+    ManagementType managementType;
     Direction direction;
     Priority prioritizedChannelAccess;
     uint8_t numSlot;
-    uint16_t preferredSuperframeID;
-    uint8_t preferredSlotID;
-    DSMESABSpecification dsmeSABSpecification;
+    uint16_t preferredSuperframeId;
+    uint8_t preferredSlotId;
+    DSMESABSpecification dsmeSabSpecification;
+    NOT_IMPLEMENTED_t allocationOrder;
 };
 
 struct DSME_GTS_confirm_parameters {
     uint16_t deviceAddress;
-    ManagementType managmentType;
+    ManagementType managementType;
     Direction direction;
     Priority prioritizedChannelAccess;
     uint16_t channelOffset;
-    DSMESABSpecification dsmeSABSpecification;
+    DSMESABSpecification dsmeSabSpecification;
     GTSStatus::GTS_Status status;
+    NOT_IMPLEMENTED_t allocationOrder;
+    NOT_IMPLEMENTED_t biIndex;
+    NOT_IMPLEMENTED_t superframeId;
+    NOT_IMPLEMENTED_t slotId;
+    NOT_IMPLEMENTED_t channelIndex;
 };
 
 /*
@@ -89,26 +95,32 @@ public:
 
     struct request_parameters {
         uint16_t deviceAddress;
-        ManagementType managmentType;
+        ManagementType managementType;
         Direction direction;
         Priority prioritizedChannelAccess;
         uint8_t numSlot;
-        uint16_t preferredSuperframeID;
-        uint8_t preferredSlotID;
-        DSMESABSpecification dsmeSABSpecification;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
+        uint16_t preferredSuperframeId;
+        uint8_t preferredSlotId;
+        DSMESABSpecification dsmeSabSpecification;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
+        NOT_IMPLEMENTED_t allocationOrder;
     };
 
     struct response_parameters {
         uint16_t deviceAddress;
-        ManagementType managmentType;
+        ManagementType managementType;
         Direction direction;
         Priority prioritizedChannelAccess;
         uint16_t channelOffset;
-        DSMESABSpecification dsmeSABSpecification;
+        DSMESABSpecification dsmeSabSpecification;
+        NOT_IMPLEMENTED_t allocationOrder;
+        NOT_IMPLEMENTED_t biIndex;
+        NOT_IMPLEMENTED_t superframeId;
+        NOT_IMPLEMENTED_t slotId;
+        NOT_IMPLEMENTED_t channelIndex;
         GTSStatus::GTS_Status status;
     };
 

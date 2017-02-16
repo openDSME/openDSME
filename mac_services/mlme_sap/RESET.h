@@ -63,7 +63,7 @@ public:
     explicit RESET(DSMELayer& dsme);
 
     struct request_parameters {
-        bool setDefaultPIB;
+        bool setDefaultPib;
     };
 
     void request(request_parameters&);

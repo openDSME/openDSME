@@ -59,18 +59,16 @@ namespace mcps_sap {
  */
 struct DATA_confirm_parameters {
     IDSMEMessage* msduHandle;
-    uint32_t Timestamp;
-    bool RangingReceived;
-    uint32_t RangingCounterStart;
-    uint32_t RangingCounterStop;
-    uint32_t RangingTrackingInterval;
-    uint32_t RangingOffset;
-    uint8_t RangingFOM;
-    DataStatus::Data_Status status;
-
+    uint32_t timestamp;
+    bool rangingReceived;
+    uint32_t rangingCounterStart;
+    uint32_t rangingCounterStop;
+    uint32_t rangingTrackingInterval;
+    uint32_t rangingOffset;
+    uint8_t rangingFom;
     uint8_t numBackoffs;
-    uint8_t dsn;
-    uint8_t* AckPayload;
+    NOT_IMPLEMENTED_t ackPayload;
+    DataStatus::Data_Status status;
 
     bool gtsTX; // TODO not covered by the standard, but very useful anyway
 };
@@ -78,35 +76,38 @@ struct DATA_confirm_parameters {
 /*
  * IEEE 802.15.4-2011 6.3.3, Table 48,  IEEE 802.15.4e-2012 6.3.3, Table 48
  */
-struct DATA_indication_parameters {
-    /*
-    These are all included in the msdu
-    AddrMode srcAddrMode;
-    uint16_t srcPANId;
-    IEEE802154MacAddress srcAddr;
-    AddrMode dstAddrMode;
-    uint16_t dstPANId;
-    IEEE802154MacAddress dstAddr;
-    uint8_t msduLength;
-    */
 
+/* These are all included in the msdu
+AddrMode srcAddrMode;
+uint16_t srcPANId;
+IEEE802154MacAddress srcAddr;
+AddrMode dstAddrMode;
+uint16_t dstPANId;
+IEEE802154MacAddress dstAddr;
+uint8_t msduLength;
+*/
+struct DATA_indication_parameters {
     IDSMEMessage* msdu;
+    NOT_IMPLEMENTED_t headerIeList;
+    NOT_IMPLEMENTED_t payloadIeList;
     uint8_t mpduLinkQuality;
     uint8_t dsn;
     uint32_t timestamp;
     uint8_t securityLevel;
-    uint8_t keyIdMode;
-    uint8_t* keySource;
-    uint8_t keyIndex;
-    UWBPRFMode uwbprf;
-    uint16_t uwbPreambleSymbolRepetitions;
-    uint8_t dataRate;
+    NOT_IMPLEMENTED_t keyIdMode;
+    NOT_IMPLEMENTED_t keySource;
+    NOT_IMPLEMENTED_t keyIndex;
     ReceivedRangingMode rangingReceived;
     uint32_t rangingCounterStart;
     uint32_t rangingCounterStop;
     uint32_t rangingTrackingInterval;
     uint32_t rangingOffset;
-    uint8_t rangingFOM;
+    uint8_t rangingFom;
+    NOT_IMPLEMENTED_t angleOfArrivalAzimuth;
+    NOT_IMPLEMENTED_t angleOfArrivalElevation;
+    NOT_IMPLEMENTED_t angleOfArrivalSupported;
+    uint8_t dataRate;
+    NOT_IMPLEMENTED_t rssi;
 };
 
 /*
@@ -119,36 +120,39 @@ public:
     /*
      * IEEE 802.15.4-2011 6.3.1, Table 46,  IEEE 802.15.4e-2012 6.3.1, Table 46
      */
-    struct request_parameters {
-        /*
-        These are all included in the msdu
-        AddrMode srcAddrMode;
-        AddrMode dstAddrMode;
-        uint16_t dstPANId;
-        IEEE802154MacAddress dstAddr;
-        uint8_t msduLength;
-        */
 
+    /* These are all included in the msdu
+    AddrMode srcAddrMode;
+    AddrMode dstAddrMode;
+    uint16_t dstPANId;
+    IEEE802154MacAddress dstAddr;
+    uint8_t msduLength;
+    */
+    struct request_parameters {
         IDSMEMessage* msdu;
         uint8_t msduHandle;
-        bool ackTX;
-        bool gtsTX;
-        bool indirectTX;
-        uint8_t securityLevel;
-        uint8_t keyIdMode;
-        uint8_t* keySource;
-        uint8_t keyIndex;
-        UWBPRFMode uwbprf;
+        NOT_IMPLEMENTED_t headerIeList;
+        NOT_IMPLEMENTED_t payloadIeList;
+        NOT_IMPLEMENTED_t headerIeIdList;
+        NOT_IMPLEMENTED_t nestedIeSubIdList;
+        bool ackTx;
+        bool gtsTx;
+        bool indirectTx;
+        NOT_IMPLEMENTED_t securityLevel;
+        NOT_IMPLEMENTED_t keyIdMode;
+        NOT_IMPLEMENTED_t keySource;
+        NOT_IMPLEMENTED_t keyIndex;
+        NOT_IMPLEMENTED_t uwbPrf;
         RangingMode ranging;
         uint16_t uwbPreambleSymbolRepetitions;
         uint8_t dataRate;
-
-        bool frameControlOption_pan_id_suppressed;
-        bool frameControlOption_ies_included;
-        bool frameControlOption_seq_num_suppressed;
-        void* headerIElist;  // TODO
-        void* payloadIElist; // TODO
+        NOT_IMPLEMENTED_t locationEnhancingInformationPostamble;
+        NOT_IMPLEMENTED_t locationEnhancingInformationPostambleLength;
+        bool panIdSuppressed;
+        bool seqNumSuppressed;
         bool sendMultipurpose;
+        NOT_IMPLEMENTED_t frakPolicy;
+        NOT_IMPLEMENTED_t criticalEventMessage;
     };
 
     void request(request_parameters&);

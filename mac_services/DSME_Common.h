@@ -48,6 +48,11 @@
 
 namespace dsme {
 
+class NOT_IMPLEMENTED_t {
+    template <typename T>
+    void operator=(T) = delete;
+};
+
 enum CommandFrameIdentifier {
     ASSOCIATION_REQUEST = 0x01,
     ASSOCIATION_RESPONSE = 0x02,
@@ -271,8 +276,6 @@ enum DisassociateReason {
     DEVICE_WISH_TO_LEAVE = 0x02
 
 };
-
-enum UWBPRFMode { PRF_OFF = 0, NOMINAL_4_M = 4, NOMINAL_16_M = 16, NOMINAL_64_M = 64 };
 
 enum RangingMode { NON_RANGING, ALL_RANGING, PHY_HEADER_ONLY };
 
