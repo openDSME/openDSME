@@ -45,6 +45,8 @@
 #include "../../dsme_platform.h"
 #include "../mac_services/pib/MAC_PIB.h"
 #include "DSMEAdaptionLayer.h"
+#include "../dsmeLayer/DSMELayer.h"
+#include <algorithm>
 
 constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 30;
@@ -57,6 +59,31 @@ constexpr int16_t K_D_NEG = 38;
 constexpr uint16_t SCALING = 128;
 
 namespace dsme {
+
+static bool header = false;
+
+GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
+    if(!header) {
+        std::cerr << "from"
+              << "," << "to"
+              << "," << "in"
+              << "," << "out"
+              << "," << "slots"
+              << "," << "queue"
+              << "," << "maIn"
+              << "," << "maServiceTime"
+              << "," << "avgServiceTime"
+              << "," << "maxServiceTime"
+              << "," << "stSlots"
+              << "," << "maStSlots"
+              << "," << "optSlots"
+              << "," << "finOptSlots"
+              << "," << "maInTime"
+              << "," << "maOutTime"
+              << "," << "musuDuration" << std::endl;
+        header = true;
+    }
+}
 
 GTSControllerData::GTSControllerData()
     : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
@@ -72,39 +99,119 @@ void GTSController::reset() {
 void GTSController::registerIncomingMessage(uint16_t address) {
     LOG_DEBUG("Controller-Incoming");
 
+    uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+
     iterator it = this->links.find(address);
     if(it == this->links.end()) {
         GTSControllerData data;
         data.address = address;
         data.messagesInLastMultisuperframe++;
+        data.lastIn = now;
         this->links.insert(data, address);
     } else {
+        float a = 0.8; // TODO
+        it->avgInTime = it->avgInTime*a + (now-it->lastIn) * (1-a);
         it->messagesInLastMultisuperframe++;
+        it->lastIn = now;
     }
     return;
 }
 
-void GTSController::registerOutgoingMessage(uint16_t address) {
+void GTSController::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime) {
     iterator it = this->links.find(address);
+
+    uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+
     if(it != this->links.end()) {
         it->messagesOutLastMultisuperframe++;
+
+        if(success) {
+            //float a = 0.5; // TODO -> adapt to frequency
+            float a = 0.95; // TODO -> adapt to frequency
+
+            if(it->serviceTimeCnt == 0) {
+                it->maxServiceTime = serviceTime;
+            }
+            else {
+                it->maxServiceTime = std::max(it->maxServiceTime,serviceTime);
+            }
+            it->serviceTimeSum += serviceTime;
+            it->serviceTimeCnt++;
+            it->avgServiceTime = it->avgServiceTime*a + (1-a)*serviceTime;
+            if(it->lastOut > 0) {
+                float a = 0.8; // TODO
+                it->avgOutTime = it->avgOutTime*a + (now-it->lastOut) * (1-a);
+            }
+            it->lastOut = now;
+        }
     }
 
     return;
 }
 
 void GTSController::multisuperframeEvent() {
+    std::map<uint16_t,uint8_t> slots;
+    for (DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin();
+                    it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); it++) {
+        if(it->getState() == ACTState::VALID) {
+            if(slots.find(it->getAddress()) == slots.end()) {
+                slots[it->getAddress()] = 0;
+            }
+            slots[it->getAddress()]++;
+        }
+    }
+
+    uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+    uint32_t musuDuration = now-lastMusu;
+    lastMusu = now;
+
+    float a = 0.8;
+
     for(GTSControllerData& data : this->links) {
-        uint16_t w = data.messagesInLastMultisuperframe;
-        uint16_t y = data.messagesOutLastMultisuperframe;
+       data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
+       // data.control = 1+data.avgIn-slots[data.address];
+       auto x = data.avgIn;
+//       auto rnd = ((rand()%1000)/1000.0)-0.5; // [-0.5,0.5)
+       float rnd = 0;
+       float optSlots = -0.03438027*x*x + 1.30657293*x + 0.28796228 + rnd;
 
-        int16_t e = w - y;
-        int16_t d = e - data.last_error;
-        int16_t& i = data.error_sum;
-        int16_t& u = data.control;
+       uint16_t w = data.messagesInLastMultisuperframe;
+       uint16_t y = data.messagesOutLastMultisuperframe;
 
-        i += e;
+       int16_t e = w - y;
+       int16_t d = e - data.last_error;
+       //std::cerr << "e " << e << " dd: " << d << std::endl;
+       //std::cerr << d << ",";
+       int16_t& i = data.error_sum;
+       int16_t& u = data.control;
 
+       i += e;
+
+
+       /*
+       double expOut = musuDuration/(double)slots[data.address];
+//       double expectedServiceTime = i*data.avgOutTime;
+       double expectedServiceTime = i*expOut;
+
+       e = i*(d/s)
+       s = i*d/e
+       */
+
+       double a = 0.95; // TODO -> adapt to frequency
+       double stSlots = i*musuDuration/data.avgServiceTime;
+       data.maStSlots = a*data.maStSlots + (1-a)*stSlots;
+
+       /*
+       double a = 0.95; // TODO -> adapt to frequency
+       data.maExpectedServiceTime = data.maExpectedServiceTime*a + (1-a)*expectedServiceTime;
+       if(data.avgServiceTime > data.maExpectedServiceTime) {
+           optSlots += 1;
+       }
+       */
+       float finOptSlots = std::max((float)stSlots,optSlots);
+
+       data.control = ((int)(finOptSlots+0.5))-slots[data.address];
+#if 0
         if(e > 0) {
             u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
         } else {
@@ -120,10 +227,32 @@ void GTSController::multisuperframeEvent() {
         LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
         LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
         LOG_DEBUG_PURE(LOG_ENDL);
-
         data.last_error = e;
+#endif
+
+        std::cerr << dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+                  << "," << data.address
+                  << "," << w
+                  << "," << y
+                  << "," << slots[data.address]
+                  << "," << i
+                  << "," << data.avgIn
+                  << "," << data.avgServiceTime
+                  << "," << data.serviceTimeSum / (float)data.serviceTimeCnt
+                  << "," << data.maxServiceTime
+                  << "," << stSlots
+                  << "," << data.maStSlots
+                  << "," << optSlots
+                  << "," << finOptSlots
+                  << "," << data.avgInTime
+                  << "," << data.avgOutTime
+                  << "," << musuDuration << std::endl;
+
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
+        data.serviceTimeSum = 0;
+        data.serviceTimeCnt = 0;
+        //data.maxServiceTime = 0;
     }
 }
 

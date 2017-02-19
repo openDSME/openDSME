@@ -69,6 +69,8 @@ public:
     // TODO when?
     virtual uint32_t getReceptionSymbolCounter() = 0;
 
+    virtual void setReceptionSymbolCounter(uint32_t counter) = 0;
+
     virtual uint16_t getTotalSymbols() = 0;
 
     virtual IEEE802154eMACHeader& getHeader() = 0;

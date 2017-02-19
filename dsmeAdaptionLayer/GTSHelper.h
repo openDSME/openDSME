@@ -70,7 +70,7 @@ public:
     void checkAllocationForPacket(uint16_t address);
 
     void indicateIncomingMessage(uint16_t address);
-    void indicateOutgoingMessage(uint16_t address);
+    void indicateOutgoingMessage(uint16_t address, bool success, int32_t serviceTime);
 
     void handleStartOfCFP();
 

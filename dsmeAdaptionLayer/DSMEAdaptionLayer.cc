@@ -240,6 +240,7 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
             }
 
             if(newMessage) {
+                msg->setReceptionSymbolCounter(dsme.getPlatform().getSymbolCounter());
                 gtsAllocationHelper.indicateIncomingMessage(dst.getShortAddress());
                 gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
@@ -340,7 +341,9 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& par
     }
 
     if(params.gtsTX) {
-        gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress());
+        int32_t serviceTime = (int32_t)dsme.getPlatform().getSymbolCounter() - (int32_t)msg->getReceptionSymbolCounter();
+        gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(),
+                params.status == DataStatus::SUCCESS, serviceTime);
     }
 
     DSME_ASSERT(callback_confirm);

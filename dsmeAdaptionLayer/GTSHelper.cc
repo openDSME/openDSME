@@ -50,7 +50,7 @@
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsController(), gtsConfirmPending(false) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsController(dsmeAdaptionLayer), gtsConfirmPending(false) {
 }
 
 void GTSHelper::initialize() {
@@ -69,8 +69,8 @@ void GTSHelper::indicateIncomingMessage(uint16_t address) {
     this->gtsController.registerIncomingMessage(address);
 }
 
-void GTSHelper::indicateOutgoingMessage(uint16_t address) {
-    this->gtsController.registerOutgoingMessage(address);
+void GTSHelper::indicateOutgoingMessage(uint16_t address, bool success, int32_t serviceTime) {
+    this->gtsController.registerOutgoingMessage(address,success,serviceTime);
 }
 
 void GTSHelper::handleStartOfCFP() {

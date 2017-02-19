@@ -61,19 +61,32 @@ struct GTSControllerData {
     int16_t last_error;
 
     int16_t control;
+
+    float avgIn{5};
+    float avgServiceTime{0};
+    int32_t serviceTimeSum{0};
+    uint8_t serviceTimeCnt{0};
+    float avgInTime{0};
+    float avgOutTime{0};
+    uint32_t lastIn{0};
+    uint32_t lastOut{0};
+    int32_t maxServiceTime{0};
+
+    double maExpectedServiceTime{0};
+    double maStSlots{0};
 };
 
 class GTSController {
 public:
     typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
 
-    GTSController() = default;
+    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
 
     void reset();
 
     void registerIncomingMessage(uint16_t address);
 
-    void registerOutgoingMessage(uint16_t address);
+    void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime);
 
     void multisuperframeEvent();
 
@@ -85,6 +98,10 @@ public:
 
 private:
     RBTree<GTSControllerData, uint16_t> links;
+
+    uint32_t lastMusu = 0;
+
+    DSMEAdaptionLayer& dsmeAdaptionLayer;
 };
 
 } /* dsme */
