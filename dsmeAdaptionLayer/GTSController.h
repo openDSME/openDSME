@@ -78,6 +78,9 @@ struct GTSControllerData {
     double maServiceTimePerQueueLength{0};
     double serviceTimePerQueueLengthSum{0};
     double maxServiceTimePerQueueLength{0};
+
+    double newErrorSum{0};
+    double newLastError{0};
 };
 
 class GTSController {

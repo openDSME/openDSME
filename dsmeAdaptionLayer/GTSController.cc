@@ -80,7 +80,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "stSlots"
               << "," << "maStSlots"
               << "," << "optSlots"
-              << "," << "finOptSlots"
+              << "," << "predictedCapacity"
               << "," << "maInTime"
               << "," << "maOutTime"
               << "," << "musuDuration" << std::endl;
@@ -182,7 +182,7 @@ void GTSController::multisuperframeEvent() {
     uint32_t musuDuration = now-lastMusu;
     lastMusu = now;
 
-    float a = 0.8;
+    float a = 0.7;
 
     for(GTSControllerData& data : this->links) {
        data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
@@ -229,8 +229,36 @@ void GTSController::multisuperframeEvent() {
        float finOptSlots = optSlots;
                //;std::max((float)stSlots,optSlots);
 
-#if 0
-       data.control = ((int)(finOptSlots+0.5))-slots[data.address];
+#if 1
+       double requiredCapacity = data.avgIn+0.5;
+       double predictedCapacity = std::min((double)slots[data.address],musuDuration/data.maServiceTimePerQueueLength);
+
+       {
+       double e = requiredCapacity - predictedCapacity;
+       data.newErrorSum += e;
+
+       if(data.newErrorSum > 30) {
+           data.newErrorSum = 30;
+       }
+       else if(data.newErrorSum < -30) {
+           data.newErrorSum = -30;
+       }
+
+       double d = e - data.last_error;
+
+       //double Kp = 0.40485;
+       //double Ti = 0.59420;
+       double Kp = 0.2;
+       double Ti = 0.6;
+       double Ki = Kp/Ti;
+       // TODO why *2 ?
+       optSlots = Kp*e + Ki*2*data.newErrorSum;
+       data.control = ((int)optSlots+0.5)-slots[data.address];
+
+       //data.control = ((int)(finOptSlots+0.5))-slots[data.address];
+
+       data.last_error = e;
+       }
 #else
         if(e > 0) {
             u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
@@ -266,7 +294,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << stSlots
                   << "," << data.maStSlots
                   << "," << optSlots
-                  << "," << finOptSlots
+                  << "," << predictedCapacity
                   << "," << data.maInTime
                   << "," << data.maOutTime
                   << "," << musuDuration << std::endl;
