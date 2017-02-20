@@ -88,6 +88,8 @@ public:
     virtual void increaseRetryCounter() = 0;
 
     virtual uint8_t getRetryCounter() = 0;
+
+    uint8_t queueAtCreation = -1;
 };
 
 } /* dsme */

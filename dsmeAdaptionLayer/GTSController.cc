@@ -74,6 +74,9 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "maServiceTime"
               << "," << "avgServiceTime"
               << "," << "maxServiceTime"
+              << "," << "maServiceTimePerQueueLength"
+              << "," << "avgServiceTimePerQueueLength"
+              << "," << "maxServiceTimePerQueueLength"
               << "," << "stSlots"
               << "," << "maStSlots"
               << "," << "optSlots"
@@ -96,7 +99,9 @@ void GTSController::reset() {
     }
 }
 
-void GTSController::registerIncomingMessage(uint16_t address) {
+uint8_t GTSController::registerIncomingMessage(uint16_t address) {
+    queueLevel++;
+
     LOG_DEBUG("Controller-Incoming");
 
     uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
@@ -110,14 +115,15 @@ void GTSController::registerIncomingMessage(uint16_t address) {
         this->links.insert(data, address);
     } else {
         float a = 0.8; // TODO
-        it->avgInTime = it->avgInTime*a + (now-it->lastIn) * (1-a);
+        it->maInTime = it->maInTime*a + (now-it->lastIn) * (1-a);
         it->messagesInLastMultisuperframe++;
         it->lastIn = now;
     }
-    return;
+    return queueLevel;
 }
 
-void GTSController::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime) {
+void GTSController::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
+    queueLevel--;
     iterator it = this->links.find(address);
 
     uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
@@ -127,20 +133,31 @@ void GTSController::registerOutgoingMessage(uint16_t address, bool success, int3
 
         if(success) {
             //float a = 0.5; // TODO -> adapt to frequency
-            float a = 0.95; // TODO -> adapt to frequency
+            float a = 0.5; // TODO -> adapt to frequency
+
+            auto serviceTimePerQueueLength = (serviceTime/(double)queueAtCreation);
 
             if(it->serviceTimeCnt == 0) {
                 it->maxServiceTime = serviceTime;
+                it->maxServiceTimePerQueueLength = serviceTimePerQueueLength;
             }
             else {
                 it->maxServiceTime = std::max(it->maxServiceTime,serviceTime);
+                it->maxServiceTimePerQueueLength = std::max(it->maxServiceTimePerQueueLength,serviceTimePerQueueLength);
             }
+
             it->serviceTimeSum += serviceTime;
             it->serviceTimeCnt++;
-            it->avgServiceTime = it->avgServiceTime*a + (1-a)*serviceTime;
+            it->maServiceTime = it->maServiceTime*a + (1-a)*serviceTime;
+
+
+            it->serviceTimePerQueueLengthSum += serviceTimePerQueueLength;
+            it->maServiceTimePerQueueLength = it->maServiceTimePerQueueLength*a + (1-a)*serviceTimePerQueueLength;
+
+
             if(it->lastOut > 0) {
                 float a = 0.8; // TODO
-                it->avgOutTime = it->avgOutTime*a + (now-it->lastOut) * (1-a);
+                it->maOutTime = it->maOutTime*a + (now-it->lastOut) * (1-a);
             }
             it->lastOut = now;
         }
@@ -198,7 +215,8 @@ void GTSController::multisuperframeEvent() {
        */
 
        double a = 0.95; // TODO -> adapt to frequency
-       double stSlots = i*musuDuration/data.avgServiceTime;
+       //double stSlots = i*musuDuration/data.maServiceTime;
+       double stSlots = musuDuration/data.maServiceTimePerQueueLength;
        data.maStSlots = a*data.maStSlots + (1-a)*stSlots;
 
        /*
@@ -208,10 +226,12 @@ void GTSController::multisuperframeEvent() {
            optSlots += 1;
        }
        */
-       float finOptSlots = std::max((float)stSlots,optSlots);
+       float finOptSlots = optSlots;
+               //;std::max((float)stSlots,optSlots);
 
-       data.control = ((int)(finOptSlots+0.5))-slots[data.address];
 #if 0
+       data.control = ((int)(finOptSlots+0.5))-slots[data.address];
+#else
         if(e > 0) {
             u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
         } else {
@@ -237,20 +257,24 @@ void GTSController::multisuperframeEvent() {
                   << "," << slots[data.address]
                   << "," << i
                   << "," << data.avgIn
-                  << "," << data.avgServiceTime
+                  << "," << data.maServiceTime
                   << "," << data.serviceTimeSum / (float)data.serviceTimeCnt
                   << "," << data.maxServiceTime
+                  << "," << data.maServiceTimePerQueueLength
+                  << "," << data.serviceTimePerQueueLengthSum / (float)data.serviceTimeCnt
+                  << "," << data.maxServiceTimePerQueueLength
                   << "," << stSlots
                   << "," << data.maStSlots
                   << "," << optSlots
                   << "," << finOptSlots
-                  << "," << data.avgInTime
-                  << "," << data.avgOutTime
+                  << "," << data.maInTime
+                  << "," << data.maOutTime
                   << "," << musuDuration << std::endl;
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
         data.serviceTimeSum = 0;
+        data.serviceTimePerQueueLengthSum = 0;
         data.serviceTimeCnt = 0;
         //data.maxServiceTime = 0;
     }

@@ -63,17 +63,21 @@ struct GTSControllerData {
     int16_t control;
 
     float avgIn{5};
-    float avgServiceTime{0};
+    float maServiceTime{0};
     int32_t serviceTimeSum{0};
     uint8_t serviceTimeCnt{0};
-    float avgInTime{0};
-    float avgOutTime{0};
+    float maInTime{0};
+    float maOutTime{0};
     uint32_t lastIn{0};
     uint32_t lastOut{0};
     int32_t maxServiceTime{0};
 
     double maExpectedServiceTime{0};
     double maStSlots{0};
+
+    double maServiceTimePerQueueLength{0};
+    double serviceTimePerQueueLengthSum{0};
+    double maxServiceTimePerQueueLength{0};
 };
 
 class GTSController {
@@ -84,9 +88,9 @@ public:
 
     void reset();
 
-    void registerIncomingMessage(uint16_t address);
+    uint8_t registerIncomingMessage(uint16_t address);
 
-    void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime);
+    void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation);
 
     void multisuperframeEvent();
 
@@ -102,6 +106,8 @@ private:
     uint32_t lastMusu = 0;
 
     DSMEAdaptionLayer& dsmeAdaptionLayer;
+
+    uint8_t queueLevel = 0;
 };
 
 } /* dsme */

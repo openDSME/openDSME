@@ -65,12 +65,12 @@ void GTSHelper::reset() {
     this->gtsController.reset();
 }
 
-void GTSHelper::indicateIncomingMessage(uint16_t address) {
-    this->gtsController.registerIncomingMessage(address);
+uint8_t GTSHelper::indicateIncomingMessage(uint16_t address) {
+    return this->gtsController.registerIncomingMessage(address);
 }
 
-void GTSHelper::indicateOutgoingMessage(uint16_t address, bool success, int32_t serviceTime) {
-    this->gtsController.registerOutgoingMessage(address,success,serviceTime);
+void GTSHelper::indicateOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
+    this->gtsController.registerOutgoingMessage(address,success,serviceTime,queueAtCreation);
 }
 
 void GTSHelper::handleStartOfCFP() {
