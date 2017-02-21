@@ -230,7 +230,7 @@ void GTSController::multisuperframeEvent() {
                //;std::max((float)stSlots,optSlots);
 
 #if 1
-       double requiredCapacity = data.avgIn+0.5;
+       double requiredCapacity = data.avgIn*(1/0.88);
        double predictedCapacity = std::min((double)slots[data.address],musuDuration/data.maServiceTimePerQueueLength);
 
        {
