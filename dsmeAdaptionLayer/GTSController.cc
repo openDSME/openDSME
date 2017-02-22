@@ -231,6 +231,10 @@ void GTSController::multisuperframeEvent() {
 
 #if 1
        double requiredCapacity = data.avgIn*(1/0.88);
+       //double rq2 = TOTAL_GTS_QUEUE_SIZE/10.0;
+       double rq2 = TOTAL_GTS_QUEUE_SIZE/15.0;
+       requiredCapacity = std::max(requiredCapacity,rq2);
+
        double predictedCapacity = std::min((double)slots[data.address],musuDuration/data.maServiceTimePerQueueLength);
 
        {
