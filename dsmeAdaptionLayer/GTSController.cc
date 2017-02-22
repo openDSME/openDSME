@@ -240,6 +240,8 @@ void GTSController::multisuperframeEvent() {
 
        {
        double e = requiredCapacity - predictedCapacity;
+
+/*
        data.newErrorSum += e;
 
        if(data.newErrorSum > 30) {
@@ -248,6 +250,21 @@ void GTSController::multisuperframeEvent() {
        else if(data.newErrorSum < -30) {
            data.newErrorSum = -30;
        }
+*/
+       double Kp = dsmeAdaptionLayer.settings.Kp;
+       double Ki = dsmeAdaptionLayer.settings.Ki;
+
+       double maxIinc = 10/Ki;
+
+       if(e > maxIinc) {
+           data.newErrorSum += maxIinc;
+       }
+       else if(e < -maxIinc) {
+           data.newErrorSum += -maxIinc;
+       }
+       else {
+           data.newErrorSum += e;
+       }
 
        double d = e - data.last_error;
 
@@ -255,8 +272,6 @@ void GTSController::multisuperframeEvent() {
        //double Ti = 0.59420;
        //double Kp = 0.2;
        //double Ti = 0.6;
-       double Kp = dsmeAdaptionLayer.settings.Kp;
-       double Ki = dsmeAdaptionLayer.settings.Ki;
        // TODO why *2 ?
        //optSlots = Kp*e + Ki*2*data.newErrorSum;
        optSlots = Kp*e + Ki*data.newErrorSum;
