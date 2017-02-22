@@ -75,6 +75,9 @@ public:
     }
 
     gts_allocation_scheme allocationScheme;
+
+    double Kp;
+    double Ki;
 };
 
 struct DSMEAdaptionLayerBufferEntry {

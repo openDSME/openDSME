@@ -64,7 +64,7 @@ static bool header = false;
 
 GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
     if(!header) {
-        std::cerr << "from"
+        std::cout << "control,from"
               << "," << "to"
               << "," << "in"
               << "," << "out"
@@ -80,6 +80,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "stSlots"
               << "," << "maStSlots"
               << "," << "optSlots"
+              << "," << "requiredCapacity"
               << "," << "predictedCapacity"
               << "," << "maInTime"
               << "," << "maOutTime"
@@ -248,11 +249,13 @@ void GTSController::multisuperframeEvent() {
 
        //double Kp = 0.40485;
        //double Ti = 0.59420;
-       double Kp = 0.2;
-       double Ti = 0.6;
-       double Ki = Kp/Ti;
+       //double Kp = 0.2;
+       //double Ti = 0.6;
+       double Kp = dsmeAdaptionLayer.settings.Kp;
+       double Ki = dsmeAdaptionLayer.settings.Ki;
        // TODO why *2 ?
-       optSlots = Kp*e + Ki*2*data.newErrorSum;
+       //optSlots = Kp*e + Ki*2*data.newErrorSum;
+       optSlots = Kp*e + Ki*data.newErrorSum;
        data.control = ((int)optSlots+0.5)-slots[data.address];
 
        //data.control = ((int)(finOptSlots+0.5))-slots[data.address];
@@ -278,7 +281,8 @@ void GTSController::multisuperframeEvent() {
         data.last_error = e;
 #endif
 
-        std::cerr << dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+        std::cout << "control"
+                  << "," << dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
                   << "," << data.address
                   << "," << w
                   << "," << y
@@ -294,6 +298,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << stSlots
                   << "," << data.maStSlots
                   << "," << optSlots
+                  << "," << requiredCapacity
                   << "," << predictedCapacity
                   << "," << data.maInTime
                   << "," << data.maOutTime
