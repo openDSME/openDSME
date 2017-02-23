@@ -84,6 +84,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "predictedCapacity"
               << "," << "maInTime"
               << "," << "maOutTime"
+              << "," << "Ipart"
               << "," << "musuDuration" << std::endl;
         header = true;
     }
@@ -254,7 +255,7 @@ void GTSController::multisuperframeEvent() {
        double Kp = dsmeAdaptionLayer.settings.Kp;
        double Ki = dsmeAdaptionLayer.settings.Ki;
 
-       double maxIinc = 10/Ki;
+       double maxIinc = 4/Ki;
 
        if(e > maxIinc) {
            data.newErrorSum += maxIinc;
@@ -321,6 +322,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << predictedCapacity
                   << "," << data.maInTime
                   << "," << data.maOutTime
+                  << "," << data.newErrorSum*dsmeAdaptionLayer.settings.Ki
                   << "," << musuDuration << std::endl;
 
         data.messagesInLastMultisuperframe = 0;
