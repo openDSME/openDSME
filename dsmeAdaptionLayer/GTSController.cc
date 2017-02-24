@@ -228,60 +228,56 @@ void GTSController::multisuperframeEvent() {
            optSlots += 1;
        }
        */
-       float finOptSlots = optSlots;
-               //;std::max((float)stSlots,optSlots);
 
 #if 1
        double requiredCapacity = data.avgIn*(1/0.88);
        //double rq2 = TOTAL_GTS_QUEUE_SIZE/10.0;
        double rq2 = TOTAL_GTS_QUEUE_SIZE/15.0;
        requiredCapacity = std::max(requiredCapacity,rq2);
-
        double predictedCapacity = std::min((double)slots[data.address],musuDuration/data.maServiceTimePerQueueLength);
 
-       {
-       double e = requiredCapacity - predictedCapacity;
-
-/*
-       data.newErrorSum += e;
-
-       if(data.newErrorSum > 30) {
-           data.newErrorSum = 30;
-       }
-       else if(data.newErrorSum < -30) {
-           data.newErrorSum = -30;
-       }
-*/
        double Kp = dsmeAdaptionLayer.settings.Kp;
        double Ki = dsmeAdaptionLayer.settings.Ki;
 
-       double maxIinc = 4/Ki;
-
-       if(e > maxIinc) {
-           data.newErrorSum += maxIinc;
+       if(Ki < 0) { // use open loop
+           optSlots = Kp*requiredCapacity;
        }
-       else if(e < -maxIinc) {
-           data.newErrorSum += -maxIinc;
-       }
-       else {
-           data.newErrorSum += e;
+       else { // use closed loop
+           double e = requiredCapacity - predictedCapacity;
+
+           double maxIinc = 4/Ki;
+
+           if(e > maxIinc) {
+               data.newErrorSum += maxIinc;
+           }
+           else if(e < -maxIinc) {
+               data.newErrorSum += -maxIinc;
+           }
+           else {
+               data.newErrorSum += e;
+           }
+
+           if(data.newErrorSum > 30) {
+               data.newErrorSum = 30;
+           }
+           else if(data.newErrorSum < -30) {
+               data.newErrorSum = -30;
+           }
+
+           double d = e - data.last_error;
+
+           //double Kp = 0.40485;
+           //double Ti = 0.59420;
+           //double Kp = 0.2;
+           //double Ti = 0.6;
+           // TODO why *2 ?
+           //optSlots = Kp*e + Ki*2*data.newErrorSum;
+           optSlots = Kp*e + Ki*data.newErrorSum;
+
+           data.last_error = e;
        }
 
-       double d = e - data.last_error;
-
-       //double Kp = 0.40485;
-       //double Ti = 0.59420;
-       //double Kp = 0.2;
-       //double Ti = 0.6;
-       // TODO why *2 ?
-       //optSlots = Kp*e + Ki*2*data.newErrorSum;
-       optSlots = Kp*e + Ki*data.newErrorSum;
        data.control = ((int)optSlots+0.5)-slots[data.address];
-
-       //data.control = ((int)(finOptSlots+0.5))-slots[data.address];
-
-       data.last_error = e;
-       }
 #else
         if(e > 0) {
             u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
