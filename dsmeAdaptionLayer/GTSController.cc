@@ -229,7 +229,8 @@ void GTSController::multisuperframeEvent() {
        }
        */
 
-#if 1
+       bool useOriginalController = false;
+
        double requiredCapacity = data.avgIn*(1/0.88);
        //double rq2 = TOTAL_GTS_QUEUE_SIZE/10.0;
        double rq2 = TOTAL_GTS_QUEUE_SIZE/15.0;
@@ -239,7 +240,10 @@ void GTSController::multisuperframeEvent() {
        double Kp = dsmeAdaptionLayer.settings.Kp;
        double Ki = dsmeAdaptionLayer.settings.Ki;
 
-       if(Ki < 0) { // use open loop
+       if(Ki < 0.1) { // use original controller
+            useOriginalController = true;
+       }
+       else if(Ki < 0) { // use open loop
            optSlots = Kp*requiredCapacity;
        }
        else { // use closed loop
@@ -264,7 +268,7 @@ void GTSController::multisuperframeEvent() {
                data.newErrorSum = -30;
            }
 
-           double d = e - data.last_error;
+           //double d = e - data.last_error;
 
            //double Kp = 0.40485;
            //double Ti = 0.59420;
@@ -277,25 +281,27 @@ void GTSController::multisuperframeEvent() {
            data.last_error = e;
        }
 
-       data.control = ((int)optSlots+0.5)-slots[data.address];
-#else
-        if(e > 0) {
-            u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
-        } else {
-            u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
-        }
+       if(!useOriginalController) {
+           data.control = ((int)optSlots+0.5)-slots[data.address];
+       }
+       else {
+            if(e > 0) {
+                u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
+            } else {
+                u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
+            }
 
-        LOG_DEBUG_PREFIX;
-        LOG_DEBUG_PURE("Controller-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
-        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
-        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
-        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
-        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
-        LOG_DEBUG_PURE(LOG_ENDL);
-        data.last_error = e;
-#endif
+            LOG_DEBUG_PREFIX;
+            LOG_DEBUG_PURE("Controller-Data->" << data.address);
+            LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
+            LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
+            LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
+            LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
+            LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
+            LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
+            LOG_DEBUG_PURE(LOG_ENDL);
+            data.last_error = e;
+        }
 
         std::cout << "control"
                   << "," << dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
