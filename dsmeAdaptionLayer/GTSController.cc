@@ -70,6 +70,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "out"
               << "," << "slots"
               << "," << "queue"
+              << "," << "activeLinks"
               << "," << "maIn"
               << "," << "maServiceTime"
               << "," << "avgServiceTime"
@@ -231,7 +232,21 @@ void GTSController::multisuperframeEvent() {
 
        bool useOriginalController = false;
 
-       double requiredCapacity = data.avgIn*(1/0.88);
+       double params[] = {0.789,0.585,0.407,0.273,0.1909,0.1063};
+
+       int links = 0;
+       for(auto x : slots) {
+         if(x.second >= 2) {
+           links++;
+         }
+       }
+       if(links >= 6) {
+          links = 5;
+       }
+       if(links == 0) {
+          links = 1;
+       }
+       double requiredCapacity = data.avgIn*(1/(params[links]));
        //double rq2 = TOTAL_GTS_QUEUE_SIZE/10.0;
        double rq2 = TOTAL_GTS_QUEUE_SIZE/15.0;
        requiredCapacity = std::max(requiredCapacity,rq2);
@@ -240,7 +255,7 @@ void GTSController::multisuperframeEvent() {
        double Kp = dsmeAdaptionLayer.settings.Kp;
        double Ki = dsmeAdaptionLayer.settings.Ki;
 
-       if(Ki < 0.1) { // use original controller
+       if(Ki < -0.1) { // use original controller
             useOriginalController = true;
        }
        else if(Ki < 0) { // use open loop
@@ -310,6 +325,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << y
                   << "," << slots[data.address]
                   << "," << i
+                  << "," << links
                   << "," << data.avgIn
                   << "," << data.maServiceTime
                   << "," << data.serviceTimeSum / (float)data.serviceTimeCnt
