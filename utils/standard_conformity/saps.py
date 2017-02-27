@@ -6,15 +6,14 @@ import re
 import sys
 
 declaration = '\s+[a-zA-Z0-9_\*:]+ ([a-zA-Z0-9_]+);.*\n'
+available_primitives = ['confirm', 'indication', 'request', 'response']
 
 class Class:
     def __init__(self, name):
         self.name = name
-
         self.has_primitive = {}
         self.parameters = {}
-
-        for primitive in ['confirm', 'indication', 'request', 'response']:
+        for primitive in available_primitives:
             self.has_primitive[primitive] = False
             self.parameters[primitive]    = []
 
@@ -28,7 +27,6 @@ class Class:
         return self.__str__()
 
 def process_parameters(declarations):
-
     pattern = re.compile(declaration)
     return pattern.findall(declarations)
 
@@ -44,14 +42,12 @@ def main():
         def green(string):
             return string
 
-
     saps_standard = {}
     saps_implemented = {}
 
     pattern = re.compile('^(MLME|MCPS)\-([A-Z\-]+)\.([a-z]+)$')
     for line in open('utils/standard_conformity/SAPs.txt'):
         match = pattern.match(line)
-
         if match:
             sap = match.group(1).lower() + '_sap'
             group = match.group(2).replace('-', '_')
@@ -64,7 +60,6 @@ def main():
                 saps_standard[sap][group] = Class(group)
 
             saps_standard[sap][group].addPrimitive(primitive)
-
         else:
             print(line)
             assert(False)
@@ -77,7 +72,6 @@ def main():
             group = match.group(2).replace('-', '_')
             primitive = match.group(3)
             parameters = match.group(4)
-
             lowercase = lambda s: s[:1].lower() + s[1:] if s else ''
             saps_standard[sap][group].parameters[primitive] = [lowercase(c) for c in parameters.split(', ')]
         else:
@@ -87,13 +81,11 @@ def main():
 
     for sap in ['mlme_sap', 'mcps_sap']:
         saps_implemented[sap] = {}
-
         for filename in os.listdir('mac_services/' + sap):
             if len(filename.split('.')) == 2 and filename.split('.')[1] == 'h':
                 group = filename.split('.')[0]
                 if group.lower() != sap:
                     saps_implemented[sap][group] = Class(group)
-
                     content = open('mac_services/' + sap + '/' + filename).read()
                     if re.search('ConfirmBase<[A-Za-z_]+>', content):
                         saps_implemented[sap][group].addPrimitive('confirm')
@@ -103,23 +95,10 @@ def main():
                         saps_implemented[sap][group].addPrimitive('request')
                     if re.search('void response\(response_parameters&\);', content):
                         saps_implemented[sap][group].addPrimitive('response')
-
-                    regex = '{\n((' + declaration + ')*)\s*};'
-                    match = re.search('struct request_parameters ' + regex, content)
-                    if match:
-                        saps_implemented[sap][group].parameters['request'] = process_parameters(match.group(1))
-
-                    match = re.search('struct response_parameters ' + regex, content)
-                    if match:
-                        saps_implemented[sap][group].parameters['response'] = process_parameters(match.group(1))
-
-                    match = re.search('indication_parameters ' + regex, content)
-                    if match:
-                        saps_implemented[sap][group].parameters['indication'] = process_parameters(match.group(1))
-
-                    match = re.search('confirm_parameters ' + regex, content)
-                    if match:
-                        saps_implemented[sap][group].parameters['confirm'] = process_parameters(match.group(1))
+                    for primitive in available_primitives:
+                        match = re.search(primitive + '_parameters {\n((' + declaration + ')*)\s*};', content)
+                        if match:
+                            saps_implemented[sap][group].parameters[primitive] = process_parameters(match.group(1))
 
     skip         = '     '
 
@@ -146,14 +125,11 @@ def main():
                     for primitive, present in sorted(saps_standard[sap][group].has_primitive.items()):
                         current_indent = indent_t
                         parameter_skip = empty_t
-
                         last_present = ''
-
                         for k, v in reversed(sorted(saps_standard[sap][group].has_primitive.items())):
                             if v:
                                 last_present = k
                                 break
-
                         if primitive == last_present:
                             current_indent = indent_t_end
                             parameter_skip = skip
@@ -161,12 +137,10 @@ def main():
                             print(empty + current_indent + green(primitive))
                             parameters_standard = saps_standard[sap][group].parameters[primitive]
                             parameters_implemented = saps_implemented[sap][group].parameters[primitive]
-
                             for i, parameter in enumerate(parameters_standard):
                                 parameter_indent = indent_d
                                 if i == len(parameters_standard) - 1:
                                     parameter_indent = indent_d_end
-
                                 if parameter in parameters_implemented:
                                     print(empty + parameter_skip + parameter_indent + green(parameter))
                                 else:
@@ -174,7 +148,6 @@ def main():
                             for i, parameter in enumerate(parameters_implemented):
                                 if parameter not in parameters_standard:
                                     print(empty + parameter_skip + indent_d_end + red(parameter))
-
                         elif present:
                             print(empty + current_indent + primitive)
                         elif saps_implemented[sap][group].has_primitive[primitive]:
@@ -190,9 +163,7 @@ def main():
             print(spacing)
             for group, primitives in sorted(groups.items()):
                 print(indent + group)
-
         print('  ┻\n')
-
     for sap, groups in sorted(saps_implemented.items()):
         if sap not in saps_standard:
             print('\n' + red(sap))
