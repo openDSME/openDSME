@@ -176,7 +176,7 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         return;
     }
 
-    LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
+    LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS. " << !dst.isBroadcast() << " " << newMessage);
 
     if(dst.getShortAddress() == this->mac_pib->macShortAddress) {
         /* '-> loopback */

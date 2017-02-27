@@ -70,6 +70,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "out"
               << "," << "slots"
               << "," << "queue"
+              << "," << "newError"
               << "," << "activeLinks"
               << "," << "maIn"
               << "," << "maServiceTime"
@@ -254,6 +255,7 @@ void GTSController::multisuperframeEvent() {
 
        double Kp = dsmeAdaptionLayer.settings.Kp;
        double Ki = dsmeAdaptionLayer.settings.Ki;
+       double newError = requiredCapacity - predictedCapacity;
 
        if(Ki < -0.1) { // use original controller
             useOriginalController = true;
@@ -262,18 +264,16 @@ void GTSController::multisuperframeEvent() {
            optSlots = Kp*requiredCapacity;
        }
        else { // use closed loop
-           double e = requiredCapacity - predictedCapacity;
-
            double maxIinc = 4/Ki;
 
-           if(e > maxIinc) {
+           if(newError > maxIinc) {
                data.newErrorSum += maxIinc;
            }
-           else if(e < -maxIinc) {
+           else if(newError < -maxIinc) {
                data.newErrorSum += -maxIinc;
            }
            else {
-               data.newErrorSum += e;
+               data.newErrorSum += newError;
            }
 
            if(data.newErrorSum > 30) {
@@ -291,9 +291,9 @@ void GTSController::multisuperframeEvent() {
            //double Ti = 0.6;
            // TODO why *2 ?
            //optSlots = Kp*e + Ki*2*data.newErrorSum;
-           optSlots = Kp*e + Ki*data.newErrorSum;
+           optSlots = Kp*newError + Ki*data.newErrorSum;
 
-           data.last_error = e;
+           data.last_error = newError;
        }
 
        if(!useOriginalController) {
@@ -325,6 +325,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << y
                   << "," << slots[data.address]
                   << "," << i
+                  << "," << newError
                   << "," << links
                   << "," << data.avgIn
                   << "," << data.maServiceTime
