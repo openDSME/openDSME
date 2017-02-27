@@ -173,7 +173,7 @@ void GTSController::multisuperframeEvent() {
     std::map<uint16_t,uint8_t> slots;
     for (DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin();
                     it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); it++) {
-        if(it->getState() == ACTState::VALID) {
+        if(it->getState() == ACTState::VALID && it->getDirection() == Direction::TX) {
             if(slots.find(it->getAddress()) == slots.end()) {
                 slots[it->getAddress()] = 0;
             }
