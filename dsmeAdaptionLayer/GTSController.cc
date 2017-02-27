@@ -45,20 +45,9 @@
 #include "../../dsme_platform.h"
 #include "../mac_services/dataStructures/IEEE802154MacAddress.h"
 
-constexpr int16_t K_P_POS = 0;
-constexpr int16_t K_I_POS = 30;
-constexpr int16_t K_D_POS = 26;
-
-constexpr int16_t K_P_NEG = 50;
-constexpr int16_t K_I_NEG = 30;
-constexpr int16_t K_D_NEG = 38;
-
-constexpr uint16_t SCALING = 128;
-
 namespace dsme {
 
-GTSControllerData::GTSControllerData()
-    : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), error_sum(0), last_error(0), control(1) {
+GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
 
 void GTSController::reset() {
@@ -75,10 +64,10 @@ void GTSController::registerIncomingMessage(uint16_t address) {
     if(it == this->links.end()) {
         GTSControllerData data;
         data.address = address;
-        data.messagesInLastMultisuperframe++;
+        data.messagesIn[data.history_position]++;
         this->links.insert(data, address);
     } else {
-        it->messagesInLastMultisuperframe++;
+        it->messagesIn[it->history_position]++;
     }
     return;
 }
@@ -86,43 +75,27 @@ void GTSController::registerIncomingMessage(uint16_t address) {
 void GTSController::registerOutgoingMessage(uint16_t address) {
     iterator it = this->links.find(address);
     if(it != this->links.end()) {
-        it->messagesOutLastMultisuperframe++;
+        it->messagesOut[it->history_position]++;
     }
 
     return;
 }
 
-void GTSController::multisuperframeEvent() {
+void GTSController::superframeEvent() {
+    global_superframe++;
+
     for(GTSControllerData& data : this->links) {
-        uint16_t w = data.messagesInLastMultisuperframe;
-        uint16_t y = data.messagesOutLastMultisuperframe;
+        data.queue_size += data.messagesIn[data.history_position] - data.messagesOut[data.history_position];
+        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
 
-        int16_t e = w - y;
-        int16_t d = e - data.last_error;
-        int16_t& i = data.error_sum;
-        int16_t& u = data.control;
+        data.control = slots + data.queue_size - 1;
 
-        i += e;
-
-        if(e > 0) {
-            u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
-        } else {
-            u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
+        data.history_position++;
+        if(data.history_position >= CONTROL_HISTORY_LENGTH) {
+            data.history_position = 0;
         }
-
-        LOG_DEBUG_PREFIX;
-        LOG_DEBUG_PURE("Controller-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
-        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
-        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
-        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
-        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
-        LOG_DEBUG_PURE(LOG_ENDL);
-
-        data.last_error = e;
-        data.messagesInLastMultisuperframe = 0;
-        data.messagesOutLastMultisuperframe = 0;
+        data.messagesIn[data.history_position] = 0;
+        data.messagesOut[data.history_position] = 0;
     }
 }
 

@@ -47,27 +47,27 @@
 
 namespace dsme {
 
+constexpr uint8_t CONTROL_HISTORY_LENGTH = 8;
+
 class DSMEAdaptionLayer;
 
 struct GTSControllerData {
-    GTSControllerData();
+    uint16_t address{0xffff};
 
-    uint16_t address;
+    uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
+    uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
+    uint8_t history_position{0};
 
-    uint16_t messagesInLastMultisuperframe;
-    uint16_t messagesOutLastMultisuperframe;
+    int16_t queue_size{0};
 
-    int16_t error_sum;
-    int16_t last_error;
-
-    int16_t control;
+    int16_t control{0};
 };
 
 class GTSController {
 public:
     typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
 
-    GTSController() = default;
+    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
 
     void reset();
 
@@ -75,7 +75,7 @@ public:
 
     void registerOutgoingMessage(uint16_t address);
 
-    void multisuperframeEvent();
+    void superframeEvent();
 
     int16_t getControl(uint16_t address);
 
@@ -84,7 +84,10 @@ public:
     uint16_t getPriorityLink();
 
 private:
+    DSMEAdaptionLayer& dsmeAdaptionLayer;
     RBTree<GTSControllerData, uint16_t> links;
+
+    uint32_t global_superframe{0};
 };
 
 } /* namespace dsme */
