@@ -83,17 +83,17 @@ void GTSHelper::indicateOutgoingMessage(uint16_t address) {
 }
 
 void GTSHelper::handleStartOfCFP() {
-    this->gtsController.superframeEvent();
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
+        this->gtsController.multisuperframeEvent();
+    }
 
-    uint16_t address = this->gtsController.getPriorityLink();
-    if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
-        uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
-        int16_t control = gtsController.getControl(address);
-
-        if(control > numAllocatedSlots) {
-            checkAndAllocateSingleGTS(address);
-        } else if(control < numAllocatedSlots) {
-            checkAndDeallocateSingeleGTS(address);
+    // Check allocation at random superframe in multi-superframe
+    uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+        uint16_t address = this->gtsController.getPriorityLink();
+        if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+            checkAllocationForPacket(address);
         }
     }
 }
@@ -104,8 +104,12 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
-    if(numAllocatedSlots < 1) {
+    int16_t diff = gtsController.getControl(address);
+
+    if(diff > 0 || numAllocatedSlots < 1) {
         checkAndAllocateSingleGTS(address);
+    } else if(diff < 0 && numAllocatedSlots > 1) {
+        checkAndDeallocateSingeleGTS(address);
     }
 }
 

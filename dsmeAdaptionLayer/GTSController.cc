@@ -43,9 +43,22 @@
 #include "./GTSController.h"
 
 #include "../../dsme_platform.h"
+#include "../dsmeLayer/DSMELayer.h"
 #include "../mac_services/dataStructures/IEEE802154MacAddress.h"
 
+#include <iostream>
+
 namespace dsme {
+
+constexpr int16_t K_P_POS = 0;
+constexpr int16_t K_I_POS = 30;
+constexpr int16_t K_D_POS = 26;
+
+constexpr int16_t K_P_NEG = 50;
+constexpr int16_t K_I_NEG = 30;
+constexpr int16_t K_D_NEG = 38;
+
+constexpr uint16_t SCALING = 128;
 
 GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
@@ -81,21 +94,93 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
     return;
 }
 
-void GTSController::superframeEvent() {
-    global_superframe++;
+void GTSController::multisuperframeEvent() {
+    global_multisuperframe++;
 
+    DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
+
+    if(global_multisuperframe >= platform.par("flipTime").longValue() + platform.par("evaluationTime").longValue()) {
+        platform.endSimulation();
+    }
+
+    uint8_t flipLink{0};
+    if(this->links.size() > 0) {
+        uint8_t active_size = 0;
+        for(GTSControllerData& data : this->links) {
+            if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address) > 0) {
+                active_size++;
+            }
+        }
+        if(active_size > 0) {
+            uint8_t link_choice = platform.par("flipLink").longValue() % active_size;
+
+            for(GTSControllerData& data : this->links) {
+                if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address) > 0) {
+                    if(link_choice == 0) {
+                        break;
+                    }
+                    flipLink++;
+                    link_choice--;
+                }
+            }
+        }
+    }
+
+    uint8_t i = 0;
     for(GTSControllerData& data : this->links) {
-        data.queue_size += data.messagesIn[data.history_position] - data.messagesOut[data.history_position];
+        data.queueSize[data.history_position] += data.messagesIn[data.history_position] - data.messagesOut[data.history_position];
         uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
 
-        data.control = slots + data.queue_size - 1;
+        if(i == flipLink && this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress == platform.par("flipNode").longValue() &&
+           global_multisuperframe == platform.par("flipTime").longValue()) {
+            std::cout << "state: ";
+            std::cout << this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ",";
+            std::cout << data.address << ",";
+            std::cout << slots << ",";
+            std::cout << platform.par("flipOption").longValue() << ",";
 
-        data.history_position++;
+            uint8_t k = data.history_position;
+            for(uint8_t j = 0; j < CONTROL_HISTORY_LENGTH; j++) {
+                std::cout << data.queueSize[k] << ",";
+                // std::cout << data.messagesIn[k] << ",";
+                // std::cout << data.messagesOut[k] << ",";
+
+                k++;
+                if(k >= CONTROL_HISTORY_LENGTH) {
+                    k = 0;
+                }
+            }
+            std::cout << std::endl;
+
+            data.control = platform.par("flipOption").longValue();
+        } else {
+            uint16_t w = data.messagesIn[data.history_position];
+            uint16_t y = data.messagesOut[data.history_position];
+
+            int16_t e = w - y;
+            int16_t d = e - data.last_error;
+            int16_t& i = data.error_sum;
+            int16_t& u = data.control;
+
+            i += e;
+
+            if(e > 0) {
+                u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
+            } else {
+                u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
+            }
+        }
+
+        uint16_t currentQueueSize = data.queueSize[data.history_position];
+        ++data.history_position;
         if(data.history_position >= CONTROL_HISTORY_LENGTH) {
             data.history_position = 0;
         }
+        data.queueSize[data.history_position] = currentQueueSize;
         data.messagesIn[data.history_position] = 0;
         data.messagesOut[data.history_position] = 0;
+
+        i++;
     }
 }
 

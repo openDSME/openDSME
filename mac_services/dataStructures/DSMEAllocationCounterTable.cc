@@ -52,6 +52,8 @@
 #include "./GTS.h"
 #include "./RBTree.h"
 
+#include <iostream>
+
 using namespace dsme;
 
 DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
@@ -94,6 +96,9 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t s
 }
 
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
+    std::cout << type << " " << palId_id() << ((direction == TX) ? ">" : "<") << address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << ","
+              << (uint16_t)channel << std::endl;
+
     LOG_DEBUG_PREFIX;
     LOG_DEBUG_PURE(DECOUT << type << " " << palId_id());
     if(direction == TX) {

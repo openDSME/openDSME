@@ -55,12 +55,17 @@ struct GTSControllerData {
     uint16_t address{0xffff};
 
     uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
+
     uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
+
+    uint16_t queueSize[CONTROL_HISTORY_LENGTH]{};
+
     uint8_t history_position{0};
 
-    int16_t queue_size{0};
-
     int16_t control{0};
+
+    int16_t error_sum{0};
+    int16_t last_error{0};
 };
 
 class GTSController {
@@ -75,7 +80,7 @@ public:
 
     void registerOutgoingMessage(uint16_t address);
 
-    void superframeEvent();
+    void multisuperframeEvent();
 
     int16_t getControl(uint16_t address);
 
@@ -87,7 +92,7 @@ private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
     RBTree<GTSControllerData, uint16_t> links;
 
-    uint32_t global_superframe{0};
+    uint32_t global_multisuperframe{0};
 };
 
 } /* namespace dsme */
