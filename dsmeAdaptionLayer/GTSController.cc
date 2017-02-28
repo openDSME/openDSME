@@ -71,6 +71,7 @@ GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptio
               << "," << "slots"
               << "," << "queue"
               << "," << "newError"
+              << "," << "c"
               << "," << "activeLinks"
               << "," << "maIn"
               << "," << "maServiceTime"
@@ -186,7 +187,8 @@ void GTSController::multisuperframeEvent() {
     uint32_t musuDuration = now-lastMusu;
     lastMusu = now;
 
-    float a = 0.7;
+    //float a = 0.7;
+    float a = 0.9;
 
     for(GTSControllerData& data : this->links) {
        data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
@@ -257,7 +259,17 @@ void GTSController::multisuperframeEvent() {
        double Ki = dsmeAdaptionLayer.settings.Ki;
        double newError = requiredCapacity - predictedCapacity;
 
-       if(Ki < -0.1) { // use original controller
+       if(Ki < -0.2) {
+            newError *= Kp;
+            // round to +oo
+            if(-1.5 <= newError && newError <= -1.0) {
+                data.control = 0;
+            }
+            else {
+                data.control = std::ceil(newError);
+            }
+       }
+       else if(Ki < -0.1) { // use original controller
             useOriginalController = true;
        }
        else if(Ki < 0) { // use open loop
@@ -297,7 +309,9 @@ void GTSController::multisuperframeEvent() {
        }
 
        if(!useOriginalController) {
-           data.control = ((int)optSlots+0.5)-slots[data.address];
+           if(Ki > -0.2) {
+               data.control = ((int)optSlots+0.5)-slots[data.address];
+           }
        }
        else {
             if(e > 0) {
@@ -326,6 +340,7 @@ void GTSController::multisuperframeEvent() {
                   << "," << slots[data.address]
                   << "," << i
                   << "," << newError
+                  << "," << data.control
                   << "," << links
                   << "," << data.avgIn
                   << "," << data.maServiceTime
