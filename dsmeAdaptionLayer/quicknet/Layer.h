@@ -52,24 +52,26 @@ namespace quicknet {
 
 typedef float weight_t;
 
+typedef float (*activation_t)(float);
+
 typedef Matrix<weight_t> matrix_t;
 typedef Vector<weight_t> vector_t;
 
 class Layer {
 public:
-    Layer();
-    Layer(const matrix_t& weights, const vector_t& bias, vector_t& output);
+    Layer(const matrix_t& weights, const vector_t& bias, vector_t& output, activation_t activation);
 
+    Layer(const Layer&) = delete;
+    Layer& operator=(const Layer&) = delete;
     ~Layer() = default;
-
-    Layer& operator=(const Layer&);
 
     const vector_t& feedForward(const vector_t& input);
 
 private:
-    matrix_t weights;
-    vector_t bias;
-    vector_t output;
+    const matrix_t& weights;
+    const vector_t& bias;
+    vector_t& output;
+    const activation_t activation;
 };
 
 } /* namespace quicknet */

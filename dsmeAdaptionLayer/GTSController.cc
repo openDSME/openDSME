@@ -95,6 +95,8 @@ void GTSController::registerOutgoingMessage(uint16_t address) {
 }
 
 void GTSController::multisuperframeEvent() {
+    LOG_DEBUG("Controller-Calculating");
+
     global_multisuperframe++;
 
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
@@ -154,6 +156,29 @@ void GTSController::multisuperframeEvent() {
 
             data.control = platform.par("flipOption").longValue();
         } else {
+            float control_input_array[CONTROL_HISTORY_LENGTH + 1];
+            control_input_array[0] = slots;
+
+            uint8_t k = data.history_position;
+            for(uint8_t j = 0; j < CONTROL_HISTORY_LENGTH; j++) {
+                control_input_array[j + 1] = data.queueSize[k];
+                std::cout << data.queueSize[k] << ",";
+                k++;
+                if(k >= CONTROL_HISTORY_LENGTH) {
+                    k = 0;
+                }
+            }
+
+            quicknet::vector_t input{CONTROL_HISTORY_LENGTH + 1, control_input_array};
+
+            const quicknet::vector_t& output = this->network.feedForward(input);
+
+            std::cout << "network ";
+            for(uint8_t k = 0; k < output.length(); k++) {
+                std::cout << output(k) << ",";
+            }
+            std::cout << std::endl;
+
             uint16_t w = data.messagesIn[data.history_position];
             uint16_t y = data.messagesOut[data.history_position];
 

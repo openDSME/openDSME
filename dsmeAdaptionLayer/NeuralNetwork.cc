@@ -41,10 +41,9 @@
  */
 
 #include "./NeuralNetwork.h"
+#include <math.h>
 
 namespace dsme {
-
-quicknet::Layer layers[3];
 
 float l0_weights_array[36]{
     -0.632057, 0.298791,  0.409173,   0.075295,  0.310842,  0.609959,  -0.634336,  -0.0846814, -0.100855, -0.497546, 0.0201811, 0.296736,
@@ -74,22 +73,23 @@ float l2_bias_array[5]{
 };
 float l2_output_array[5];
 
+const quicknet::matrix_t l0_weights{4, 9, l0_weights_array};
+const quicknet::vector_t l0_bias{4, l0_bias_array};
+quicknet::vector_t l0_output{4, l0_output_array};
+
+const quicknet::matrix_t l1_weights{4, 4, l1_weights_array};
+const quicknet::vector_t l1_bias{4, l1_bias_array};
+quicknet::vector_t l1_output{4, l1_output_array};
+
+const quicknet::matrix_t l2_weights{5, 4, l2_weights_array};
+const quicknet::vector_t l2_bias{5, l2_bias_array};
+quicknet::vector_t l2_output{5, l2_output_array};
+
+quicknet::Layer layers[3] = {
+    {l0_weights, l0_bias, l0_output, tanh}, {l1_weights, l1_bias, l1_output, nullptr}, {l2_weights, l2_bias, l2_output, nullptr},
+};
+
 NeuralNetwork::NeuralNetwork() : network{3, layers} {
-    const quicknet::matrix_t l0_weights{4, 9, l0_weights_array};
-    const quicknet::vector_t l0_bias{4, l0_bias_array};
-    quicknet::vector_t l0_output{4, l0_output_array};
-
-    layers[0] = quicknet::Layer{l0_weights, l0_bias, l0_output};
-    const quicknet::matrix_t l1_weights{4, 4, l1_weights_array};
-    const quicknet::vector_t l1_bias{4, l1_bias_array};
-    quicknet::vector_t l1_output{4, l1_output_array};
-
-    layers[1] = quicknet::Layer{l1_weights, l1_bias, l1_output};
-    const quicknet::matrix_t l2_weights{5, 4, l2_weights_array};
-    const quicknet::vector_t l2_bias{5, l2_bias_array};
-    quicknet::vector_t l2_output{5, l2_output_array};
-
-    layers[2] = quicknet::Layer{l2_weights, l2_bias, l2_output};
 }
 
 const quicknet::vector_t& NeuralNetwork::feedForward(const quicknet::vector_t& input) {

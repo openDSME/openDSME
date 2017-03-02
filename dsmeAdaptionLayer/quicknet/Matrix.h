@@ -43,7 +43,6 @@
 #ifndef QUICKNET__MATRIX_H_
 #define QUICKNET__MATRIX_H_
 
-#include "../../../dsme_platform.h"
 #include "../../helper/Integers.h"
 
 namespace dsme {
@@ -56,12 +55,8 @@ public:
     Matrix(uint8_t n, uint8_t m, T* matrix) : n(n), m(m), matrix(matrix) {
     }
 
-    Matrix& operator=(const Matrix& other) {
-        this->n = other.n;
-        this->m = other.m;
-        this->matrix = other.matrix;
-        return *this;
-    }
+    Matrix(const Matrix&) = delete;
+    Matrix& operator=(const Matrix&) = delete;
 
     uint8_t rows() const {
         return this->n;
@@ -72,15 +67,13 @@ public:
     }
 
     T operator()(uint8_t i, uint8_t j) const {
-        DSME_ASSERT(i < this->n);
-        DSME_ASSERT(j < this->m);
         return this->matrix[static_cast<uint16_t>(i) * this->m + j];
     }
 
 private:
-    uint8_t n;
-    uint8_t m;
-    const T* matrix;
+    const uint8_t n;
+    const uint8_t m;
+    const T* const matrix;
 };
 
 } /* namespace quicknet */

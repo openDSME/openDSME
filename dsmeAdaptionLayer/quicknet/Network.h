@@ -51,7 +51,7 @@ namespace quicknet {
 
 class Network {
 public:
-    Network(uint8_t n, Layer* layers);
+    Network(uint8_t n, Layer* const layers);
     ~Network() = default;
 
     const vector_t& feedForward(const vector_t& input);

@@ -43,7 +43,6 @@
 #ifndef QUICKNET__VECTOR_H_
 #define QUICKNET__VECTOR_H_
 
-#include "../../../dsme_platform.h"
 #include "../../helper/Integers.h"
 
 namespace dsme {
@@ -56,29 +55,24 @@ public:
     Vector(uint8_t n, T* vector) : n(n), vector(vector) {
     }
 
-    Vector& operator=(const Vector& other) {
-        this->n = other.n;
-        this->vector = other.vector;
-        return *this;
-    }
+    Vector(const Vector&) = delete;
+    Vector& operator=(const Vector&) = delete;
 
     uint8_t length() const {
         return this->n;
     }
 
     T operator()(uint8_t i) const {
-        DSME_ASSERT(i < this->n);
         return this->vector[i];
     }
 
     T& operator()(uint8_t i) {
-        DSME_ASSERT(i < this->n);
         return this->vector[i];
     }
 
 private:
-    uint8_t n;
-    T* vector;
+    const uint8_t n;
+    T* const vector;
 };
 
 } /* namespace quicknet */
