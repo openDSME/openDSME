@@ -40,64 +40,49 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSCONTROLLER_H_
-#define GTSCONTROLLER_H_
+#ifndef QUICKNET__VECTOR_H_
+#define QUICKNET__VECTOR_H_
 
-#include "../mac_services/dataStructures/RBTree.h"
-#include "./NeuralNetwork.h"
+#include "../../../dsme_platform.h"
+#include "../../helper/Integers.h"
 
 namespace dsme {
 
-constexpr uint8_t CONTROL_HISTORY_LENGTH = 8;
+namespace quicknet {
 
-class DSMEAdaptionLayer;
-
-struct GTSControllerData {
-    uint16_t address{0xffff};
-
-    uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
-
-    uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
-
-    uint16_t queueSize[CONTROL_HISTORY_LENGTH]{};
-
-    uint8_t history_position{0};
-
-    int16_t control{0};
-
-    int16_t error_sum{0};
-    int16_t last_error{0};
-};
-
-class GTSController {
+template <typename T>
+class Vector {
 public:
-    typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
+    Vector(uint8_t n, T* vector) : n(n), vector(vector) {
+    }
 
-    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
+    Vector& operator=(const Vector& other) {
+        this->n = other.n;
+        this->vector = other.vector;
+        return *this;
+    }
 
-    void reset();
+    uint8_t length() const {
+        return this->n;
+    }
 
-    void registerIncomingMessage(uint16_t address);
+    T operator()(uint8_t i) const {
+        DSME_ASSERT(i < this->n);
+        return this->vector[i];
+    }
 
-    void registerOutgoingMessage(uint16_t address);
-
-    void multisuperframeEvent();
-
-    int16_t getControl(uint16_t address);
-
-    void indicateChange(uint16_t address, int16_t change);
-
-    uint16_t getPriorityLink();
+    T& operator()(uint8_t i) {
+        DSME_ASSERT(i < this->n);
+        return this->vector[i];
+    }
 
 private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
-    RBTree<GTSControllerData, uint16_t> links;
-
-    uint32_t global_multisuperframe{0};
-
-    NeuralNetwork network;
+    uint8_t n;
+    T* vector;
 };
+
+} /* namespace quicknet */
 
 } /* namespace dsme */
 
-#endif /* GTSCONTROLLER_H_ */
+#endif /* QUICKNET__VECTOR_H_ */

@@ -40,64 +40,25 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSCONTROLLER_H_
-#define GTSCONTROLLER_H_
-
-#include "../mac_services/dataStructures/RBTree.h"
-#include "./NeuralNetwork.h"
+#include "./Network.h"
 
 namespace dsme {
 
-constexpr uint8_t CONTROL_HISTORY_LENGTH = 8;
+namespace quicknet {
 
-class DSMEAdaptionLayer;
+Network::Network(uint8_t n, Layer* layers) : n(n), layers(layers) {
+}
 
-struct GTSControllerData {
-    uint16_t address{0xffff};
+const vector_t& Network::feedForward(const vector_t& input) {
+    const vector_t* output = &input;
 
-    uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
+    for(uint8_t i = 0; i < n; i++) {
+        output = &layers[i].feedForward(*output);
+    }
 
-    uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
+    return *output;
+}
 
-    uint16_t queueSize[CONTROL_HISTORY_LENGTH]{};
-
-    uint8_t history_position{0};
-
-    int16_t control{0};
-
-    int16_t error_sum{0};
-    int16_t last_error{0};
-};
-
-class GTSController {
-public:
-    typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
-
-    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
-
-    void reset();
-
-    void registerIncomingMessage(uint16_t address);
-
-    void registerOutgoingMessage(uint16_t address);
-
-    void multisuperframeEvent();
-
-    int16_t getControl(uint16_t address);
-
-    void indicateChange(uint16_t address, int16_t change);
-
-    uint16_t getPriorityLink();
-
-private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
-    RBTree<GTSControllerData, uint16_t> links;
-
-    uint32_t global_multisuperframe{0};
-
-    NeuralNetwork network;
-};
+} /* namespace quicknet */
 
 } /* namespace dsme */
-
-#endif /* GTSCONTROLLER_H_ */

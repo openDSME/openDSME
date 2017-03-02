@@ -40,64 +40,48 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSCONTROLLER_H_
-#define GTSCONTROLLER_H_
+#include "./Layer.h"
 
-#include "../mac_services/dataStructures/RBTree.h"
-#include "./NeuralNetwork.h"
+#include "../../../dsme_platform.h"
 
 namespace dsme {
 
-constexpr uint8_t CONTROL_HISTORY_LENGTH = 8;
+namespace quicknet {
 
-class DSMEAdaptionLayer;
+Layer::Layer() : weights{0, 0, nullptr}, bias{0, nullptr}, output{0, nullptr} {
+}
 
-struct GTSControllerData {
-    uint16_t address{0xffff};
+Layer::Layer(const matrix_t& weights, const vector_t& bias, vector_t& output) : weights{weights}, bias{bias}, output{output} {
+    DSME_ASSERT(output.length() == bias.length());
+    DSME_ASSERT(output.length() == weights.rows());
+}
 
-    uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
+Layer& Layer::operator=(const Layer& other) {
+    this->weights = other.weights;
+    this->bias = other.bias;
+    this->output = other.output;
+    return *this;
+}
 
-    uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
+const vector_t& Layer::feedForward(const vector_t& input) {
+    DSME_ASSERT(input.length() == this->weights.columns());
 
-    uint16_t queueSize[CONTROL_HISTORY_LENGTH]{};
+    for(uint8_t i = 0; i < this->output.length(); i++) {
+        /* initialize to 0.0 */
+        this->output(i) = 0;
 
-    uint8_t history_position{0};
+        /* perform element-wise weighted accumulation */
+        for(uint8_t j = 0; j < input.length(); j++) {
+            this->output(i) += input(j) * this->weights(i, j);
+        }
 
-    int16_t control{0};
+        /* add bias to each element */
+        this->output(i) += this->bias(i);
+    }
 
-    int16_t error_sum{0};
-    int16_t last_error{0};
-};
+    return this->output;
+}
 
-class GTSController {
-public:
-    typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
-
-    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
-
-    void reset();
-
-    void registerIncomingMessage(uint16_t address);
-
-    void registerOutgoingMessage(uint16_t address);
-
-    void multisuperframeEvent();
-
-    int16_t getControl(uint16_t address);
-
-    void indicateChange(uint16_t address, int16_t change);
-
-    uint16_t getPriorityLink();
-
-private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
-    RBTree<GTSControllerData, uint16_t> links;
-
-    uint32_t global_multisuperframe{0};
-
-    NeuralNetwork network;
-};
+} /* namespace quicknet */
 
 } /* namespace dsme */
-
-#endif /* GTSCONTROLLER_H_ */

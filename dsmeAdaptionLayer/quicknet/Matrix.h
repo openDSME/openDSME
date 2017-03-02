@@ -40,64 +40,51 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSCONTROLLER_H_
-#define GTSCONTROLLER_H_
+#ifndef QUICKNET__MATRIX_H_
+#define QUICKNET__MATRIX_H_
 
-#include "../mac_services/dataStructures/RBTree.h"
-#include "./NeuralNetwork.h"
+#include "../../../dsme_platform.h"
+#include "../../helper/Integers.h"
 
 namespace dsme {
 
-constexpr uint8_t CONTROL_HISTORY_LENGTH = 8;
+namespace quicknet {
 
-class DSMEAdaptionLayer;
-
-struct GTSControllerData {
-    uint16_t address{0xffff};
-
-    uint16_t messagesIn[CONTROL_HISTORY_LENGTH]{};
-
-    uint16_t messagesOut[CONTROL_HISTORY_LENGTH]{};
-
-    uint16_t queueSize[CONTROL_HISTORY_LENGTH]{};
-
-    uint8_t history_position{0};
-
-    int16_t control{0};
-
-    int16_t error_sum{0};
-    int16_t last_error{0};
-};
-
-class GTSController {
+template <typename T>
+class Matrix {
 public:
-    typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
+    Matrix(uint8_t n, uint8_t m, T* matrix) : n(n), m(m), matrix(matrix) {
+    }
 
-    GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer);
+    Matrix& operator=(const Matrix& other) {
+        this->n = other.n;
+        this->m = other.m;
+        this->matrix = other.matrix;
+        return *this;
+    }
 
-    void reset();
+    uint8_t rows() const {
+        return this->n;
+    }
 
-    void registerIncomingMessage(uint16_t address);
+    uint8_t columns() const {
+        return this->m;
+    }
 
-    void registerOutgoingMessage(uint16_t address);
-
-    void multisuperframeEvent();
-
-    int16_t getControl(uint16_t address);
-
-    void indicateChange(uint16_t address, int16_t change);
-
-    uint16_t getPriorityLink();
+    T operator()(uint8_t i, uint8_t j) const {
+        DSME_ASSERT(i < this->n);
+        DSME_ASSERT(j < this->m);
+        return this->matrix[static_cast<uint16_t>(i) * this->m + j];
+    }
 
 private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
-    RBTree<GTSControllerData, uint16_t> links;
-
-    uint32_t global_multisuperframe{0};
-
-    NeuralNetwork network;
+    uint8_t n;
+    uint8_t m;
+    const T* matrix;
 };
+
+} /* namespace quicknet */
 
 } /* namespace dsme */
 
-#endif /* GTSCONTROLLER_H_ */
+#endif /* QUICKNET__MATRIX_H_ */

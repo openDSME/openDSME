@@ -25,8 +25,9 @@ def main():
         filedefine = filename.replace('.h', '_H_').upper()
         checked_define = parts[2].split(' ')[1]
 
-        if checked_define != filedefine:
-            violations.append(parts[0] + ' Checked define does not match filename: ' + checked_define + ' vs. ' + filedefine)
+        checked_define_file = checked_define.split('__')[-1]
+        if checked_define_file != filedefine:
+            violations.append(parts[0] + ' Checked define does not match filename: ' + checked_define_file + ' vs. ' + filedefine)
             continue
 
         f = open(parts[0], 'r')
