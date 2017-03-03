@@ -54,6 +54,12 @@ void quick_linear(vector_t& vector) {
     return;
 }
 
+void quick_sigmoid(vector_t& vector) {
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = (1.0 + (tanh(vector(j) / 2.0))) / 2.0;
+    }
+}
+
 void quick_softmax(vector_t& vector) {
     weight_t sum = 0;
     for(uint8_t j = 0; j < vector.length(); j++) {

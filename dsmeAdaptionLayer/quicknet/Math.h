@@ -52,6 +52,8 @@ namespace quicknet {
 
 void quick_linear(vector_t&);
 
+void quick_sigmoid(vector_t&);
+
 void quick_softmax(vector_t&);
 
 void quick_tanh(vector_t&);
