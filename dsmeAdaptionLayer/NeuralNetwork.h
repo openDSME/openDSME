@@ -43,6 +43,7 @@
 #ifndef NEURALNETWORK_H_
 #define NEURALNETWORK_H_
 
+#include "./quicknet/Math.h"
 #include "./quicknet/Network.h"
 
 namespace dsme {
@@ -52,7 +53,9 @@ public:
     NeuralNetwork();
     ~NeuralNetwork() = default;
 
-    const quicknet::vector_t& feedForward(const quicknet::vector_t& input);
+    quicknet::vector_t& feedForward(quicknet::vector_t& input) {
+        return this->network.feedForward(input);
+    }
 
 private:
     quicknet::Network network;

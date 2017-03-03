@@ -40,41 +40,51 @@
  * SUCH DAMAGE.
  */
 
-#include "./Layer.h"
+#include "./Math.h"
 
-#include "../../../dsme_platform.h"
+#include <math.h>
+
+#include "../../helper/Integers.h"
 
 namespace dsme {
 
 namespace quicknet {
 
-Layer::Layer(const matrix_t& weights, const vector_t& bias, vector_t& output, activation_t activation)
-    : weights{weights}, bias{bias}, output{output}, activation{activation} {
-    DSME_ASSERT(output.length() == bias.length());
-    DSME_ASSERT(output.length() == weights.rows());
+void quick_linear(vector_t& vector) {
+    return;
 }
 
-vector_t& Layer::feedForward(vector_t& input) {
-    DSME_ASSERT(input.length() == this->weights.columns());
+void quick_softmax(vector_t& vector) {
+    weight_t sum = 0;
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = exp(vector(j));
+        sum += vector(j);
+    }
 
-    for(uint8_t i = 0; i < this->output.length(); i++) {
-        /* initialize to 0.0 */
-        this->output(i) = 0;
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = vector(j) / sum;
+    }
+    return;
+}
 
-        /* perform element-wise weighted accumulation */
-        for(uint8_t j = 0; j < input.length(); j++) {
-            this->output(i) += input(j) * this->weights(i, j);
+void quick_tanh(vector_t& vector) {
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = tanh(vector(j));
+    }
+    return;
+}
+
+uint8_t idmax(const vector_t& vector) {
+    uint8_t max_index = 0;
+    weight_t max_score = 0.0;
+
+    for(uint8_t i = 0; i < vector.length(); i++) {
+        if(vector(i) > max_score) {
+            max_index = i;
+            max_score = vector(i);
         }
-
-        /* add bias to each element */
-        this->output(i) += this->bias(i);
     }
-
-    if(this->activation) {
-        activation(this->output);
-    }
-
-    return this->output;
+    return max_index;
 }
 
 } /* namespace quicknet */

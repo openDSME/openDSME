@@ -40,43 +40,26 @@
  * SUCH DAMAGE.
  */
 
-#include "./Layer.h"
+#ifndef QUICKNET__MATH_H_
+#define QUICKNET__MATH_H_
 
-#include "../../../dsme_platform.h"
+#include "./Layer.h"
+#include "./Vector.h"
 
 namespace dsme {
 
 namespace quicknet {
 
-Layer::Layer(const matrix_t& weights, const vector_t& bias, vector_t& output, activation_t activation)
-    : weights{weights}, bias{bias}, output{output}, activation{activation} {
-    DSME_ASSERT(output.length() == bias.length());
-    DSME_ASSERT(output.length() == weights.rows());
-}
+void quick_linear(vector_t&);
 
-vector_t& Layer::feedForward(vector_t& input) {
-    DSME_ASSERT(input.length() == this->weights.columns());
+void quick_softmax(vector_t&);
 
-    for(uint8_t i = 0; i < this->output.length(); i++) {
-        /* initialize to 0.0 */
-        this->output(i) = 0;
+void quick_tanh(vector_t&);
 
-        /* perform element-wise weighted accumulation */
-        for(uint8_t j = 0; j < input.length(); j++) {
-            this->output(i) += input(j) * this->weights(i, j);
-        }
-
-        /* add bias to each element */
-        this->output(i) += this->bias(i);
-    }
-
-    if(this->activation) {
-        activation(this->output);
-    }
-
-    return this->output;
-}
+uint8_t idmax(const vector_t&);
 
 } /* namespace quicknet */
 
 } /* namespace dsme */
+
+#endif /* QUICKNET__MATH_H_ */

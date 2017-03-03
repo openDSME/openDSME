@@ -50,16 +50,6 @@
 
 namespace dsme {
 
-constexpr int16_t K_P_POS = 0;
-constexpr int16_t K_I_POS = 30;
-constexpr int16_t K_D_POS = 26;
-
-constexpr int16_t K_P_NEG = 50;
-constexpr int16_t K_I_NEG = 30;
-constexpr int16_t K_D_NEG = 38;
-
-constexpr uint16_t SCALING = 128;
-
 GTSController::GTSController(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
 }
 
@@ -158,42 +148,23 @@ void GTSController::multisuperframeEvent() {
         } else {
             float control_input_array[CONTROL_HISTORY_LENGTH + 1];
             control_input_array[0] = slots;
-
             uint8_t k = data.history_position;
             for(uint8_t j = 0; j < CONTROL_HISTORY_LENGTH; j++) {
                 control_input_array[j + 1] = data.queueSize[k];
-                std::cout << data.queueSize[k] << ",";
                 k++;
                 if(k >= CONTROL_HISTORY_LENGTH) {
                     k = 0;
                 }
             }
-
             quicknet::vector_t input{CONTROL_HISTORY_LENGTH + 1, control_input_array};
 
-            const quicknet::vector_t& output = this->network.feedForward(input);
+            /* input: slots | l0 | l1 | l2 | l3 | l4 | l5 | l6 | l7 */
+            quicknet::vector_t& output = this->network.feedForward(input);
+            /* output: -2 | -1 | 0 | 1 | 2 */
 
-            std::cout << "network ";
-            for(uint8_t k = 0; k < output.length(); k++) {
-                std::cout << output(k) << ",";
-            }
-            std::cout << std::endl;
+            data.control = quicknet::idmax(output) - 2;
 
-            uint16_t w = data.messagesIn[data.history_position];
-            uint16_t y = data.messagesOut[data.history_position];
-
-            int16_t e = w - y;
-            int16_t d = e - data.last_error;
-            int16_t& i = data.error_sum;
-            int16_t& u = data.control;
-
-            i += e;
-
-            if(e > 0) {
-                u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
-            } else {
-                u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
-            }
+            std::cout << "network: " << data.control << std::endl;
         }
 
         uint16_t currentQueueSize = data.queueSize[data.history_position];
