@@ -40,70 +40,67 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IDSMEPLATFORM_H_
-#define IDSMEPLATFORM_H_
+#ifndef IDSMERADIO_H_
+#define IDSMERADIO_H_
 
 #include "../helper/DSMEDelegate.h"
 #include "../helper/Integers.h"
-#include "./IDSMERadio.h"
 
 namespace dsme {
 
 class IDSMEMessage;
 
-class IDSMEPlatform : public IDSMERadio {
+class IDSMERadio {
 public:
-    /*
-     * Returns whether the ACK-layer may currently pass a message up to the DSME-layer
-     */
-    virtual bool isReceptionFromAckLayerPossible() = 0;
+    typedef Delegate<void(IDSMEMessage* msg)> receive_delegate_t;
 
-    /*
-     * Pass a message up to the DSME-layer and decuple it from the ISR control flow
+    /**
+     * Set the current channel for transmitting / receiving
      */
-    virtual void handleReceivedMessageFromAckLayer(IDSMEMessage* message) = 0;
+    virtual bool setChannelNumber(uint8_t channel) = 0;
 
-    /*
-     * Allocate a new DSMEMessage
+    /**
+     * Prepare a packet for direct transmission without delay and without CSMA
+     * but keep the message (the caller has to ensure that the message is eventually released)
      */
-    virtual IDSMEMessage* getEmptyMessage() = 0;
+    virtual bool prepareSendingCopy(IDSMEMessage* msg, Delegate<void(bool)> txEndCallback) = 0;
 
-    /*
-     * Release a DSMEMessage
+    /**
+     * Immediately send a message which previously has been prepared via prepareSendingCopy()
      */
-    virtual void releaseMessage(IDSMEMessage* msg) = 0;
+    virtual bool sendNow() = 0;
 
-    /*
-     * Start a timer at symbolCounterValue symbols
+    /**
+     * Abort a previously prepared transmission
      */
-    virtual void startTimer(uint32_t symbolCounterValue) = 0;
+    virtual void abortPreparedTransmission() = 0;
 
-    /*
-     * Gets the current time in symbols
+    /**
+     * Send an ACK message, delay until aTurnaRoundTime after reception_time has expired
      */
-    virtual uint32_t getSymbolCounter() = 0;
+    virtual bool sendDelayedAck(IDSMEMessage* ackMsg, IDSMEMessage* receivedMsg, Delegate<void(bool)> txEndCallback) = 0;
 
-    /*
-     * Returns a random integer
+    /**
+     * Specify a delegate that handles incoming messages
      */
-    virtual uint16_t getRandom() = 0;
+    virtual void setReceiveDelegate(receive_delegate_t receiveDelegate) = 0;
 
-    /*
-     * Can be used to force the update of the visual representation during simulation
+    /**
+     * Start a Clear Channel Assessment
      */
-    virtual void updateVisual() = 0;
+    virtual bool startCCA() = 0;
 
-    /*
-     * Allows the platform to inform the DSME-layer about the start of a CFP while decoupling from the ISR control flow
+    /**
+     * Turn the transceiver on
      */
-    virtual void scheduleStartOfCFP() = 0;
+    virtual void turnTransceiverOn() = 0;
 
-    /*
-     * Beacons with LQI lower than this will not be considered when deciding for a coordinator to associate to
+    /**
+     * Turn the transceiver off
      */
-    virtual uint8_t getMinCoordinatorLQI() = 0;
+    virtual void turnTransceiverOff() = 0;
 };
 
 } /* namespace dsme */
 
-#endif /* IDSMEPLATFORM_H_ */
+#endif /* IDSMERADIO_H_ */

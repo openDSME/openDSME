@@ -116,32 +116,54 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     // Prepare next slot
     // Switch to next slot channel and radio mode
 
-    DSMEAllocationCounterTable& act = dsme.getMAC_PIB().macDSMEACT;
+    DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
 
-    if(nextSlot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
-        // next slot will be GTS
-        unsigned nextGTS = nextSlot - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
+    if(nextSlot > this->dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+        /* '-> next slot will be GTS */
+
+        unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
-            currentACTElement = act.find(nextSuperframe, nextGTS);
-            DSME_ASSERT(currentACTElement != act.end());
+            /* '-> this slot might be used */
+
+            this->currentACTElement = act.find(nextSuperframe, nextGTS);
+            DSME_ASSERT(this->currentACTElement != act.end());
 
             // For RX also if INVALID or UNCONFIRMED!
-            if((currentACTElement->getState() == VALID) || (currentACTElement->getDirection() == Direction::RX)) {
-                dsme.getPlatform().setChannelNumber(dsme.getMAC_PIB().helper.getChannels()[currentACTElement->getChannel()]);
+            if((this->currentACTElement->getState() == VALID) || (this->currentACTElement->getDirection() == Direction::RX)) {
+                this->dsme.getPlatform().turnTransceiverOn();
+                this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
             }
 
             // statistic
-            if(currentACTElement->getDirection() == RX) {
-                numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
+            if(this->currentACTElement->getDirection() == RX) {
+                this->numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
             }
         } else {
-            currentACTElement = act.end();
+            /* '-> nothing to do during this slot */
+
+            if(this->dsme.getMAC_PIB().macAssociatedPANCoord) {
+                this->dsme.getPlatform().turnTransceiverOff();
+            } else {
+                /* '-> do not turn off the transceiver while we might be scanning */
+            }
+
+            this->currentACTElement = act.end();
         }
+    } else if(nextSlot == 0) {
+        /* '-> beacon slots are handled by the BeaconManager */
+
     } else {
-        // next slot will be the beacon frame or CAP
-        uint8_t commonChannel = dsme.getPHY_PIB().phyCurrentChannel;
-        dsme.getPlatform().setChannelNumber(commonChannel);
-        currentACTElement = act.end();
+        /* '-> next slot will be or CAP */
+
+        if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {
+            /* '-> active CAP slot */
+
+            this->dsme.getPlatform().turnTransceiverOn();
+            this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
+            this->currentACTElement = act.end();
+        } else {
+            /* '-> inactive CAP slot (CAP-reduction 'light') */
+        }
     }
 
     return true;
@@ -301,47 +323,61 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 }
 
 void MessageDispatcher::handleGTS(int32_t lateness) {
-    if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end() && currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe() &&
-       currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
-        if(currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
-            // LOG_INFO("Waiting to receive from " << currentACTElement->getAddress())
-        } else if(currentACTElement->getState() == VALID) {
-            // transmit from gtsQueue
-            DSME_ASSERT(lastSendGTSNeighbor == neighborQueue.end());
+    if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
+       this->currentACTElement->getGTSlotID() == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
+        /* '-> this slot matches the prepared ACT element */
 
-            IEEE802154MacAddress adr = IEEE802154MacAddress(currentACTElement->getAddress());
-            lastSendGTSNeighbor = neighborQueue.findByAddress(IEEE802154MacAddress(currentACTElement->getAddress()));
-            if(lastSendGTSNeighbor == neighborQueue.end()) {
-                LOG_INFO("MessageDispatcher-handleGTS: neighborQueue.size: " << ((uint8_t)neighborQueue.getNumNeighbors()));
-                LOG_INFO("MessageDispatcher-handleGTS: neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4()
-                                                                           << DECOUT);
-                for(auto it : neighborQueue) {
-                    LOG_INFO("MessageDispatcher-handleGTS: neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3()
-                                                                               << ":" << it.address.a4() << DECOUT);
+        if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+            /* '-> a message may be received during this slot */
+
+        } else if(this->currentACTElement->getState() == VALID) {
+            /* '-> if any messages are queued for this link, send one */
+
+            DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+
+            IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
+            this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
+            if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
+                /* '-> the neighbor associated with the current slot does not exist */
+
+                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                for(auto it : this->neighborQueue) {
+                    LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                   << DECOUT);
                 }
                 DSME_ASSERT(false);
             }
-            if(neighborQueue.isQueueEmpty(lastSendGTSNeighbor)) {
-                lastSendGTSNeighbor = neighborQueue.end();
-                numUnusedTxGts++;
+
+            if(this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)) {
+                /* '-> no message to be sent */
+
+                /* make sure we never interrupt scanning by turning the transceiver off */
+                DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
+                this->dsme.getPlatform().turnTransceiverOff();
+
+                this->lastSendGTSNeighbor = this->neighborQueue.end();
+                this->numUnusedTxGts++;
             } else {
-                IDSMEMessage* msg = neighborQueue.front(lastSendGTSNeighbor);
+                /* '-> a message is queued for transmission */
 
-                // LOG_INFO("send in GTS " << msg->getHeader().getDestAddr().getShortAddress());
+                IDSMEMessage* msg = neighborQueue.front(this->lastSendGTSNeighbor);
 
-                DSME_ASSERT(dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= lateness + msg->getTotalSymbols() + dsme.getMAC_PIB().helper.getAckWaitDuration() +
-                                                                                10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
+                DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= lateness + msg->getTotalSymbols() +
+                                                                                      this->dsme.getMAC_PIB().helper.getAckWaitDuration() +
+                                                                                      10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
-                bool result = dsme.getAckLayer().prepareSendingCopy(msg, doneGTS);
+                bool result = this->dsme.getAckLayer().prepareSendingCopy(msg, this->doneGTS);
                 if(result) {
-                    dsme.getAckLayer().sendNowIfPending();
+                    /* '-> ACK-layer was ready, send message now */
+                    this->dsme.getAckLayer().sendNowIfPending();
                 } else {
-                    // message could not be sent -> probably currently receiving external interference
+                    /* '-> message could not be sent -> probably currently receiving external interference */
                     sendDoneGTS(AckLayerResponse::SEND_FAILED, msg);
                 }
 
                 // statistics
-                numTxGtsFrames++;
+                this->numTxGtsFrames++;
             }
         }
     }
