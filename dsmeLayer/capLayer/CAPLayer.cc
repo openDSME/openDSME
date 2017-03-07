@@ -145,7 +145,6 @@ fsmReturnStatus CAPLayer::choiceRebackoff() {
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
-    LOG_DEBUG_PURE("Ci" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         NB = 0;
         NR = 0;
@@ -170,7 +169,6 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
-    LOG_DEBUG_PURE("Cb" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         actionStartBackoffTimer();
         return FSM_HANDLED;
@@ -196,7 +194,6 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
-    LOG_DEBUG_PURE("Cc" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
@@ -219,7 +216,6 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
-    LOG_DEBUG_PURE("Cs" << (uint16_t)event.signal << LOG_ENDL);
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             // currently receiving external interference
