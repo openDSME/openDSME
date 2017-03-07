@@ -152,6 +152,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     } else if(nextSlot == 0) {
         /* '-> beacon slots are handled by the BeaconManager */
 
+        this->currentACTElement = act.end();
     } else {
         /* '-> next slot will be or CAP */
 
@@ -160,7 +161,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             this->dsme.getPlatform().turnTransceiverOn();
             this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
-            this->currentACTElement = act.end();
         } else {
             /* '-> inactive CAP slot (CAP-reduction 'light') */
         }

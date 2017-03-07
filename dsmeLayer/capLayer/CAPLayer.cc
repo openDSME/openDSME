@@ -159,6 +159,9 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         LOG_INFO("A CSMA message was pushed.");
         DSME_ASSERT(!queue.empty());
         return transition(&CAPLayer::stateBackoff);
+    } else if(event.signal == CSMAEvent::CCA_SUCCESS || event.signal == CSMAEvent::CCA_FAILURE) {
+        /* '-> only possible after reset */
+        return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_ERROR((uint16_t)event.signal);
