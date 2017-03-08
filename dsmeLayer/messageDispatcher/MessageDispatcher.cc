@@ -153,7 +153,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         /* '-> beacon slots are handled by the BeaconManager */
 
         this->currentACTElement = act.end();
-    } else {
+    } else if(nextSlot == 1){
         /* '-> next slot will be or CAP */
 
         if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {

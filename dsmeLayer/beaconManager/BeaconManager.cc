@@ -130,8 +130,8 @@ void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMul
     uint16_t nextSDIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
 
     if((this->isBeaconAllocated || this->dsme.getMAC_PIB().macIsPANCoord) && nextSDIndex == this->dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
-        prepareEnhancedBeacon(startSlotTime);
         this->dsme.getPlatform().turnTransceiverOn();
+        prepareEnhancedBeacon(startSlotTime);
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
     } else if(true) { // TODO: only turn on when a beacon from the SYNC-parent is expected
         this->dsme.getPlatform().turnTransceiverOn();
