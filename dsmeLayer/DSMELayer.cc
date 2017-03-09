@@ -226,39 +226,32 @@ void DSMELayer::handleStartOfCFP() {
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
-uint16_t DSMELayer::getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift) {
-    // Add one superframe to account for times where the shifted time is larger than the current time
-    return (time - (beaconManager.getLastKnownBeaconIntervalStart() + shift) + aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot()) %
-           (aNumSuperframeSlots * getMAC_PIB().helper.getSymbolsPerSlot());
+uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
+    uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
+
+    if(this->mac_pib->macCapReduction) {
+        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macMultiSuperframeOrder);
+        uint32_t symbolsSinceLastMultiSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerMultiSuperframe;
+        return symbolsSinceLastMultiSuperframeStart;
+    } else {
+        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macSuperframeOrder);
+        uint32_t symbolsSinceLastSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerSuperframe;
+        return symbolsSinceLastSuperframeStart;
+    }
 }
 
 bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     uint32_t symbolsPerSlot = getMAC_PIB().helper.getSymbolsPerSlot();
-    uint16_t symbolsSinceSuperframeStart = getSymbolsSinceSuperframeStart(time, 0);
-    uint16_t capStart = symbolsPerSlot; // after beacon slot
-    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
-    // LOG_INFO(capStart << " " << symbolsSinceSuperframeStart << " " << duration << " " << capEnd);
-    return (symbolsSinceSuperframeStart >= capStart)              // after beacon slot
-           && (symbolsSinceSuperframeStart + duration <= capEnd); // before pre-event of first GTS
 
-    // Unrealistic, but helpful example for
-    //   symbolsPerSlot  = 2
-    //   finalCAPSlot    = 3
-    //   PRE_EVENT_SHIFT = 1
-    //   duration        = 2
-    //             B   C   C   C   G
-    // Slot ID:    0   1   2   3   4
-    // Symbol IDs: 0-1 2-3 4-5 6-7 8-9
-    //
-    // 0: (0 >= 2) && (0+2 <= 2*4-1) -> not ok
-    // 1: (1 >= 2) && (1+2 <= 2*4-1) -> not ok
-    // 2: (2 >= 2) && (2+2 <= 2*4-1) -> ok
-    // 3: (3 >= 2) && (3+2 <= 2*4-1) -> ok
-    // 4: (4 >= 2) && (4+2 <= 2*4-1) -> ok
-    // 5: (5 >= 2) && (5+2 <= 2*4-1) -> ok
-    // 6: (6 >= 2) && (6+2 <= 2*4-1) -> not ok
-    // 7: (7 >= 2) && (7+2 <= 2*4-1) -> not ok
-    // 8: (8 >= 2) && (8+2 <= 2*4-1) -> not ok
+    uint32_t symbolsSinceCapFrameStart = getSymbolsSinceCapFrameStart(time);
+
+    uint32_t capStart = symbolsPerSlot; // after beacon slot
+    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
+
+    LOG_INFO(capStart << " " << symbolsSinceCapFrameStart << " " << duration << " " << capEnd);
+
+    return (symbolsSinceCapFrameStart >= capStart)              // after beacon slot
+           && (symbolsSinceCapFrameStart + duration <= capEnd); // before pre-event of first GTS
 }
 
 void DSMELayer::startTrackingBeacons() {
