@@ -48,6 +48,8 @@
 #include "../../mac_services/dataStructures/BeaconBitmap.h"
 #include "../../mac_services/dataStructures/DSMEPANDescriptor.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/mlme_sap/MLME_SAP.h"
+#include "../../mac_services/mlme_sap/SCAN.h"
 #include "../ackLayer/AckLayer.h"
 
 namespace dsme {
