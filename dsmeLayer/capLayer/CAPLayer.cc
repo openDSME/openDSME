@@ -269,32 +269,22 @@ uint16_t CAPLayer::symbolsRequired() {
 
 void CAPLayer::actionStartBackoffTimer() {
     uint8_t backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
-    uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
+    const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
-    uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
+
+    const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
-    LOG_INFO("backoff: " << backoff);
-
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
-    uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
-
+    const uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
     const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot;
-    LOG_INFO("capPhaseLength: " << capPhaseLength);
-
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
-    LOG_INFO("usableCapPhaseLength: " << usableCapPhaseLength);
-
     const uint32_t usableCapPhaseEnd =  usableCapPhaseLength + symbolsPerSlot;
-    LOG_INFO("usableCapPhaseEnd: " << usableCapPhaseEnd);
+
 
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
-        LOG_INFO("now: " << now);
-
         const uint32_t symbolsSinceCapFrameStart = this->dsme.getSymbolsSinceCapFrameStart(now);
-        LOG_INFO("symbolsSinceCapFrameStart: " << symbolsSinceCapFrameStart);
-
         const uint32_t CAPStart = now + symbolsPerSlot - symbolsSinceCapFrameStart;
 
         uint32_t backoffFromCAPStart;
@@ -311,16 +301,11 @@ void CAPLayer::actionStartBackoffTimer() {
             backoffFromCAPStart = backoff + usableCapPhaseEnd;
         }
 
-        LOG_INFO("CAPStart: " << CAPStart);
-        LOG_INFO("backoffFromCAPStart: " << backoffFromCAPStart);
-
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
 
-        uint16_t startingSuperframe = 1;
-        LOG_INFO("startingSuperframe: " << startingSuperframe);
-
+        const uint16_t startingSuperframe = 1;
         uint16_t superframeIterator = startingSuperframe;
         while(backOfTimeLeft > usableCapPhaseLength) {
             if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
@@ -330,26 +315,13 @@ void CAPLayer::actionStartBackoffTimer() {
             superframeIterator++;
         }
 
-        LOG_INFO("superframeIterator: " << superframeIterator);
-
         const uint16_t superframesToWait = superframeIterator - startingSuperframe;
-
         const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
         const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
 
-        LOG_INFO("superframesToWait: " << superframesToWait);
-        LOG_INFO("backOfTimeLeft: " << backOfTimeLeft);
-        LOG_INFO("totalWaitTime: " << totalWaitTime);
-
-        const uint32_t capStarttimeSinceLastCapFrame = this->dsme.getSymbolsSinceCapFrameStart(CAPStart);
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
-        const uint32_t endTimeFromLastCap = this->dsme.getSymbolsSinceCapFrameStart(timerEndTime);
-        LOG_INFO("capStarttimeSinceLastCapFrame: " << capStarttimeSinceLastCapFrame);
-        LOG_INFO("timerEndTime: " << timerEndTime);
-        LOG_INFO("endTimeFromLastCap: " << endTimeFromLastCap);
 
         DSME_ASSERT(timerEndTime >= now + backoff);
-
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
             DSME_ASSERT(false);
@@ -360,7 +332,6 @@ void CAPLayer::actionStartBackoffTimer() {
 }
 
 bool CAPLayer::enoughTimeLeft() {
-    // TODO test
     return dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), symbolsRequired());
 }
 
