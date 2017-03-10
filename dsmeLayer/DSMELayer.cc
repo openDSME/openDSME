@@ -248,8 +248,6 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     uint32_t capStart = symbolsPerSlot; // after beacon slot
     uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
 
-    LOG_INFO(capStart << " " << symbolsSinceCapFrameStart << " " << duration << " " << capEnd);
-
     return (symbolsSinceCapFrameStart >= capStart)              // after beacon slot
            && (symbolsSinceCapFrameStart + duration <= capEnd); // before pre-event of first GTS
 }
