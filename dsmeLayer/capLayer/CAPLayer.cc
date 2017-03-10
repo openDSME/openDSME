@@ -298,7 +298,7 @@ void CAPLayer::actionStartBackoffTimer() {
 
         } else {
             /* '-> after CAP */
-            backoffFromCAPStart = backoff + usableCapPhaseEnd;
+            backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
 
         uint32_t backOfTimeLeft = backoffFromCAPStart;
