@@ -230,11 +230,11 @@ uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
     if(this->mac_pib->macCapReduction) {
-        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macMultiSuperframeOrder);
+        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macMultiSuperframeOrder);
         uint32_t symbolsSinceLastMultiSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerMultiSuperframe;
         return symbolsSinceLastMultiSuperframeStart;
     } else {
-        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macSuperframeOrder);
+        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macSuperframeOrder);
         uint32_t symbolsSinceLastSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerSuperframe;
         return symbolsSinceLastSuperframeStart;
     }
