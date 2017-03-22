@@ -106,9 +106,9 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
 
     int16_t target = gtsController.getControl(address);
 
-    if(target < numAllocatedSlots || numAllocatedSlots < 1) {
+    if(target > numAllocatedSlots || numAllocatedSlots < 1) {
         checkAndAllocateSingleGTS(address);
-    } else if(target > numAllocatedSlots && numAllocatedSlots > 1) {
+    } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
         checkAndDeallocateSingeleGTS(address);
     }
 }
