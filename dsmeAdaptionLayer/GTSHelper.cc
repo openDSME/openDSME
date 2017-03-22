@@ -104,11 +104,11 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
-    int16_t diff = gtsController.getControl(address);
+    int16_t target = gtsController.getControl(address);
 
-    if(diff > 0 || numAllocatedSlots < 1) {
+    if(target < numAllocatedSlots || numAllocatedSlots < 1) {
         checkAndAllocateSingleGTS(address);
-    } else if(diff < 0 && numAllocatedSlots > 1) {
+    } else if(target > numAllocatedSlots && numAllocatedSlots > 1) {
         checkAndDeallocateSingeleGTS(address);
     }
 }
@@ -119,7 +119,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
         return;
     }
 
-    this->gtsController.indicateChange(address, 1);
+    //this->gtsController.indicateChange(address, 1);
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
@@ -176,7 +176,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 }
 
 void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
-    gtsController.indicateChange(address, -1);
+    //gtsController.indicateChange(address, -1);
 
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     int16_t highestIdleCounter = -1;

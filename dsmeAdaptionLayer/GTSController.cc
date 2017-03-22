@@ -91,7 +91,7 @@ void GTSController::multisuperframeEvent() {
 
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
-    if(global_multisuperframe >= platform.par("flipTime").longValue() + platform.par("evaluationTime").longValue()) {
+    if(global_multisuperframe >= platform.par("flipTime").longValue() + platform.par("evaluationDuration").longValue()) {
         platform.endSimulation();
     }
 
@@ -122,29 +122,44 @@ void GTSController::multisuperframeEvent() {
     for(GTSControllerData& data : this->links) {
         data.queueSize[data.history_position] += data.messagesIn[data.history_position] - data.messagesOut[data.history_position];
         uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        uint16_t myAddress = this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress;
 
-        if(i == flipLink && this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress == platform.par("flipNode").longValue() &&
-           global_multisuperframe == platform.par("flipTime").longValue()) {
-            std::cout << "state: ";
-            std::cout << this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ",";
+        if(i == flipLink && myAddress == platform.par("flipNode").longValue()) {
+            std::cout << "trace: ";
+            std::cout << simTime() << ",";
+            std::cout << myAddress << ",";
             std::cout << data.address << ",";
+            std::cout << data.control << ",";
             std::cout << slots << ",";
-            std::cout << platform.par("flipOption").longValue() << ",";
-
-            uint8_t k = data.history_position;
-            for(uint8_t j = 0; j < CONTROL_HISTORY_LENGTH; j++) {
-                std::cout << data.queueSize[k] << ",";
-                // std::cout << data.messagesIn[k] << ",";
-                // std::cout << data.messagesOut[k] << ",";
-
-                k++;
-                if(k >= CONTROL_HISTORY_LENGTH) {
-                    k = 0;
-                }
-            }
             std::cout << std::endl;
+        }
 
-            data.control = platform.par("flipOption").longValue();
+        if(i == flipLink && myAddress == platform.par("flipNode").longValue() && global_multisuperframe >= platform.par("flipTime").longValue()) {
+            if(global_multisuperframe == platform.par("flipTime").longValue()) {
+                std::cout << "state: ";
+                std::cout << myAddress << ",";
+                std::cout << data.address << ",";
+                std::cout << slots << ",";
+                std::cout << platform.par("flipOption").longValue() << ",";
+                std::cout << platform.par("evaluationDuration").longValue() << ",";
+
+                uint8_t k = data.history_position;
+                for(uint8_t j = 0; j < CONTROL_HISTORY_LENGTH; j++) {
+                    std::cout << data.queueSize[k] << ",";
+                    // std::cout << data.messagesIn[k] << ",";
+                    // std::cout << data.messagesOut[k] << ",";
+
+                    k++;
+                    if(k >= CONTROL_HISTORY_LENGTH) {
+                        k = 0;
+                    }
+                }
+                std::cout << std::endl;
+
+                data.control = slots + platform.par("flipOption").longValue();
+            } else {
+                /* do not change control value any more */
+            }
         } else {
             float control_input_array[CONTROL_HISTORY_LENGTH + 1];
             control_input_array[0] = slots;
@@ -162,9 +177,12 @@ void GTSController::multisuperframeEvent() {
             quicknet::vector_t& output = this->network.feedForward(input);
             /* output: -2 | -1 | 0 | 1 | 2 */
 
-            data.control = quicknet::idmax(output) - 2;
+            data.control = slots + quicknet::idmax(output) - 2;
 
-            std::cout << "network: " << data.control << std::endl;
+            std::cout << "network: ";
+            std::cout << myAddress << ",";
+            std::cout << data.control << ",";
+            std::cout << std::endl;
         }
 
         uint16_t currentQueueSize = data.queueSize[data.history_position];
@@ -187,13 +205,13 @@ int16_t GTSController::getControl(uint16_t address) {
     return it->control;
 }
 
-void GTSController::indicateChange(uint16_t address, int16_t change) {
-    iterator it = this->links.find(address);
-    DSME_ASSERT(it != this->links.end());
-
-    it->control -= change;
-    return;
-}
+//void GTSController::indicateChange(uint16_t address, int16_t change) {
+//    iterator it = this->links.find(address);
+//    DSME_ASSERT(it != this->links.end());
+//
+//    it->control -= change;
+//    return;
+//}
 
 static uint16_t abs(int16_t v) {
     if(v > 0) {
@@ -205,10 +223,12 @@ static uint16_t abs(int16_t v) {
 
 uint16_t GTSController::getPriorityLink() {
     uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
-    int16_t control = 0;
+    int16_t difference = 0;
     for(const GTSControllerData& d : this->links) {
-        if(abs(control) < abs(d.control)) {
-            control = d.control;
+        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(d.address);
+
+        if(abs(difference) < abs(d.control - slots)) {
+            difference = d.control - slots;
             address = d.address;
         }
     }

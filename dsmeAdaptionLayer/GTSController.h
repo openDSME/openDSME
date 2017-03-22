@@ -85,7 +85,7 @@ public:
 
     int16_t getControl(uint16_t address);
 
-    void indicateChange(uint16_t address, int16_t change);
+    //void indicateChange(uint16_t address, int16_t change);
 
     uint16_t getPriorityLink();
 
