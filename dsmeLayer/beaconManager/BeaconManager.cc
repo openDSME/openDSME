@@ -127,11 +127,15 @@ void BeaconManager::reset() {
 }
 
 void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMultiSuperframe, uint32_t startSlotTime) {
-    if(isBeaconAllocated || dsme.getMAC_PIB().macIsPANCoord) {
-        uint16_t nextSDIndex = nextSuperframe + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
-        if(nextSDIndex == dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
-            prepareEnhancedBeacon(startSlotTime);
-        }
+    uint16_t nextSDIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
+
+    if((this->isBeaconAllocated || this->dsme.getMAC_PIB().macIsPANCoord) && nextSDIndex == this->dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
+        this->dsme.getPlatform().turnTransceiverOn();
+        prepareEnhancedBeacon(startSlotTime);
+        this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
+    } else if(true) { // TODO: only turn on when a beacon from the SYNC-parent is expected
+        this->dsme.getPlatform().turnTransceiverOn();
+        this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
     }
 }
 
@@ -479,6 +483,7 @@ void BeaconManager::startScanEnhancedActive(uint16_t scanDuration, const channel
      */
     this->currentScanChannelIndex = 0;
 
+    this->dsme.getPlatform().turnTransceiverOn();
     this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
     this->sendEnhancedBeaconRequest();
     this->superframesLeftForScan = this->superframesForEachChannel;
@@ -505,6 +510,7 @@ void BeaconManager::startScanPassive(uint16_t scanDuration, const channelList_t&
      */
     this->currentScanChannelIndex = 0;
 
+    this->dsme.getPlatform().turnTransceiverOn();
     this->dsme.getPlatform().setChannelNumber(this->scanChannels[this->currentScanChannelIndex]);
     this->superframesLeftForScan = this->superframesForEachChannel;
 }

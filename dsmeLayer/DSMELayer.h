@@ -177,11 +177,11 @@ public:
     void preSlotEvent(void);
     void slotEvent(int32_t lateness);
 
-    uint16_t getSymbolsSinceSuperframeStart(uint32_t time, uint16_t shift);
+    uint32_t getSymbolsSinceCapFrameStart(uint32_t time);
 
     bool isWithinCAP(uint32_t time, uint16_t duration);
 
-    unsigned getCurrentSuperframe() const {
+    uint16_t getCurrentSuperframe() const {
         return currentSuperframe;
     }
 

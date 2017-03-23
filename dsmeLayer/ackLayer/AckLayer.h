@@ -106,10 +106,12 @@ private:
     /*
      * Indicates if the layer is currently busy (i.e. in another state than idle)
      */
-    bool busy;
+    bool busy{false};
 
-    IDSMEMessage* pendingMessage;
+    IDSMEMessage* pendingMessage{nullptr};
+
     done_callback_t externalDoneCallback;
+
     const Delegate<void(bool)> internalDoneCallback;
 };
 } /* namespace dsme */

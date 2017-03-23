@@ -45,6 +45,7 @@
 #include "../../../dsme_platform.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "../DSMELayer.h"
+#include "../../mac_services/pib/MAC_PIB.h"
 #include "../messages/GTSManagement.h"
 
 namespace dsme {
