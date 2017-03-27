@@ -156,7 +156,7 @@ void GTSController::multisuperframeEvent() {
                 }
                 std::cout << std::endl;
 
-                data.control = slots + platform.par("flipOption").longValue();
+                data.control = platform.par("flipOption").longValue();
             } else {
                 /* do not change control value any more */
             }
@@ -175,9 +175,9 @@ void GTSController::multisuperframeEvent() {
 
             /* input: slots | l0 | l1 | l2 | l3 | l4 | l5 | l6 | l7 */
             quicknet::vector_t& output = this->network.feedForward(input);
-            /* output: -2 | -1 | 0 | 1 | 2 */
+            /* output: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 */ // TODO
 
-            data.control = slots + quicknet::idmax(output) - 2;
+            data.control = slots + quicknet::idmax(output) - 2; // TODO
 
             std::cout << "network: ";
             std::cout << myAddress << ",";
