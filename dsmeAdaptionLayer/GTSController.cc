@@ -91,28 +91,33 @@ void GTSController::multisuperframeEvent() {
 
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
-    if(global_multisuperframe >= platform.par("flipTime").longValue() + platform.par("evaluationDuration").longValue()) {
+    bool flipEnabled = platform.par("flipTime").longValue() != -1;
+
+    if(flipEnabled && global_multisuperframe >= platform.par("flipTime").longValue() + platform.par("evaluationDuration").longValue()) {
         platform.endSimulation();
     }
 
     uint8_t flipLink{0};
-    if(this->links.size() > 0) {
-        uint8_t active_size = 0;
-        for(GTSControllerData& data : this->links) {
-            if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address) > 0) {
-                active_size++;
-            }
-        }
-        if(active_size > 0) {
-            uint8_t link_choice = platform.par("flipLink").longValue() % active_size;
 
+    if(flipEnabled) {
+        if(this->links.size() > 0) {
+            uint8_t active_size = 0;
             for(GTSControllerData& data : this->links) {
                 if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address) > 0) {
-                    if(link_choice == 0) {
-                        break;
+                    active_size++;
+                }
+            }
+            if(active_size > 0) {
+                uint8_t link_choice = platform.par("flipLink").longValue() % active_size;
+
+                for(GTSControllerData& data : this->links) {
+                    if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address) > 0) {
+                        if(link_choice == 0) {
+                            break;
+                        }
+                        flipLink++;
+                        link_choice--;
                     }
-                    flipLink++;
-                    link_choice--;
                 }
             }
         }
@@ -124,7 +129,7 @@ void GTSController::multisuperframeEvent() {
         uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
         uint16_t myAddress = this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress;
 
-        if(i == flipLink && myAddress == platform.par("flipNode").longValue()) {
+        if(flipEnabled && i == flipLink && myAddress == platform.par("flipNode").longValue()) {
             std::cout << "trace: ";
             std::cout << simTime() << ",";
             std::cout << myAddress << ",";
@@ -134,7 +139,7 @@ void GTSController::multisuperframeEvent() {
             std::cout << std::endl;
         }
 
-        if(i == flipLink && myAddress == platform.par("flipNode").longValue() && global_multisuperframe >= platform.par("flipTime").longValue()) {
+        if(flipEnabled && i == flipLink && myAddress == platform.par("flipNode").longValue() && global_multisuperframe >= platform.par("flipTime").longValue()) {
             if(global_multisuperframe == platform.par("flipTime").longValue()) {
                 std::cout << "state: ";
                 std::cout << myAddress << ",";
