@@ -184,6 +184,8 @@ void GTSController::multisuperframeEvent() {
 
             data.control = quicknet::idmax(output);
 
+            //data.control = platform.getRandom() % 9;
+
             std::cout << "network: ";
             std::cout << myAddress << ",";
             std::cout << data.control << ",";
