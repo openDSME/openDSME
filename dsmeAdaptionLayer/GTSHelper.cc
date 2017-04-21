@@ -59,10 +59,11 @@
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsController(), gtsConfirmPending(false) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false) {
 }
 
-void GTSHelper::initialize() {
+void GTSHelper::initialize(GTSScheduling* scheduling) {
+    this->gtsScheduling = scheduling;
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().indication(DELEGATE(&GTSHelper::handleDSME_GTS_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().confirm(DELEGATE(&GTSHelper::handleDSME_GTS_confirm, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getCOMM_STATUS().indication(DELEGATE(&GTSHelper::handleCOMM_STATUS_indication, *this));
@@ -71,27 +72,27 @@ void GTSHelper::initialize() {
 
 void GTSHelper::reset() {
     this->gtsConfirmPending = false;
-    this->gtsController.reset();
+    this->gtsScheduling->reset();
 }
 
 void GTSHelper::indicateIncomingMessage(uint16_t address) {
-    this->gtsController.registerIncomingMessage(address);
+    this->gtsScheduling->registerIncomingMessage(address);
 }
 
 void GTSHelper::indicateOutgoingMessage(uint16_t address) {
-    this->gtsController.registerOutgoingMessage(address);
+    this->gtsScheduling->registerOutgoingMessage(address);
 }
 
 void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
-        this->gtsController.multisuperframeEvent();
+        this->gtsScheduling->multisuperframeEvent();
     }
 
     // Check allocation at random superframe in multi-superframe
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-        uint16_t address = this->gtsController.getPriorityLink();
+        uint16_t address = this->gtsScheduling->getPriorityLink();
         if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
             checkAllocationForPacket(address);
         }
@@ -104,7 +105,7 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
 
-    int16_t diff = gtsController.getControl(address);
+    int16_t diff = gtsScheduling->getControl(address);
 
     if(diff > 0 || numAllocatedSlots < 1) {
         checkAndAllocateSingleGTS(address);
@@ -119,7 +120,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
         return;
     }
 
-    this->gtsController.indicateChange(address, 1);
+    this->gtsScheduling->indicateChange(address, 1);
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
@@ -176,7 +177,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 }
 
 void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
-    gtsController.indicateChange(address, -1);
+    gtsScheduling->indicateChange(address, -1);
 
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     int16_t highestIdleCounter = -1;

@@ -2,9 +2,9 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * introduced in the IEEE 802.15.4e-2012 standard
+ * described in the IEEE 802.15.4-2015 standard
  *
- * Authors: Florian Meier <florian.meier@tuhh.de>
+ * Authors: Florian Kauer <florian.kauer@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
  *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
  *
@@ -40,53 +40,58 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSCONTROLLER_H_
-#define GTSCONTROLLER_H_
+#include "./PIDScheduling.h"
 
-#include "../mac_services/dataStructures/RBTree.h"
+#include "../../../dsme_platform.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+
+constexpr int16_t K_P_POS = 0;
+constexpr int16_t K_I_POS = 30;
+constexpr int16_t K_D_POS = 26;
+
+constexpr int16_t K_P_NEG = 50;
+constexpr int16_t K_I_NEG = 30;
+constexpr int16_t K_D_NEG = 38;
+
+constexpr uint16_t SCALING = 128;
 
 namespace dsme {
 
-class DSMEAdaptionLayer;
+PIDSchedulingData::PIDSchedulingData() : error_sum(0), last_error(0) {
+}
 
-struct GTSControllerData {
-    GTSControllerData();
+void PIDScheduling::multisuperframeEvent() {
+    for(PIDSchedulingData& data : this->links) {
+        uint16_t w = data.messagesInLastMultisuperframe;
+        uint16_t y = data.messagesOutLastMultisuperframe;
 
-    uint16_t address;
+        int16_t e = w - y;
+        int16_t d = e - data.last_error;
+        int16_t& i = data.error_sum;
+        int16_t& u = data.control;
 
-    uint16_t messagesInLastMultisuperframe;
-    uint16_t messagesOutLastMultisuperframe;
+        i += e;
 
-    int16_t error_sum;
-    int16_t last_error;
+        if(e > 0) {
+            u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
+        } else {
+            u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
+        }
 
-    int16_t control;
-};
+        LOG_DEBUG_PREFIX;
+        LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
+        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
+        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
+        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
+        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
+        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
+        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
+        LOG_DEBUG_PURE(LOG_ENDL);
 
-class GTSController {
-public:
-    typedef RBTree<GTSControllerData, uint16_t>::iterator iterator;
-
-    GTSController() = default;
-
-    void reset();
-
-    void registerIncomingMessage(uint16_t address);
-
-    void registerOutgoingMessage(uint16_t address);
-
-    void multisuperframeEvent();
-
-    int16_t getControl(uint16_t address);
-
-    void indicateChange(uint16_t address, int16_t change);
-
-    uint16_t getPriorityLink();
-
-private:
-    RBTree<GTSControllerData, uint16_t> links;
-};
+        data.last_error = e;
+        data.messagesInLastMultisuperframe = 0;
+        data.messagesOutLastMultisuperframe = 0;
+    }
+}
 
 } /* namespace dsme */
-
-#endif /* GTSCONTROLLER_H_ */

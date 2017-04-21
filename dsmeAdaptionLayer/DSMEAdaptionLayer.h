@@ -99,7 +99,7 @@ public:
 
     explicit DSMEAdaptionLayer(DSMELayer&);
 
-    void initialize(channelList_t& scanChannels);
+    void initialize(channelList_t& scanChannels, GTSScheduling* scheduling);
 
     mcps_sap::MCPS_SAP& getMCPS_SAP();
 

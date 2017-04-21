@@ -279,8 +279,7 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
     const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot;
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
-    const uint32_t usableCapPhaseEnd =  usableCapPhaseLength + symbolsPerSlot;
-
+    const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
 
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
@@ -292,7 +291,7 @@ void CAPLayer::actionStartBackoffTimer() {
             /* '-> currently in beacon slot before CAP */
             backoffFromCAPStart = backoff;
 
-        } else if (symbolsSinceCapFrameStart < usableCapPhaseEnd) {
+        } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
             /* '-> currently inside CAP */
             backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
 

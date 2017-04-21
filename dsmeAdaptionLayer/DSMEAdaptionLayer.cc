@@ -69,14 +69,14 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme)
       associationInProgress(false) {
 }
 
-void DSMEAdaptionLayer::initialize(channelList_t& scanChannels) {
+void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, GTSScheduling* scheduling) {
     this->mcps_sap = &(dsme.getMCPS_SAP());
     this->mlme_sap = &(dsme.getMLME_SAP());
     this->phy_pib = &(dsme.getPHY_PIB());
     this->mac_pib = &(dsme.getMAC_PIB());
 
     this->associationHelper.initialize();
-    this->gtsAllocationHelper.initialize();
+    this->gtsAllocationHelper.initialize(scheduling);
     this->scanHelper.initialize(scanChannels);
 
     this->dsme.setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, gtsAllocationHelper));

@@ -52,9 +52,9 @@
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/mcps_sap/DATA.h"
+#include "../../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../../mac_services/pib/PHY_PIB.h"
-#include "../../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../../mac_services/pib/PIBHelper.h"
 #include "../DSMELayer.h"
 #include "../ackLayer/AckLayer.h"
@@ -154,7 +154,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         /* '-> beacon slots are handled by the BeaconManager */
 
         this->currentACTElement = act.end();
-    } else if(nextSlot == 1){
+    } else if(nextSlot == 1) {
         /* '-> next slot will be or CAP */
 
         if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {

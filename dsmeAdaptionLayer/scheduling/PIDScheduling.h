@@ -40,78 +40,27 @@
  * SUCH DAMAGE.
  */
 
-#ifndef GTSHELPER_H_
-#define GTSHELPER_H_
+#ifndef PIDSCHEDULING_H_
+#define PIDSCHEDULING_H_
 
-#include "../mac_services/DSME_Common.h"
-#include "../mac_services/dataStructures/DSMEAllocationCounterTable.h"
-#include "../mac_services/dataStructures/DSMESABSpecification.h"
-#include "../mac_services/dataStructures/GTS.h"
-#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "./scheduling/GTSScheduling.h"
+#include "./GTSScheduling.h"
 
 namespace dsme {
 
 class DSMEAdaptionLayer;
-class DSMESABSpecification;
 
-namespace mlme_sap {
-struct COMM_STATUS_indication_parameters;
-struct DSME_GTS_confirm_parameters;
-struct DSME_GTS_indication_parameters;
-} /* namespace mlme_sap */
+struct PIDSchedulingData : GTSSchedulingData {
+    PIDSchedulingData();
 
-class GTSHelper {
+    int16_t error_sum;
+    int16_t last_error;
+};
+
+class PIDScheduling : public GTSSchedulingImpl<PIDSchedulingData> {
 public:
-    explicit GTSHelper(DSMEAdaptionLayer&);
-
-    void initialize(GTSScheduling* scheduling);
-
-    void reset();
-
-    void checkAllocationForPacket(uint16_t address);
-
-    void indicateIncomingMessage(uint16_t address);
-    void indicateOutgoingMessage(uint16_t address);
-
-    void handleStartOfCFP();
-
-private:
-    /* MLME handlers */
-
-    void handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_parameters&);
-
-    void handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters&);
-
-    void handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters&);
-
-    /* Helper methods */
-
-    void checkAndAllocateSingleGTS(uint16_t address);
-
-    void checkAndDeallocateSingeleGTS(uint16_t address);
-
-    GTS getContiguousFreeGTS();
-
-    GTS getRandomFreeGTS();
-
-    GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec = nullptr);
-
-    GTSStatus::GTS_Status verifyDeallocation(DSMESABSpecification& requestSABSpec, uint16_t& deviceAddress, Direction& direction);
-
-    void findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
-                       uint8_t preferredSlot);
-
-    void sendDeallocationRequest(uint16_t address, Direction direction, DSMESABSpecification& sabSpecification);
-
-private:
-    DSMEAdaptionLayer& dsmeAdaptionLayer;
-
-    GTSScheduling* gtsScheduling = nullptr;
-
-    bool gtsConfirmPending;
+    virtual void multisuperframeEvent();
 };
 
 } /* namespace dsme */
 
-#endif /* GTSHELPER_H_ */
+#endif /* PIDSCHEDULING_H_ */
