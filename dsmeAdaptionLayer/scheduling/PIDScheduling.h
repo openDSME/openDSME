@@ -58,6 +58,9 @@ struct PIDSchedulingData : GTSSchedulingData {
 
 class PIDScheduling : public GTSSchedulingImpl<PIDSchedulingData> {
 public:
+    PIDScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
+    }
+
     virtual void multisuperframeEvent();
 };
 

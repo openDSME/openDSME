@@ -51,7 +51,7 @@ namespace dsme {
 class DSMEAdaptionLayer;
 
 struct GTSSchedulingData {
-    GTSSchedulingData() : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), control(1) {
+    GTSSchedulingData() : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), slotTarget(1) {
     }
 
     uint16_t address;
@@ -59,20 +59,24 @@ struct GTSSchedulingData {
     uint16_t messagesInLastMultisuperframe;
     uint16_t messagesOutLastMultisuperframe;
 
-    int16_t control;
+    int16_t slotTarget;
 };
 
 class GTSScheduling {
 public:
-    GTSScheduling() = default;
+    GTSScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
+    }
+
     virtual ~GTSScheduling() = default;
     virtual void reset() = 0;
     virtual void registerIncomingMessage(uint16_t address) = 0;
     virtual void registerOutgoingMessage(uint16_t address) = 0;
     virtual void multisuperframeEvent() = 0;
-    virtual int16_t getControl(uint16_t address) = 0;
-    virtual void indicateChange(uint16_t address, int16_t change) = 0;
+    virtual int16_t getSlotTarget(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
+
+protected:
+    DSMEAdaptionLayer& dsmeAdaptionLayer;
 };
 
 template <typename SchedulingData>
@@ -80,7 +84,9 @@ class GTSSchedulingImpl : public GTSScheduling {
 public:
     typedef typename RBTree<SchedulingData, uint16_t>::iterator iterator;
 
-    GTSSchedulingImpl() = default;
+    GTSSchedulingImpl(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSScheduling(dsmeAdaptionLayer) {
+    }
+
     virtual ~GTSSchedulingImpl() = default;
 
     virtual void reset() {
@@ -112,17 +118,10 @@ public:
         return;
     }
 
-    virtual int16_t getControl(uint16_t address) {
+    virtual int16_t getSlotTarget(uint16_t address) {
         iterator it = this->links.find(address);
 
-        return it->control;
-    }
-
-    virtual void indicateChange(uint16_t address, int16_t change) {
-        iterator it = this->links.find(address);
-
-        it->control -= change;
-        return;
+        return it->slotTarget;
     }
 
     static uint16_t abs(int16_t v) {
@@ -133,12 +132,14 @@ public:
         }
     }
 
-    virtual uint16_t getPriorityLink() {
+    uint16_t getPriorityLink() {
         uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
-        int16_t control = 0;
+        int16_t difference = 0;
         for(const SchedulingData& d : this->links) {
-            if(abs(control) < abs(d.control)) {
-                control = d.control;
+            uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(d.address);
+
+            if(abs(difference) < abs(d.slotTarget - slots)) {
+                difference = d.slotTarget - slots;
                 address = d.address;
             }
         }

@@ -68,7 +68,7 @@ void PIDScheduling::multisuperframeEvent() {
         int16_t e = w - y;
         int16_t d = e - data.last_error;
         int16_t& i = data.error_sum;
-        int16_t& u = data.control;
+        int16_t u;
 
         i += e;
 
@@ -77,6 +77,9 @@ void PIDScheduling::multisuperframeEvent() {
         } else {
             u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
         }
+
+        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        data.slotTarget = slots + u;
 
         LOG_DEBUG_PREFIX;
         LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
