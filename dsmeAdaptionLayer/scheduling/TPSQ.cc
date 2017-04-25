@@ -46,7 +46,7 @@
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 
 constexpr uint16_t SCALING = 10;
-constexpr uint16_t bounds[] = {6,16,26,35,44,53,62,71,80,89,98,106,115,124,133,142,151,160,169,177,186,193,202,211,220,229,238,247};
+constexpr uint16_t bounds[] = {8,17,26,35,44,53,62,71,80,89,98,106,115,124,133,142,151,160,169,177,186,193,202,211,220,229,238,247};
 
 namespace dsme {
 
