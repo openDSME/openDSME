@@ -64,6 +64,7 @@ void TPSQ::multisuperframeEvent() {
              << "," << "out"
              << "," << "avgIn"
              << "," << "totalInSystem"
+             << "," << "reqCap"
              << "," << "slots"
              << "," << "stotTarget");
              
@@ -75,14 +76,14 @@ void TPSQ::multisuperframeEvent() {
         data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
-        uint8_t slotTarget;
-        for(slotTarget = 1; slotTarget <= sizeof(bounds); slotTarget++) {
-            if(bounds[slotTarget-1] >= data.avgIn*SCALING) {
+        uint8_t reqCap;
+        for(reqCap = 1; reqCap <= sizeof(bounds); reqCap++) {
+            if(bounds[reqCap-1] >= data.avgIn*SCALING) {
                 break;
             }
         }
 
-        data.slotTarget = slotTarget;
+        data.slotTarget = reqCap;
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
         LOG_DEBUG("control"
@@ -92,6 +93,7 @@ void TPSQ::multisuperframeEvent() {
              << "," << data.messagesOutLastMultisuperframe
              << "," << data.avgIn
              << "," << data.totalInSystem
+             << "," << reqCap
              << "," << slots
              << "," << data.slotTarget
              );
