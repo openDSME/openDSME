@@ -68,6 +68,8 @@ public:
     // TODO when?
     virtual uint32_t getReceptionSymbolCounter() = 0;
 
+    virtual void setReceptionSymbolCounter(uint32_t counter) = 0;
+
     virtual uint16_t getTotalSymbols() = 0;
 
     virtual IEEE802154eMACHeader& getHeader() = 0;
@@ -85,6 +87,8 @@ public:
     virtual void increaseRetryCounter() = 0;
 
     virtual uint8_t getRetryCounter() = 0;
+
+    uint8_t queueAtCreation = -1;
 };
 
 } /* namespace dsme */

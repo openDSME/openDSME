@@ -69,8 +69,8 @@ public:
 
     virtual ~GTSScheduling() = default;
     virtual void reset() = 0;
-    virtual void registerIncomingMessage(uint16_t address) = 0;
-    virtual void registerOutgoingMessage(uint16_t address) = 0;
+    virtual uint8_t registerIncomingMessage(uint16_t address) = 0;
+    virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) = 0;
     virtual void multisuperframeEvent() = 0;
     virtual int16_t getSlotTarget(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
@@ -96,7 +96,8 @@ public:
         }
     }
 
-    virtual void registerIncomingMessage(uint16_t address) {
+    virtual uint8_t registerIncomingMessage(uint16_t address) {
+        queueLevel++;
         iterator it = this->links.find(address);
         if(it == this->links.end()) {
             SchedulingData data;
@@ -106,10 +107,11 @@ public:
         } else {
             it->messagesInLastMultisuperframe++;
         }
-        return;
+        return queueLevel;
     }
 
-    virtual void registerOutgoingMessage(uint16_t address) {
+    virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
+        queueLevel--;
         iterator it = this->links.find(address);
         if(it != this->links.end()) {
             it->messagesOutLastMultisuperframe++;
@@ -148,6 +150,7 @@ public:
 
 protected:
     RBTree<SchedulingData, uint16_t> links;
+    uint8_t queueLevel = 0;
 };
 
 } /* namespace dsme */
