@@ -53,6 +53,7 @@ struct TPSQData : GTSSchedulingData {
     TPSQData();
 
     float avgIn; // TODO no float!
+    uint16_t totalInSystem;
 };
 
 class TPSQ : public GTSSchedulingImpl<TPSQData> {

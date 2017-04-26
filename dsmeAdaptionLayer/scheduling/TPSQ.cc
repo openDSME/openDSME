@@ -44,28 +44,58 @@
 
 #include "../../../dsme_platform.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../dsmeLayer/DSMELayer.h"
 
 constexpr uint16_t SCALING = 10;
 constexpr uint16_t bounds[] = {8,17,26,35,44,53,62,71,80,89,98,106,115,124,133,142,151,160,169,177,186,193,202,211,220,229,238,247};
+static bool header = false;
 
 namespace dsme {
 
-TPSQData::TPSQData() : avgIn(0) {
+TPSQData::TPSQData() : avgIn(0), totalInSystem(0) {
 }
 
 void TPSQ::multisuperframeEvent() {
+    if(!header) {
+        LOG_DEBUG("control"
+             << "," << "from"
+             << "," << "to"
+             << "," << "in"
+             << "," << "out"
+             << "," << "avgIn"
+             << "," << "totalInSystem"
+             << "," << "slots"
+             << "," << "stotTarget");
+             
+        header = true;
+    }
+
     for(TPSQData& data : this->links) {
         float a = 0.9; // TODO no float
         data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
+        data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
-        uint8_t slots;
-        for(slots = 1; slots <= sizeof(bounds); slots++) {
-            if(bounds[slots-1] >= data.avgIn*SCALING) {
+        uint8_t slotTarget;
+        for(slotTarget = 1; slotTarget <= sizeof(bounds); slotTarget++) {
+            if(bounds[slotTarget-1] >= data.avgIn*SCALING) {
                 break;
             }
         }
 
-        data.slotTarget = slots;
+        data.slotTarget = slotTarget;
+
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        LOG_DEBUG("control"
+             << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+             << "," << data.address
+             << "," << data.messagesInLastMultisuperframe
+             << "," << data.messagesOutLastMultisuperframe
+             << "," << data.avgIn
+             << "," << data.totalInSystem
+             << "," << slots
+             << "," << data.slotTarget
+             );
+
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
     }
