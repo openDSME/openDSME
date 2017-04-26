@@ -45,6 +45,7 @@
 #include "../../../dsme_platform.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../dsmeLayer/DSMELayer.h"
+#include <cmath>
 
 constexpr uint16_t SCALING = 10;
 constexpr uint16_t bounds[] = {8,17,26,35,44,53,62,71,80,89,98,106,115,124,133,142,151,160,169,177,186,193,202,211,220,229,238,247};
@@ -52,7 +53,23 @@ static bool header = false;
 
 namespace dsme {
 
-TPSQData::TPSQData() : avgIn(0), totalInSystem(0) {
+TPSQData::TPSQData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0) {
+}
+
+void TPSQ::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
+    queueLevel--;
+    iterator it = this->links.find(address);
+    if(it != this->links.end()) {
+        it->messagesOutLastMultisuperframe++;
+
+        if(success) {
+            float a = 0.5; // TODO -> adapt to frequency
+            float serviceTimePerQueueLength = (serviceTime/(float)queueAtCreation);
+            it->maServiceTimePerQueueLength = it->maServiceTimePerQueueLength*a + (1-a)*serviceTimePerQueueLength;
+        }
+    }
+
+    return;
 }
 
 void TPSQ::multisuperframeEvent() {
@@ -83,9 +100,25 @@ void TPSQ::multisuperframeEvent() {
             }
         }
 
-        data.slotTarget = reqCap;
+        // TODO avoid this calculation
+        uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+        uint32_t musuDuration = now-lastMusu;
+        lastMusu = now;
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
+
+        float error = reqCap - predCap;
+        uint8_t change;
+        if(-1.5 <= error && error <= -1.0) {
+            change = 0;
+        }
+        else {
+            change = std::ceil(error);
+        }
+
+        data.slotTarget = slots + change;
+
         LOG_DEBUG("control"
              << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
              << "," << data.address
