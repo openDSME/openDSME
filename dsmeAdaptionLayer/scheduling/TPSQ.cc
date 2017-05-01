@@ -93,12 +93,18 @@ void TPSQ::multisuperframeEvent() {
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
-        uint8_t reqCap;
-        for(reqCap = 1; reqCap <= sizeof(bounds); reqCap++) {
-            if(bounds[reqCap-1] >= data.avgIn*SCALING) {
-                break;
+#if 0
+        uint8_t reqCap = 0;
+        auto scaledIn = data.avgIn*SCALING;
+        //if(scaledIn >= bounds[0]) { // one slot will always be guaranteed by the GTSHelper
+            for(reqCap = 1; reqCap <= sizeof(bounds); reqCap++) {
+                if(bounds[reqCap-1] >= scaledIn) {
+                    break;
+                }
             }
-        }
+        //}
+#endif
+        auto reqCap = data.avgIn*1.13462113753+(-0.101709670756);
 
         // TODO avoid this calculation
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
