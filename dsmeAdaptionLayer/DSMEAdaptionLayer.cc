@@ -278,6 +278,11 @@ bool DSMEAdaptionLayer::queueMessageIfPossible(IDSMEMessage* msg) {
             uint32_t currentSymbolCounter = this->dsme.getPlatform().getSymbolCounter();
             LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress() << ": Retry-Queue overflow ("
                                   << currentSymbolCounter - oldestEntry->initialSymbolCounter << " symbols old)");
+
+            int32_t serviceTime = (int32_t)currentSymbolCounter - (int32_t)msg->getReceptionSymbolCounter();
+            gtsAllocationHelper.indicateOutgoingMessage(oldestEntry->message->getHeader().getDestAddr().getShortAddress(),
+                    false, serviceTime, oldestEntry->message->queueAtCreation);
+
             DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
             this->retryBuffer.advanceCurrent();
