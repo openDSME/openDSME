@@ -109,7 +109,7 @@ void TPSQ::multisuperframeEvent() {
         float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
 
         float error = reqCap - predCap;
-        uint8_t change;
+        int8_t change;
         if(-1.5 <= error && error <= -1.0) {
             change = 0;
         }
