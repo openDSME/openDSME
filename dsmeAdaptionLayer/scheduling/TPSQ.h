@@ -55,6 +55,7 @@ struct TPSQData : GTSSchedulingData {
     float avgIn; // TODO no float!
     uint16_t totalInSystem;
     float maServiceTimePerQueueLength; // TODO no float!
+    uint32_t lastMusu;
 };
 
 class TPSQ : public GTSSchedulingImpl<TPSQData> {
@@ -64,8 +65,6 @@ public:
 
     virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation);
     virtual void multisuperframeEvent();
-
-    uint32_t lastMusu = 0;
 };
 
 } /* namespace dsme */

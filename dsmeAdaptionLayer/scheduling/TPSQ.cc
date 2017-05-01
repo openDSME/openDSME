@@ -53,7 +53,7 @@ static bool header = false;
 
 namespace dsme {
 
-TPSQData::TPSQData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0) {
+TPSQData::TPSQData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0), lastMusu(0) {
 }
 
 void TPSQ::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
@@ -102,8 +102,8 @@ void TPSQ::multisuperframeEvent() {
 
         // TODO avoid this calculation
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
-        uint32_t musuDuration = now-lastMusu;
-        lastMusu = now;
+        uint32_t musuDuration = now-data.lastMusu;
+        data.lastMusu = now;
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
         float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
