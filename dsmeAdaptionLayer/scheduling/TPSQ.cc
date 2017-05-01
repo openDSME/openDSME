@@ -89,8 +89,8 @@ void TPSQ::multisuperframeEvent() {
     }
 
     for(TPSQData& data : this->links) {
-        float a = 0.9; // TODO no float
-        data.avgIn = data.avgIn*a + data.messagesInLastMultisuperframe*(1-a);
+        float a = 0.5; // TODO no float
+        data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
         uint8_t reqCap;
