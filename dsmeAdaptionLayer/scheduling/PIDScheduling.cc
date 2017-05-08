@@ -44,6 +44,8 @@
 
 #include "../../../dsme_platform.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../DSMEAdaptionLayer.h"
+#include "../../mac_services/pib/MAC_PIB.h"
 
 constexpr int16_t K_P_POS = 0;
 constexpr int16_t K_I_POS = 30;
