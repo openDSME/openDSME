@@ -110,7 +110,7 @@ uint8_t PIBHelper::getSubBlockLengthBytes() const {
 }
 
 uint16_t PIBHelper::getAckWaitDuration() const {
-    return aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet;
+    return aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet + ADDITIONAL_ACK_WAIT_DURATION;
 }
 
 } /* namespace dsme */
