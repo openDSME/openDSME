@@ -43,7 +43,9 @@
 #include "./TPSQ.h"
 
 #include "../../../dsme_platform.h"
+#include "../DSMEAdaptionLayer.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/pib/MAC_PIB.h"
 #include "../../dsmeLayer/DSMELayer.h"
 #include <cmath>
 

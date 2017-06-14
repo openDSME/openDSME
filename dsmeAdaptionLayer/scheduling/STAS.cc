@@ -40,60 +40,81 @@
  * SUCH DAMAGE.
  */
 
-#include "./PIDScheduling.h"
+#include "./STAS.h"
 
 #include "../../../dsme_platform.h"
 #include "../DSMEAdaptionLayer.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/pib/MAC_PIB.h"
+#include "../../dsmeLayer/DSMELayer.h"
+#include <cmath>
 
-constexpr int16_t K_P_POS = 0;
-constexpr int16_t K_I_POS = 30;
-constexpr int16_t K_D_POS = 26;
-
-constexpr int16_t K_P_NEG = 50;
-constexpr int16_t K_I_NEG = 30;
-constexpr int16_t K_D_NEG = 38;
-
-constexpr uint16_t SCALING = 128;
+constexpr uint16_t SCALING = 10;
+static bool header = false;
 
 namespace dsme {
 
-PIDSchedulingData::PIDSchedulingData() : error_sum(0), last_error(0) {
+STASData::STASData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0), lastMusu(0) {
 }
 
-void PIDScheduling::multisuperframeEvent() {
-    for(PIDSchedulingData& data : this->links) {
-        uint16_t w = data.messagesInLastMultisuperframe;
-        uint16_t y = data.messagesOutLastMultisuperframe;
+void STAS::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
+    queueLevel--;
+    iterator it = this->links.find(address);
+    if(it != this->links.end()) {
+        it->messagesOutLastMultisuperframe++;
 
-        int16_t e = w - y;
-        int16_t d = e - data.last_error;
-        int16_t& i = data.error_sum;
-        int16_t u;
-
-        i += e;
-
-        if(e > 0) {
-            u = (K_P_POS * e + K_I_POS * i + K_D_POS * d) / SCALING;
-        } else {
-            u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
+        if(success) {
+            float a = 0.5; // TODO -> adapt to frequency
+            float serviceTimePerQueueLength = (serviceTime/(float)queueAtCreation);
+            it->maServiceTimePerQueueLength = it->maServiceTimePerQueueLength*a + (1-a)*serviceTimePerQueueLength;
         }
+    }
 
-        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
-        data.slotTarget = slots + u;
+    return;
+}
 
-        LOG_DEBUG_PREFIX;
-        LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
-        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
-        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
-        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
-        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
-        LOG_DEBUG_PURE(LOG_ENDL);
+void STAS::multisuperframeEvent() {
+    if(!header) {
+        LOG_DEBUG("control"
+             << "," << "from"
+             << "," << "to"
+             << "," << "in"
+             << "," << "out"
+             << "," << "avgIn"
+             << "," << "totalInSystem"
+             << "," << "reqCap"
+             << "," << "slots"
+             << "," << "stotTarget");
+             
+        header = true;
+    }
 
-        data.last_error = e;
+    for(STASData& data : this->links) {
+        float a = 0.5; // TODO no float
+        data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
+        data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+
+        auto reqCap = data.avgIn;
+
+        // TODO avoid this calculation
+        uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+        uint32_t musuDuration = now-data.lastMusu;
+        data.lastMusu = now;
+
+        data.slotTarget = reqCap;
+
+        LOG_DEBUG("control"
+             << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+             << "," << data.address
+             << "," << data.messagesInLastMultisuperframe
+             << "," << data.messagesOutLastMultisuperframe
+             << "," << data.avgIn
+             << "," << data.totalInSystem
+             << "," << reqCap
+             << "," << slots
+             << "," << data.slotTarget
+             );
+
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
     }
