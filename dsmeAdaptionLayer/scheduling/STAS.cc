@@ -83,8 +83,7 @@ void STAS::multisuperframeEvent() {
              << "," << "avgIn"
              << "," << "totalInSystem"
              << "," << "reqCap"
-             << "," << "slots"
-             << "," << "stotTarget");
+             << "," << "slotTarget");
              
         header = true;
     }
@@ -101,7 +100,7 @@ void STAS::multisuperframeEvent() {
         uint32_t musuDuration = now-data.lastMusu;
         data.lastMusu = now;
 
-        data.slotTarget = reqCap;
+        data.slotTarget = ceil(reqCap);
 
         LOG_DEBUG("control"
              << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
