@@ -111,7 +111,6 @@ void STAS::multisuperframeEvent() {
              << "," << data.avgIn
              << "," << data.totalInSystem
              << "," << reqCap
-             << "," << slots
              << "," << data.slotTarget
              );
 
