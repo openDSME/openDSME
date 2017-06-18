@@ -75,25 +75,17 @@ void STAS::registerOutgoingMessage(uint16_t address, bool success, int32_t servi
 
 void STAS::multisuperframeEvent() {
     if(!header) {
-        LOG_DEBUG("control"
-             << "," << "from"
-             << "," << "to"
-             << "," << "in"
-             << "," << "out"
-             << "," << "avgIn"
-             << "," << "totalInSystem"
-             << "," << "reqCap"
-             << "," << "slotTarget");
+        printf("control,from,to,in,out,avgIn,totalInSystem,reqCap,slotTarget\n");
              
         header = true;
     }
 
     for(STASData& data : this->links) {
-        float a = 0.5; // TODO no float
+        float a = 0.2; // TODO no float
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
-        auto reqCap = data.avgIn;
+        auto reqCap = data.avgIn+data.totalInSystem*0.1;
 
         // TODO avoid this calculation
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
@@ -102,7 +94,7 @@ void STAS::multisuperframeEvent() {
 
         data.slotTarget = ceil(reqCap);
 
-        LOG_DEBUG("control"
+        /*DSME_TEST("control"
              << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
              << "," << data.address
              << "," << data.messagesInLastMultisuperframe
@@ -111,7 +103,11 @@ void STAS::multisuperframeEvent() {
              << "," << data.totalInSystem
              << "," << reqCap
              << "," << data.slotTarget
-             );
+             );*/
+        //fprintf(stderr,"control,%i,%i,%i,%i,%f,%i,%f,%i\n",this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress,data.address,data.messagesInLastMultisuperframe,
+             //data.messagesOutLastMultisuperframe,data.avgIn,data.totalInSystem,reqCap,data.slotTarget);
+        printf("control,%i,%i,%i,%i,%i,%i,%i,%i\n",this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress,data.address,data.messagesInLastMultisuperframe,
+             data.messagesOutLastMultisuperframe,(int)(data.avgIn*1000),data.totalInSystem,(int)(reqCap*1000),data.slotTarget);
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
