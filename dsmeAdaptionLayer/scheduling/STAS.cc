@@ -75,7 +75,7 @@ void STAS::registerOutgoingMessage(uint16_t address, bool success, int32_t servi
 
 void STAS::multisuperframeEvent() {
     if(!header) {
-        printf("control,from,to,in,out,avgIn,totalInSystem,reqCap,slotTarget\n");
+        printf("control,from,to,in,out,avgIn,totalInSystem,reqCap,slotTarget,slots\n");
              
         header = true;
     }
@@ -91,6 +91,7 @@ void STAS::multisuperframeEvent() {
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
         uint32_t musuDuration = now-data.lastMusu;
         data.lastMusu = now;
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
 
         data.slotTarget = ceil(reqCap);
 
@@ -106,8 +107,8 @@ void STAS::multisuperframeEvent() {
              );*/
         //fprintf(stderr,"control,%i,%i,%i,%i,%f,%i,%f,%i\n",this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress,data.address,data.messagesInLastMultisuperframe,
              //data.messagesOutLastMultisuperframe,data.avgIn,data.totalInSystem,reqCap,data.slotTarget);
-        printf("control,%i,%i,%i,%i,%i,%i,%i,%i\n",this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress,data.address,data.messagesInLastMultisuperframe,
-             data.messagesOutLastMultisuperframe,(int)(data.avgIn*1000),data.totalInSystem,(int)(reqCap*1000),data.slotTarget);
+        printf("control,%i,%i,%i,%i,%i,%i,%i,%i,%i\n",this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress,data.address,data.messagesInLastMultisuperframe,
+             data.messagesOutLastMultisuperframe,(int)(data.avgIn*1000),data.totalInSystem,(int)(reqCap*1000),data.slotTarget,slots);
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
