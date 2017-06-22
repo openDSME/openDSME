@@ -85,7 +85,7 @@ void STAS::multisuperframeEvent() {
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
-        auto reqCap = data.avgIn+data.totalInSystem*0.1;
+        auto reqCap = data.avgIn; //+data.totalInSystem*0.1;
 
         // TODO avoid this calculation
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
