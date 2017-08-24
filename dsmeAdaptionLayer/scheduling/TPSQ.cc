@@ -51,97 +51,24 @@
 
 constexpr uint16_t SCALING = 10;
 constexpr uint16_t bounds[] = {8,17,26,35,44,53,62,71,80,89,98,106,115,124,133,142,151,160,169,177,186,193,202,211,220,229,238,247};
-static bool header = false;
 
 namespace dsme {
 
-TPSQData::TPSQData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0), lastMusu(0) {
-}
-
-void TPSQ::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
-    queueLevel--;
-    iterator it = this->links.find(address);
-    if(it != this->links.end()) {
-        it->messagesOutLastMultisuperframe++;
-
-        if(success) {
-            float a = 0.5; // TODO -> adapt to frequency
-            float serviceTimePerQueueLength = (serviceTime/(float)queueAtCreation);
-            it->maServiceTimePerQueueLength = it->maServiceTimePerQueueLength*a + (1-a)*serviceTimePerQueueLength;
-        }
-    }
-
-    return;
-}
-
-void TPSQ::multisuperframeEvent() {
-    if(!header) {
-        LOG_DEBUG("control"
-             << "," << "from"
-             << "," << "to"
-             << "," << "in"
-             << "," << "out"
-             << "," << "avgIn"
-             << "," << "totalInSystem"
-             << "," << "reqCap"
-             << "," << "slots"
-             << "," << "stotTarget");
-             
-        header = true;
-    }
-
-    for(TPSQData& data : this->links) {
-        float a = 0.5; // TODO no float
-        data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
-        data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
-
+float TPSQ::slotsForLoad(float packetsPerMUSU) {
 #if 0
-        uint8_t reqCap = 0;
-        auto scaledIn = data.avgIn*SCALING;
-        //if(scaledIn >= bounds[0]) { // one slot will always be guaranteed by the GTSHelper
-            for(reqCap = 1; reqCap <= sizeof(bounds); reqCap++) {
-                if(bounds[reqCap-1] >= scaledIn) {
-                    break;
-                }
+    uint8_t reqCap = 0;
+    auto scaledIn = data.avgIn*SCALING;
+    //if(scaledIn >= bounds[0]) { // one slot will always be guaranteed by the GTSHelper
+        for(reqCap = 1; reqCap <= sizeof(bounds); reqCap++) {
+            if(bounds[reqCap-1] >= scaledIn) {
+                break;
             }
-        //}
+        }
+    //}
 #endif
-        auto reqCap = data.avgIn*1.13462113753+(-0.101709670756);
 
-        // TODO avoid this calculation
-        uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
-        uint32_t musuDuration = now-data.lastMusu;
-        data.lastMusu = now;
-
-        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
-        float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
-
-        float error = reqCap - predCap;
-        int8_t change;
-        if(-1.5 <= error && error <= -1.0) {
-            change = 0;
-        }
-        else {
-            change = std::ceil(error);
-        }
-
-        data.slotTarget = slots + change;
-
-        LOG_DEBUG("control"
-             << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
-             << "," << data.address
-             << "," << data.messagesInLastMultisuperframe
-             << "," << data.messagesOutLastMultisuperframe
-             << "," << data.avgIn
-             << "," << data.totalInSystem
-             << "," << reqCap
-             << "," << slots
-             << "," << data.slotTarget
-             );
-
-        data.messagesInLastMultisuperframe = 0;
-        data.messagesOutLastMultisuperframe = 0;
-    }
+    auto reqCap = packetsPerMUSU*1.13462113753+(-0.101709670756);
+    return reqCap;
 }
 
 } /* namespace dsme */

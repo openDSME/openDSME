@@ -40,24 +40,34 @@
  * SUCH DAMAGE.
  */
 
-#ifndef TPSQ_H_
-#define TPSQ_H_
+#ifndef TPS_H_
+#define TPS_H_
 
 #include "./GTSScheduling.h"
-#include "./TPS.h"
 
 namespace dsme {
 
 class DSMEAdaptionLayer;
 
-class TPSQ : public TPS {
+struct TPSData : GTSSchedulingData {
+    TPSData();
+
+    float avgIn; // TODO no float!
+    uint16_t totalInSystem;
+    float maServiceTimePerQueueLength; // TODO no float!
+    uint32_t lastMusu;
+};
+
+class TPS : public GTSSchedulingImpl<TPSData> {
 public:
-    TPSQ(DSMEAdaptionLayer& dsmeAdaptionLayer) : TPS(dsmeAdaptionLayer) {
+    TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
 
+    virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation);
+    virtual void multisuperframeEvent();
     virtual float slotsForLoad(float packetsPerMUSU); // TODO no float
 };
 
 } /* namespace dsme */
 
-#endif /* TPSQ_H_ */
+#endif /* TPS_H_ */
