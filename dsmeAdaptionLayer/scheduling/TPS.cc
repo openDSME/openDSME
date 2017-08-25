@@ -123,13 +123,29 @@ void TPS::multisuperframeEvent() {
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
         float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
 
-        float error = reqCap - predCap;
+        //a = 0.01;
+        a = 0.1;
+        float error = slotsForLoad(data.messagesInLastMultisuperframe)-slots;
+        data.maError = error*a + data.maError*(1-a);
+        error = data.maError;
+
+        //float error = reqCap - predCap;
+        /*
         int8_t change;
         if(-1.5 <= error && error <= -1.0) {
             change = 0;
         }
         else {
             change = std::ceil(error);
+        }
+        */
+
+        int8_t change = 0;
+        if(error > 0) {
+            change = 1;
+        }
+        else if(error < -2) {
+            change = -1;
         }
 
         data.slotTarget = slots + change;
