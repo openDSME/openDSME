@@ -56,6 +56,8 @@ struct TPSTxData : GTSSchedulingData {
     uint16_t totalInSystem;
     float maServiceTimePerQueueLength; // TODO no float!
     uint32_t lastMusu;
+
+    float maError; // TODO no float!
 };
 
 struct TPSRxData : GTSRxData {
