@@ -83,6 +83,10 @@ void GTSHelper::indicateOutgoingMessage(uint16_t address, bool success, int32_t 
     this->gtsScheduling->registerOutgoingMessage(address, success, serviceTime, queueAtCreation);
 }
 
+void GTSHelper::indicateReceivedMessage(uint16_t address) {
+    return this->gtsScheduling->registerReceivedMessage(address);
+}
+
 void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
         this->gtsScheduling->multisuperframeEvent();
@@ -100,7 +104,7 @@ void GTSHelper::handleStartOfCFP() {
 }
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
-    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(address);
+    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address,Direction::TX);
     uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(IEEE802154MacAddress(address));
     LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
     LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
