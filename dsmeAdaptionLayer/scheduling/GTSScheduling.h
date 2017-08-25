@@ -45,6 +45,7 @@
 
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/dataStructures/RBTree.h"
+#include "../../mac_services/DSME_Common.h"
 
 namespace dsme {
 
@@ -62,6 +63,11 @@ struct GTSSchedulingData {
     int16_t slotTarget;
 };
 
+struct GTSRxData {
+    uint16_t address;
+    uint16_t messagesRxLastMultisuperframe = 0;
+};
+
 class GTSScheduling {
 public:
     GTSScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
@@ -71,6 +77,7 @@ public:
     virtual void reset() = 0;
     virtual uint8_t registerIncomingMessage(uint16_t address) = 0;
     virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) = 0;
+    virtual void registerReceivedMessage(uint16_t address) = 0;
     virtual void multisuperframeEvent() = 0;
     virtual int16_t getSlotTarget(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
@@ -79,7 +86,7 @@ protected:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
 };
 
-template <typename SchedulingData>
+template <typename SchedulingData, typename RxData>
 class GTSSchedulingImpl : public GTSScheduling {
 public:
     typedef typename RBTree<SchedulingData, uint16_t>::iterator iterator;
@@ -90,20 +97,24 @@ public:
     virtual ~GTSSchedulingImpl() = default;
 
     virtual void reset() {
-        while(this->links.size() > 0) {
-            auto it = this->links.begin();
-            this->links.remove(it);
+        while(this->txLinks.size() > 0) {
+            auto it = this->txLinks.begin();
+            this->txLinks.remove(it);
+        }
+        while(this->rxLinks.size() > 0) {
+            auto it = this->rxLinks.begin();
+            this->rxLinks.remove(it);
         }
     }
 
     virtual uint8_t registerIncomingMessage(uint16_t address) {
         queueLevel++;
-        iterator it = this->links.find(address);
-        if(it == this->links.end()) {
+        iterator it = this->txLinks.find(address);
+        if(it == this->txLinks.end()) {
             SchedulingData data;
             data.address = address;
             data.messagesInLastMultisuperframe++;
-            this->links.insert(data, address);
+            this->txLinks.insert(data, address);
         } else {
             it->messagesInLastMultisuperframe++;
         }
@@ -112,16 +123,28 @@ public:
 
     virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
         queueLevel--;
-        iterator it = this->links.find(address);
-        if(it != this->links.end()) {
+        iterator it = this->txLinks.find(address);
+        if(it != this->txLinks.end()) {
             it->messagesOutLastMultisuperframe++;
         }
 
         return;
     }
 
+    virtual void registerReceivedMessage(uint16_t address) {
+        auto it = this->rxLinks.find(address);
+        if(it == this->rxLinks.end()) {
+            RxData data;
+            data.address = address;
+            data.messagesRxLastMultisuperframe++;
+            this->rxLinks.insert(data, address);
+        } else {
+            it->messagesRxLastMultisuperframe++;
+        }
+    }
+
     virtual int16_t getSlotTarget(uint16_t address) {
-        iterator it = this->links.find(address);
+        iterator it = this->txLinks.find(address);
 
         return it->slotTarget;
     }
@@ -137,8 +160,8 @@ public:
     uint16_t getPriorityLink() {
         uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
         int16_t difference = 0;
-        for(const SchedulingData& d : this->links) {
-            uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(d.address);
+        for(const SchedulingData& d : this->txLinks) {
+            uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(d.address,Direction::TX);
 
             if(abs(difference) < abs(d.slotTarget - slots)) {
                 difference = d.slotTarget - slots;
@@ -149,7 +172,8 @@ public:
     }
 
 protected:
-    RBTree<SchedulingData, uint16_t> links;
+    RBTree<SchedulingData, uint16_t> txLinks;
+    RBTree<RxData, uint16_t> rxLinks;
     uint8_t queueLevel = 0;
 };
 

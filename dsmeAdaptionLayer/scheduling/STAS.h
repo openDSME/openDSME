@@ -58,7 +58,7 @@ struct STASData : GTSSchedulingData {
     uint32_t lastMusu;
 };
 
-class STAS : public GTSSchedulingImpl<STASData> {
+class STAS : public GTSSchedulingImpl<STASData,GTSRxData> {
 public:
     STAS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }

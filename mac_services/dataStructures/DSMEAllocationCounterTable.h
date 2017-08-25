@@ -106,7 +106,7 @@ public:
 
     bool isAllocated(uint16_t superframeID, uint8_t gtSlotID) const;
 
-    uint16_t getNumAllocatedTxGTS(uint16_t address);
+    uint16_t getNumAllocatedGTS(uint16_t address, Direction direction);
 
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress = false);
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition,
@@ -124,7 +124,7 @@ private:
     RBTree<ACTElement, ACTPosition> act;
 
     // TODO integrate this nicely into the NeighborQueue
-    RBTree<uint16_t, uint16_t> numAllocatedTxSlots;
+    RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
 };
 
 } /* namespace dsme */

@@ -59,8 +59,8 @@ STASData::STASData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0
 
 void STAS::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
     queueLevel--;
-    iterator it = this->links.find(address);
-    if(it != this->links.end()) {
+    iterator it = this->txLinks.find(address);
+    if(it != this->txLinks.end()) {
         it->messagesOutLastMultisuperframe++;
 
         if(success) {
@@ -80,7 +80,7 @@ void STAS::multisuperframeEvent() {
         header = true;
     }
 
-    for(STASData& data : this->links) {
+    for(STASData& data : this->txLinks) {
         float a = 0.2; // TODO no float
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
@@ -91,7 +91,7 @@ void STAS::multisuperframeEvent() {
         uint32_t now = dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
         uint32_t musuDuration = now-data.lastMusu;
         data.lastMusu = now;
-        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
 
         data.slotTarget = ceil(reqCap);
 

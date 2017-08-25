@@ -257,6 +257,7 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
 
 void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameters& params) {
     LOG_INFO("Received DATA message from MCPS.");
+    gtsAllocationHelper.indicateReceivedMessage(params.msdu->getHeader().getSrcAddr().getShortAddress());
     receiveIndication(params.msdu);
     return;
 }

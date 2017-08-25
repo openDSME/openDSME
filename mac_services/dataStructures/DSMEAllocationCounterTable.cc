@@ -78,9 +78,11 @@ void DSMEAllocationCounterTable::clear() {
         this->act.remove(it);
     }
 
-    while(this->numAllocatedTxSlots.size() != 0) {
-        auto it = this->numAllocatedTxSlots.begin();
-        this->numAllocatedTxSlots.remove(it);
+    for(int i = 0; i < 2; i++) {
+        while(this->numAllocatedSlots[i].size() != 0) {
+            auto it = this->numAllocatedSlots[i].begin();
+            this->numAllocatedSlots[i].remove(it);
+        }
     }
 
     this->bitmap.fill(false);
@@ -123,17 +125,14 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     bool success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
 
     if(success) {
-        if(direction == TX) {
-            RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(address);
-            if(numSlotIt == numAllocatedTxSlots.end()) {
-                LOG_INFO("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedTxSlots.");
-                numAllocatedTxSlots.insert(1, address);
-            } else {
-                (*numSlotIt)++;
-                LOG_INFO("Incrementing slot count for " << address << DECOUT << " (now at " << *numSlotIt << ").");
-            }
+        int d = (direction == TX)?0:1;
+        RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
+        if(numSlotIt == numAllocatedSlots[d].end()) {
+            LOG_INFO("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
+            numAllocatedSlots[d].insert(1, address);
         } else {
-            LOG_INFO("Slot marked for reception from " << address << ".");
+            (*numSlotIt)++;
+            LOG_INFO("Incrementing slot count " << d << HEXOUT << " for 0x" << address << DECOUT << " (now at " << *numSlotIt << ").");
         }
 
         bitmap.set(superframeID * numGTSlots + gtSlotID, true);
@@ -154,14 +153,13 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     bitmap.set(superframeID * numGTSlots + gtSlotID, false);
 
-    if(it->direction == TX) {
-        RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(it->address);
-        DSME_ASSERT(numSlotIt != numAllocatedTxSlots.end());
-        (*numSlotIt)--;
-        LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
-        if((*numSlotIt) == 0) {
-            numAllocatedTxSlots.remove(numSlotIt);
-        }
+    int d = (it->direction == TX)?0:1;
+    RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
+    DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
+    (*numSlotIt)--;
+    LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
+    if((*numSlotIt) == 0) {
+        numAllocatedSlots[d].remove(numSlotIt);
     }
 
     act.remove(it);
@@ -171,9 +169,10 @@ bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSl
     return bitmap.get(superframeID * numGTSlots + gtSlotID);
 }
 
-uint16_t DSMEAllocationCounterTable::getNumAllocatedTxGTS(uint16_t address) {
-    RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(address);
-    if(numSlotIt == numAllocatedTxSlots.end()) {
+uint16_t DSMEAllocationCounterTable::getNumAllocatedGTS(uint16_t address, Direction direction) {
+    int d = (direction == TX)?0:1;
+    RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
+    if(numSlotIt == numAllocatedSlots[d].end()) {
         return 0;
     } else {
         return *numSlotIt;

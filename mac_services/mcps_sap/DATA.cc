@@ -93,7 +93,7 @@ void DATA::request(request_parameters& params) {
         NeighborQueue<MAX_NEIGHBORS>::iterator destIt = dsme.getMessageDispatcher().getNeighborQueue().findByAddress(dest);
 
         DSMEAllocationCounterTable& macDSMEACT = dsme.getMAC_PIB().macDSMEACT;
-        uint16_t numAllocatedSlots = macDSMEACT.getNumAllocatedTxGTS(dest.getShortAddress());
+        uint16_t numAllocatedSlots = macDSMEACT.getNumAllocatedGTS(dest.getShortAddress(), Direction::TX);
 
         if(destIt == dsme.getMessageDispatcher().getNeighborQueue().end() || numAllocatedSlots == 0) {
             mcps_sap::DATA_confirm_parameters confirmParams;

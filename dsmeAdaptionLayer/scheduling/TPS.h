@@ -49,8 +49,8 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 
-struct TPSData : GTSSchedulingData {
-    TPSData();
+struct TPSTxData : GTSSchedulingData {
+    TPSTxData();
 
     float avgIn; // TODO no float!
     uint16_t totalInSystem;
@@ -58,7 +58,11 @@ struct TPSData : GTSSchedulingData {
     uint32_t lastMusu;
 };
 
-class TPS : public GTSSchedulingImpl<TPSData> {
+struct TPSRxData : GTSRxData {
+    float unused; // TODO no float!
+};
+
+class TPS : public GTSSchedulingImpl<TPSTxData,TPSRxData> {
 public:
     TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }

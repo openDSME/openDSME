@@ -63,7 +63,7 @@ PIDSchedulingData::PIDSchedulingData() : error_sum(0), last_error(0) {
 }
 
 void PIDScheduling::multisuperframeEvent() {
-    for(PIDSchedulingData& data : this->links) {
+    for(PIDSchedulingData& data : this->txLinks) {
         uint16_t w = data.messagesInLastMultisuperframe;
         uint16_t y = data.messagesOutLastMultisuperframe;
 
@@ -80,7 +80,7 @@ void PIDScheduling::multisuperframeEvent() {
             u = (K_P_NEG * e + K_I_NEG * i + K_D_NEG * d) / SCALING;
         }
 
-        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
         data.slotTarget = slots + u;
 
         LOG_DEBUG_PREFIX;

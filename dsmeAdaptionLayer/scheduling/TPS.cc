@@ -53,13 +53,13 @@ static bool header = false;
 
 namespace dsme {
 
-TPSData::TPSData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0), lastMusu(0) {
+TPSTxData::TPSTxData() : avgIn(0), totalInSystem(0), maServiceTimePerQueueLength(0), lastMusu(0) {
 }
 
 void TPS::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {
     queueLevel--;
-    iterator it = this->links.find(address);
-    if(it != this->links.end()) {
+    iterator it = this->txLinks.find(address);
+    if(it != this->txLinks.end()) {
         it->messagesOutLastMultisuperframe++;
 
         if(success) {
@@ -88,7 +88,27 @@ void TPS::multisuperframeEvent() {
         header = true;
     }
 
-    for(TPSData& data : this->links) {
+    int sumslots = 0;
+    for(TPSRxData& data : this->rxLinks) {
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::RX);
+        float a = 0.1; // TODO no float
+        int unused = slots-data.messagesRxLastMultisuperframe;
+        if(unused < 0) {
+            unused = 0;
+        }
+        data.unused = unused*a + data.unused*(1-a);
+
+        sumslots++;
+
+        if(slots > 0 || data.messagesRxLastMultisuperframe > 0) {
+            LOG_ERROR("RXSTATS 0x" << HEXOUT << data.address << " \t" << DECOUT << data.messagesRxLastMultisuperframe << " \t" << slots << " \t" << unused << " \t" << data.unused);
+        }
+
+        data.messagesRxLastMultisuperframe = 0;
+    }
+    LOG_ERROR("RXSTATS ------------ " << sumslots);
+
+    for(TPSTxData& data : this->txLinks) {
         float a = 0.5; // TODO no float
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
@@ -100,7 +120,7 @@ void TPS::multisuperframeEvent() {
         uint32_t musuDuration = now-data.lastMusu;
         data.lastMusu = now;
 
-        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedTxGTS(data.address);
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
         float predCap = std::min((float)slots,musuDuration/data.maServiceTimePerQueueLength);
 
         float error = reqCap - predCap;
