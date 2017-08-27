@@ -110,7 +110,7 @@ void TPS::multisuperframeEvent() {
 
     for(TPSTxData& data : this->txLinks) {
         //float a = 0.5; // TODO no float
-        float a = 0.1; // TODO no float
+        float a = 0.01; // TODO no float
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
