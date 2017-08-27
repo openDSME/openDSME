@@ -109,7 +109,8 @@ void TPS::multisuperframeEvent() {
     LOG_ERROR("RXSTATS ------------ " << sumslots);
 
     for(TPSTxData& data : this->txLinks) {
-        float a = 0.5; // TODO no float
+        //float a = 0.5; // TODO no float
+        float a = 0.1; // TODO no float
         data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
         data.totalInSystem += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
@@ -127,7 +128,8 @@ void TPS::multisuperframeEvent() {
         a = 0.1;
         float error = slotsForLoad(data.messagesInLastMultisuperframe)-slots;
         data.maError = error*a + data.maError*(1-a);
-        error = data.maError;
+        //error = data.maError;
+        error = reqCap-slots;
 
         //float error = reqCap - predCap;
         /*
