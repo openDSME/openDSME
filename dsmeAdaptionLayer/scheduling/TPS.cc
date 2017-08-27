@@ -142,7 +142,8 @@ void TPS::multisuperframeEvent() {
 
         int8_t change = 0;
         if(error > 0) {
-            change = 1;
+            //change = 1;
+            change = ceil(error);
         }
         else if(error < -2) {
             change = -1;
