@@ -146,7 +146,8 @@ void TPS::multisuperframeEvent() {
             change = ceil(error);
         }
         else if(error < -2) {
-            change = -1;
+            //change = -1;
+            change = ceil(error)+1;
         }
 
         data.slotTarget = slots + change;
