@@ -48,23 +48,25 @@
 #include "../DSMELayer.h"
 #include "../messages/GTSManagement.h"
 
+#define LOG_ACT(x) LOG_DEBUG("ACTUpdater - " << x << " 0x" << HEXOUT << deviceAddr << DECOUT);
+
 namespace dsme {
 
 ACTUpdater::ACTUpdater(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void ACTUpdater::requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - requestAccessFailure");
+    LOG_ACT("requestAccessFailure");
     // No action required
 }
 
 void ACTUpdater::requestNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - requestNoAck");
+    LOG_ACT("requestNoAck");
     // No action required
 }
 
 void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - responseTimeout");
+    LOG_ACT("responseTimeout");
     // No action required
 }
 
@@ -78,7 +80,7 @@ void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& ma
 }
 
 void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - approvalReceived");
+    LOG_ACT("approvalReceived");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, channelOffset, useChannelOffset,
@@ -87,7 +89,7 @@ void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& 
 }
 
 void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - disapproved");
+    LOG_ACT("disapproved");
     if(management.type == ManagementType::DEALLOCATION) {
         DSME_ASSERT(sabSpec.getSubBlock().count(true) > 0);
 
@@ -103,7 +105,7 @@ void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& manag
 }
 
 void ACTUpdater::notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - notifyAccessFailure");
+    LOG_ACT("notifyAccessFailure");
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         // The sender of the notify is also the requester, so do not invert the direction
@@ -114,7 +116,7 @@ void ACTUpdater::notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagemen
 }
 
 void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - notifyDelivered");
+    LOG_ACT("notifyDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
@@ -127,7 +129,7 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
 }
 
 void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - approvalDelivered");
+    LOG_ACT("approvalDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
@@ -140,7 +142,7 @@ void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement&
 }
 
 void ACTUpdater::approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - approvalAccessFailure");
+    LOG_ACT("approvalAccessFailure");
     if(management.type == ManagementType::DEALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, invert(management.direction), deviceAddr, 0, false);
@@ -150,13 +152,13 @@ void ACTUpdater::approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagem
 }
 
 void ACTUpdater::notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - notifyTimeout");
+    LOG_ACT("notifyTimeout");
     // This is not handled by the standard, but improves the consistency
     this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, invert(management.direction), deviceAddr,  channelOffset, false);
 }
 
 void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - notifyReceived");
+    LOG_ACT("notifyReceived");
     if(management.type == ManagementType::ALLOCATION) {
         // The receiver of the notify is not the requester, so invert the direction
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
@@ -168,22 +170,23 @@ void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& ma
 }
 
 void ACTUpdater::disapprovalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - disapprovalAccessFailure");
+    LOG_ACT("disapprovalAccessFailure");
     // No action required
 }
 
 void ACTUpdater::disapprovalNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - disapprovalNoAck");
+    LOG_ACT("disapprovalNoAck");
     // No action required
 }
 
 void ACTUpdater::disapprovalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr) {
-    LOG_DEBUG("ACTUpdater - disapprovalDelivered");
+    LOG_ACT("disapprovalDelivered");
     // No action required
 }
 
 void ACTUpdater::duplicateAllocation(DSMESABSpecification& sabSpec, uint16_t channelOffset) {
-    LOG_DEBUG("ACTUpdater - duplicateAllocation");
+    uint16_t deviceAddr = -1;
+    LOG_ACT("duplicateAllocation");
     this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::INVALID, channelOffset);
 }
 

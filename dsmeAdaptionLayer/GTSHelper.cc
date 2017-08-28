@@ -108,15 +108,17 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
     int16_t target = gtsScheduling->getSlotTarget(address);
 
     if(target > numAllocatedSlots || numAllocatedSlots < 1) {
+        LOG_INFO("Initiate ALLOCATION with 0x" << HEXOUT << address << DECOUT);
         checkAndAllocateSingleGTS(address);
     } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
+        LOG_INFO("Initiate DEALLOCATION with 0x" << HEXOUT << address << DECOUT);
         checkAndDeallocateSingeleGTS(address);
     }
 }
 
 void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     if(gtsConfirmPending) {
-        LOG_INFO("GTS allocation still active.");
+        LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << address << DECOUT << ")");
         return;
     }
 
@@ -138,7 +140,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     }
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_WARN("No free GTS found!");
+        LOG_WARN("No free GTS found! (trying with 0x" << HEXOUT << address << DECOUT << ")");
         return;
     }
 
@@ -155,8 +157,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
     macDSMESAB.getOccupiedSubBlock(params.dsmeSabSpecification, preferredGTS.superframeID);
 
-    LOG_INFO("Requesting slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " for transmission to "
-                                << params.deviceAddress << ".");
+    LOG_INFO("ALLOCATING slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " with 0x" << HEXOUT << params.deviceAddress << DECOUT << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
     for(DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
@@ -188,7 +189,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     }
 
     if(toDeallocate != act.end()) {
-        LOG_INFO("#Now deallocate " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << ".");
+        LOG_INFO("DEALLOCATING slot " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << " with 0x" << HEXOUT << toDeallocate->getAddress() << DECOUT);
 
         DSMESABSpecification dsmeSABSpecification;
         uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
