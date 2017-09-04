@@ -310,6 +310,31 @@ public:
     /* The PHY capabilities supported. */
     uint8_t* macRccnCap{nullptr};
 
+    /* HOPPING SEQUENCE SPECIFIC PART FROM HERE ON ------------------------> */
+
+    /** The unique ID of the hopping sequence. */
+    uint8_t macHoppingSequenceId{0};
+
+    /** The channel page for the hopping sequence. Note this may not correspond to the current channelPage. */
+    uint8_t macChannelPage{0};
+
+    /** Number of channels supported by the PHY on this channelPage. */
+    uint16_t macNumberOfChannels{0};
+
+    /** For channel pages other than 9 and 10, the 27 LSBs (b0, b1, …, b26) indicate the status (1 = to be used, 0 = not to be used) for each of the up to 27
+     * channels available to the PHY. For pages 9 and 10, the 27 LSBs indicate the configuration of the PHY, and the channel list is contained in the Extended
+     * Bitmap field. */
+    uint32_t macPhyConfiguration{0};
+
+    /** The number of channels in the Hopping Sequence. Does not necessarily equal macNumberOfChannels. */
+    uint16_t macHoppingSequenceLength{0};
+
+    /** A macHoppingSequenceLengthelement set of channels to be hopped over. */
+    uint16_t *macHoppingSequenceList{0};
+
+    /** For unslotted channel hopping modes, this field is the channel dwell time, in units of 10 µs. For other modes, the field is empty. */
+    uint16_t macHopDwellTime{0};
+
     /* DSME SPECIFIC PART FROM HERE ON ------------------------------------> */
 
     /** Specifies the channel index of the channel's DSME link reported by the source device. */

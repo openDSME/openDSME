@@ -91,6 +91,9 @@ void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE80
     params.coordPanId = coordPANId;
     params.coordAddress = coordAddress;
     params.capabilityInformation = capabilityInformation;
+    params.channelOffset = 0; //TODO higher layer
+    params.hoppingSequenceId = 1;
+    params.hoppingSequenceRequest = true;
 
     // TODO start timer for macMaxFrameTotalWaitTime, report NO_DATA on timeout
     this->dsmeAdaptionLayer.getMLME_SAP().getASSOCIATE().request(params);
@@ -113,6 +116,8 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
     response_params.deviceAddress = params.deviceAddress;
     response_params.assocShortAddress = params.deviceAddress.a4();
     response_params.status = AssociationStatus::SUCCESS;
+    response_params.channelOffset = params.channelOffset;
+    response_params.hoppingSequence = nullptr; //TODO
 
     // TODO update list of associated devices
 

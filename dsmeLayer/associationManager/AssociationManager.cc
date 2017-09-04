@@ -51,8 +51,8 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMELayer.h"
 #include "../messageDispatcher/MessageDispatcher.h"
-#include "../messages/AssociateReplyCmd.h"
-#include "../messages/AssociateRequestCmd.h"
+#include "../messages/DSMEAssociationResponseCmd.h"
+#include "../messages/DSMEAssociationRequestCmd.h"
 #include "../messages/DisassociationNotifyCmd.h"
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
@@ -73,7 +73,7 @@ void AssociationManager::reset() {
     this->dsme.getMAC_PIB().macIsCoord = false;
 }
 
-void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_sap::ASSOCIATE::request_parameters& params) {
+void AssociationManager::sendAssociationRequest(DSMEAssociationRequestCmd& req, mlme_sap::ASSOCIATE::request_parameters& params) {
     LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
     DSME_ATOMIC_BLOCK {
@@ -121,7 +121,7 @@ void AssociationManager::sendAssociationRequest(AssociateRequestCmd& req, mlme_s
 }
 
 void AssociationManager::handleAssociationRequest(IDSMEMessage* msg) {
-    AssociateRequestCmd req;
+    DSMEAssociationRequestCmd req;
     req.decapsulateFrom(msg);
 
     mlme_sap::ASSOCIATE_indication_parameters params;
@@ -131,7 +131,7 @@ void AssociationManager::handleAssociationRequest(IDSMEMessage* msg) {
     this->dsme.getMLME_SAP().getASSOCIATE().notify_indication(params);
 }
 
-void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE802154MacAddress& deviceAddress) {
+void AssociationManager::sendAssociationReply(DSMEAssociationResponseCmd& response, IEEE802154MacAddress& deviceAddress) {
     DSME_ATOMIC_BLOCK {
         if(this->actionPending) {
             return;
@@ -145,7 +145,7 @@ void AssociationManager::sendAssociationReply(AssociateReplyCmd& reply, IEEE8021
     LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
 
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
-    reply.prependTo(msg);
+    response.prependTo(msg);
     MACCommand cmd;
     cmd.setCmdId(CommandFrameIdentifier::ASSOCIATION_RESPONSE);
     cmd.prependTo(msg);
@@ -178,12 +178,12 @@ void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
         this->messageSent = false;
     }
 
-    AssociateReplyCmd reply;
-    reply.decapsulateFrom(msg);
+    DSMEAssociationResponseCmd response;
+    response.decapsulateFrom(msg);
 
     mlme_sap::ASSOCIATE_confirm_parameters params;
-    params.assocShortAddress = reply.getShortAddr();
-    params.status = reply.getStatus();
+    params.assocShortAddress = response.getShortAddr();
+    params.status = response.getStatus();
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_confirm(params);
 

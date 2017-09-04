@@ -60,12 +60,12 @@ struct ASSOCIATE_indication_parameters {
     NOT_IMPLEMENTED_t keyIdMode;
     NOT_IMPLEMENTED_t keySource;
     NOT_IMPLEMENTED_t keyIndex;
-    NOT_IMPLEMENTED_t channelOffset;
-    NOT_IMPLEMENTED_t hoppingSequenceId;
+    uint16_t channelOffset;
+    uint8_t hoppingSequenceId;
     NOT_IMPLEMENTED_t dsmeAssociation;
     NOT_IMPLEMENTED_t direction;
     NOT_IMPLEMENTED_t allocationOrder;
-    NOT_IMPLEMENTED_t hoppingSequenceRequest;
+    bool hoppingSequenceRequest;
 };
 
 struct ASSOCIATE_confirm_parameters {
@@ -75,8 +75,8 @@ struct ASSOCIATE_confirm_parameters {
     NOT_IMPLEMENTED_t keyIdMode;
     NOT_IMPLEMENTED_t keySource;
     NOT_IMPLEMENTED_t keyIndex;
-    NOT_IMPLEMENTED_t channelOffset;
-    NOT_IMPLEMENTED_t hoppingSequence;
+    uint16_t channelOffset;
+    uint8_t  *hoppingSequence; //TODO
     NOT_IMPLEMENTED_t dsmeAssociation;
     NOT_IMPLEMENTED_t allocationOrder;
     NOT_IMPLEMENTED_t biIndex;
@@ -103,12 +103,12 @@ public:
         NOT_IMPLEMENTED_t keyIdMode;
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
-        NOT_IMPLEMENTED_t channelOffset;     // To be ignored, when in channel adaption mode
-        NOT_IMPLEMENTED_t hoppingSequenceId; // To be ignored, when in channel adaption mode
+        uint16_t channelOffset;     // To be ignored, when in channel adaption mode
+        uint8_t hoppingSequenceId; // To be ignored, when in channel adaption mode
         NOT_IMPLEMENTED_t dsmeAssociation;
         NOT_IMPLEMENTED_t direction;
         NOT_IMPLEMENTED_t allocationOrder;
-        NOT_IMPLEMENTED_t hoppingSequenceRequest;
+        bool hoppingSequenceRequest;
     };
 
     struct response_parameters {
@@ -118,8 +118,8 @@ public:
         NOT_IMPLEMENTED_t keyIdMode;
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
-        NOT_IMPLEMENTED_t channelOffset;
-        NOT_IMPLEMENTED_t hoppingSequence;
+        uint16_t channelOffset;
+        uint8_t *hoppingSequence; //TODO
         NOT_IMPLEMENTED_t dsmeAssociation;
         NOT_IMPLEMENTED_t allocationOrder;
         NOT_IMPLEMENTED_t biIndex;

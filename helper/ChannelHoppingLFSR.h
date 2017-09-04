@@ -40,48 +40,40 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ASSOCIATEREPLYCMD_H_
-#define ASSOCIATEREPLYCMD_H_
-
-#include "../../mac_services/DSME_Common.h"
-#include "../../mac_services/dataStructures/DSMEMessageElement.h"
+#ifndef CHANNELHOPPINGLFSR_H_
+#define CHANNELHOPPINGLFSR_H_
 
 namespace dsme {
-class AssociateReplyCmd : public DSMEMessageElement {
+
+/* Implementation of a maximum 16 Bit Linear Feedback Shift
+ * Register with default polynomial of x^9 + x^5 + 1 and cycle
+ * length of 511 for generation of channel hopping sequence.
+ */
+class ChannelHoppingLFSR {
 public:
-    AssociateReplyCmd() : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS) {
+    ChannelHoppingLFSR() : lfsr(255), polynomial(0x0101) {
     }
 
-    AssociateReplyCmd(uint16_t shortAddr, AssociationStatus::Association_Status status) : shortAddr(shortAddr), status(status) {
+    explicit ChannelHoppingLFSR(uint16_t lfsr, uint16_t polynomial) : lfsr(lfsr), polynomial(polynomial) {
     }
 
-    uint16_t getShortAddr() const {
-        return this->shortAddr;
-    }
+    uint16_t next() {
+        uint8_t lsb = lfsr & 0x0001;
+        lfsr >>= 1;
 
-    AssociationStatus::Association_Status getStatus() const {
-        return this->status;
-    }
+        if(lsb == 1) {
+            lfsr ^= polynomial;
+        }
 
-    virtual uint8_t getSerializationLength() {
-        uint8_t size = 0;
-        size += 2; // shortAddr
-        size += 1; // status
-        return size;
-    }
-
-    virtual void serialize(Serializer& serializer) {
-        serializer << shortAddr;
-        uint8_t stat = (uint8_t)status;
-        serializer << stat;
-        status = (AssociationStatus::Association_Status)stat;
+        return lfsr;
     }
 
 private:
-    uint16_t shortAddr;
-    AssociationStatus::Association_Status status;
+    uint16_t lfsr;
+    uint16_t polynomial;
 };
+
 
 } /* namespace dsme */
 
-#endif /* ASSOCIATEREPLYCMD_H_ */
+#endif /* CHANNELHOPPINGLFSR_H_ */

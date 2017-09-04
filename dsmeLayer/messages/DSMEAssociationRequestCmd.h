@@ -1,4 +1,4 @@
-/*
+ /*
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
@@ -40,33 +40,42 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ASSOCIATEREQUESTCMD_H_
-#define ASSOCIATEREQUESTCMD_H_
+#ifndef DSMEASSOCIATIONREQUESTCMD_H_
+#define DSMEASSOCIATIONREQUESTCMD_H_
 
-#include "../../mac_services/DSME_Common.h"
-#include "../../mac_services/dataStructures/DSMEMessageElement.h"
+#include "AssociateRequestCmd.h"
 
 namespace dsme {
-class AssociateRequestCmd : public DSMEMessageElement {
+class DSMEAssociationRequestCmd : public AssociateRequestCmd {
 public:
-    AssociateRequestCmd() : capabilityInformation{0} {
+    DSMEAssociationRequestCmd() : hoppingSequenceId(0), channelOffset(0) {
     }
 
-    explicit AssociateRequestCmd(CapabilityInformation capabilityInformation) : capabilityInformation(capabilityInformation) {
+    explicit DSMEAssociationRequestCmd(CapabilityInformation capabilityInformation, uint8_t hoppingSequenceId, uint16_t channelOffset, NOT_IMPLEMENTED_t extendedDsmeGtsAllocation) : AssociateRequestCmd(capabilityInformation), hoppingSequenceId(hoppingSequenceId), channelOffset(channelOffset) {
     }
 
-    const CapabilityInformation& getCapabilityInformation() const {
-        return this->capabilityInformation;
+    uint8_t getHoppingSequenceId() const {
+        return this->hoppingSequenceId;
+    }
+
+    uint16_t getChannelOffset() const {
+        return this->channelOffset;
+    }
+
+    NOT_IMPLEMENTED_t getExtendedDsmeGtsAllocation() const {
+        return this->extendedDsmeGtsAllocation;
     }
 
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
         size += 1; // capabilityInformation
+        size += 1; // hoppingSequenceId
+        size += 2; // channelOffset
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
-        if(serializer.getType() == SERIALIZATION) {
+        if(serializer.getType() == SERIALIZATION) { //TODO
             uint8_t info = 0;
             info |= capabilityInformation.alternatePANCoordinator;
             info |= capabilityInformation.deviceType << 1;
@@ -87,12 +96,16 @@ public:
             capabilityInformation.securityCapability = info & (1 << 6);
             capabilityInformation.allocateAddress = info & (1 << 7);
         }
+        serializer << hoppingSequenceId;
+        serializer << channelOffset;
     }
 
-protected:
-    CapabilityInformation capabilityInformation;
+private:
+    uint8_t hoppingSequenceId;
+    uint16_t channelOffset;
+    NOT_IMPLEMENTED_t extendedDsmeGtsAllocation; 
 };
 
 } /* namespace dsme */
 
-#endif /* ASSOCIATEREQUESTCMD_H_ */
+#endif /* DSMEASSOCIATIONREQUESTCMD_H_ */

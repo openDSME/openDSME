@@ -44,8 +44,8 @@
 
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../../dsmeLayer/associationManager/AssociationManager.h"
-#include "../../dsmeLayer/messages/AssociateReplyCmd.h"
-#include "../../dsmeLayer/messages/AssociateRequestCmd.h"
+#include "../../dsmeLayer/messages/DSMEAssociationResponseCmd.h"
+#include "../../dsmeLayer/messages/DSMEAssociationRequestCmd.h"
 #include "../../interfaces/IDSMEPlatform.h"
 #include "../DSME_Common.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
@@ -70,13 +70,13 @@ void ASSOCIATE::request(request_parameters& params) {
         dsme.getMAC_PIB().macCoordExtendedAddress = params.coordAddress;
     }
 
-    AssociateRequestCmd associateRequestCmd(params.capabilityInformation);
+    DSMEAssociationRequestCmd associateRequestCmd(params.capabilityInformation, params.hoppingSequenceId, params.channelOffset, params.allocationOrder);
     AssociationManager& associationManager = dsme.getAssociationManager();
     associationManager.sendAssociationRequest(associateRequestCmd, params);
 }
 
 void ASSOCIATE::response(response_parameters& params) {
-    AssociateReplyCmd reply(params.assocShortAddress, params.status);
+    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, 0, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex); //TODO
     AssociationManager& associationManager = dsme.getAssociationManager();
 
     if(params.status != AssociationStatus::FASTA_SUCCESSFUL) {
@@ -84,7 +84,7 @@ void ASSOCIATE::response(response_parameters& params) {
          * response is added to a list of pending transactions
          */
     }
-    associationManager.sendAssociationReply(reply, params.deviceAddress);
+    associationManager.sendAssociationReply(response, params.deviceAddress);
 }
 
 } /* namespace mlme_sap */

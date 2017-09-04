@@ -49,8 +49,8 @@
 #include "../../mac_services/mlme_sap/ASSOCIATE.h"
 #include "../../mac_services/mlme_sap/DISASSOCIATE.h"
 #include "../../mac_services/mlme_sap/MLME_SAP.h"
-#include "../messages/AssociateReplyCmd.h"
-#include "../messages/AssociateRequestCmd.h"
+#include "../messages/DSMEAssociationResponseCmd.h"
+#include "../messages/DSMEAssociationRequestCmd.h"
 #include "../messages/DisassociationNotifyCmd.h"
 
 namespace dsme {
@@ -72,9 +72,9 @@ public:
 
     void reset();
 
-    void sendAssociationRequest(AssociateRequestCmd& associateRequestCmd, mlme_sap::ASSOCIATE::request_parameters& params);
+    void sendAssociationRequest(DSMEAssociationRequestCmd& associateRequestCmd, mlme_sap::ASSOCIATE::request_parameters& params);
     void handleAssociationRequest(IDSMEMessage* msg);
-    void sendAssociationReply(AssociateReplyCmd& reply, IEEE802154MacAddress& deviceAddress);
+    void sendAssociationReply(DSMEAssociationResponseCmd& response, IEEE802154MacAddress& deviceAddress);
     void handleAssociationReply(IDSMEMessage* msg);
 
     void sendDisassociationRequest(DisassociationNotifyCmd& req, mlme_sap::DISASSOCIATE::request_parameters& params);
