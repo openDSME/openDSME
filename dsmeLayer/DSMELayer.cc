@@ -49,6 +49,7 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "../mac_services/pib/PIBHelper.h"
 #include "../mac_services/pib/dsme_mac_constants.h"
+#include "../helper/ChannelHoppingLFSR.h"
 
 namespace dsme {
 
@@ -94,6 +95,21 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->beaconManager.initialize();
 
     this->mac_pib->macDsn = platform->getRandom();
+
+    if(this->mac_pib->macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+        this->mac_pib->macHoppingSequenceLength = mac_pib->helper.getNumChannels();
+        this->mac_pib->macHoppingSequenceList.setLength(this->mac_pib->macHoppingSequenceLength);
+        for(int i=0; i<this->mac_pib->macHoppingSequenceLength; i++) {
+            this->mac_pib->macHoppingSequenceList[i] = this->mac_pib->helper.getChannels()[i];
+        }
+        ChannelHoppingLFSR lfsr;
+        for(int i=0; i<this->mac_pib->macHoppingSequenceLength; i++) {
+            uint8_t ch_cpy = this->mac_pib->macHoppingSequenceList[i];
+            uint8_t shuffle = lfsr.next() % this->mac_pib->macHoppingSequenceLength;
+            this->mac_pib->macHoppingSequenceList[i] = this->mac_pib->macHoppingSequenceList[shuffle];
+            this->mac_pib->macHoppingSequenceList[shuffle] = ch_cpy;
+        }
+    }
 }
 
 void DSMELayer::start() {

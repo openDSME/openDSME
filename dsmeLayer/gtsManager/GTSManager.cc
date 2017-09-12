@@ -421,6 +421,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             params.direction = event.management.direction;
             params.prioritizedChannelAccess = event.management.prioritizedChannelAccess;
             params.dsmeSabSpecification = event.replyNotifyCmd.getSABSpec();
+            params.channelOffset = event.replyNotifyCmd.getChannelOffset();
 
             // TODO // if the ACK gets lost, the reply might be sent anyway, so we might be in SENDING_REQUEST
             // TODO DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REQUEST) || state == State::WAIT_FOR_REPLY);
@@ -456,7 +457,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                             DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
                         }
                     } else {
-                        actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                        actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                     }
                 }
             }

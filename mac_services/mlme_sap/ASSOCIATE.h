@@ -47,6 +47,7 @@
 #include "../DSME_Common.h"
 #include "../IndicationBase.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
+#include "../MacDataStructures.h"
 
 namespace dsme {
 class DSMELayer;
@@ -119,7 +120,7 @@ public:
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
         uint16_t channelOffset;
-        uint8_t *hoppingSequence; //TODO
+        MacStaticList<uint8_t, 30> hoppingSequence; //TODO
         NOT_IMPLEMENTED_t dsmeAssociation;
         NOT_IMPLEMENTED_t allocationOrder;
         NOT_IMPLEMENTED_t biIndex;

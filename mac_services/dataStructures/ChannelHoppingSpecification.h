@@ -40,96 +40,51 @@
  * SUCH DAMAGE.
  */
 
-#ifndef MACDATASTRUCTURES_H_
-#define MACDATASTRUCTURES_H_
+#ifndef CHANNELHOPPINGSPECIFICATION_H_
+#define CHANNELHOPPINGSPECIFICATION_H_
 
-#include "../helper/Integers.h"
+/* INCLUDES ******************************************************************/
+
+#include "../../../dsme_settings.h"
+#include "../../helper/Integers.h"
+#include "./DSMEBitVector.h"
+
+class Serializer;
 
 namespace dsme {
 
-template <typename TK, typename TV>
-class MacTuple {
+/* CLASSES *******************************************************************/
+
+class ChannelHoppingSpecification {
 public:
-    MacTuple(const TK& key, const TV& value) : key(key), value(value) {
-    }
+    /*
+     * Creates a new ChannelHoppingSpecification
+     */
+    ChannelHoppingSpecification();
 
-    TK key;
-    TV value;
-};
+    uint8_t getHoppingSequenceId() const;
+    void setHoppingSequenceId(uint8_t hoppingSequenceId);
+    uint8_t getPanCoordinatorBsn() const;
+    void setPanCoordinatorBsn(uint8_t panCoordinatorBsn);
+    uint16_t getChannelOffset() const;
+    void setChannelOffset(uint16_t channelOffset);
+    uint8_t getChannelOffsetBitmapLength() const;
+    void setChannelOffsetBitmapLength(uint8_t channelOffsetBitmapLength);
+    BitVector<MAX_CHANNELS>& getChannelOffsetBitmap();
+    void setChannelOffsetBitmap(const BitVector<MAX_CHANNELS>& channelOffsetBitmap);
 
-template <typename T, uint8_t S>
-class MacStaticList {
-public:
-    MacStaticList() : length(0), array{} {
-    }
-
-    MacStaticList(const MacStaticList& other) : length(other.length) {
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-    }
-
-    MacStaticList& operator=(const MacStaticList& other) {
-        this->length = other.length;
-        for(uint8_t i = 0; i < length; i++) {
-            this->array[i] = other.array[i];
-        }
-        return *this;
-    }
-
-    explicit MacStaticList(uint8_t length) : length(length) {
-    }
-
-    ~MacStaticList() = default;
-
-    uint8_t getLength() const {
-        return this->length;
-    }
-
-    void setLength(uint8_t length) {
-        this->length = length;
-    }
-
-    const T& operator[](uint8_t pos) const {
-        return this->array[pos];
-    }
-
-    T& operator[](uint8_t pos) {
-        return this->array[pos];
-    }
-
-    void add(const T& element) {
-        if(this->length < S) {
-            this->array[length++] = element;
-        }
-    }
-
-    bool contains(const T& element) {
-        for(uint8_t i = 0; i < length; i++) {
-            if(this->array[i] == element) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void clear() {
-        this->length = 0;
-    }
-
-    uint8_t size() const {
-        return this->length;
-    }
-
-    uint8_t full() const {
-        return (this->length == S);
-    }
+    uint8_t getSerializationLength() const;
+    friend Serializer& operator<<(Serializer& serializer, ChannelHoppingSpecification& b);
 
 private:
-    uint8_t length;
-    T array[S];
+    uint8_t hoppingSequenceId;
+    uint8_t panCoordinatorBSN;
+    uint16_t channelOffset;
+    BitVector<MAX_CHANNELS> channelOffsetBitmap;
 };
+
+Serializer& operator<<(Serializer& serializer, ChannelHoppingSpecification& b);
 
 } /* namespace dsme */
 
-#endif /* MACDATASTRUCTURES_H_ */
+#endif /* BEACONBITMAP_H_ */

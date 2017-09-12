@@ -56,6 +56,7 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../../mac_services/pib/PHY_PIB.h"
 #include "../../mac_services/pib/PIBHelper.h"
+#include "../../mac_services/MacDataStructures.h"
 #include "../DSMELayer.h"
 #include "../ackLayer/AckLayer.h"
 #include "../associationManager/AssociationManager.h"
@@ -132,7 +133,23 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             // For RX also if INVALID or UNCONFIRMED!
             if((this->currentACTElement->getState() == VALID) || (this->currentACTElement->getDirection() == Direction::RX)) {
                 this->dsme.getPlatform().turnTransceiverOn();
-                this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
+
+                if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
+                    this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
+                } else {
+                    /* Channel hopping: Calculate channel for given slotID */
+                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots();
+                    uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
+                    uint8_t ebsn = this->dsme.getMAC_PIB().macPanCoordinatorBsn; //TODO is this set somewhere???
+                    uint16_t sdIndex = this->dsme.getMAC_PIB().macSdIndex; //TODO is this set somewhere???
+
+                    uint8_t slotId = this->currentACTElement->getGTSlotID();
+                    uint16_t channelOffset = this->currentACTElement->getChannel(); //holds the channel offset in channel hopping mode
+
+                    uint8_t channel = this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex*numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
+                    LOG_INFO("using channel " << channel << " due to hopping sequence");
+                    this->dsme.getPlatform().setChannelNumber(channel);
+                }
             }
 
             // statistic

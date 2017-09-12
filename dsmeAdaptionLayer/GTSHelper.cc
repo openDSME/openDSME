@@ -223,7 +223,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
     responseParams.managementType = params.managementType;
     responseParams.direction = params.direction;
     responseParams.prioritizedChannelAccess = params.prioritizedChannelAccess;
-    responseParams.channelOffset = 0;
+    responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
 
     bool sendReply = true;
 

@@ -51,6 +51,7 @@
 #include "./PendingAddresses.h"
 #include "./SuperframeSpecification.h"
 #include "./TimeSyncSpecification.h"
+#include "./ChannelHoppingSpecification.h"
 
 namespace dsme {
 
@@ -60,6 +61,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
     DSMESuperframeSpecification dsmeSuperframeSpec;
     TimeSyncSpecification timeSyncSpec;
     BeaconBitmap beaconBitmap;
+    ChannelHoppingSpecification channelHoppingSpecification;
 
     BeaconBitmap& getBeaconBitmap() {
         return beaconBitmap;
@@ -81,13 +83,13 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
 
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
-        size += 2;                                         // Superframe Specification
-        size += pendingAddresses.getSerializationLength(); // Pending Address
-        size += 1;                                         // DSME Superframe Specification
-        size += 8;                                         // Time Synchronization Specification
-        size += beaconBitmap.getSerializationLength();     // Beacon Bitmap
-        size += 0;                                         // Channel Hopping Specification (not yet implemented)
-        size += 0;                                         // Group ACK Specification (not yet implemented)
+        size += 2;                                                      // Superframe Specification
+        size += pendingAddresses.getSerializationLength();              // Pending Address
+        size += 1;                                                      // DSME Superframe Specification
+        size += 8;                                                      // Time Synchronization Specification
+        size += beaconBitmap.getSerializationLength();                  // Beacon Bitmap
+        size += channelHoppingSpecification.getSerializationLength();   // Channel Hopping Specification //TODO only if channel hopping
+        size += 0;                                                      // Group ACK Specification (not yet implemented)
         return size;
     }
 
@@ -97,6 +99,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         serializer << dsmeSuperframeSpec;
         serializer << timeSyncSpec;
         serializer << beaconBitmap;
+        serializer << channelHoppingSpecification;  //TODO only if channel hopping
     }
 };
 

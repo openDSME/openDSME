@@ -91,7 +91,7 @@ void AssociationHelper::associate(uint16_t coordPANId, AddrMode addrMode, IEEE80
     params.coordPanId = coordPANId;
     params.coordAddress = coordAddress;
     params.capabilityInformation = capabilityInformation;
-    params.channelOffset = 0; //TODO higher layer
+    params.channelOffset = this->dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
     params.hoppingSequenceId = 1;
     params.hoppingSequenceRequest = true;
 
@@ -116,8 +116,10 @@ void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indicat
     response_params.deviceAddress = params.deviceAddress;
     response_params.assocShortAddress = params.deviceAddress.a4();
     response_params.status = AssociationStatus::SUCCESS;
-    response_params.channelOffset = params.channelOffset;
-    response_params.hoppingSequence = nullptr; //TODO
+    response_params.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
+    if(params.hoppingSequenceRequest == true || params.hoppingSequenceId == 1) {
+        response_params.hoppingSequence = dsmeAdaptionLayer.getMAC_PIB().macHoppingSequenceList;
+    }
 
     // TODO update list of associated devices
 

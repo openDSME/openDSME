@@ -49,10 +49,10 @@
 namespace dsme {
 class DSMEAssociationResponseCmd : public DSMEMessageElement {
 public:
-    DSMEAssociationResponseCmd() : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS), hoppingSequenceLength(0), hoppingSequence(nullptr) {
+    DSMEAssociationResponseCmd() : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS), hoppingSequenceLength(0) {
     }
 
-    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength, uint8_t *hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx, NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx) : shortAddr(shortAddr), status(status), hoppingSequenceLength(hoppingSequenceLength), hoppingSequence(hoppingSequence), allocationOrder(allocationOrder), biIdx(biIdx), superframeId(superframeId), slotId(slotId), channelIdx(channelIdx) { //TODO
+    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength, MacStaticList<uint8_t, 30> hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx, NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx) : shortAddr(shortAddr), status(status), hoppingSequenceLength(hoppingSequenceLength), hoppingSequence(hoppingSequence), allocationOrder(allocationOrder), biIdx(biIdx), superframeId(superframeId), slotId(slotId), channelIdx(channelIdx) { //TODO
     }
 
     uint16_t getShortAddr() const {
@@ -67,8 +67,8 @@ public:
         return this->hoppingSequenceLength;
     }
 
-    uint8_t* getHoppingSequence() const {  //TODO
-        return this->hoppingSequence;
+    MacStaticList<uint8_t, 30> getHoppingSequence() const {
+        return hoppingSequence;
     }
 
     NOT_IMPLEMENTED_t getAllocationOrder() const {
@@ -111,6 +111,7 @@ public:
         serializer << stat;
         status = (AssociationStatus::Association_Status)stat;
         serializer << hoppingSequenceLength;
+        hoppingSequence.setLength(hoppingSequenceLength);
         for(int i=0; i<hoppingSequenceLength; i++) {
             serializer << hoppingSequence[i];
         }
@@ -120,7 +121,7 @@ private:
     uint16_t shortAddr;
     AssociationStatus::Association_Status status;
     uint8_t hoppingSequenceLength;
-    uint8_t *hoppingSequence; //TODO
+    MacStaticList<uint8_t, 30> hoppingSequence;
     NOT_IMPLEMENTED_t allocationOrder;
     NOT_IMPLEMENTED_t biIdx;
     NOT_IMPLEMENTED_t superframeId;

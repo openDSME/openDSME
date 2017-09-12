@@ -327,10 +327,10 @@ public:
     uint32_t macPhyConfiguration{0};
 
     /** The number of channels in the Hopping Sequence. Does not necessarily equal macNumberOfChannels. */
-    uint16_t macHoppingSequenceLength{0};
+    uint8_t macHoppingSequenceLength{0}; //TODO this should be uint16_t
 
     /** A macHoppingSequenceLengthelement set of channels to be hopped over. */
-    uint16_t *macHoppingSequenceList{0};
+    MacStaticList<uint8_t, 30> macHoppingSequenceList; //TODO this should be uint16_t
 
     /** For unslotted channel hopping modes, this field is the channel dwell time, in units of 10 µs. For other modes, the field is empty. */
     uint16_t macHopDwellTime{0};
@@ -355,7 +355,7 @@ public:
     bool macCapReduction{false};
 
     /** Indicates the method of channel diversity in a beacon-enabled PAN, either channel adaptation or channel hopping. */
-    enum { ADAPTATION, HOPPING } macChannelDiversityMode{ADAPTATION};
+    enum { ADAPTATION, HOPPING } macChannelDiversityMode{HOPPING};
 
     /** The length of a multi-superframe, which is a cycle of the repeated superframes. */
     uint8_t macMultiSuperframeOrder{15};

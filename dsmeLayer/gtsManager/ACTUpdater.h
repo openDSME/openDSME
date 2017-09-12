@@ -62,7 +62,7 @@ public:
     void requestNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
-    void approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
     void disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);

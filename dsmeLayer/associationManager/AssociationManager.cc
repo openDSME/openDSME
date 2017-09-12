@@ -127,6 +127,9 @@ void AssociationManager::handleAssociationRequest(IDSMEMessage* msg) {
     mlme_sap::ASSOCIATE_indication_parameters params;
     params.deviceAddress = msg->getHeader().getSrcAddr();
     params.capabilityInformation = req.getCapabilityInformation();
+    params.channelOffset = req.getChannelOffset();
+    params.hoppingSequenceId = req.getHoppingSequenceId();
+    params.hoppingSequenceRequest = req.getHoppingSequenceId() == 1;
 
     this->dsme.getMLME_SAP().getASSOCIATE().notify_indication(params);
 }

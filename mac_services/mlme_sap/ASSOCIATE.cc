@@ -69,6 +69,10 @@ void ASSOCIATE::request(request_parameters& params) {
     } else {
         dsme.getMAC_PIB().macCoordExtendedAddress = params.coordAddress;
     }
+    dsme.getMAC_PIB().macChannelOffset = params.channelOffset;
+    dsme.getMAC_PIB().macHoppingSequenceId = params.hoppingSequenceId;
+    dsme.getMAC_PIB().macChannelPage = params.channelPage;
+    dsme.getMAC_PIB().macNumberOfChannels = dsme.getMAC_PIB().helper.getNumChannels();
 
     DSMEAssociationRequestCmd associateRequestCmd(params.capabilityInformation, params.hoppingSequenceId, params.channelOffset, params.allocationOrder);
     AssociationManager& associationManager = dsme.getAssociationManager();
@@ -76,7 +80,7 @@ void ASSOCIATE::request(request_parameters& params) {
 }
 
 void ASSOCIATE::response(response_parameters& params) {
-    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, 0, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex); //TODO
+    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, dsme.getMAC_PIB().macHoppingSequenceLength, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex);
     AssociationManager& associationManager = dsme.getAssociationManager();
 
     if(params.status != AssociationStatus::FASTA_SUCCESSFUL) {

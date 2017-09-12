@@ -92,6 +92,13 @@ void BeaconManager::initialize() {
     this->dsme.getMAC_PIB().macSdBitmap.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
     neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
 
+    if(this->dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+        this->dsme.getMAC_PIB().macChannelOffsetBitmapLength = BITVECTOR_BYTE_LENGTH(this->dsme.getMAC_PIB().helper.getNumChannels());
+        this->dsme.getMAC_PIB().macChannelOffsetBitmap = new uint8_t[this->dsme.getMAC_PIB().macChannelOffsetBitmapLength];
+        dsmePANDescriptor.channelHoppingSpecification.setHoppingSequenceId(dsme.getMAC_PIB().macHoppingSequenceId);
+        dsmePANDescriptor.channelHoppingSpecification.setChannelOffsetBitmapLength(MAX_CHANNELS);
+    }
+
     isBeaconAllocated = false;
     isBeaconAllocationSent = false;
 
@@ -221,6 +228,19 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     this->dsme.getMAC_PIB().macSdBitmap.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
+
+    /* Update channel offset bitmap and channel offset if another neighbor already uses it */
+    if(this->dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+        dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().set(descr.channelHoppingSpecification.getChannelOffset(), 1);
+
+        if(descr.channelHoppingSpecification.getChannelOffset() == dsmePANDescriptor.channelHoppingSpecification.getChannelOffset()) {
+            /* Find a new channel offset to use if the current one is already used by a neighbor */
+            dsmePANDescriptor.channelHoppingSpecification.setChannelOffset(*dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().beginUnsetBits());
+            dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().set(dsmePANDescriptor.channelHoppingSpecification.getChannelOffset(), 1);
+            dsme.getMAC_PIB().macChannelOffset = dsmePANDescriptor.channelHoppingSpecification.getChannelOffset();
+            LOG_INFO("Duplicate channel offset -> using " << dsme.getMAC_PIB().macChannelOffset << " now");
+        }
+    }
 
     if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
         LOG_INFO("Only track beacons by coordinator -> discard");

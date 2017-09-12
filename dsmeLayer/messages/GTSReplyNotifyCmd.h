@@ -80,6 +80,10 @@ public:
         this->destinationAddress = destinationShortAddress;
     }
 
+    uint16_t getChannelOffset() const {
+        return channelOffset;
+    }
+
     DSMESABSpecification& getSABSpec() {
         return SABSpec;
     }

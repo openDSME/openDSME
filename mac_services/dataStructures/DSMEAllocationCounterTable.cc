@@ -182,7 +182,7 @@ uint16_t DSMEAllocationCounterTable::getNumAllocatedTxGTS(uint16_t address) {
 
 void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state) {
     Direction ignoredDirection = TX;
-    setACTState(subBlock, state, ignoredDirection, 0xFFFF);
+    setACTState(subBlock, state, ignoredDirection, 0xFFFF, 0, false);
 }
 
 static const char* stateToString(ACTState state) {
@@ -202,11 +202,11 @@ static const char* stateToString(ACTState state) {
     };
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, bool checkAddress) {
-    setACTState(subBlock, state, direction, deviceAddress, [](ACTElement e) { return true; }, checkAddress);
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, bool checkAddress) {
+    setACTState(subBlock, state, direction, deviceAddress, channelOffset, useChannelOffset, [](ACTElement e) { return true; }, checkAddress);
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, condition_t condition,
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, condition_t condition,
                                              bool checkAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     if(subBlock.getSubBlock().count(true) < 1) {
@@ -248,7 +248,8 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
         if(actit == end()) {
             /* '-> does not yet exist */
             if(deviceAddress != 0xFFFF) {
-                bool added = add(gts.superframeID, gts.slotID, gts.channel, direction, deviceAddress, state);
+                uint16_t channel = useChannelOffset ? channelOffset : gts.channel;
+                bool added = add(gts.superframeID, gts.slotID, channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
                 LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << (uint16_t)gts.channel << " as "
                                       << stateToString(state));
