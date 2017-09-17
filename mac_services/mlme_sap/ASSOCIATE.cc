@@ -80,7 +80,7 @@ void ASSOCIATE::request(request_parameters& params) {
 }
 
 void ASSOCIATE::response(response_parameters& params) {
-    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, dsme.getMAC_PIB().macHoppingSequenceLength, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex);
+    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, dsme.getMAC_PIB().macHoppingSequenceLength, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex, this->dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING);
     AssociationManager& associationManager = dsme.getAssociationManager();
 
     if(params.status != AssociationStatus::FASTA_SUCCESSFUL) {

@@ -52,7 +52,7 @@ public:
     DSMEAssociationResponseCmd() : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS), hoppingSequenceLength(0) {
     }
 
-    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength, MacStaticList<uint8_t, 30> hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx, NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx) : shortAddr(shortAddr), status(status), hoppingSequenceLength(hoppingSequenceLength), hoppingSequence(hoppingSequence), allocationOrder(allocationOrder), biIdx(biIdx), superframeId(superframeId), slotId(slotId), channelIdx(channelIdx) { //TODO
+    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength, MacStaticList<uint8_t, 30> hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx, NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx, bool useChannelHopping) : shortAddr(shortAddr), status(status), hoppingSequenceLength(hoppingSequenceLength), hoppingSequence(hoppingSequence), allocationOrder(allocationOrder), biIdx(biIdx), superframeId(superframeId), slotId(slotId), channelIdx(channelIdx), useChannelHopping(useChannelHopping) { //TODO
     }
 
     uint16_t getShortAddr() const {
@@ -95,8 +95,10 @@ public:
         uint8_t size = 0;
         size += 2; // shortAddr
         size += 1; // status
-        size += 1; // hoppingSequenceLength
-        size += hoppingSequenceLength; //hoppingSequence
+        if(useChannelHopping) {
+            size += 1; // hoppingSequenceLength
+            size += hoppingSequenceLength; //hoppingSequence
+        }
         //size += 1; // allocationOrder -> not implemented
         //size += 1; // biIndex -> not implemented
         //size += 2; // superframeId -> not implemented
@@ -110,10 +112,14 @@ public:
         uint8_t stat = (uint8_t)status;
         serializer << stat;
         status = (AssociationStatus::Association_Status)stat;
-        serializer << hoppingSequenceLength;
-        hoppingSequence.setLength(hoppingSequenceLength);
-        for(int i=0; i<hoppingSequenceLength; i++) {
-            serializer << hoppingSequence[i];
+        if(useChannelHopping) {
+            serializer << hoppingSequenceLength;
+            if(hoppingSequenceLength != 0) {
+                hoppingSequence.setLength(hoppingSequenceLength);
+                for(int i=0; i<hoppingSequenceLength; i++) {
+                    serializer << hoppingSequence[i];
+                }
+            }
         }
     }
 
@@ -127,6 +133,9 @@ private:
     NOT_IMPLEMENTED_t superframeId;
     NOT_IMPLEMENTED_t slotId;
     NOT_IMPLEMENTED_t channelIdx;
+
+    // not in the standard but used to reduce message size
+    bool useChannelHopping;
 };
 
 } /* namespace dsme */

@@ -225,6 +225,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     }
 
     LOG_DEBUG("Updating heard Beacons, index is " << descr.getBeaconBitmap().getSDIndex() << ".");
+    this->dsme.getMAC_PIB().macSdIndex = descr.getBeaconBitmap().getSDIndex();
     this->dsme.getMAC_PIB().macSdBitmap.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
@@ -441,6 +442,7 @@ void BeaconManager::handleBeacon(IDSMEMessage* msg) {
         params.ebsn = msg->getHeader().getSequenceNumber();
         params.beaconType = msg->getHeader().isEnhancedBeacon();
 
+        this->dsme.getMAC_PIB().macPanCoordinatorBsn = params.ebsn;
         this->dsme.getMLME_SAP().getBEACON_NOTIFY().notify_indication(params);
     }
 
