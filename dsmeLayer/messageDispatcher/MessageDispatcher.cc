@@ -120,10 +120,10 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
 
-    if(nextSlot > this->dsme.getMAC_PIB().helper.getFinalCAPSlot()) { // TODO correct?
+    if(nextSlot > this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe)) {
         /* '-> next slot will be GTS */
 
-        unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1);
+        unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             /* '-> this slot might be used */
 
@@ -138,10 +138,10 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
                 } else {
                     /* Channel hopping: Calculate channel for given slotID */
-                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots();
+                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(nextSuperframe);
                     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
-                    uint8_t ebsn = this->dsme.getMAC_PIB().macPanCoordinatorBsn; //TODO is this set somewhere???
-                    uint16_t sdIndex = this->dsme.getMAC_PIB().macSdIndex; //TODO is this set somewhere???
+                    uint8_t ebsn = this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
+                    uint16_t sdIndex = this->dsme.getMAC_PIB().macSdIndex;
 
                     uint8_t slotId = this->currentACTElement->getGTSlotID();
                     uint16_t channelOffset = this->currentACTElement->getChannel(); //holds the channel offset in channel hopping mode
@@ -181,6 +181,8 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
         } else {
             /* '-> inactive CAP slot (CAP-reduction 'light') */
+            /* Not reachable anymore with CAP-reduction */
+            // TODO remove?
         }
     }
 
@@ -188,7 +190,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {
-    if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot()) {
+    if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)) {
         handleGTS(lateness);
     }
     return true;
@@ -342,7 +344,7 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 
 void MessageDispatcher::handleGTS(int32_t lateness) {
     if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
-       this->currentACTElement->getGTSlotID() == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
+       this->currentACTElement->getGTSlotID() == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
         /* '-> this slot matches the prepared ACT element */
 
         if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
@@ -408,7 +410,7 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     numUnusedRxGts--;
 
     if(currentACTElement->getSuperframeID() == dsme.getCurrentSuperframe() &&
-       currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot() + 1)) {
+       currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
         // According to 5.1.10.5.3
         currentACTElement->resetIdleCounter();
     }

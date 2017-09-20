@@ -221,7 +221,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);
 
-    if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot() + 1) {
+    if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1) {
         platform->scheduleStartOfCFP();
     }
 }
@@ -262,7 +262,7 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     uint32_t symbolsSinceCapFrameStart = getSymbolsSinceCapFrameStart(time);
 
     uint32_t capStart = symbolsPerSlot; // after beacon slot
-    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot() + 1) - PRE_EVENT_SHIFT;
+    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot(0) + 1) - PRE_EVENT_SHIFT;
 
     return (symbolsSinceCapFrameStart >= capStart)              // after beacon slot
            && (symbolsSinceCapFrameStart + duration <= capEnd); // before pre-event of first GTS

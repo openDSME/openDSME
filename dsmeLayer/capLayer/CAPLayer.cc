@@ -277,7 +277,7 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
     const uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
-    const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot() * symbolsPerSlot;
+    const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
     const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
 
@@ -322,6 +322,7 @@ void CAPLayer::actionStartBackoffTimer() {
 
         DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
+            LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
             DSME_ASSERT(false);
         }

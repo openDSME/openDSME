@@ -62,11 +62,11 @@ public:
 
     unsigned getNumberMultiSuperframesPerBeaconInterval() const;
 
-    uint8_t getFinalCAPSlot() const;
+    uint8_t getFinalCAPSlot(uint8_t superframeId) const;
 
     uint32_t getSymbolsPerSlot() const;
 
-    uint8_t getNumGTSlots() const;
+    uint8_t getNumGTSlots(uint8_t superframeId) const;
 
     uint8_t getNumChannels() const;
 

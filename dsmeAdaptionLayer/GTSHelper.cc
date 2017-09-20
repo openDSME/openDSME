@@ -363,9 +363,9 @@ GTS GTSHelper::getContiguousFreeGTS() {
 
 GTS GTSHelper::getRandomFreeGTS() {
     uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
-
     uint8_t initialSuperframeID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numSuperFramesPerMultiSuperframe;
+
+    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(initialSuperframeID);
     uint8_t initialSlotID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numGTSlots;
 
     return getNextFreeGTS(initialSuperframeID, initialSlotID);
@@ -376,9 +376,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots();
     uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    uint16_t slotsToCheck = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * numGTSlots;
+    uint16_t slotsToCheck = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()-1)
+                            * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
 
     GTS gts(0, 0, 0);
 
@@ -392,6 +392,8 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
             return GTS::UNDEFINED;
         }
 
+        uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
+        LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
         for(gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
