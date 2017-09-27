@@ -61,21 +61,21 @@ public:
     void requestAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void requestNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
-    void approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
     void approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
-    void disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
     void notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
-    void notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
 
-    void approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
     void approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
-    void notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
-    void notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
+    void notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
+    void notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset);
     void disapprovalAccessFailure(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void disapprovalNoAck(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
     void disapprovalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr);
 
-    void duplicateAllocation(DSMESABSpecification& sabSpec);
+    void duplicateAllocation(DSMESABSpecification& sabSpec, uint16_t channelOffset);
     void expired(DSMESABSpecification& sabSpec);
 
 private:

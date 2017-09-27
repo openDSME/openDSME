@@ -223,7 +223,6 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
     responseParams.managementType = params.managementType;
     responseParams.direction = params.direction;
     responseParams.prioritizedChannelAccess = params.prioritizedChannelAccess;
-    responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
 
     bool sendReply = true;
 
@@ -235,6 +234,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                           params.preferredSlotId);
 
+            responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
                 LOG_WARN("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
@@ -403,6 +403,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         if(sabSpec == nullptr || !sabSpec->getSubBlock().get(gts.slotID * numChannels + gts.channel)) {
                             /* found one */
                             // LOG_INFO("Next free GTS is " << gts.superframeID << "/" << gts.slotID << "/" << (uint16_t)gts.channel << ".");
+                            //dsmeAdaptionLayer.getMAC_PIB().macChannelOffset = gts.channel;
                             return gts;
                         }
                     }

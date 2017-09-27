@@ -111,7 +111,7 @@ public:
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, bool checkAddress = false);
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, condition_t condition,
                      bool checkAddress = false);
-    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state);
+    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset, bool useChannelOffset);
 
 private:
     DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) = delete;

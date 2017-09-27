@@ -66,6 +66,8 @@
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
+uint8_t mCh;
+
 namespace dsme {
 
 MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
@@ -114,7 +116,7 @@ void MessageDispatcher::reset(void) {
     return;
 }
 
-bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe) {
+bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
     // Prepare next slot
     // Switch to next slot channel and radio mode
 
@@ -136,19 +138,21 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
+                    mCh = this->currentACTElement->getChannel();
                 } else {
                     /* Channel hopping: Calculate channel for given slotID */
-                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(nextSuperframe);
                     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
-                    uint8_t ebsn = this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
-                    uint16_t sdIndex = this->dsme.getMAC_PIB().macSdIndex;
+                    uint8_t ebsn = 0;//this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
+                    uint16_t sdIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
+                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(sdIndex);
 
                     uint8_t slotId = this->currentACTElement->getGTSlotID();
                     uint16_t channelOffset = this->currentACTElement->getChannel(); //holds the channel offset in channel hopping mode
 
                     uint8_t channel = this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex*numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
-                    LOG_INFO("using channel " << channel << " due to hopping sequence");
+                    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset << " Direction: " << currentACTElement->getDirection());
                     this->dsme.getPlatform().setChannelNumber(channel);
+                    mCh = channel;
                 }
             }
 
@@ -478,6 +482,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
             lastSendGTSNeighbor = neighborQueue.end();
+            LOG_DEBUG("sendDoneGTS - retry");
             return; // will stay at front of queue
         }
     }
@@ -494,6 +499,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     switch(response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
         case AckLayerResponse::ACK_SUCCESSFUL:
+            LOG_DEBUG("sendDoneGTS - success");
             params.status = DataStatus::SUCCESS;
             break;
         case AckLayerResponse::ACK_FAILED:

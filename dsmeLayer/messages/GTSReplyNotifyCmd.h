@@ -92,13 +92,14 @@ public:
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
         size += 2; // Destination Address
-        size += 0; // Channel hopping is not supported
+        size += 2; // channel offset
         size += SABSpec.getSerializationLength();
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
         serializer << destinationAddress;
+        serializer << channelOffset;
         serializer << SABSpec;
     }
 };

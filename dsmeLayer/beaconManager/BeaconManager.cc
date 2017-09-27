@@ -236,8 +236,13 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
 
         if(descr.channelHoppingSpecification.getChannelOffset() == dsmePANDescriptor.channelHoppingSpecification.getChannelOffset()) {
             /* Find a new channel offset to use if the current one is already used by a neighbor */
-            dsmePANDescriptor.channelHoppingSpecification.setChannelOffset(*dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().beginUnsetBits());
-            dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().set(dsmePANDescriptor.channelHoppingSpecification.getChannelOffset(), 1);
+            uint16_t rndOffsetIdx = dsme.getPlatform().getRandom() % dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmapLength();
+            while(dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().get(rndOffsetIdx) == 1) {
+                rndOffsetIdx = dsme.getPlatform().getRandom() % dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmapLength();
+            }
+
+            dsmePANDescriptor.channelHoppingSpecification.setChannelOffset(rndOffsetIdx);
+            dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().set(rndOffsetIdx, 1);
             dsme.getMAC_PIB().macChannelOffset = dsmePANDescriptor.channelHoppingSpecification.getChannelOffset();
             LOG_INFO("Duplicate channel offset -> using " << dsme.getMAC_PIB().macChannelOffset << " now");
         }

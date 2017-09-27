@@ -71,7 +71,6 @@ unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
 }
 
 uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
-    ASSERT(superframeId < getNumberSuperframesPerMultiSuperframe());
     if((mac_pib.macCapReduction==false) || (superframeId==0)) { //correct?
         return 8;
     } else {

@@ -97,6 +97,7 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->mac_pib->macDsn = platform->getRandom();
 
     if(this->mac_pib->macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+        /* compute default hopping sequence */
         this->mac_pib->macHoppingSequenceLength = mac_pib->helper.getNumChannels();
         this->mac_pib->macHoppingSequenceList.setLength(this->mac_pib->macHoppingSequenceLength);
         for(int i=0; i<this->mac_pib->macHoppingSequenceLength; i++) {
@@ -179,7 +180,7 @@ void DSMELayer::preSlotEvent(void) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
     }
 
-    messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe);
+    messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe, nextMultiSuperframe);
 }
 
 void DSMELayer::slotEvent(int32_t lateness) {

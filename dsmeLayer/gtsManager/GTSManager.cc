@@ -215,7 +215,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 return FSM_HANDLED;
             } else {
                 if(event.management.status == GTSStatus::SUCCESS) {
-                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
                 }
                 return transition(fsmId, &GTSManager::stateSending);
             }
@@ -306,7 +306,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
             if(event.cmdId == DSME_GTS_NOTIFY) {
-                actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
@@ -373,7 +373,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     if(event.management.status == GTSStatus::SUCCESS) {
-                        actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                        actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
                         data[fsmId].notifyPartnerAddress = event.deviceAddr;
                         return transition(fsmId, &GTSManager::stateWaitForNotify);
                     } else if(event.management.status == GTSStatus::DENIED) {
@@ -485,7 +485,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
                 DSME_ASSERT(event.management.status == GTSStatus::DENIED);
-                actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+                actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             }
         }
@@ -530,7 +530,7 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
         case GTSEvent::NOTIFY_CMD_FOR_ME: {
             // TODO! DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REPLY) || state == State::WAIT_FOR_NOTIFY); // TODO what if the notify comes
             // too late, probably send a deallocation again???
-            actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
+            actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
 
             /* If the DSME-GTS Destination address is the same as the macShortAddress, the device shall notify the next higher
              * layer of the receipt of the DSME-GTS notify command frame using MLME-COMM- STATUS.indication */
@@ -552,7 +552,7 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
             if(isTimeoutPending(fsmId)) {
                 LOG_INFO("GTS timeout for notify");
                 actUpdater.notifyTimeout(data[fsmId].pendingConfirm.dsmeSabSpecification, data[fsmId].pendingManagement,
-                                         data[fsmId].pendingConfirm.deviceAddress);
+                                         data[fsmId].pendingConfirm.deviceAddress, data[fsmId].pendingConfirm.channelOffset);
 
                 mlme_sap::COMM_STATUS_indication_parameters params;
                 // TODO also fill other fields
@@ -704,7 +704,7 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());
-        actUpdater.duplicateAllocation(req.getSABSpec());
+        actUpdater.duplicateAllocation(req.getSABSpec(), 0);
     }
 
     this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
@@ -945,6 +945,7 @@ void GTSManager::preparePendingConfirm(GTSEvent& event) {
         data[fsmId].pendingConfirm.dsmeSabSpecification = event.requestCmd.getSABSpec();
     } else if(event.signal == GTSEvent::MLME_RESPONSE_ISSUED) {
         data[fsmId].pendingConfirm.dsmeSabSpecification = event.replyNotifyCmd.getSABSpec();
+        data[fsmId].pendingConfirm.channelOffset = event.replyNotifyCmd.getChannelOffset();
     } else {
         DSME_ASSERT(false);
     }

@@ -108,10 +108,11 @@ public:
      *
      * @param nextSlot The upcoming slot number
      * @param nextSuperframe The upcoming superframe number
+     * @param nextMultiSuperframe The upcoming multisuperframe number
      *
      * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
-    bool handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe);
+    bool handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
 
     /**
      * This shall be called at the start of every slot.

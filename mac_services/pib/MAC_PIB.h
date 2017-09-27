@@ -355,7 +355,7 @@ public:
     bool macCapReduction{false};
 
     /** Indicates the method of channel diversity in a beacon-enabled PAN, either channel adaptation or channel hopping. */
-    enum { ADAPTATION, HOPPING } macChannelDiversityMode{HOPPING};
+    enum { ADAPTATION, HOPPING } macChannelDiversityMode{ADAPTATION};
 
     /** The length of a multi-superframe, which is a cycle of the repeated superframes. */
     uint8_t macMultiSuperframeOrder{15};
