@@ -181,7 +181,7 @@ void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
         this->messageSent = false;
     }
 
-    DSMEAssociationResponseCmd response;
+    DSMEAssociationResponseCmd response(this->dsme.getMAC_PIB().macChannelDiversityMode);
     response.decapsulateFrom(msg);
 
     mlme_sap::ASSOCIATE_confirm_parameters params;

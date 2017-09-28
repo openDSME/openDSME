@@ -136,7 +136,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             if((this->currentACTElement->getState() == VALID) || (this->currentACTElement->getDirection() == Direction::RX)) {
                 this->dsme.getPlatform().turnTransceiverOn();
 
-                if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
+                if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
                     mCh = this->currentACTElement->getChannel();
                 } else {

@@ -92,7 +92,7 @@ void BeaconManager::initialize() {
     this->dsme.getMAC_PIB().macSdBitmap.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
     neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
 
-    if(this->dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+    if(this->dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
         this->dsme.getMAC_PIB().macChannelOffsetBitmapLength = BITVECTOR_BYTE_LENGTH(this->dsme.getMAC_PIB().helper.getNumChannels());
         this->dsme.getMAC_PIB().macChannelOffsetBitmap = new uint8_t[this->dsme.getMAC_PIB().macChannelOffsetBitmapLength];
         dsmePANDescriptor.channelHoppingSpecification.setHoppingSequenceId(dsme.getMAC_PIB().macHoppingSequenceId);
@@ -231,7 +231,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
 
     /* Update channel offset bitmap and channel offset if another neighbor already uses it */
-    if(this->dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+    if(this->dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
         dsmePANDescriptor.channelHoppingSpecification.getChannelOffsetBitmap().set(descr.channelHoppingSpecification.getChannelOffset(), 1);
 
         if(descr.channelHoppingSpecification.getChannelOffset() == dsmePANDescriptor.channelHoppingSpecification.getChannelOffset()) {

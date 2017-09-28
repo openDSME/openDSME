@@ -180,9 +180,9 @@ uint16_t DSMEAllocationCounterTable::getNumAllocatedTxGTS(uint16_t address) {
     }
 }
 
-void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset, bool useChannelOffset) {
+void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset) {
     Direction ignoredDirection = TX;
-    setACTState(subBlock, state, ignoredDirection, 0xFFFF, channelOffset, useChannelOffset);
+    setACTState(subBlock, state, ignoredDirection, 0xFFFF, channelOffset, false);
 }
 
 static const char* stateToString(ACTState state) {

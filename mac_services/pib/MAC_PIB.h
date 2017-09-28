@@ -49,6 +49,7 @@
 #include "../dataStructures/IEEE802154MacAddress.h"
 #include "./PHY_PIB.h"
 #include "./PIBHelper.h"
+#include "../DSME_Common.h"
 
 namespace dsme {
 
@@ -355,7 +356,7 @@ public:
     bool macCapReduction{false};
 
     /** Indicates the method of channel diversity in a beacon-enabled PAN, either channel adaptation or channel hopping. */
-    enum { ADAPTATION, HOPPING } macChannelDiversityMode{ADAPTATION};
+    Channel_Diversity_Mode macChannelDiversityMode{Channel_Diversity_Mode::CHANNEL_ADAPTATION};
 
     /** The length of a multi-superframe, which is a cycle of the repeated superframes. */
     uint8_t macMultiSuperframeOrder{15};

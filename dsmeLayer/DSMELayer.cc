@@ -96,7 +96,7 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
 
     this->mac_pib->macDsn = platform->getRandom();
 
-    if(this->mac_pib->macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_HOPPING) {
+    if(this->mac_pib->macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
         /* compute default hopping sequence */
         this->mac_pib->macHoppingSequenceLength = mac_pib->helper.getNumChannels();
         this->mac_pib->macHoppingSequenceList.setLength(this->mac_pib->macHoppingSequenceLength);

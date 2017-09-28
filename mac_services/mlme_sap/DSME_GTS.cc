@@ -100,7 +100,7 @@ void DSME_GTS::response(response_parameters& params) {
     GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess, params.status);
 
     bool busy;
-    if(dsme.getMAC_PIB().macChannelDiversityMode == DSMESuperframeSpecification::CHANNEL_ADAPTION) {
+    if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
         // channel adaption mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSabSpecification);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
