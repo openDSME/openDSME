@@ -2,9 +2,9 @@
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
- * introduced in the IEEE 802.15.4e-2012 standard
+ * described in the IEEE 802.15.4-2015 standard
  *
- * Authors: Florian Meier <florian.meier@tuhh.de>
+ * Authors: Florian Kauer <florian.kauer@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
  *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
  *
@@ -57,10 +57,14 @@ struct TPSTxData : GTSSchedulingData {
 
 class TPS : public GTSSchedulingImpl<TPSTxData,GTSRxData> {
 public:
-    TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
+    TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha(0) {
     }
 
     virtual void multisuperframeEvent();
+    void setAlpha(float alpha);
+
+private:
+    float alpha; // TODO no float
 };
 
 } /* namespace dsme */

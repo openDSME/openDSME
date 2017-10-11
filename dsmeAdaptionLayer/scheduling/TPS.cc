@@ -56,6 +56,10 @@ namespace dsme {
 TPSTxData::TPSTxData() : avgIn(0) {
 }
 
+void TPS::setAlpha(float alpha) {
+    this->alpha = alpha;
+}
+
 void TPS::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
@@ -71,8 +75,8 @@ void TPS::multisuperframeEvent() {
     }
 
     for(TPSTxData& data : this->txLinks) {
-        float a = 0.01; // TODO no float
-        data.avgIn = data.messagesInLastMultisuperframe*a + data.avgIn*(1-a);
+        DSME_ASSERT(alpha > 0);
+        data.avgIn = data.messagesInLastMultisuperframe*alpha + data.avgIn*(1-alpha);
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
         float error = data.avgIn-slots;
