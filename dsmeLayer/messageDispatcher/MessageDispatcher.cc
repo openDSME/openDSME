@@ -49,6 +49,7 @@
 #include "../../interfaces/IDSMEMessage.h"
 #include "../../interfaces/IDSMEPlatform.h"
 #include "../../mac_services/DSME_Common.h"
+#include "../../mac_services/MacDataStructures.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/mcps_sap/DATA.h"
@@ -56,7 +57,6 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../../mac_services/pib/PHY_PIB.h"
 #include "../../mac_services/pib/PIBHelper.h"
-#include "../../mac_services/MacDataStructures.h"
 #include "../DSMELayer.h"
 #include "../ackLayer/AckLayer.h"
 #include "../associationManager/AssociationManager.h"
@@ -142,15 +142,18 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                 } else {
                     /* Channel hopping: Calculate channel for given slotID */
                     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
-                    uint8_t ebsn = 0;//this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
+                    uint8_t ebsn = 0; // this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
                     uint16_t sdIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
                     uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(sdIndex);
 
                     uint8_t slotId = this->currentACTElement->getGTSlotID();
-                    uint16_t channelOffset = this->currentACTElement->getChannel(); //holds the channel offset in channel hopping mode
+                    uint16_t channelOffset = this->currentACTElement->getChannel(); // holds the channel offset in channel hopping mode
 
-                    uint8_t channel = this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex*numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
-                    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset << " Direction: " << currentACTElement->getDirection());
+                    uint8_t channel =
+                        this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex * numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
+                    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex
+                                              << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
+                                              << " Direction: " << currentACTElement->getDirection());
                     this->dsme.getPlatform().setChannelNumber(channel);
                     mCh = channel;
                 }
@@ -348,7 +351,8 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 
 void MessageDispatcher::handleGTS(int32_t lateness) {
     if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
-       this->currentACTElement->getGTSlotID() == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
+       this->currentACTElement->getGTSlotID() ==
+           this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
         /* '-> this slot matches the prepared ACT element */
 
         if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
@@ -364,7 +368,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
                 /* '-> the neighbor associated with the current slot does not exist */
 
-                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                LOG_ERROR("neighborQueue.size: " << ((uint8_t)this->neighborQueue.getNumNeighbors()));
                 LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
                 for(auto it : this->neighborQueue) {
                     LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()

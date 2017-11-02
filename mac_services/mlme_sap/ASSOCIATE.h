@@ -46,8 +46,8 @@
 #include "../ConfirmBase.h"
 #include "../DSME_Common.h"
 #include "../IndicationBase.h"
-#include "../dataStructures/IEEE802154MacAddress.h"
 #include "../MacDataStructures.h"
+#include "../dataStructures/IEEE802154MacAddress.h"
 
 namespace dsme {
 class DSMELayer;
@@ -77,7 +77,7 @@ struct ASSOCIATE_confirm_parameters {
     NOT_IMPLEMENTED_t keySource;
     NOT_IMPLEMENTED_t keyIndex;
     uint16_t channelOffset;
-    uint8_t  *hoppingSequence; //TODO
+    uint8_t* hoppingSequence; // TODO
     NOT_IMPLEMENTED_t dsmeAssociation;
     NOT_IMPLEMENTED_t allocationOrder;
     NOT_IMPLEMENTED_t biIndex;
@@ -104,7 +104,7 @@ public:
         NOT_IMPLEMENTED_t keyIdMode;
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
-        uint16_t channelOffset;     // To be ignored, when in channel adaption mode
+        uint16_t channelOffset;    // To be ignored, when in channel adaption mode
         uint8_t hoppingSequenceId; // To be ignored, when in channel adaption mode
         NOT_IMPLEMENTED_t dsmeAssociation;
         NOT_IMPLEMENTED_t direction;
@@ -120,7 +120,7 @@ public:
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
         uint16_t channelOffset;
-        MacStaticList<uint8_t, 30> hoppingSequence; //TODO
+        MacStaticList<uint8_t, 30> hoppingSequence; // TODO
         NOT_IMPLEMENTED_t dsmeAssociation;
         NOT_IMPLEMENTED_t allocationOrder;
         NOT_IMPLEMENTED_t biIndex;

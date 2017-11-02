@@ -44,12 +44,12 @@
 
 #include "../../dsme_platform.h"
 #include "../../dsme_settings.h"
+#include "../helper/ChannelHoppingLFSR.h"
 #include "../helper/DSMEAtomic.h"
 #include "../interfaces/IDSMEPlatform.h"
 #include "../mac_services/pib/MAC_PIB.h"
 #include "../mac_services/pib/PIBHelper.h"
 #include "../mac_services/pib/dsme_mac_constants.h"
-#include "../helper/ChannelHoppingLFSR.h"
 
 namespace dsme {
 
@@ -100,11 +100,11 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
         /* compute default hopping sequence */
         this->mac_pib->macHoppingSequenceLength = mac_pib->helper.getNumChannels();
         this->mac_pib->macHoppingSequenceList.setLength(this->mac_pib->macHoppingSequenceLength);
-        for(int i=0; i<this->mac_pib->macHoppingSequenceLength; i++) {
+        for(int i = 0; i < this->mac_pib->macHoppingSequenceLength; i++) {
             this->mac_pib->macHoppingSequenceList[i] = this->mac_pib->helper.getChannels()[i];
         }
         ChannelHoppingLFSR lfsr;
-        for(int i=0; i<this->mac_pib->macHoppingSequenceLength; i++) {
+        for(int i = 0; i < this->mac_pib->macHoppingSequenceLength; i++) {
             uint8_t ch_cpy = this->mac_pib->macHoppingSequenceList[i];
             uint8_t shuffle = lfsr.next() % this->mac_pib->macHoppingSequenceLength;
             this->mac_pib->macHoppingSequenceList[i] = this->mac_pib->macHoppingSequenceList[shuffle];
@@ -247,11 +247,11 @@ uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
     if(this->mac_pib->macCapReduction) {
-        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macMultiSuperframeOrder);
+        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t)this->mac_pib->macMultiSuperframeOrder);
         uint32_t symbolsSinceLastMultiSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerMultiSuperframe;
         return symbolsSinceLastMultiSuperframeStart;
     } else {
-        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macSuperframeOrder);
+        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t)this->mac_pib->macSuperframeOrder);
         uint32_t symbolsSinceLastSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerSuperframe;
         return symbolsSinceLastSuperframeStart;
     }

@@ -125,7 +125,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     bool success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
 
     if(success) {
-        int d = (direction == TX)?0:1;
+        int d = (direction == TX) ? 0 : 1;
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
         if(numSlotIt == numAllocatedSlots[d].end()) {
             LOG_INFO("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
@@ -153,7 +153,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     bitmap.set(superframeID * numGTSlots + gtSlotID, false);
 
-    int d = (it->direction == TX)?0:1;
+    int d = (it->direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
     DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
     (*numSlotIt)--;
@@ -170,7 +170,7 @@ bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSl
 }
 
 uint16_t DSMEAllocationCounterTable::getNumAllocatedGTS(uint16_t address, Direction direction) {
-    int d = (direction == TX)?0:1;
+    int d = (direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
     if(numSlotIt == numAllocatedSlots[d].end()) {
         return 0;
@@ -201,12 +201,13 @@ static const char* stateToString(ACTState state) {
     };
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, bool checkAddress) {
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress,
+                                             uint16_t channelOffset, bool useChannelOffset, bool checkAddress) {
     setACTState(subBlock, state, direction, deviceAddress, channelOffset, useChannelOffset, [](ACTElement e) { return true; }, checkAddress);
 }
 
-void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, condition_t condition,
-                                             bool checkAddress) {
+void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress,
+                                             uint16_t channelOffset, bool useChannelOffset, condition_t condition, bool checkAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
@@ -221,7 +222,8 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
         DSMEAllocationCounterTable::iterator actit = find(gts.superframeID, gts.slotID);
 
         if(actit != end()) {
-            if((!useChannelOffset && (actit->getChannel() != gts.channel))) { //For channel hopping the channel is irrelevant because the channel offset is saved in the act
+            if((!useChannelOffset &&
+                (actit->getChannel() != gts.channel))) { // For channel hopping the channel is irrelevant because the channel offset is saved in the act
                 LOG_DEBUG("Request too late, GTS"
                           << "used on other channel (useChannelOffset: " << useChannelOffset << ")");
                 // DSME_ASSERT(false);
@@ -251,8 +253,8 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
                 LOG_INFO("ch " << channelOffset << " " << gts.channel);
                 bool added = add(gts.superframeID, gts.slotID, channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
-                LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << channel << " as "
-                                      << stateToString(state) << " useChannelOffset: " << useChannelOffset << " nDirection: " << direction);
+                LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << channel << " as " << stateToString(state)
+                                      << " useChannelOffset: " << useChannelOffset << " nDirection: " << direction);
             } else {
                 /* setACTStateIfExists(...) was called */
             }

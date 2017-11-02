@@ -42,12 +42,12 @@
 
 #include "./TPS.h"
 
+#include <cmath>
 #include "../../../dsme_platform.h"
-#include "../DSMEAdaptionLayer.h"
+#include "../../dsmeLayer/DSMELayer.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/pib/MAC_PIB.h"
-#include "../../dsmeLayer/DSMELayer.h"
-#include <cmath>
+#include "../DSMEAdaptionLayer.h"
 
 static bool header = false;
 
@@ -63,43 +63,43 @@ void TPS::setAlpha(float alpha) {
 void TPS::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
-             << "," << "from"
-             << "," << "to"
-             << "," << "in"
-             << "," << "out"
-             << "," << "avgIn"
-             << "," << "slots"
-             << "," << "stotTarget");
-             
+                  << ","
+                  << "from"
+                  << ","
+                  << "to"
+                  << ","
+                  << "in"
+                  << ","
+                  << "out"
+                  << ","
+                  << "avgIn"
+                  << ","
+                  << "slots"
+                  << ","
+                  << "stotTarget");
+
         header = true;
     }
 
     for(TPSTxData& data : this->txLinks) {
         DSME_ASSERT(alpha > 0);
-        data.avgIn = data.messagesInLastMultisuperframe*alpha + data.avgIn*(1-alpha);
+        data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
 
-        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address,Direction::TX);
-        float error = data.avgIn-slots;
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
+        float error = data.avgIn - slots;
 
         int8_t change = 0;
         if(error > 0) {
             change = ceil(error);
-        }
-        else if(error < -2) {
-            change = ceil(error)+1;
+        } else if(error < -2) {
+            change = ceil(error) + 1;
         }
 
         data.slotTarget = slots + change;
 
         LOG_DEBUG("control"
-             << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
-             << "," << data.address
-             << "," << data.messagesInLastMultisuperframe
-             << "," << data.messagesOutLastMultisuperframe
-             << "," << data.avgIn
-             << "," << slots
-             << "," << data.slotTarget
-             );
+                  << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << "," << data.address << "," << data.messagesInLastMultisuperframe
+                  << "," << data.messagesOutLastMultisuperframe << "," << data.avgIn << "," << slots << "," << data.slotTarget);
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;

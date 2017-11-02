@@ -457,7 +457,8 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                             DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
                         }
                     } else {
-                        actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
+                        actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr,
+                                                    event.replyNotifyCmd.getChannelOffset());
                     }
                 }
             }

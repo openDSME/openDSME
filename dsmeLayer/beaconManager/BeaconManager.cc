@@ -598,7 +598,7 @@ void BeaconManager::scanCurrentChannel() {
 void BeaconManager::channelScanPassiveComplete() {
     DSME_ASSERT(this->scanning);
 
-    LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
+    LOG_INFO("Scan complete, chan " << (uint16_t)this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
@@ -640,7 +640,7 @@ void BeaconManager::singleBeaconScanPassiveReceived(PANDescriptor& panDescr) {
 void BeaconManager::channelScanEnhancedActiveComplete() {
     DSME_ASSERT(this->scanning);
 
-    LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
+    LOG_INFO("Scan complete, chan " << (uint16_t)this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;

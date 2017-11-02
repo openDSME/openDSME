@@ -72,7 +72,7 @@ struct RBNode {
     /*
      * Pointers to construct the tree
      */
-    RBNode<T, K> *leftChild, *rightChild, *parent;
+    RBNode<T, K>*leftChild, *rightChild, *parent;
 
     /*
      * Key to identify object

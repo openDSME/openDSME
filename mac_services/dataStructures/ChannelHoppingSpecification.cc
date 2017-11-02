@@ -81,8 +81,7 @@ uint8_t ChannelHoppingSpecification::getHoppingSequenceId() const {
     return hoppingSequenceId;
 }
 
-void ChannelHoppingSpecification::setHoppingSequenceId(
-        uint8_t hoppingSequenceId) {
+void ChannelHoppingSpecification::setHoppingSequenceId(uint8_t hoppingSequenceId) {
     this->hoppingSequenceId = hoppingSequenceId;
 }
 
@@ -96,10 +95,10 @@ void ChannelHoppingSpecification::setPanCoordinatorBsn(uint8_t panCoordinatorBsn
 
 uint8_t ChannelHoppingSpecification::getSerializationLength() const {
     uint8_t size = 0;
-    size += 1;                                        // Hopping Sequence ID
-    size += 1;                                        // PAN Coordinator BSN
-    size += 2;                                        // Channel Offset
-    size += 1;                                        // Channel Offset Bitmap Length
+    size += 1;                                                   // Hopping Sequence ID
+    size += 1;                                                   // PAN Coordinator BSN
+    size += 2;                                                   // Channel Offset
+    size += 1;                                                   // Channel Offset Bitmap Length
     size += BITVECTOR_BYTE_LENGTH(channelOffsetBitmap.length()); // Channel Offset Bitmap
     return size;
 }

@@ -40,8 +40,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ASSOCIATEREPLYCMD_H_
-#define ASSOCIATEREPLYCMD_H_
+#ifndef DSMEASSOCIATIONRESPONSECMD_H_
+#define DSMEASSOCIATIONRESPONSECMD_H_
 
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
@@ -49,10 +49,24 @@
 namespace dsme {
 class DSMEAssociationResponseCmd : public DSMEMessageElement {
 public:
-    DSMEAssociationResponseCmd(Channel_Diversity_Mode channelDiversityMode) : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS), hoppingSequenceLength(0), channelDiversityMode(channelDiversityMode) {
+    DSMEAssociationResponseCmd(Channel_Diversity_Mode channelDiversityMode)
+        : shortAddr(0), status(AssociationStatus::Association_Status::SUCCESS), hoppingSequenceLength(0), channelDiversityMode(channelDiversityMode) {
     }
 
-    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength, MacStaticList<uint8_t, 30> hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx, NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx, Channel_Diversity_Mode channelDiversityMode) : shortAddr(shortAddr), status(status), hoppingSequenceLength(hoppingSequenceLength), hoppingSequence(hoppingSequence), allocationOrder(allocationOrder), biIdx(biIdx), superframeId(superframeId), slotId(slotId), channelIdx(channelIdx), channelDiversityMode(channelDiversityMode) {
+    DSMEAssociationResponseCmd(uint16_t shortAddr, AssociationStatus::Association_Status status, uint8_t hoppingSequenceLength,
+                               MacStaticList<uint8_t, 30> hoppingSequence, NOT_IMPLEMENTED_t allocationOrder, NOT_IMPLEMENTED_t biIdx,
+                               NOT_IMPLEMENTED_t superframeId, NOT_IMPLEMENTED_t slotId, NOT_IMPLEMENTED_t channelIdx,
+                               Channel_Diversity_Mode channelDiversityMode)
+        : shortAddr(shortAddr),
+          status(status),
+          hoppingSequenceLength(hoppingSequenceLength),
+          hoppingSequence(hoppingSequence),
+          allocationOrder(allocationOrder),
+          biIdx(biIdx),
+          superframeId(superframeId),
+          slotId(slotId),
+          channelIdx(channelIdx),
+          channelDiversityMode(channelDiversityMode) {
     }
 
     uint16_t getShortAddr() const {
@@ -78,7 +92,7 @@ public:
     NOT_IMPLEMENTED_t getBiIndex() const {
         return this->biIdx;
     }
-        
+
     NOT_IMPLEMENTED_t getSuperframeId() const {
         return this->superframeId;
     }
@@ -97,18 +111,18 @@ public:
         size += 1; // status
 
         if(channelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
-            size += 1; // hoppingSequenceLength
-            size += hoppingSequenceLength; //hoppingSequence
+            size += 1;                     // hoppingSequenceLength
+            size += hoppingSequenceLength; // hoppingSequence
         }
-        //size += 1; // allocationOrder -> not implemented
-        //size += 1; // biIndex -> not implemented
-        //size += 2; // superframeId -> not implemented
-        //size += 1; // slotId -> not implemented
-        //size += 2; // channelIdx -> not implemented
+        // size += 1; // allocationOrder -> not implemented
+        // size += 1; // biIndex -> not implemented
+        // size += 2; // superframeId -> not implemented
+        // size += 1; // slotId -> not implemented
+        // size += 2; // channelIdx -> not implemented
         return size;
     }
 
-    virtual void serialize(Serializer& serializer) { //TODO dependent on parameters
+    virtual void serialize(Serializer& serializer) { // TODO dependent on parameters
         serializer << shortAddr;
         uint8_t stat = (uint8_t)status;
         serializer << stat;
@@ -116,7 +130,7 @@ public:
         if(channelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
             serializer << hoppingSequenceLength;
             hoppingSequence.setLength(hoppingSequenceLength);
-            for(int i=0; i<hoppingSequenceLength; i++) {
+            for(int i = 0; i < hoppingSequenceLength; i++) {
                 serializer << hoppingSequence[i];
             }
         }
@@ -138,4 +152,4 @@ private:
 
 } /* namespace dsme */
 
-#endif /* ASSOCIATEREPLYCMD_H_ */
+#endif /* DSMEASSOCIATIONRESPONSECMD_H_ */
