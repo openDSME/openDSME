@@ -181,10 +181,10 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
         if(enoughTimeLeft()) {
             return transition(&CAPLayer::stateCCA);
         } else {
-            DSME_SIM_ASSERT(false);
-            // should only happen in rare cases (e.g. resync)
-            // normally the backoff is chosen large enough beforehand
-            // TODO check how often this really happens
+            // This only happens in rare cases (e.g. resync).
+            // Normally the backoff is chosen large enough beforehand.
+            // It also can occur in simulation when sending Beacon Requests
+            // and a beacon is heared before the message is sent.
             return transition(&CAPLayer::stateBackoff);
         }
     } else {
