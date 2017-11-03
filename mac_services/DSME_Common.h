@@ -303,10 +303,7 @@ struct PurgeStatus {
     enum Purge_status { SUCCESS, INVALID_HANDLE };
 };
 
-enum Channel_Diversity_Mode {
-    CHANNEL_ADAPTATION = 0x00,
-    CHANNEL_HOPPING = 0x01
-};
+enum Channel_Diversity_Mode { CHANNEL_ADAPTATION = 0x00, CHANNEL_HOPPING = 0x01 };
 
 } /* namespace dsme */
 

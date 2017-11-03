@@ -55,7 +55,7 @@ struct TPSTxData : GTSSchedulingData {
     float avgIn; // TODO no float!
 };
 
-class TPS : public GTSSchedulingImpl<TPSTxData,GTSRxData> {
+class TPS : public GTSSchedulingImpl<TPSTxData, GTSRxData> {
 public:
     TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha(0) {
     }

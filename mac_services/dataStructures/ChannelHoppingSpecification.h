@@ -87,4 +87,4 @@ Serializer& operator<<(Serializer& serializer, ChannelHoppingSpecification& b);
 
 } /* namespace dsme */
 
-#endif /* BEACONBITMAP_H_ */
+#endif /* CHANNELHOPPINGSPECIFICATION_H_ */

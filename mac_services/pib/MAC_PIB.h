@@ -43,13 +43,13 @@
 #ifndef MAC_PIB_H_
 #define MAC_PIB_H_
 
+#include "../DSME_Common.h"
 #include "../dataStructures/BeaconBitmap.h"
 #include "../dataStructures/DSMEAllocationCounterTable.h"
 #include "../dataStructures/DSMESlotAllocationBitmap.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
 #include "./PHY_PIB.h"
 #include "./PIBHelper.h"
-#include "../DSME_Common.h"
 
 namespace dsme {
 
@@ -328,10 +328,10 @@ public:
     uint32_t macPhyConfiguration{0};
 
     /** The number of channels in the Hopping Sequence. Does not necessarily equal macNumberOfChannels. */
-    uint8_t macHoppingSequenceLength{0}; //TODO this should be uint16_t
+    uint8_t macHoppingSequenceLength{0}; // TODO this should be uint16_t
 
     /** A macHoppingSequenceLengthelement set of channels to be hopped over. */
-    MacStaticList<uint8_t, 30> macHoppingSequenceList; //TODO this should be uint16_t
+    MacStaticList<uint8_t, 30> macHoppingSequenceList; // TODO this should be uint16_t
 
     /** For unslotted channel hopping modes, this field is the channel dwell time, in units of 10 µs. For other modes, the field is empty. */
     uint16_t macHopDwellTime{0};

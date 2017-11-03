@@ -74,8 +74,8 @@ void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& ma
     LOG_DEBUG("ACTUpdater - approvavQueued");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset, useChannelOffset,
-                                                       [](ACTState b) { return b != ACTState::INVALID; });
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
+                                                       useChannelOffset, [](ACTState b) { return b != ACTState::INVALID; });
     }
 }
 
@@ -94,7 +94,8 @@ void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& manag
         DSME_ASSERT(sabSpec.getSubBlock().count(true) > 0);
 
         if(management.status == GTSStatus::DENIED) {
-            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED, channelOffset); // TODO: was INVALID before, can lead to endless cycles
+            this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED,
+                                                                   channelOffset); // TODO: was INVALID before, can lead to endless cycles
         } else {
             // TODO probably was not added before, maybe an "UNCONFIRMED" is required though?
             this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED, channelOffset);
@@ -109,7 +110,7 @@ void ACTUpdater::notifyAccessFailure(DSMESABSpecification& sabSpec, GTSManagemen
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, management.direction, deviceAddr,  0, false);
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, management.direction, deviceAddr, 0, false);
     } else {
         // No action required
     }
@@ -120,11 +121,11 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
     if(management.type == ManagementType::ALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr,  channelOffset, useChannelOffset,
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTElement e) { return e.getState() != ACTState::INVALID; });
     } else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, management.direction, deviceAddr,  0, false, true);
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, management.direction, deviceAddr, 0, false, true);
     }
 }
 
@@ -133,7 +134,8 @@ void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement&
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
-        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset, useChannelOffset);
+        this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
+                                                       useChannelOffset);
     } else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, 0, false);
     } else {
@@ -154,7 +156,7 @@ void ACTUpdater::approvalAccessFailure(DSMESABSpecification& sabSpec, GTSManagem
 void ACTUpdater::notifyTimeout(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
     LOG_ACT("notifyTimeout");
     // This is not handled by the standard, but improves the consistency
-    this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, invert(management.direction), deviceAddr,  channelOffset, false);
+    this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::INVALID, invert(management.direction), deviceAddr, channelOffset, false);
 }
 
 void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {

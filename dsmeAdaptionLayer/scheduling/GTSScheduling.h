@@ -43,9 +43,9 @@
 #ifndef GTSSCHEDULING_H_
 #define GTSSCHEDULING_H_
 
+#include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/dataStructures/RBTree.h"
-#include "../../mac_services/DSME_Common.h"
 
 namespace dsme {
 
@@ -161,7 +161,7 @@ public:
         uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
         int16_t difference = 0;
         for(const SchedulingData& d : this->txLinks) {
-            uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(d.address,Direction::TX);
+            uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(d.address, Direction::TX);
 
             if(abs(difference) < abs(d.slotTarget - slots)) {
                 difference = d.slotTarget - slots;

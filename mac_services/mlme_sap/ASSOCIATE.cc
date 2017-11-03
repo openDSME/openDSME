@@ -44,8 +44,8 @@
 
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../../dsmeLayer/associationManager/AssociationManager.h"
-#include "../../dsmeLayer/messages/DSMEAssociationResponseCmd.h"
 #include "../../dsmeLayer/messages/DSMEAssociationRequestCmd.h"
+#include "../../dsmeLayer/messages/DSMEAssociationResponseCmd.h"
 #include "../../interfaces/IDSMEPlatform.h"
 #include "../DSME_Common.h"
 #include "../dataStructures/IEEE802154MacAddress.h"
@@ -80,7 +80,9 @@ void ASSOCIATE::request(request_parameters& params) {
 }
 
 void ASSOCIATE::response(response_parameters& params) {
-    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, dsme.getMAC_PIB().macHoppingSequenceLength, params.hoppingSequence, params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex, this->dsme.getMAC_PIB().macChannelDiversityMode);
+    DSMEAssociationResponseCmd response(params.assocShortAddress, params.status, dsme.getMAC_PIB().macHoppingSequenceLength, params.hoppingSequence,
+                                        params.allocationOrder, params.biIndex, params.superframeId, params.slotId, params.channelIndex,
+                                        this->dsme.getMAC_PIB().macChannelDiversityMode);
     AssociationManager& associationManager = dsme.getAssociationManager();
 
     if(params.status != AssociationStatus::FASTA_SUCCESSFUL) {

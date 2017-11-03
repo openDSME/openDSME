@@ -343,8 +343,8 @@ void DSMEAdaptionLayer::handleDataConfirm(mcps_sap::DATA_confirm_parameters& par
 
     if(params.gtsTX) {
         int32_t serviceTime = (int32_t)dsme.getPlatform().getSymbolCounter() - (int32_t)msg->getReceptionSymbolCounter();
-        gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(),
-                params.status == DataStatus::SUCCESS, serviceTime, params.msduHandle->queueAtCreation);
+        gtsAllocationHelper.indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(), params.status == DataStatus::SUCCESS,
+                                                    serviceTime, params.msduHandle->queueAtCreation);
     }
 
     DSME_ASSERT(callback_confirm);

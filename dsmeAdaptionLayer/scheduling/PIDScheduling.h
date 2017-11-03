@@ -56,7 +56,7 @@ struct PIDSchedulingData : GTSSchedulingData {
     int16_t last_error;
 };
 
-class PIDScheduling : public GTSSchedulingImpl<PIDSchedulingData,GTSRxData> {
+class PIDScheduling : public GTSSchedulingImpl<PIDSchedulingData, GTSRxData> {
 public:
     PIDScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }

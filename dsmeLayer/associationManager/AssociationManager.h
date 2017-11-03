@@ -49,8 +49,8 @@
 #include "../../mac_services/mlme_sap/ASSOCIATE.h"
 #include "../../mac_services/mlme_sap/DISASSOCIATE.h"
 #include "../../mac_services/mlme_sap/MLME_SAP.h"
-#include "../messages/DSMEAssociationResponseCmd.h"
 #include "../messages/DSMEAssociationRequestCmd.h"
+#include "../messages/DSMEAssociationResponseCmd.h"
 #include "../messages/DisassociationNotifyCmd.h"
 
 namespace dsme {

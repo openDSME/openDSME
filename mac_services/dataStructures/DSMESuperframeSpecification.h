@@ -44,8 +44,8 @@
 #define DSMESUPERFRAMESPECIFICATION_H_
 
 #include "../../helper/Integers.h"
-#include "./Serializer.h"
 #include "../DSME_Common.h"
+#include "./Serializer.h"
 
 class Serializer;
 
@@ -62,7 +62,11 @@ public:
     };
 
     DSMESuperframeSpecification()
-        : multiSuperframeOrder(0), macChannelDiversityMode(Channel_Diversity_Mode::CHANNEL_ADAPTATION), GACKFlag(false), CAPReductionFlag(false), deferredBeaconFlag(false) {
+        : multiSuperframeOrder(0),
+          macChannelDiversityMode(Channel_Diversity_Mode::CHANNEL_ADAPTATION),
+          GACKFlag(false),
+          CAPReductionFlag(false),
+          deferredBeaconFlag(false) {
     }
 };
 

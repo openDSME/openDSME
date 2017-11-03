@@ -108,9 +108,10 @@ public:
 
     uint16_t getNumAllocatedGTS(uint16_t address, Direction direction);
 
-    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, bool checkAddress = false);
-    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset, condition_t condition,
+    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
                      bool checkAddress = false);
+    void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
+                     condition_t condition, bool checkAddress = false);
     void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset);
 
 private:

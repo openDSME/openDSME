@@ -73,7 +73,6 @@ private:
     uint16_t polynomial;
 };
 
-
 } /* namespace dsme */
 
 #endif /* CHANNELHOPPINGLFSR_H_ */
