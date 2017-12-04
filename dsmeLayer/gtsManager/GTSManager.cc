@@ -298,6 +298,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
         case GTSEvent::RESPONSE_CMD_FOR_ME:
         case GTSEvent::NOTIFY_CMD_FOR_ME:
         case GTSEvent::CFP_STARTED:
+            LOG_ERROR(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateSending) << "[" << (uint16_t)fsmId << "]");
             DSME_ASSERT(false);
             return FSM_IGNORED;
 

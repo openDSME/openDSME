@@ -40,6 +40,8 @@
  * SUCH DAMAGE.
  */
 
+#define DSME_ASSOCIATION_MANAGER
+
 #include "./AssociationManager.h"
 
 #include "../../../dsme_platform.h"

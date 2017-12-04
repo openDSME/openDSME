@@ -299,7 +299,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         return true;
     } else {
         /* queue full */
-        LOG_WARN("NeighborQueue is full!");
+        LOG_INFO("NeighborQueue is full!");
         numUpperPacketsDroppedFullQueue++;
         return false;
     }
@@ -309,7 +309,7 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
     numUpperPacketsForCAP++;
     LOG_INFO("Inserting message into CAP queue.");
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
-        LOG_WARN("Message dropped due to missing association!");
+        LOG_INFO("Message dropped due to missing association!");
         // TODO document this behaviour
         // TODO send appropriate MCPS confirm or better remove this handling and implement TRANSACTION_EXPIRED
         return false;

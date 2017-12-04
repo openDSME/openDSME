@@ -138,7 +138,7 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     }
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_WARN("No free GTS found!");
+        LOG_ERROR("No free GTS found!");
         return;
     }
 
@@ -236,7 +236,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
                           params.preferredSlotId);
 
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
-                LOG_WARN("Unable to allocate GTS.");
+                LOG_ERROR("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;

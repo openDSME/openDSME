@@ -40,6 +40,8 @@
  * SUCH DAMAGE.
  */
 
+#define DSME_ADAPTION_LAYER
+
 #include "./DSMEAdaptionLayer.h"
 
 #include "../dsmeLayer/DSMELayer.h" // TODO: remove cross-layer reference
@@ -141,7 +143,7 @@ void DSMEAdaptionLayer::sendRetryBuffer() {
 }
 
 void DSMEAdaptionLayer::sendMessage(IDSMEMessage* msg) {
-    LOG_INFO("Sending DATA message");
+    LOG_DEBUG("Sending DATA message");
 
     sendMessageDown(msg, true);
     // sendRetryBuffer();
@@ -228,7 +230,7 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         if(params.gtsTx) {
             uint16_t srcAddr = this->dsme.getMAC_PIB().macShortAddress;
             if(srcAddr == 0xfffe) {
-                LOG_WARN("No short address allocated -> cannot request GTS!");
+                LOG_ERROR("No short address allocated -> cannot request GTS!");
             } else if(srcAddr == 0xffff) {
                 LOG_INFO("Association required before slot allocation.");
                 DSME_ASSERT(false);
@@ -244,9 +246,9 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
                 gtsAllocationHelper.checkAllocationForPacket(dst.getShortAddress());
             }
 
-            LOG_INFO("Preparing transmission in CFP.");
+            LOG_DEBUG("Preparing transmission in CFP.");
         } else {
-            LOG_INFO("Preparing transmission in CAP.");
+            LOG_DEBUG("Preparing transmission in CAP.");
         }
 
         mcps_sap->getDATA().request(params);
@@ -255,7 +257,7 @@ void DSMEAdaptionLayer::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
 }
 
 void DSMEAdaptionLayer::handleDataIndication(mcps_sap::DATA_indication_parameters& params) {
-    LOG_INFO("Received DATA message from MCPS.");
+    LOG_DEBUG("Received DATA message from MCPS.");
     receiveIndication(params.msdu);
     return;
 }

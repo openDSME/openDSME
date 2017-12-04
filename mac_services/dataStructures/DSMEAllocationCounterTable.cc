@@ -40,6 +40,8 @@
  * SUCH DAMAGE.
  */
 
+#define DSME_ALLOCATION_COUNTER_TABLE
+
 #include "./DSMEAllocationCounterTable.h"
 
 #include "../../../dsme_platform.h"
@@ -94,14 +96,14 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t s
 }
 
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
-    LOG_DEBUG_PREFIX;
-    LOG_DEBUG_PURE(DECOUT << type << " " << palId_id());
+    LOG_INFO_PREFIX;
+    LOG_INFO_PURE(DECOUT << type << " " << palId_id());
     if(direction == TX) {
-        LOG_DEBUG_PURE(">");
+        LOG_INFO_PURE(">");
     } else {
-        LOG_DEBUG_PURE("<");
+        LOG_INFO_PURE("<");
     }
-    LOG_DEBUG_PURE(address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
+    LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
 }
 
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {
@@ -126,14 +128,14 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
         if(direction == TX) {
             RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedTxSlots.find(address);
             if(numSlotIt == numAllocatedTxSlots.end()) {
-                LOG_INFO("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedTxSlots.");
+                LOG_DEBUG("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedTxSlots.");
                 numAllocatedTxSlots.insert(1, address);
             } else {
                 (*numSlotIt)++;
-                LOG_INFO("Incrementing slot count for " << address << DECOUT << " (now at " << *numSlotIt << ").");
+                LOG_DEBUG("Incrementing slot count for " << address << DECOUT << " (now at " << *numSlotIt << ").");
             }
         } else {
-            LOG_INFO("Slot marked for reception from " << address << ".");
+            LOG_DEBUG("Slot marked for reception from " << address << ".");
         }
 
         bitmap.set(superframeID * numGTSlots + gtSlotID, true);
