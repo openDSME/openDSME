@@ -68,6 +68,27 @@ struct GTSRxData {
     uint16_t messagesRxLastMultisuperframe = 0;
 };
 
+/*
+ * This is compatible to the parameters of MLME-DSME-GTS.request
+ */
+struct GTSSchedulingDecision {
+    uint16_t deviceAddress;
+    ManagementType managementType; /* must be DEALLOCATION or ALLOCATION */
+    Direction direction;
+    uint8_t numSlot;
+    uint16_t preferredSuperframeId;
+    uint8_t preferredSlotId;
+};
+
+static constexpr GTSSchedulingDecision NO_SCHEDULING_ACTION {
+    IEEE802154MacAddress::NO_SHORT_ADDRESS,
+    ManagementType::ALLOCATION,
+    Direction::TX,
+    0,
+    0,
+    0
+};
+
 class GTSScheduling {
 public:
     GTSScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
@@ -81,6 +102,8 @@ public:
     virtual void multisuperframeEvent() = 0;
     virtual int16_t getSlotTarget(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
+    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) = 0;
+    virtual GTSSchedulingDecision getNextSchedulingAction() = 0;
 
 protected:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
@@ -169,6 +192,36 @@ public:
             }
         }
         return address;
+    }
+
+    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) {
+        uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+
+        int16_t target = getSlotTarget(address);
+
+        if(target > numAllocatedSlots || numAllocatedSlots < 1) {
+            uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+            uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
+
+            uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(randomSuperframeID);
+            uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
+
+            return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
+        } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
+            /* TODO: slot and superframe ID are currently ignored for DEALLOCATION */
+            return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
+        } else {
+            return NO_SCHEDULING_ACTION;
+        }
+    }
+
+    virtual GTSSchedulingDecision getNextSchedulingAction() {
+        uint16_t address = getPriorityLink();
+        if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+            return getNextSchedulingAction(address);
+        } else {
+            return NO_SCHEDULING_ACTION;
+        }
     }
 
 protected:

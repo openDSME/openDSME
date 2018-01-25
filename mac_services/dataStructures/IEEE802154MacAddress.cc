@@ -45,8 +45,6 @@
 namespace dsme {
 
 const IEEE802154MacAddress IEEE802154MacAddress::UNSPECIFIED(0, 0, 0, 0);
-const uint16_t IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS(0xffff);
-const uint16_t IEEE802154MacAddress::NO_SHORT_ADDRESS(0xfffe);
 
 IEEE802154MacAddress::IEEE802154MacAddress(const IEEE802154MacAddress& other) : addr{other.a1(), other.a2(), other.a3(), other.a4()} {
 }

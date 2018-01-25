@@ -142,6 +142,10 @@ void DSMEAdaptionLayer::startAssociation() {
     }
 }
 
+uint16_t DSMEAdaptionLayer::getRandom() {
+    return getDSME().getPlatform().getRandom();
+}
+
 void DSMEAdaptionLayer::handleSyncLossAfterSynced() {
     if(this->mac_pib->macAssociatedPANCoord) {
         this->associationHelper.disassociate();

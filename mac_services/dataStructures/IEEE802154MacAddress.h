@@ -60,8 +60,8 @@ public:
     explicit IEEE802154MacAddress(uint16_t a1, uint16_t a2, uint16_t a3, uint16_t a4);
 
     static const IEEE802154MacAddress UNSPECIFIED;
-    static const uint16_t SHORT_BROADCAST_ADDRESS; // there is no extended broadcast address (IEEE 802.15.4-2011 5.1.6.2)
-    static const uint16_t NO_SHORT_ADDRESS;
+    static constexpr uint16_t SHORT_BROADCAST_ADDRESS{0xffff}; // there is no extended broadcast address (IEEE 802.15.4-2011 5.1.6.2)
+    static constexpr uint16_t NO_SHORT_ADDRESS{0xfffe};
 
     uint16_t a1() const {
         return addr[0];

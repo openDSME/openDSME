@@ -95,37 +95,39 @@ void GTSHelper::handleStartOfCFP() {
         this->gtsScheduling->multisuperframeEvent();
     }
 
-    // Check allocation at random superframe in multi-superframe
+    /* Check allocation at random superframe in multi-superframe */
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-        uint16_t address = this->gtsScheduling->getPriorityLink();
-        if(address != IEEE802154MacAddress::NO_SHORT_ADDRESS) {
-            checkAllocationForPacket(address);
-        }
+        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
     }
+    return;
 }
 
 void GTSHelper::checkAllocationForPacket(uint16_t address) {
-    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
-    uint16_t numPacketsInQueue = this->dsmeAdaptionLayer.getMCPS_SAP().getMessageCount(IEEE802154MacAddress(address));
-    LOG_DEBUG("Currently " << numAllocatedSlots << " slots are allocated for " << address << ".");
-    LOG_DEBUG("Currently " << numPacketsInQueue << " packets are queued for " << address << ".");
-
-    int16_t target = gtsScheduling->getSlotTarget(address);
-
-    if(target > numAllocatedSlots || numAllocatedSlots < 1) {
-        LOG_INFO("Initiate ALLOCATION with 0x" << HEXOUT << address << DECOUT);
-        checkAndAllocateSingleGTS(address);
-    } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
-        LOG_INFO("Initiate DEALLOCATION with 0x" << HEXOUT << address << DECOUT);
-        checkAndDeallocateSingeleGTS(address);
-    }
+    performSchedulingAction(this->gtsScheduling->getNextSchedulingAction(address));
+    return;
 }
 
-void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
+void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
+    if (decision.numSlot == 0) {
+        DSME_ASSERT(decision.deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS);
+        return;
+    }
+
+    if (decision.managementType == ManagementType::ALLOCATION) {
+        checkAndAllocateGTS(decision);
+    } else if (decision.managementType == ManagementType::DEALLOCATION) {
+        checkAndDeallocateSingeleGTS(decision.deviceAddress);
+    } else {
+        DSME_ASSERT(false);
+    }
+    return;
+}
+
+void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     if(gtsConfirmPending) {
-        LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << address << DECOUT << ")");
+        LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
         return;
     }
 
@@ -135,23 +137,19 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
     uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
 
-    /* select random or contiguous slot */
-    GTS preferredGTS = GTS::UNDEFINED;
-
-    // TODO: use getNextFreeGTS() with information from scheduler
-    preferredGTS = this->getRandomFreeGTS();
+    GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_WARN("No free GTS found! (trying with 0x" << HEXOUT << address << DECOUT << ")");
+        LOG_WARN("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
         return;
     }
 
     mlme_sap::DSME_GTS::request_parameters params;
-    params.deviceAddress = address;
+    params.deviceAddress = decision.deviceAddress;
     params.managementType = ManagementType::ALLOCATION;
-    params.direction = Direction::TX;
+    params.direction = decision.direction;
     params.prioritizedChannelAccess = Priority::LOW;
-    params.numSlot = 1;
+    params.numSlot = decision.numSlot;
     params.preferredSuperframeId = preferredGTS.superframeID;
     params.preferredSlotId = preferredGTS.slotID;
 
@@ -357,23 +355,6 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         }
     }
     return;
-}
-
-GTS GTSHelper::getContiguousFreeGTS() {
-    uint8_t initialSuperframeID = this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe();
-    uint8_t initialSlotID = 0;
-
-    return getNextFreeGTS(initialSuperframeID, initialSlotID);
-}
-
-GTS GTSHelper::getRandomFreeGTS() {
-    uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    uint8_t initialSuperframeID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numSuperFramesPerMultiSuperframe;
-
-    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(initialSuperframeID);
-    uint8_t initialSlotID = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numGTSlots;
-
-    return getNextFreeGTS(initialSuperframeID, initialSlotID);
 }
 
 GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {

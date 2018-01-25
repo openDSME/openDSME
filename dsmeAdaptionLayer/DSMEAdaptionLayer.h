@@ -99,6 +99,8 @@ public:
     void sendMessage(IDSMEMessage* msg);
     void startAssociation();
 
+    uint16_t getRandom();
+
 private:
     void handleSyncLossAfterSynced();
     void handleScanAndSyncComplete(PANDescriptor* panDescriptor);

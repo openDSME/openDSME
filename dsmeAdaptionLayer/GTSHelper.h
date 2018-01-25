@@ -88,7 +88,9 @@ private:
 
     /* Helper methods */
 
-    void checkAndAllocateSingleGTS(uint16_t address);
+    void performSchedulingAction(GTSSchedulingDecision decision);
+
+    void checkAndAllocateGTS(GTSSchedulingDecision decision);
 
     void checkAndDeallocateSingeleGTS(uint16_t address);
 
