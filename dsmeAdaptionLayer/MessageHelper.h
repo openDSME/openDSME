@@ -40,86 +40,71 @@
  * SUCH DAMAGE.
  */
 
-#ifndef DSMEADAPTIONLAYER_H_
-#define DSMEADAPTIONLAYER_H_
+#ifndef MESSAGEHELPER_H_
+#define MESSAGEHELPER_H_
 
+#include "../../dsme_settings.h"
 #include "../helper/DSMEDelegate.h"
+#include "../helper/DSMERingbuffer.h"
 #include "../mac_services/DSME_Common.h"
-
-#include "./AssociationHelper.h"
-#include "./GTSHelper.h"
-#include "./MessageHelper.h"
-#include "./ScanHelper.h"
 
 namespace dsme {
 
-class DSMELayer;
+class DSMEAdaptionLayer;
 class IDSMEMessage;
 class PANDescriptor;
 
-namespace mlme_sap {
-class MLME_SAP;
-} /* namespace mlme_sap */
-
 namespace mcps_sap {
 class MCPS_SAP;
+struct DATA_confirm_parameters;
+struct DATA_indication_parameters;
 } /* namespace mcps_sap */
 
-class MAC_PIB;
-class PHY_PIB;
+struct DSMEAdaptionLayerBufferEntry {
+public:
+    IDSMEMessage* message;
+    uint32_t initialSymbolCounter;
+};
 
-/**
- * This class provides a simplified abstraction of the DSME mac-layer. It takes and returns data messages and performs all
- * management tasks automatically.
- */
-class DSMEAdaptionLayer {
+class MessageHelper {
 public:
     typedef Delegate<void(IDSMEMessage* msg)> indicationCallback_t;
     typedef Delegate<void(IDSMEMessage* msg, DataStatus::Data_Status dataStatus)> confirmCallback_t;
 
-    explicit DSMEAdaptionLayer(DSMELayer&);
+    explicit MessageHelper(DSMEAdaptionLayer&);
 
-    void initialize(channelList_t& scanChannels, GTSScheduling* scheduling);
-
-    DSMELayer& getDSME();
-
-    mcps_sap::MCPS_SAP& getMCPS_SAP();
-    mlme_sap::MLME_SAP& getMLME_SAP();
-    PHY_PIB& getPHY_PIB();
-    MAC_PIB& getMAC_PIB();
-
-    AssociationHelper& getAssociationHelper();
-    GTSHelper& getGTSHelper();
-    MessageHelper& getMessageHelper();
-    ScanHelper& getScanHelper();
+    void initialize();
 
     void setIndicationCallback(indicationCallback_t);
     void setConfirmCallback(confirmCallback_t);
 
     void sendMessage(IDSMEMessage* msg);
+    void sendRetryBuffer();
+
     void startAssociation();
+    void handleAssociationComplete(AssociationStatus::Association_Status status);
+    void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
 
 private:
-    void handleSyncLossAfterSynced();
-    void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
-    void handleAssociationComplete(AssociationStatus::Association_Status status);
-    void handleDisassociationComplete(DisassociationStatus::Disassociation_Status status);
+    void handleDataConfirm(mcps_sap::DATA_confirm_parameters& params);
+    void handleDataIndication(mcps_sap::DATA_indication_parameters& params);
 
-    void reset();
+    void receiveIndication(IDSMEMessage* msg);
 
-    DSMELayer& dsme;
+    void sendMessageDown(IDSMEMessage* msg, bool newMessage);
+    bool queueMessageIfPossible(IDSMEMessage* msg);
 
-    AssociationHelper associationHelper;
-    MessageHelper messageHelper;
-    GTSHelper gtsHelper;
-    ScanHelper scanHelper;
+    DSMEAdaptionLayer& dsmeAdaptionLayer;
 
-    mcps_sap::MCPS_SAP* mcps_sap;
-    mlme_sap::MLME_SAP* mlme_sap;
-    PHY_PIB* phy_pib;
-    MAC_PIB* mac_pib;
+    indicationCallback_t callback_indication;
+    confirmCallback_t callback_confirm;
+
+    bool scanOrSyncInProgress;
+    bool associationInProgress;
+
+    DSMERingBuffer<DSMEAdaptionLayerBufferEntry, UPPER_LAYER_QUEUE_SIZE> retryBuffer;
 };
 
 } /* namespace dsme */
 
-#endif /* DSMEADAPTIONLAYER_H_ */
+#endif /* MESSAGEHELPER_H_ */

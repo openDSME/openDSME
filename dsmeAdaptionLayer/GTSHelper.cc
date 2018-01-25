@@ -64,6 +64,9 @@ GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(d
 
 void GTSHelper::initialize(GTSScheduling* scheduling) {
     this->gtsScheduling = scheduling;
+
+    this->dsmeAdaptionLayer.getDSME().setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, *this)); /* BAD cross-layer hack */
+
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().indication(DELEGATE(&GTSHelper::handleDSME_GTS_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().confirm(DELEGATE(&GTSHelper::handleDSME_GTS_confirm, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getCOMM_STATUS().indication(DELEGATE(&GTSHelper::handleCOMM_STATUS_indication, *this));
@@ -134,14 +137,9 @@ void GTSHelper::checkAndAllocateSingleGTS(uint16_t address) {
 
     /* select random or contiguous slot */
     GTS preferredGTS = GTS::UNDEFINED;
-    switch(this->dsmeAdaptionLayer.settings.allocationScheme) {
-        case DSMEAdaptionLayerSettings::ALLOC_RANDOM:
-            preferredGTS = this->getRandomFreeGTS();
-            break;
-        case DSMEAdaptionLayerSettings::ALLOC_CONTIGUOUS_SLOT:
-            preferredGTS = getContiguousFreeGTS();
-            break;
-    }
+
+    // TODO: use getNextFreeGTS() with information from scheduler
+    preferredGTS = this->getRandomFreeGTS();
 
     if(preferredGTS == GTS::UNDEFINED) {
         LOG_WARN("No free GTS found! (trying with 0x" << HEXOUT << address << DECOUT << ")");
@@ -355,7 +353,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
-            this->dsmeAdaptionLayer.sendRetryBuffer();
+            this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
         }
     }
     return;
