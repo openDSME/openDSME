@@ -207,7 +207,11 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
         case AckEvent::PREPARE_SEND_REQUEST: {
             if(pendingMessage->getHeader().hasSequenceNumber()) {
-                pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
+                if (pendingMessage->getRetryCounter() == 0) {
+                    pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
+                } else {
+                    /* message is a retransmit, keeps sequence number from previous try */
+                }
             }
 
             if(dsme.getPlatform().prepareSendingCopy(pendingMessage, internalDoneCallback)) {
