@@ -53,10 +53,8 @@ class IDSMEMessage;
 
 class DSMEMessageElement {
 public:
-    // TODO remove those
     void prependTo(IDSMEMessage* msg);
     void decapsulateFrom(IDSMEMessage* msg);
-    void copyFrom(IDSMEMessage* msg);
 
     /**
      * The result is not valid before deserialization.

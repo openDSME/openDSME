@@ -190,7 +190,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
             }
 
             if(newMessage) {
-                msg->setReceptionSymbolCounter(this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter());
+                msg->setStartOfFrameDelimiterSymbolCounter(this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter()); // MISSUSE for statistics
                 msg->queueAtCreation = this->dsmeAdaptionLayer.getGTSHelper().indicateIncomingMessage(dst.getShortAddress());
                 this->dsmeAdaptionLayer.getGTSHelper().checkAllocationForPacket(dst.getShortAddress());
             }
@@ -282,7 +282,7 @@ void MessageHelper::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params)
     }
 
     if(params.gtsTX) {
-        int32_t serviceTime = (int32_t)this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter() - (int32_t)msg->getReceptionSymbolCounter();
+        int32_t serviceTime = (int32_t)this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter() - (int32_t)msg->getStartOfFrameDelimiterSymbolCounter();
         this->dsmeAdaptionLayer.getGTSHelper().indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(), params.status == DataStatus::SUCCESS,
                                                     serviceTime, params.msduHandle->queueAtCreation);
     }

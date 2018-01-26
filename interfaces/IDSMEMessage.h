@@ -57,18 +57,11 @@ public:
 
     virtual void decapsulateTo(DSMEMessageElement* msg) = 0;
 
-    virtual void copyTo(DSMEMessageElement* msg) = 0;
-
-    virtual uint8_t getByte(uint8_t pos) = 0;
-
     virtual bool hasPayload() = 0;
 
     virtual uint32_t getStartOfFrameDelimiterSymbolCounter() = 0;
 
-    // TODO when?
-    virtual uint32_t getReceptionSymbolCounter() = 0;
-
-    virtual void setReceptionSymbolCounter(uint32_t counter) = 0;
+    virtual void setStartOfFrameDelimiterSymbolCounter(uint32_t) = 0;
 
     virtual uint16_t getTotalSymbols() = 0;
 
