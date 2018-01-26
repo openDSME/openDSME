@@ -88,9 +88,9 @@ BeaconManager::BeaconManager(DSMELayer& dsme)
 }
 
 void BeaconManager::initialize() {
-    dsmePANDescriptor.getBeaconBitmap().setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
-    this->dsme.getMAC_PIB().macSdBitmap.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
-    neighborOrOwnHeardBeacons.setSDBitmapLengthBytes(BITVECTOR_BYTE_LENGTH(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval()), false);
+    dsmePANDescriptor.getBeaconBitmap().setNumberOfBeaconSlots(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval(), false);
+    this->dsme.getMAC_PIB().macSdBitmap.setNumberOfBeaconSlots(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval(), false);
+    neighborOrOwnHeardBeacons.setNumberOfBeaconSlots(dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval(), false);
 
     if(this->dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING) {
         this->dsme.getMAC_PIB().macChannelOffsetBitmapLength = BITVECTOR_BYTE_LENGTH(this->dsme.getMAC_PIB().helper.getNumChannels());

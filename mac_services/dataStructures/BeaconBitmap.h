@@ -68,7 +68,7 @@ public:
 
     uint16_t getSDIndex() const;
 
-    bool setSDBitmapLengthBytes(uint16_t SDBitmapLengthBytes, bool value);
+    bool setNumberOfBeaconSlots(uint16_t beaconSlots, bool value);
 
     uint16_t getSDBitmapLengthBytes() const;
 

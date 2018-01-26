@@ -61,12 +61,12 @@ uint16_t BeaconBitmap::getSDIndex() const {
     return sdIndex;
 }
 
-bool BeaconBitmap::setSDBitmapLengthBytes(uint16_t SDBitmapLengthBytes, bool value) {
-    return sdBitmap.setLength(SDBitmapLengthBytes * 8, value);
+bool BeaconBitmap::setNumberOfBeaconSlots(uint16_t beaconSlots, bool value) {
+    return sdBitmap.setLength(beaconSlots, value);
 }
 
 uint16_t BeaconBitmap::getSDBitmapLengthBytes() const {
-    return sdBitmap.length() / 8;
+    return BITVECTOR_BYTE_LENGTH(sdBitmap.length());
 }
 
 void BeaconBitmap::fill(bool value) {
