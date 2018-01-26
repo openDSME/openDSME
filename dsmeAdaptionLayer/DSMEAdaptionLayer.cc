@@ -67,7 +67,7 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme)
       mac_pib(nullptr) {
 }
 
-void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, GTSScheduling* scheduling) {
+void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, uint8_t scanDuration, GTSScheduling* scheduling) {
     this->mcps_sap = &(this->dsme.getMCPS_SAP());
     this->mlme_sap = &(this->dsme.getMLME_SAP());
     this->phy_pib = &(this->dsme.getPHY_PIB());
@@ -76,7 +76,7 @@ void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, GTSScheduling* s
     this->associationHelper.initialize();
     this->messageHelper.initialize();
     this->gtsHelper.initialize(scheduling);
-    this->scanHelper.initialize(scanChannels);
+    this->scanHelper.initialize(scanChannels,scanDuration);
 
     this->scanHelper.setScanAndSyncCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanAndSyncComplete, *this));
     this->scanHelper.setSyncLossAfterSyncedDelegate(DELEGATE(&DSMEAdaptionLayer::handleSyncLossAfterSynced, *this));

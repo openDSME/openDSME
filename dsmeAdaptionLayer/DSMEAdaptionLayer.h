@@ -79,7 +79,7 @@ public:
 
     explicit DSMEAdaptionLayer(DSMELayer&);
 
-    void initialize(channelList_t& scanChannels, GTSScheduling* scheduling);
+    void initialize(channelList_t& scanChannels, uint8_t scanDuration, GTSScheduling* scheduling);
 
     DSMELayer& getDSME();
 

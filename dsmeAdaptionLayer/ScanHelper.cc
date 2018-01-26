@@ -62,8 +62,9 @@ ScanHelper::ScanHelper(DSMEAdaptionLayer& dsmeAdaptionLayer)
     : dsmeAdaptionLayer(dsmeAdaptionLayer), recordedPanDescriptors(0), passiveScanCounter(0), syncActive(false) {
 }
 
-void ScanHelper::initialize(channelList_t& scanChannels) {
+void ScanHelper::initialize(channelList_t& scanChannels, uint8_t scanDuration) {
     this->scanChannels = scanChannels;
+    this->scanDuration = scanDuration;
     this->dsmeAdaptionLayer.getMLME_SAP().getBEACON_NOTIFY().indication(DELEGATE(&ScanHelper::handleBEACON_NOTIFY_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getSCAN().confirm(DELEGATE(&ScanHelper::handleSCAN_confirm, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getSYNC_LOSS().indication(DELEGATE(&ScanHelper::handleSyncLossIndication, *this));
@@ -98,7 +99,7 @@ void ScanHelper::startScan() {
     this->passiveScanCounter++;
 
     params.scanChannels = scanChannels;
-    params.scanDuration = 6;
+    params.scanDuration = scanDuration;
     params.channelPage = this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentPage;
     params.linkQualityScan = false;
 

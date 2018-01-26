@@ -68,7 +68,7 @@ public:
 
     explicit ScanHelper(DSMEAdaptionLayer&);
 
-    void initialize(channelList_t& scanChannels);
+    void initialize(channelList_t& scanChannels, uint8_t scanDuration);
 
     void startScan();
 
@@ -92,6 +92,7 @@ private:
     MacStaticList<uint16_t, 8> heardCoordinators;
     uint8_t passiveScanCounter;
     channelList_t scanChannels;
+    uint8_t scanDuration;
     PANDescriptor panDescriptorToSyncTo;
     bool syncActive;
 };
