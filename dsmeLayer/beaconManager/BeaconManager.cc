@@ -40,6 +40,8 @@
  * SUCH DAMAGE.
  */
 
+#define DSME_BEACON_MANAGER
+
 #include "./BeaconManager.h"
 
 #include "../../../dsme_platform.h"
@@ -271,13 +273,13 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
               << "isCoordinator:" << dsme.getMAC_PIB().macIsCoord << ", isBeaconAllocated:" << isBeaconAllocated
               << ", isBeaconAllocationSent:" << isBeaconAllocationSent << ".");
     if(dsme.getMAC_PIB().macIsCoord && !isBeaconAllocated && !isBeaconAllocationSent && !dsme.getMAC_PIB().macIsPANCoord) {
-        LOG_INFO("Attempting to reserve slot for own BEACON.");
         if(!(dsme.getMAC_PIB().macAssociatedPANCoord)) {
             LOG_INFO("Device is not associated, cannot reserve BEACON slot.");
         } else {
             // Lookup free slot within all neighbors and broadcast beacon allocation request
             int32_t i = neighborOrOwnHeardBeacons.getRandomFreeSlot(dsme.getPlatform().getRandom());
             if(i >= 0) {
+                LOG_INFO("Reserve slot for own BEACON.");
                 sendBeaconAllocationNotification(i);
             } else {
                 LOG_INFO("No window for a BEACON could be found.");
@@ -555,7 +557,7 @@ void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t curren
                     channelScanEnhancedActiveComplete();
                     break;
                 default:
-                    LOG_WARN("Event during unknown scan!");
+                    LOG_ERROR("Event during unknown scan!");
                     break;
             }
         }

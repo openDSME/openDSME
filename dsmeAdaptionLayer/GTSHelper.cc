@@ -140,7 +140,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_WARN("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+        LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
         return;
     }
 
@@ -239,7 +239,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
-                LOG_WARN("Unable to allocate GTS.");
+                LOG_ERROR("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;

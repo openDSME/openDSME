@@ -129,7 +129,7 @@ void DSMELayer::reset() {
 
 void DSMELayer::doReset() {
     DSME_ASSERT(resetPending);
-    LOG_WARN("Performing a complete reset of the DSME MLME.");
+    LOG_ERROR("Performing a complete reset of the DSME MLME.");
 
     DSME_ATOMIC_BLOCK {
         this->ackLayer.reset();

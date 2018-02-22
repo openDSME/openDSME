@@ -40,6 +40,8 @@
  * SUCH DAMAGE.
  */
 
+#define DSME_ADAPTION_LAYER
+
 #include "./DSMEAdaptionLayer.h"
 
 #include "../dsmeLayer/DSMELayer.h"
@@ -137,7 +139,7 @@ void DSMEAdaptionLayer::sendMessage(IDSMEMessage* msg) {
 
 void DSMEAdaptionLayer::startAssociation() {
     if(!getMAC_PIB().macAssociatedPANCoord) {
-        LOG_INFO("Device is not associated with PAN.");
+        LOG_DEBUG("Device is not associated with PAN.");
         this->messageHelper.startAssociation();
     }
 }
@@ -158,17 +160,17 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
     this->messageHelper.handleScanAndSyncComplete(panDescriptor);
 
     if(panDescriptor != nullptr) {
-        LOG_INFO("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
+        LOG_DEBUG("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
                                          << " on PAN " << panDescriptor->coordPANId << ".");
     } else {
-        LOG_INFO("Channel scan did not yield any PANs.");
+        LOG_DEBUG("Channel scan did not yield any PANs.");
     }
     return;
 }
 
 void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association_Status status) {
     if(status == AssociationStatus::SUCCESS) {
-        LOG_INFO("Association completed successfully.");
+        LOG_DEBUG("Association completed successfully.");
     } else {
         LOG_ERROR("Association failed.");
     }
@@ -194,7 +196,7 @@ void DSMEAdaptionLayer::reset() {
 
 void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
     if(status == DisassociationStatus::SUCCESS) {
-        LOG_INFO("Disassociation completed successfully.");
+        LOG_DEBUG("Disassociation completed successfully.");
     } else {
         LOG_ERROR("Disassociation failed.");
     }
