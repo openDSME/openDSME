@@ -48,6 +48,7 @@
 #include "../mac_services/dataStructures/PANDescriptor.h"
 #include "../mac_services/mcps_sap/MCPS_SAP.h"
 #include "../mac_services/mlme_sap/MLME_SAP.h"
+#include "../mac_services/pib/MAC_PIB.h"
 #include "./DSMEAdaptionLayer.h"
 
 namespace dsme {
@@ -178,7 +179,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         if(params.gtsTx) {
             uint16_t srcAddr = this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress;
             if(srcAddr == 0xfffe) {
-                LOG_WARN("No short address allocated -> cannot request GTS!");
+                LOG_ERROR("No short address allocated -> cannot request GTS!");
             } else if(srcAddr == 0xffff) {
                 LOG_INFO("Association required before slot allocation.");
                 DSME_ASSERT(false);
