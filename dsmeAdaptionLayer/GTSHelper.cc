@@ -126,9 +126,13 @@ void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
 }
 
 void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
-    if(gtsConfirmPending) {
-        LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
-        return;
+    DSME_ATOMIC_BLOCK {
+        if(gtsConfirmPending) {
+            LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+            return;
+        }
+
+        gtsConfirmPending = true;
     }
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
@@ -141,6 +145,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
 
     if(preferredGTS == GTS::UNDEFINED) {
         LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+        gtsConfirmPending = false;
         return;
     }
 
@@ -169,9 +174,6 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
         }
     }
 
-    DSME_ASSERT(!gtsConfirmPending);
-    gtsConfirmPending = true;
-    LOG_DEBUG("gtsConfirmPending = true");
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().request(params);
     return;
 }
