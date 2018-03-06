@@ -293,11 +293,16 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
         case GTSEvent::EXIT_SIGNAL:
             return FSM_IGNORED;
 
+        case GTSEvent::CFP_STARTED:
+            // pending SEND_COMPLETE (e.g. delay due to serial output)
+            LOG_ERROR("CFP during sending");
+            return FSM_IGNORED;
+            
+
         case GTSEvent::MLME_REQUEST_ISSUED:
         case GTSEvent::MLME_RESPONSE_ISSUED:
         case GTSEvent::RESPONSE_CMD_FOR_ME:
         case GTSEvent::NOTIFY_CMD_FOR_ME:
-        case GTSEvent::CFP_STARTED:
             LOG_ERROR(signalToString(event.signal) << "-" << stateToString(&GTSManager::stateSending) << "[" << (uint16_t)fsmId << "]");
             DSME_ASSERT(false);
             return FSM_IGNORED;
@@ -736,6 +741,7 @@ bool GTSManager::handleGTSResponse(IDSMEMessage* msg) {
         }
     } else {
         // A denied request should not be sent via broadcast!
+        LOG_ERROR(management.status << " " << replyNotifyCmd.getDestinationAddress() << " " << dsme.getMAC_PIB().macShortAddress);
         DSME_ASSERT(false);
     }
 
