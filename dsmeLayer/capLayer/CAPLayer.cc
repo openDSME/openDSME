@@ -67,7 +67,7 @@ void CAPLayer::reset() {
     this->NR = 0;
 
     while(!this->queue.empty()) {
-        this->queue.pop();
+        actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
     }
 }
 
@@ -161,6 +161,11 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return transition(&CAPLayer::stateBackoff);
     } else if(event.signal == CSMAEvent::CCA_SUCCESS || event.signal == CSMAEvent::CCA_FAILURE) {
         /* '-> only possible after reset */
+        return FSM_IGNORED;
+    } else if(event.signal == CSMAEvent::SEND_ABORTED) {
+        // After a RESET, events might arrive for
+        // messages already signaled as expired to upper layer
+        DSME_ASSERT(this->queue.empty());
         return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
