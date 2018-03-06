@@ -57,14 +57,12 @@
 
 namespace dsme {
 
-AckLayer::AckLayer(DSMELayer& dsme) : FSM<AckLayer, AckEvent>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
+AckLayer::AckLayer(DSMELayer& dsme) : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 
 void AckLayer::reset() {
-    DSME_ASSERT(!isDispatchBusy());
-    AckEvent e;
-    e.signal = AckEvent::RESET;
-    dispatch(e);
+    bool dispatchSuccessful = dispatch(AckEvent::RESET);
+    DSME_ASSERT(dispatchSuccessful);
 }
 
 bool AckLayer::prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallback) {
@@ -80,26 +78,26 @@ bool AckLayer::prepareSendingCopy(IDSMEMessage* msg, done_callback_t doneCallbac
 
     this->pendingMessage = msg;
     this->externalDoneCallback = doneCallback;
-    AckEvent e;
-    e.signal = AckEvent::PREPARE_SEND_REQUEST;
-    dispatch(e);
+    DSME_ASSERT(!isDispatchBusy());
+    bool dispatchSuccessful = dispatch(AckEvent::PREPARE_SEND_REQUEST);
+    DSME_ASSERT(dispatchSuccessful);
     return true;
 }
 
 void AckLayer::sendNowIfPending() {
     if(this->pendingMessage) {
         DSME_ASSERT(busy);
-        AckEvent e;
-        e.signal = AckEvent::START_TRANSMISSION;
-        dispatch(e);
+        DSME_ASSERT(!isDispatchBusy());
+        bool dispatchSuccessful = dispatch(AckEvent::START_TRANSMISSION);
+        DSME_ASSERT(dispatchSuccessful);
     }
 }
 
 void AckLayer::abortPreparedTransmission() {
     if(this->pendingMessage) {
-        AckEvent e;
-        e.signal = AckEvent::ABORT_TRANSMISSION;
-        dispatch(e);
+        DSME_ASSERT(!isDispatchBusy());
+        bool dispatchSuccessful = dispatch(AckEvent::ABORT_TRANSMISSION);
+        DSME_ASSERT(dispatchSuccessful);
     }
 }
 
@@ -119,11 +117,11 @@ void AckLayer::receive(IDSMEMessage* msg) {
     /* if message is an ACK, directly dispatch the event */
     if(header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT) {
         LOG_DEBUG("ACK_RECEIVED with seq num " << (uint16_t)header.getSequenceNumber());
-        AckEvent e;
-        e.signal = AckEvent::ACK_RECEIVED;
-        e.seqNum = header.getSequenceNumber();
+        uint8_t seqNum = header.getSequenceNumber();
         dsme.getPlatform().releaseMessage(msg);
-        dispatch(e);
+        DSME_ASSERT(!isDispatchBusy());
+        bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED,seqNum);
+        DSME_ASSERT(dispatchSuccessful);
         return;
     }
 
@@ -160,24 +158,25 @@ void AckLayer::receive(IDSMEMessage* msg) {
     }
 
     this->pendingMessage = msg;
-    AckEvent e;
-    e.signal = AckEvent::RECEIVE_REQUEST;
-    dispatch(e);
+    DSME_ASSERT(!isDispatchBusy());
+    bool dispatchSuccessful = dispatch(AckEvent::RECEIVE_REQUEST);
+    DSME_ASSERT(dispatchSuccessful);
 
     return;
 }
 
 void AckLayer::dispatchTimer() {
-    AckEvent e;
-    e.signal = AckEvent::TIMER_FIRED;
-    dispatch(e);
+    if(isDispatchBusy()) {
+        return; // already processing (e.g. ACK arrived just in time)
+    }
+    bool dispatchSuccessful = dispatch(AckEvent::TIMER_FIRED);
+    DSME_ASSERT(dispatchSuccessful);
 }
 
 void AckLayer::sendDone(bool success) {
-    AckEvent e;
-    e.signal = AckEvent::SEND_DONE;
-    e.success = success;
-    dispatch(e);
+    DSME_ASSERT(!isDispatchBusy());
+    bool dispatchSuccessful = dispatch(AckEvent::SEND_DONE,success);
+    DSME_ASSERT(dispatchSuccessful);
 }
 
 //////////////////////////////// STATES ////////////////////////////////

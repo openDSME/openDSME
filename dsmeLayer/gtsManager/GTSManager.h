@@ -99,7 +99,7 @@ private:
 
 class GTSManager;
 
-typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, 4> GTSManagerFSM_t;
+typedef DSMEBufferedMultiFSM<GTSManager, GTSEvent, GTS_STATE_MULTIPLICITY, GTS_STATE_MULTIPLICITY> GTSManagerFSM_t;
 
 class GTSManager : private GTSManagerFSM_t {
 public:

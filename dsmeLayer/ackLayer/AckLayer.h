@@ -44,7 +44,7 @@
 #define ACKLAYER_H_
 
 #include "../../helper/DSMEDelegate.h"
-#include "../../helper/DSMEFSM.h"
+#include "../../helper/DSMEBufferedFSM.h"
 
 namespace dsme {
 
@@ -55,6 +55,20 @@ class DSMELayer;
 
 class AckEvent : public FSMEvent {
 public:
+    void fill(uint16_t signal) {
+        this->signal = signal;
+    }
+
+    void fill(uint16_t signal, bool success) {
+        this->signal = signal;
+        this->success = success;
+    }
+
+    void fill(uint16_t signal, uint8_t seqNum) {
+        this->signal = signal;
+        this->seqNum = seqNum;
+    }
+
     enum : uint8_t {
         PREPARE_SEND_REQUEST = USER_SIGNAL_START,
         START_TRANSMISSION,
@@ -70,7 +84,7 @@ public:
     uint8_t seqNum; // only valid for ACK_RECEIVED
 };
 
-class AckLayer : private FSM<AckLayer, AckEvent> {
+class AckLayer : private DSMEBufferedFSM<AckLayer, AckEvent, 2> {
 public:
     typedef Delegate<void(enum AckLayerResponse, IDSMEMessage* msg)> done_callback_t;
 

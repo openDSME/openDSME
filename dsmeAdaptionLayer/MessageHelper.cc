@@ -97,15 +97,15 @@ void MessageHelper::startAssociation() {
 }
 
 void MessageHelper::sendRetryBuffer() {
-    if(this->retryBuffer.hasCurrent()) {
-        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
+    if(!this->retryBuffer.isEmpty()) {
+        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.front();
         do {
-            IDSMEMessage* currentMessage = this->retryBuffer.current()->message;
+            IDSMEMessage* currentMessage = this->retryBuffer.front()->message;
             DSME_ASSERT(!currentMessage->getCurrentlySending());
 
-            this->retryBuffer.advanceCurrent();
+            this->retryBuffer.pop();
             sendMessageDown(currentMessage, false);
-        } while(this->retryBuffer.hasCurrent() && this->retryBuffer.current() != oldestEntry);
+        } while((!this->retryBuffer.isEmpty()) && this->retryBuffer.front() != oldestEntry);
     }
 }
 
@@ -214,15 +214,16 @@ void MessageHelper::handleDataIndication(mcps_sap::DATA_indication_parameters& p
 }
 
 bool MessageHelper::queueMessageIfPossible(IDSMEMessage* msg) {
-    if(!this->retryBuffer.hasNext()) {
-        DSME_ASSERT(this->retryBuffer.hasCurrent());
+    if(this->retryBuffer.isFull()) {
+        DSME_ASSERT(!this->retryBuffer.isEmpty());
 
-        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.current();
+        DSMEAdaptionLayerBufferEntry* oldestEntry = this->retryBuffer.front();
         if(oldestEntry->message == msg) {
-            this->retryBuffer.advanceCurrent();
-            DSME_ASSERT(this->retryBuffer.hasNext());
-            this->retryBuffer.next()->message = msg;
-            this->retryBuffer.next()->initialSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+            this->retryBuffer.pop();
+            DSME_ASSERT(!this->retryBuffer.isEmpty());
+            this->retryBuffer.freeElement()->message = msg;
+            this->retryBuffer.freeElement()->initialSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+            this->retryBuffer.pushFreeElement();
             return true;
         }
 
@@ -232,13 +233,13 @@ bool MessageHelper::queueMessageIfPossible(IDSMEMessage* msg) {
                                   << currentSymbolCounter - oldestEntry->initialSymbolCounter << " symbols old)");
             DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
-            this->retryBuffer.advanceCurrent();
+            this->retryBuffer.pop();
         }
     }
-    if(this->retryBuffer.hasNext()) {
-        this->retryBuffer.next()->message = msg;
-        this->retryBuffer.next()->initialSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
-        this->retryBuffer.advanceNext();
+    if(!this->retryBuffer.isEmpty()) {
+        this->retryBuffer.freeElement()->message = msg;
+        this->retryBuffer.freeElement()->initialSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
+        this->retryBuffer.pushFreeElement();
         return true; /* Do NOT release current message yet */
     }
     return false;

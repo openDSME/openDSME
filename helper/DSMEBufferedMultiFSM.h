@@ -95,13 +95,13 @@ public:
         bool returnValue;
 
         DSME_ATOMIC_BLOCK {
-            canAdd = this->eventBuffer.hasNext();
+            canAdd = !this->eventBuffer.isFull();
             DSME_ASSERT(canAdd); // TODO: Remove after testing? Should never trigger when S is chosen correctly.
 
             if(canAdd) {
-                this->eventBuffer.next()->setFsmId(fsmId);
-                this->eventBuffer.next()->fill(signal, args...);
-                this->eventBuffer.advanceNext();
+                this->eventBuffer.freeElement()->setFsmId(fsmId);
+                this->eventBuffer.freeElement()->fill(signal, args...);
+                this->eventBuffer.pushFreeElement();
             }
 
             isBusy = this->dispatchBusy;
@@ -138,8 +138,8 @@ public:
 
 private:
     void runUntilFinished() {
-        while(eventBuffer.hasCurrent()) {
-            E* currentEvent = this->eventBuffer.current();
+        while(!eventBuffer.isEmpty()) {
+            E* currentEvent = this->eventBuffer.front();
 
             int8_t fsmId = currentEvent->getFsmId();
             state_t state = states[fsmId];
@@ -160,7 +160,7 @@ private:
                 currentEvent->signal = E::ENTRY_SIGNAL;
                 r = (((C*)this)->*state)(*currentEvent);
             }
-            this->eventBuffer.advanceCurrent();
+            this->eventBuffer.pop();
         }
         dispatchBusy = false;
         return;

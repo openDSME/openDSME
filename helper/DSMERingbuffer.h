@@ -54,61 +54,58 @@ template <typename T, ringbuffer_size_t N>
 class DSMERingBuffer {
 private:
     T buffer[N];
-    ringbuffer_size_t head;
-    ringbuffer_size_t tail;
-
-    ringbuffer_size_t next(ringbuffer_size_t current) {
-        return (current + 1) % N;
-    }
+    ringbuffer_size_t next;
+    ringbuffer_size_t count;
 
 public:
-    DSMERingBuffer() : buffer{}, head(0), tail(0) {
+    DSMERingBuffer() : buffer{}, next(0), count(0) {
     }
 
     virtual ~DSMERingBuffer() = default;
 
-    bool hasCurrent() {
+    bool isEmpty() {
         bool result;
         DSME_ATOMIC_BLOCK {
-            result = this->tail != this->head;
+            result = (count == 0);
         }
         return result;
     }
 
-    bool hasNext() {
+    bool isFull() {
         bool result;
         DSME_ATOMIC_BLOCK {
-            result = next(this->tail) != this->head;
+            result = (count == N);
         }
         return result;
     }
 
-    T* current() {
+    T* front() {
         T* result;
         DSME_ATOMIC_BLOCK {
-            result = &(this->buffer[this->head]);
+            result = &(this->buffer[this->next]);
         }
         return result;
     }
 
-    T* next() {
-        T* result;
+    void pop() {
         DSME_ATOMIC_BLOCK {
-            result = &(this->buffer[this->tail]);
-        }
-        return result;
-    }
-
-    void advanceCurrent() {
-        DSME_ATOMIC_BLOCK {
-            this->head = next(this->head);
+            this->count--;
+            this->next = (this->next + 1)%N;
         }
         return;
     }
 
-    void advanceNext() {
+    T* freeElement() {
+        T* result;
         DSME_ATOMIC_BLOCK {
-            this->tail = next(this->tail);
+            result = &(this->buffer[(this->next+this->count)%N]);
+        }
+        return result;
+    }
+
+    void pushFreeElement() {
+        DSME_ATOMIC_BLOCK {
+            this->count++;
         }
         return;
     }
