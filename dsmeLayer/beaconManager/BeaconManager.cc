@@ -217,9 +217,14 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 #ifdef STATISTICS_BEACONS
 void BeaconManager::printBeaconStatistics() {
     uint8_t j = statsIdx;
+    LOG_ERROR("BEACON STATS " << "now " << dsme.getPlatform().getSymbolCounter());
     for(uint8_t i = 0; i < statsValid; i++) {
         auto& stat = beaconStatistics[j];
-        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (uint16_t)stat.sdIndex);
+        uint32_t beaconIntervalSymbols = dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval();
+        beaconIntervalSymbols *= aNumSuperframeSlots;
+        beaconIntervalSymbols *= dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+        uint32_t nextExpectedBeacon = stat.time+beaconIntervalSymbols;
+        LOG_ERROR("BEACON STATS " << stat.time << " " << nextExpectedBeacon << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (uint16_t)stat.sdIndex);
 
         if(j == 0) {
             j = STATS_NUM;
