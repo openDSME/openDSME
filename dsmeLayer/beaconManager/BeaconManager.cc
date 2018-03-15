@@ -214,7 +214,37 @@ void BeaconManager::sendEnhancedBeaconRequest() {
     }
 }
 
+#ifdef STATISTICS_BEACONS
+void BeaconManager::printBeaconStatistics() {
+    uint8_t j = statsIdx;
+    for(uint8_t i = 0; i < statsValid; i++) {
+        auto& stat = beaconStatistics[j];
+        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (uint16_t)stat.sdIndex);
+
+        if(j == 0) {
+            j = STATS_NUM;
+        }
+        else {
+            j--;
+        }
+    }
+}
+#endif
+
 bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& descr) {
+#ifdef STATISTICS_BEACONS
+    statsIdx = (statsIdx+1)%STATS_NUM;
+    auto& stat = beaconStatistics[statsIdx];
+    stat.time = msg->getStartOfFrameDelimiterSymbolCounter();
+    stat.sender = msg->getHeader().getSrcAddr().getShortAddress();
+    stat.lqi = msg->getLQI();
+    stat.sdIndex = descr.getBeaconBitmap().getSDIndex();
+    if(statsValid < STATS_NUM) {
+        statsValid++;
+    }
+    printBeaconStatistics();
+#endif
+
     if(dsme.getMAC_PIB().macIsPANCoord) {
         /* '-> This function should not be called for PAN-coordinators */
         DSME_ASSERT(false);

@@ -181,6 +181,22 @@ private:
     uint16_t superframesForEachChannel;
     uint16_t superframesLeftForScan;
     bool transmissionPending;
+
+#ifdef STATISTICS_BEACONS
+    struct BeaconStat {
+        uint32_t time;
+        uint16_t sender;
+        uint8_t lqi;
+        uint8_t sdIndex;
+    };
+    static constexpr uint8_t STATS_NUM = 6;
+    uint8_t statsIdx = 0;
+    uint8_t statsValid = 0;
+    BeaconStat beaconStatistics[STATS_NUM];
+
+public:
+    void printBeaconStatistics();
+#endif
 };
 
 } /* namespace dsme */
