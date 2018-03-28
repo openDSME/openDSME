@@ -597,6 +597,8 @@ void BeaconManager::handleStartOfCFP(uint16_t currentSuperframe, uint16_t curren
                     break;
             }
         }
+
+        this->missedBeacons = 0;
     }
 
     if(this->dsme.isTrackingBeacons() && currentMultiSuperframe == 0 && currentSuperframe == 0) {
