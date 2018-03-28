@@ -197,7 +197,7 @@ void AssociationManager::handleAssociationReply(IDSMEMessage* msg) {
         this->dsme.getMAC_PIB().macShortAddress = params.assocShortAddress;
         this->dsme.getMAC_PIB().macAssociatedPANCoord = true;
 
-        this->dsme.startTrackingBeacons();
+        // Do not start tracking beacons, this is done in SYNC!
 
         this->dsme.getPlatform().updateVisual();
     } else {
