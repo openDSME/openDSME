@@ -131,10 +131,6 @@ void DSMELayer::doReset() {
     DSME_ASSERT(resetPending);
     LOG_ERROR("Performing a complete reset of the DSME MLME.");
 
-#ifdef STATISTICS_BEACONS
-    this->beaconManager.printBeaconStatistics();
-#endif
-
     DSME_ATOMIC_BLOCK {
         this->ackLayer.reset();
 

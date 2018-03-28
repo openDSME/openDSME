@@ -189,7 +189,7 @@ private:
         uint8_t lqi;
         uint8_t sdIndex;
     };
-    static constexpr uint8_t STATS_NUM = 6;
+    static constexpr uint8_t STATS_NUM = 10;
     uint8_t statsIdx = 0;
     uint8_t statsValid = 0;
     BeaconStat beaconStatistics[STATS_NUM];
