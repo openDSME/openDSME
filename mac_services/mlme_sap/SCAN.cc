@@ -51,6 +51,8 @@ SCAN::SCAN(DSMELayer& dsme) : dsme(dsme) {
 }
 
 void SCAN::request(request_parameters& params) {
+    dsme.stopTrackingBeacons();
+
     switch(params.scanType) {
         /*
          * IEEE802.15.4-2012 6.2.10.1
