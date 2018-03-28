@@ -60,6 +60,11 @@ public:
     virtual bool setChannelNumber(uint8_t channel) = 0;
 
     /**
+     * Get the current channel for transmitting / receiving
+     */
+    virtual uint8_t getChannelNumber() = 0;
+
+    /**
      * Prepare a packet for direct transmission without delay and without CSMA
      * but keep the message (the caller has to ensure that the message is eventually released)
      */
