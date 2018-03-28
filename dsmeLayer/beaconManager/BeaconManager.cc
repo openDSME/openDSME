@@ -439,6 +439,7 @@ void BeaconManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, 
 void BeaconManager::sendDone(enum AckLayerResponse result, IDSMEMessage* msg) {
     dsme.getPlatform().releaseMessage(msg);
     transmissionPending = false;
+    DSME_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED);
 }
 
 void BeaconManager::handleBeacon(IDSMEMessage* msg) {
