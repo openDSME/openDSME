@@ -480,6 +480,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
 
     if(response != AckLayerResponse::NO_ACK_REQUESTED && response != AckLayerResponse::ACK_SUCCESSFUL) {
+        DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
         currentACTElement->incrementIdleCounter();
 
         // not successful -> retry?
@@ -507,11 +508,13 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
             params.status = DataStatus::SUCCESS;
             break;
         case AckLayerResponse::ACK_FAILED:
+            DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
             currentACTElement->incrementIdleCounter();
             params.status = DataStatus::NO_ACK;
             break;
         case AckLayerResponse::SEND_FAILED:
             LOG_DEBUG("SEND_FAILED during GTS");
+            DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
             currentACTElement->incrementIdleCounter();
             params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
             break;
