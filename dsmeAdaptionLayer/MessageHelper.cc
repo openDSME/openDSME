@@ -196,9 +196,9 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
                 this->dsmeAdaptionLayer.getGTSHelper().checkAllocationForPacket(dst.getShortAddress());
             }
 
-            LOG_INFO("Preparing transmission in CFP.");
+            LOG_DEBUG("Preparing transmission in CFP.");
         } else {
-            LOG_INFO("Preparing transmission in CAP.");
+            LOG_DEBUG("Preparing transmission in CAP.");
         }
 
         this->dsmeAdaptionLayer.getMCPS_SAP().getDATA().request(params);
@@ -207,7 +207,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
 }
 
 void MessageHelper::handleDataIndication(mcps_sap::DATA_indication_parameters& params) {
-    LOG_INFO("Received DATA message from MCPS.");
+    LOG_DEBUG("Received DATA message from MCPS.");
     this->dsmeAdaptionLayer.getGTSHelper().indicateReceivedMessage(params.msdu->getHeader().getSrcAddr().getShortAddress());
     receiveIndication(params.msdu);
     return;
