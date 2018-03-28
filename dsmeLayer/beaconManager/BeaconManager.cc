@@ -287,14 +287,13 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     }
 
     if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
-        LOG_INFO("Only track beacons by coordinator -> discard");
+        LOG_DEBUG("Only track beacons by coordinator -> discard");
         return true;
     }
 
     /* Reset the number of missed beacons */
     this->missedBeacons = 0;
 
-    // TODO should this be done for every beacon or only for parent beacons?
     // TODO do this on lower layer to gain accuracy and include offset in calculation
     uint16_t lastHeardBeaconSDIndex = descr.getBeaconBitmap().getSDIndex();
 
