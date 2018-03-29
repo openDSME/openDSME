@@ -182,13 +182,17 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
         return;
     }
 
+    // Find the coordinator with the best LQI,
+    // then find the coordinator with this LQI,
+    // but the best RSSI.
+
     uint8_t bestLQI = 0;
-    uint8_t bestLQIIdx = 0xFF;
+    int8_t bestRSSI = INT8_MIN;
+    uint8_t bestIdx = 0xFF;
 
     for(uint8_t i = 0; i < list->size(); i++) {
         if((*list)[i].linkQuality > bestLQI) {
             bestLQI = (*list)[i].linkQuality;
-            bestLQIIdx = i;
         }
     }
 
@@ -197,7 +201,16 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
         return;
     }
 
-    this->panDescriptorToSyncTo = (*list)[bestLQIIdx];
+    for(uint8_t i = 0; i < list->size(); i++) {
+        if((*list)[i].linkQuality == bestLQI) {
+            if((*list)[i].rssi > bestRSSI) {
+                bestRSSI = (*list)[i].rssi;
+                bestIdx = i;
+            }
+        }
+    }
+
+    this->panDescriptorToSyncTo = (*list)[bestIdx];
 
     mlme_sap::SYNC::request_parameters syncParams;
     syncParams.channelNumber = this->panDescriptorToSyncTo.channelNumber;

@@ -57,6 +57,7 @@ public:
     uint8_t channelPage;
     bool GTSPermit;
     uint8_t linkQuality;
+    int8_t rssi; // not available in standard!
     uint32_t timestamp;
     SecurityStatus::Security_Status securityStatus;
     uint8_t securityLevel;

@@ -445,7 +445,10 @@ void BeaconManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, 
 void BeaconManager::sendDone(enum AckLayerResponse result, IDSMEMessage* msg) {
     dsme.getPlatform().releaseMessage(msg);
     transmissionPending = false;
-    DSME_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED);
+    if(result != AckLayerResponse::NO_ACK_REQUESTED) {
+        LOG_ERROR(result);
+        DSME_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED);
+    }
 }
 
 void BeaconManager::handleBeacon(IDSMEMessage* msg) {
@@ -482,6 +485,7 @@ void BeaconManager::handleBeacon(IDSMEMessage* msg) {
         params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
         params.panDescriptor.timestamp = msg->getStartOfFrameDelimiterSymbolCounter();
         params.panDescriptor.linkQuality = msg->getLQI();
+        params.panDescriptor.rssi = msg->getRSSI();
         //  TODO fill in the other indication_parameters,
         //  some of the info is already included in the PANDesriptor.
         //    params.pendAddrSpec;
