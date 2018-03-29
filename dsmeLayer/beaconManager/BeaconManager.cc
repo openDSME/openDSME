@@ -223,7 +223,7 @@ void BeaconManager::printBeaconStatistics() {
 
     for(uint8_t i = 0; i < statsValid; i++) {
         auto& stat = beaconStatistics[j];
-        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (uint16_t)stat.sdIndex);
+        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
 
         uint32_t beaconIntervalSymbols = dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval();
         beaconIntervalSymbols *= aNumSuperframeSlots;
@@ -249,6 +249,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
         stat.time = msg->getStartOfFrameDelimiterSymbolCounter();
         stat.sender = msg->getHeader().getSrcAddr().getShortAddress();
         stat.lqi = msg->getLQI();
+        stat.rssi = msg->getRSSI();
         stat.sdIndex = descr.getBeaconBitmap().getSDIndex();
         if(statsValid < STATS_NUM) {
             statsValid++;

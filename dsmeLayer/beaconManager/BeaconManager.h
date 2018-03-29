@@ -187,6 +187,7 @@ private:
         uint32_t time;
         uint16_t sender;
         uint8_t lqi;
+        int8_t rssi;
         uint8_t sdIndex;
     };
     static constexpr uint8_t STATS_NUM = 10;

@@ -51,6 +51,8 @@ namespace dsme {
 
 class IDSMEMessage {
 public:
+    static constexpr int8_t INVALID_RSSI = INT8_MAX;
+
     virtual ~IDSMEMessage() = default;
 
     virtual void prependFrom(DSMEMessageElement* msg) = 0;
@@ -68,6 +70,10 @@ public:
     virtual IEEE802154eMACHeader& getHeader() = 0;
 
     virtual uint8_t getLQI() = 0;
+
+    virtual int8_t getRSSI() {
+        return INVALID_RSSI;
+    } 
 
     virtual bool getReceivedViaMCPS() = 0;
 
