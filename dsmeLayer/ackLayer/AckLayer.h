@@ -48,8 +48,6 @@
 
 namespace dsme {
 
-enum AckLayerResponse { SEND_FAILED, NO_ACK_REQUESTED, ACK_FAILED, ACK_SUCCESSFUL, SEND_ABORTED };
-
 class IDSMEMessage;
 class DSMELayer;
 
@@ -127,6 +125,8 @@ private:
     done_callback_t externalDoneCallback;
 
     const Delegate<void(bool)> internalDoneCallback;
+
+    void signalResult(enum AckLayerResponse response);
 };
 } /* namespace dsme */
 

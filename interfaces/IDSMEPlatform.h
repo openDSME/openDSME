@@ -45,6 +45,8 @@
 
 #include "../helper/DSMEDelegate.h"
 #include "../helper/Integers.h"
+#include "../mac_services/DSME_Common.h"
+#include "../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "./IDSMERadio.h"
 
 namespace dsme {
@@ -102,6 +104,12 @@ public:
      * Beacons with LQI lower than this will not be considered when deciding for a coordinator to associate to
      */
     virtual uint8_t getMinCoordinatorLQI() = 0;
+
+    /*
+     * Signal result of AckLayer. Can be used to generate link statistics (i.e. ETX).
+     */
+    virtual void signalAckLayerResult(enum AckLayerResponse response, IEEE802154MacAddress receiver) {
+    }
 };
 
 } /* namespace dsme */
