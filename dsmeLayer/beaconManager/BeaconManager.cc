@@ -219,11 +219,11 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 void BeaconManager::printBeaconStatistics() {
     uint8_t j = statsIdx;
     uint32_t counter = dsme.getPlatform().getSymbolCounter();
-    LOG_ERROR("BEACON STATS " << "now " << counter << " coord " << this->dsme.getMAC_PIB().macCoordShortAddress);
+    LOG_ERROR("BEACON STATS " << "now " << counter << " coord 0x" << HEXOUT << this->dsme.getMAC_PIB().macCoordShortAddress << DECOUT);
 
     for(uint8_t i = 0; i < statsValid; i++) {
         auto& stat = beaconStatistics[j];
-        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
+        LOG_ERROR("BEACON STATS " << stat.time << " 0x" << HEXOUT << stat.sender << DECOUT << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
 
         uint32_t beaconIntervalSymbols = dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval();
         beaconIntervalSymbols *= aNumSuperframeSlots;
