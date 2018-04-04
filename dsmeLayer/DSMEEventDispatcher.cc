@@ -90,9 +90,9 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 
 /********** Setup Methods **********/
 
-uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime) {
+uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime, uint8_t skippedSlots) {
     uint32_t symbols_per_slot = dsme.getMAC_PIB().helper.getSymbolsPerSlot();
-    uint32_t next_slot_time = lastSlotTime + symbols_per_slot;
+    uint32_t next_slot_time = lastSlotTime + (1+skippedSlots)*symbols_per_slot;
 
     DSME_ATOMIC_BLOCK {
         if(next_slot_time - PRE_EVENT_SHIFT <= NOW + 1) {

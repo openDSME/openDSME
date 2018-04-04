@@ -119,7 +119,7 @@ void DSMELayer::start() {
     }
 
     /* start the timer initially */
-    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter());
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(),0);
 }
 
 void DSMELayer::reset() {
@@ -154,7 +154,7 @@ void DSMELayer::doReset() {
     }
 
     /* restart slot timer */
-    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter());
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(),0);
 
     resetPending = false;
 }
@@ -193,7 +193,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     currentSuperframe = nextSuperframe;
     currentMultiSuperframe = nextMultiSuperframe;
 
-    if(getMAC_PIB().macShortAddress == 1) {
+    if(getMAC_PIB().macIsPANCoord) {
         LOG_DEBUG(DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
     }
 
@@ -213,7 +213,12 @@ void DSMELayer::slotEvent(int32_t lateness) {
         currentSlotTime = this->nextSlotTime;
     }
 
-    this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime);
+    uint8_t skippedSlots = 0;
+    if(currentSlot == 1) { // beginning of CAP
+        skippedSlots = 7; // no (pre) slot events required during CAP
+    }
+
+    this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime,skippedSlots);
 
     /* handle slot */
     if(currentSlot == 0) {
