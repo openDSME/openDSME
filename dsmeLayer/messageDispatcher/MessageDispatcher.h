@@ -159,7 +159,8 @@ protected:
 
     void createDataIndication(IDSMEMessage* msg);
     
-    void finalizeGTS();
+    void finalizeGTSTransmission();
+    void transceiverOffIfAssociated();
 };
 
 } /* namespace dsme */

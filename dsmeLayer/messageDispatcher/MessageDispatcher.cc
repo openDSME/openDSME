@@ -116,15 +116,18 @@ void MessageDispatcher::reset(void) {
     return;
 }
 
-void MessageDispatcher::finalizeGTS() {
+void MessageDispatcher::finalizeGTSTransmission() {
+    transceiverOffIfAssociated();
+    this->lastSendGTSNeighbor = this->neighborQueue.end();
+    this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
+}
+
+void MessageDispatcher::transceiverOffIfAssociated() {
     if(this->dsme.getMAC_PIB().macAssociatedPANCoord) {
         this->dsme.getPlatform().turnTransceiverOff();
     } else {
         /* '-> do not turn off the transceiver while we might be scanning */
     }
-
-    this->lastSendGTSNeighbor = this->neighborQueue.end();
-    this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
 }
 
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
@@ -132,7 +135,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     // Switch to next slot channel and radio mode
 
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
-    
+
     if(this->currentACTElement != act.end()) {
         if(this->currentACTElement->getDirection() == Direction::RX) {
             this->currentACTElement = act.end();
@@ -154,7 +157,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             this->currentACTElement = act.find(nextSuperframe, nextGTS);
             DSME_ASSERT(this->currentACTElement != act.end());
-            // For TX currentACTElement will be reset in finalizeGTS, called by
+            // For TX currentACTElement will be reset in finalizeGTSTransmission, called by
             // either handleGTS if nothing is to send or by sendDoneGTS.
             // For RX it is reset in the next handlePreSlotEvent.
 
@@ -189,11 +192,16 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             if(this->currentACTElement->getDirection() == RX) {
                 this->numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
             }
+        } else {
+            /* '-> nothing to do during this slot */
+            DSME_ASSERT(this->currentACTElement == act.end());
+            transceiverOffIfAssociated();
         }
     } else if(nextSlot == 0) {
         /* '-> beacon slots are handled by the BeaconManager */
+        DSME_ASSERT(this->currentACTElement == act.end());
     } else if(nextSlot == 1) {
-        /* '-> next slot will be or CAP */
+        /* '-> next slot will be CAP */
 
         if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {
             /* '-> active CAP slot */
@@ -201,9 +209,8 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             this->dsme.getPlatform().turnTransceiverOn();
             this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
         } else {
-            /* '-> inactive CAP slot (CAP-reduction 'light') */
-            /* Not reachable anymore with CAP-reduction */
-            // TODO remove?
+            /* '-> CAP reduction */
+            transceiverOffIfAssociated();
         }
     }
 
@@ -393,10 +400,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
 
             if(this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)) {
                 /* '-> no message to be sent */
-
-                /* make sure we never interrupt scanning by turning the transceiver off */
-                DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
-                finalizeGTS();
+                finalizeGTSTransmission();
                 this->numUnusedTxGts++;
             } else {
                 /* '-> a message is queued for transmission */
@@ -422,7 +426,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             }
         }
         else {
-            finalizeGTS();
+            finalizeGTSTransmission();
         }
     }
 }
@@ -494,7 +498,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
-    
+
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     DSME_ASSERT(this->currentACTElement != act.end());
 
@@ -504,7 +508,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         // not successful -> retry?
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
-            finalizeGTS();
+            finalizeGTSTransmission();
             LOG_DEBUG("sendDoneGTS - retry");
             return; // will stay at front of queue
         }
@@ -546,7 +550,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     params.numBackoffs = 0;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
-    finalizeGTS();
+    finalizeGTSTransmission();
 }
 
 } /* namespace dsme */
