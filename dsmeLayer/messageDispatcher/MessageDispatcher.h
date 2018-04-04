@@ -70,7 +70,7 @@ public:
     /**
      * Gets called when CSMA Message was sent down to the PHY
      */
-    void onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs);
+    void onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts);
 
     bool sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
 

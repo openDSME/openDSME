@@ -446,7 +446,7 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     createDataIndication(msg);
 }
 
-void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs) {
+void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts) {
     if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;

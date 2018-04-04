@@ -132,7 +132,6 @@ bool CAPLayer::pushMessage(IDSMEMessage* msg) {
  *****************************/
 fsmReturnStatus CAPLayer::choiceRebackoff() {
     NB++;
-    totalNBs++;
     if(NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
         actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
         return transition(&CAPLayer::stateIdle);
@@ -239,7 +238,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
-        if(NR > dsme.getMAC_PIB().macMaxFrameRetries) {
+        if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
         } else {
@@ -273,6 +272,8 @@ uint16_t CAPLayer::symbolsRequired() {
 }
 
 void CAPLayer::actionStartBackoffTimer() {
+    totalNBs++;
+
     uint8_t backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
@@ -344,8 +345,10 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     IDSMEMessage* msg = queue.front();
     queue.pop();
 
-    LOG_DEBUG("pop " << (uint64_t)msg);
-    dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs);
+    uint8_t transmissionAttempts = NR+1;
+
+    LOG_DEBUG("pop " << (uint64_t)msg << " 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " " << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
+    dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs, transmissionAttempts);
 }
 
 } /* namespace dsme */
