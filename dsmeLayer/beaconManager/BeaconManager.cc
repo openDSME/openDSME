@@ -139,12 +139,17 @@ void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMul
     uint16_t nextSDIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
 
     if((this->isBeaconAllocated || this->dsme.getMAC_PIB().macIsPANCoord) && nextSDIndex == this->dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
+        // This node will transmit a beacon
         this->dsme.getPlatform().turnTransceiverOn();
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
         prepareEnhancedBeacon(startSlotTime);
-    } else if(true) { // TODO: only turn on when a beacon from the SYNC-parent is expected
+    } else if((!dsme.getMAC_PIB().macAssociatedPANCoord) || nextSDIndex == this->dsme.getMAC_PIB().macSyncParentSdIndex) {
+        // This node expects a beacon, only if not associated or a beacon from the SYNC-parent is expected
         this->dsme.getPlatform().turnTransceiverOn();
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
+    }
+    else {
+        this->dsme.getPlatform().turnTransceiverOff();
     }
 }
 
@@ -292,8 +297,8 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
         }
     }
 
-    if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
-        LOG_DEBUG("Only track beacons by coordinator -> discard");
+    if(msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macSyncParentShortAddress) {
+        LOG_DEBUG("Only synchronize to beacons by SYNC parent -> discard");
         return true;
     }
 

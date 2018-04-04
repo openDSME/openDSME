@@ -61,6 +61,8 @@ public:
         uint8_t channelNumber;
         uint8_t channelPage;
         bool trackBeacon;
+        uint16_t syncParentShortAddress; // Not included in the standard!
+        uint16_t syncParentSdIndex; // Not included in the standard!
     };
 
     void request(request_parameters&);

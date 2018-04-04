@@ -216,6 +216,8 @@ void ScanHelper::handleSCAN_confirm(mlme_sap::SCAN_confirm_parameters& params) {
     syncParams.channelNumber = this->panDescriptorToSyncTo.channelNumber;
     syncParams.channelPage = this->panDescriptorToSyncTo.channelPage;
     syncParams.trackBeacon = true;
+    syncParams.syncParentShortAddress = this->panDescriptorToSyncTo.coordAddress.getShortAddress();
+    syncParams.syncParentSdIndex = this->panDescriptorToSyncTo.dsmePANDescriptor.getBeaconBitmap().getSDIndex();
     this->syncActive = true;
     this->dsmeAdaptionLayer.getMLME_SAP().getSYNC().request(syncParams);
 

@@ -72,8 +72,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
         this->pendingAddresses = other.pendingAddresses;
         this->dsmeSuperframeSpec = other.dsmeSuperframeSpec;
         this->timeSyncSpec = other.timeSyncSpec;
-        this->beaconBitmap.setNumberOfBeaconSlots(other.beaconBitmap.getSDBitmapLengthBytes()*8, false);
-        this->beaconBitmap.copyBitsFrom(other.beaconBitmap);
+        this->beaconBitmap = other.beaconBitmap;
         return *this;
     }
 
