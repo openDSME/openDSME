@@ -411,8 +411,6 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         gts.channel = 0;
                     }
                 }
-
-                DSME_ASSERT(previousChannelSelection == 0xFF);
             }
             slotsToCheck--;
         }
