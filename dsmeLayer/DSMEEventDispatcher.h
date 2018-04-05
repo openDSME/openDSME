@@ -73,7 +73,7 @@ public:
 
     void timerInterrupt();
 
-    uint32_t setupSlotTimer(uint32_t lastSlotTime);
+    uint32_t setupSlotTimer(uint32_t lastSlotTime, uint8_t skippedSlots);
     void setupCSMATimer(uint32_t absSymCnt);
     void setupACKTimer();
     void stopACKTimer();

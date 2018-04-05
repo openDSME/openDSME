@@ -44,6 +44,7 @@
 
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../pib/PHY_PIB.h"
+#include "../pib/MAC_PIB.h"
 
 namespace dsme {
 namespace mlme_sap {
@@ -53,6 +54,9 @@ SYNC::SYNC(DSMELayer& dsme) : dsme(dsme) {
 void SYNC::request(request_parameters& params) {
     dsme.getPHY_PIB().phyCurrentPage = params.channelPage;
     dsme.getPHY_PIB().phyCurrentChannel = params.channelNumber;
+    dsme.getMAC_PIB().macSyncParentShortAddress = params.syncParentShortAddress;
+    dsme.getMAC_PIB().macSyncParentSdIndex = params.syncParentSdIndex;
+    LOG_ERROR("SYNC " << params.syncParentSdIndex << " " << params.syncParentShortAddress);
     dsme.startTrackingBeacons();
 }
 

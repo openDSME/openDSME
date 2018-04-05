@@ -139,12 +139,17 @@ void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMul
     uint16_t nextSDIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
 
     if((this->isBeaconAllocated || this->dsme.getMAC_PIB().macIsPANCoord) && nextSDIndex == this->dsmePANDescriptor.getBeaconBitmap().getSDIndex()) {
+        // This node will transmit a beacon
         this->dsme.getPlatform().turnTransceiverOn();
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
         prepareEnhancedBeacon(startSlotTime);
-    } else if(true) { // TODO: only turn on when a beacon from the SYNC-parent is expected
+    } else if((!dsme.getMAC_PIB().macAssociatedPANCoord) || nextSDIndex == this->dsme.getMAC_PIB().macSyncParentSdIndex) {
+        // This node expects a beacon, only if not associated or a beacon from the SYNC-parent is expected
         this->dsme.getPlatform().turnTransceiverOn();
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
+    }
+    else {
+        this->dsme.getPlatform().turnTransceiverOff();
     }
 }
 
@@ -219,11 +224,11 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 void BeaconManager::printBeaconStatistics() {
     uint8_t j = statsIdx;
     uint32_t counter = dsme.getPlatform().getSymbolCounter();
-    LOG_ERROR("BEACON STATS " << "now " << counter << " coord " << this->dsme.getMAC_PIB().macCoordShortAddress);
+    LOG_ERROR("BEACON STATS " << "now " << counter << " coord 0x" << HEXOUT << this->dsme.getMAC_PIB().macCoordShortAddress << DECOUT);
 
     for(uint8_t i = 0; i < statsValid; i++) {
         auto& stat = beaconStatistics[j];
-        LOG_ERROR("BEACON STATS " << stat.time << " " << stat.sender << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
+        LOG_ERROR("BEACON STATS " << stat.time << " 0x" << HEXOUT << stat.sender << DECOUT << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
 
         uint32_t beaconIntervalSymbols = dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval();
         beaconIntervalSymbols *= aNumSuperframeSlots;
@@ -292,8 +297,8 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
         }
     }
 
-    if(dsme.getMAC_PIB().macAssociatedPANCoord && msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macCoordShortAddress) {
-        LOG_DEBUG("Only track beacons by coordinator -> discard");
+    if(msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macSyncParentShortAddress) {
+        LOG_DEBUG("Only synchronize to beacons by SYNC parent -> discard");
         return true;
     }
 
@@ -445,7 +450,8 @@ void BeaconManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, 
 void BeaconManager::sendDone(enum AckLayerResponse result, IDSMEMessage* msg) {
     dsme.getPlatform().releaseMessage(msg);
     transmissionPending = false;
-    DSME_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED);
+    DSME_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED || result == AckLayerResponse::SEND_FAILED);
+    DSME_SIM_ASSERT(result == AckLayerResponse::NO_ACK_REQUESTED);
 }
 
 void BeaconManager::handleBeacon(IDSMEMessage* msg) {
@@ -482,6 +488,7 @@ void BeaconManager::handleBeacon(IDSMEMessage* msg) {
         params.panDescriptor.channelPage = this->dsme.getPHY_PIB().phyCurrentPage;
         params.panDescriptor.timestamp = msg->getStartOfFrameDelimiterSymbolCounter();
         params.panDescriptor.linkQuality = msg->getLQI();
+        params.panDescriptor.rssi = msg->getRSSI();
         //  TODO fill in the other indication_parameters,
         //  some of the info is already included in the PANDesriptor.
         //    params.pendAddrSpec;

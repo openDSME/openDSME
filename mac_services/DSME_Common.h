@@ -305,6 +305,8 @@ struct PurgeStatus {
 
 enum Channel_Diversity_Mode { CHANNEL_ADAPTATION = 0x00, CHANNEL_HOPPING = 0x01 };
 
+enum AckLayerResponse { SEND_FAILED, NO_ACK_REQUESTED, ACK_FAILED, ACK_SUCCESSFUL, SEND_ABORTED };
+
 } /* namespace dsme */
 
 #endif /* DSME_COMMON_H_ */
