@@ -68,7 +68,7 @@ public:
     /**
      * Get bit vector of occupied channels
      */
-    void getOccupiedChannels(BitVector<MAX_CHANNELS> channelVector, uint16_t subBlockIndex, uint16_t subBlockOffset) const;
+    void getOccupiedChannels(BitVector<MAX_CHANNELS>& channelVector, uint16_t subBlockIndex, uint16_t subBlockOffset) const;
 
     /**
      * Update slot occupation of neighborhood on receipt of reply/notify

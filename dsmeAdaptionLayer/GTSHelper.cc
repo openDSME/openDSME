@@ -393,29 +393,6 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         for(gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
-
-                // Previous channel selection
-                uint8_t previousChannelSelection = 0xFF;
-                gts.channel = startChannel;
-                for(uint8_t i = 0; i < numChannels; i++) {
-                    if(!macDSMESAB.isOccupied(gts.absoluteIndex(numGTSlots, numChannels))) {
-                        if(sabSpec == nullptr || !sabSpec->getSubBlock().get(gts.slotID * numChannels + gts.channel)) {
-                            /* found one */
-                            // LOG_INFO("Next free GTS is " << gts.superframeID << "/" << gts.slotID << "/" << (uint16_t)gts.channel << ".");
-                            // dsmeAdaptionLayer.getMAC_PIB().macChannelOffset = gts.channel;
-                            previousChannelSelection = gts.channel;
-                            break;
-                        }
-                    }
-
-                    gts.channel++;
-                    if(gts.channel == numChannels) {
-                        gts.channel = 0;
-                    }
-                }
-
-                // New channel selection
-                BitVector<MAX_CHANNELS> occupied;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
                 if(sabSpec != nullptr) {
                     remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID*numChannels);
@@ -426,7 +403,6 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 for(uint8_t i = 0; i < numChannels; i++) {
                     if(!occupied.get(gts.channel)) {
                         /* found one */
-                        DSME_ASSERT(previousChannelSelection == gts.channel);
                         return gts;
                     }
 
