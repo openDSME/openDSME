@@ -447,6 +447,12 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 }
 
 void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts) {
+    if(status == DataStatus::Data_Status::NO_ACK || status == DataStatus::Data_Status::SUCCESS) {
+        if(msg->getHeader().isAckRequested() && !msg->getHeader().getDestAddr().isBroadcast()) {
+            this->dsme.getPlatform().signalAckedTransmissionResult(status == DataStatus::Data_Status::SUCCESS,transmissionAttempts,msg->getHeader().getDestAddr());
+        }
+    }
+
     if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
@@ -512,6 +518,10 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
             LOG_DEBUG("sendDoneGTS - retry");
             return; // will stay at front of queue
         }
+    }
+
+    if(response == AckLayerResponse::ACK_FAILED || response == AckLayerResponse::ACK_SUCCESSFUL) {
+        this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL,msg->getRetryCounter()+1,msg->getHeader().getDestAddr());
     }
 
     neighborQueue.popFront(lastSendGTSNeighbor);

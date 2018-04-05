@@ -106,9 +106,10 @@ public:
     virtual uint8_t getMinCoordinatorLQI() = 0;
 
     /*
-     * Signal result of AckLayer. Can be used to generate link statistics (i.e. ETX).
+     * Signal result of messages with requested acknowledgement sent by the MAC layers.
+     * Can be used to generate link statistics (i.e. ETX).
      */
-    virtual void signalAckLayerResult(enum AckLayerResponse response, IEEE802154MacAddress receiver) {
+    virtual void signalAckedTransmissionResult(bool success, uint8_t transmissionAttempts, IEEE802154MacAddress receiver) {
     }
 };
 

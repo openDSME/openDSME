@@ -405,7 +405,6 @@ void AckLayer::signalResult(enum AckLayerResponse response) {
     auto addr = pendingMessage->getHeader().getDestAddr();
     externalDoneCallback(response, pendingMessage);
     pendingMessage = nullptr; // owned by upper layer now
-    dsme.getPlatform().signalAckLayerResult(response, addr);
 }
 
 } /* namespace dsme */
