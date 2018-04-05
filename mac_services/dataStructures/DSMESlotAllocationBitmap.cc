@@ -78,6 +78,10 @@ void DSMESlotAllocationBitmap::getOccupiedSubBlock(DSMESABSpecification& subBloc
     return;
 }
 
+void DSMESlotAllocationBitmap::getOccupiedChannels(BitVector<MAX_CHANNELS> channelVector, uint16_t subBlockIndex, uint16_t subBlockOffset) const {
+    channelVector.copyFrom(occupied, subBlockIndex * numGTSlots * numChannels + subBlockOffset * numChannels);
+}
+
 bool DSMESlotAllocationBitmap::isOccupied(abs_slot_idx_t idx) {
     return occupied.get(idx);
 }
