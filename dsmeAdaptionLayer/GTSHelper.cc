@@ -373,8 +373,13 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
 
     GTS gts(0, 0, 0);
 
+    BitVector<MAX_CHANNELS> occupied;
+    BitVector<MAX_CHANNELS> remoteOccupied; // only used if sabSpec != nullptr
+    occupied.setLength(numChannels);
+
     if(sabSpec != nullptr) {
         DSME_ASSERT(sabSpec->getSubBlockIndex() == initialSuperframeID);
+        remoteOccupied.setLength(numChannels);
     }
 
     for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
@@ -388,6 +393,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         for(gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
+
+                // Previous channel selection
+                uint8_t previousChannelSelection = 0xFF;
                 gts.channel = startChannel;
                 for(uint8_t i = 0; i < numChannels; i++) {
                     if(!macDSMESAB.isOccupied(gts.absoluteIndex(numGTSlots, numChannels))) {
@@ -395,7 +403,8 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                             /* found one */
                             // LOG_INFO("Next free GTS is " << gts.superframeID << "/" << gts.slotID << "/" << (uint16_t)gts.channel << ".");
                             // dsmeAdaptionLayer.getMAC_PIB().macChannelOffset = gts.channel;
-                            return gts;
+                            previousChannelSelection = gts.channel;
+                            break;
                         }
                     }
 
@@ -404,6 +413,30 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         gts.channel = 0;
                     }
                 }
+
+                // New channel selection
+                BitVector<MAX_CHANNELS> occupied;
+                macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
+                if(sabSpec != nullptr) {
+                    remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID*numChannels);
+                    occupied.setOperationJoin(remoteOccupied);
+                }
+                
+                gts.channel = startChannel;
+                for(uint8_t i = 0; i < numChannels; i++) {
+                    if(!occupied.get(gts.channel)) {
+                        /* found one */
+                        DSME_ASSERT(previousChannelSelection == gts.channel);
+                        return gts;
+                    }
+
+                    gts.channel++;
+                    if(gts.channel == numChannels) {
+                        gts.channel = 0;
+                    }
+                }
+
+                DSME_ASSERT(previousChannelSelection == 0xFF);
             }
             slotsToCheck--;
         }
