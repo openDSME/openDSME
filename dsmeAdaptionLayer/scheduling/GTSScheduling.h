@@ -199,7 +199,7 @@ public:
 
         int16_t target = getSlotTarget(address);
 
-        if(target > numAllocatedSlots || numAllocatedSlots < 1) {
+        if(target > numAllocatedSlots) {
             uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
             uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
 

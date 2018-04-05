@@ -83,6 +83,10 @@ void PIDScheduling::multisuperframeEvent() {
         uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
         data.slotTarget = slots + u;
 
+        if(data.slotTarget < 1) {
+            data.slotTarget = 1;
+        }
+
         LOG_DEBUG_PREFIX;
         LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
         LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
