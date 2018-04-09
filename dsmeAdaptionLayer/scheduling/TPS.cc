@@ -66,7 +66,7 @@ void TPS::setMinFreshness(uint16_t minFreshness) {
 
 void TPS::multisuperframeEvent() {
     if(!header) {
-        LOG_ERROR("control"
+        LOG_DEBUG("control"
                   << ","
                   << "from"
                   << ","
@@ -117,7 +117,7 @@ void TPS::multisuperframeEvent() {
             data.multisuperframesSinceLastPacket = 0;
         }
 
-        LOG_ERROR("control"
+        LOG_DEBUG("control"
                   << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
                   << ",0x" << data.address << "," << DECOUT << data.messagesInLastMultisuperframe
                   << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << "," << (uint16_t)slots << "," << data.slotTarget
