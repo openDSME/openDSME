@@ -64,7 +64,10 @@ constexpr uint16_t aBaseSuperframeDuration{aBaseSlotDuration * aNumSuperframeSlo
 constexpr uint8_t aGtsDescPersistenceTime{4};
 
 /** The number of consecutive lost beacons that will cause the MAC sublayer of a receiving device to declare a loss of synchronization. */
-constexpr uint8_t aMaxLostBeacons{4};
+#ifndef DSME_MAX_LOST_BEACONS
+#define DSME_MAX_LOST_BEACONS 4
+#endif
+constexpr uint8_t aMaxLostBeacons{DSME_MAX_LOST_BEACONS};
 
 /** The maximum size of an MPDU, in octets, that can be followed by a SIFS period. */
 constexpr uint8_t aMaxSIFSFrameSize{18};
