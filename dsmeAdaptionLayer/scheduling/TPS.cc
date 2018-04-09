@@ -60,9 +60,13 @@ void TPS::setAlpha(float alpha) {
     this->alpha = alpha;
 }
 
+void TPS::setMinFreshness(uint16_t minFreshness) {
+    this->minFreshness = minFreshness;
+}
+
 void TPS::multisuperframeEvent() {
     if(!header) {
-        LOG_DEBUG("control"
+        LOG_ERROR("control"
                   << ","
                   << "from"
                   << ","
@@ -76,13 +80,16 @@ void TPS::multisuperframeEvent() {
                   << ","
                   << "slots"
                   << ","
-                  << "stotTarget");
+                  << "slotTarget"
+                  << ","
+                  << "freshness");
 
         header = true;
     }
 
     for(TPSTxData& data : this->txLinks) {
         DSME_ASSERT(alpha > 0);
+        DSME_ASSERT(minFreshness > 0);
         data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
@@ -97,9 +104,24 @@ void TPS::multisuperframeEvent() {
 
         data.slotTarget = slots + change;
 
-        LOG_DEBUG("control"
-                  << "," << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << "," << data.address << "," << data.messagesInLastMultisuperframe
-                  << "," << data.messagesOutLastMultisuperframe << "," << data.avgIn << "," << slots << "," << data.slotTarget);
+        if(data.multisuperframesSinceLastPacket > minFreshness) {
+            data.slotTarget = 0;
+        }
+
+        if(data.messagesInLastMultisuperframe == 0) {
+            if(data.multisuperframesSinceLastPacket < 0xFFFE) {
+                data.multisuperframesSinceLastPacket++;
+            }
+        }
+        else {
+            data.multisuperframesSinceLastPacket = 0;
+        }
+
+        LOG_ERROR("control"
+                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+                  << ",0x" << data.address << "," << DECOUT << data.messagesInLastMultisuperframe
+                  << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << "," << (uint16_t)slots << "," << data.slotTarget
+                  << "," << data.multisuperframesSinceLastPacket);
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
