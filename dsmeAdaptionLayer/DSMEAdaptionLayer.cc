@@ -160,7 +160,7 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
     this->messageHelper.handleScanAndSyncComplete(panDescriptor);
 
     if(panDescriptor != nullptr) {
-        LOG_DEBUG("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
+        LOG_INFO("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
                                          << " on PAN " << panDescriptor->coordPANId << ".");
     } else {
         LOG_DEBUG("Channel scan did not yield any PANs.");
@@ -170,7 +170,7 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
 
 void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association_Status status) {
     if(status == AssociationStatus::SUCCESS) {
-        LOG_DEBUG("Association completed successfully.");
+        LOG_INFO("Association completed successfully.");
     } else {
         LOG_ERROR("Association failed.");
     }
