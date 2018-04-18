@@ -46,6 +46,7 @@
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/dataStructures/RBTree.h"
+#include "../../mac_services/pib/MAC_PIB.h"
 
 namespace dsme {
 
