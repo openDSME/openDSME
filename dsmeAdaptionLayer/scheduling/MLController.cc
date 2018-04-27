@@ -59,7 +59,7 @@ constexpr int16_t K_D_NEG = 38;
 constexpr uint16_t SCALING = 128;
 
 
-MLControllerData::MLControllerData() : error_sum(0), last_error(0), queueLevel(0), transmissionRate(0) {
+MLControllerData::MLControllerData() : error_sum(0), last_error(0), queueLevel(0), transmissionRate(0), avgIn(0), multisuperframesSinceLastPacket(0) {
 }
 
 void MLController::multisuperframeEvent() {
@@ -71,21 +71,39 @@ void MLController::multisuperframeEvent() {
             data.queueLevel += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
             /* log the training values to file */
-            if(currentSuperframe++ == platform.par("eval").longValue()) {
+            if(currentSuperframe == platform.par("eval").longValue()) {
                 std:: cout << "{";
                 std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
                 std::cout << "\"from\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
                 std::cout << "\"to\" : " <<  data.address << ", ";
-                std::cout << "\"ir\" : " << data.messagesInLastMultisuperframe << ", ";
+                std::cout << "\"rr\" : " << data.messagesInLastMultisuperframe << ", ";
                 std::cout << "\"tr\" : " <<  data.transmissionRate << ", ";
                 std::cout << "\"q\" : " << data.queueLevel << ", ";
+                std::cout << "\"s_o\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) << ", "; 
+                std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
                 std::cout << "\"slot_target\" : " <<  data.slotTarget<< "} " << std::endl;
             }
         }
+//        for(gTSRxData& data : this->rxLinks) {
+            /* log the training values to file */
+//            if(currentSuperframe == platform.par("eval").longValue()) {
+//                std:: cout << "{";
+//                std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
+//                std::cout << "\"from\" : " <<  data.address << ", ";
+//                std::cout << "\"to\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
+//                std::cout << "\"rr\" : " << data.messagesRxLastMultisuperframe << ", ";
+//                std::cout << "\"tr\" : " <<  0 << ", ";
+//                std::cout << "\"q\" : " << 0 << ", ";
+//                std::cout << "\"s_o\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) << ", "; 
+//                std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
+//                std::cout << "\"slot_target\" : " <<  0 << "} " << std::endl;
+//            }
+//        }
         doTPS(0.1, 0xFFFF);
     } else {
         std::cout << "Not implemented / needed yet" << std::endl;
     }
+    currentSuperframe++;
 }
 
 void MLController::doPID() {
