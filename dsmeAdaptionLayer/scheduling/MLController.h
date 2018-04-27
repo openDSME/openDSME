@@ -58,6 +58,8 @@ struct MLControllerData : GTSSchedulingData {
     int16_t last_error;
     uint16_t queueLevel;
     uint16_t transmissionRate;
+    float avgIn; // TODO no float!
+    uint16_t multisuperframesSinceLastPacket;
 };
 
 class MLController : public GTSSchedulingImpl<MLControllerData, GTSRxData> {
@@ -67,6 +69,7 @@ public:
 
     virtual void multisuperframeEvent();
     void doPID();
+    void doTPS(float alpha, uint16_t minFreshness);
 
 private:
     uint32_t currentSuperframe;

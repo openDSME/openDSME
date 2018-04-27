@@ -44,7 +44,7 @@
 #include <iostream>
 #include "../../../DSMEPlatform.h"
 #include "../../dsmeLayer/DSMELayer.h"
-
+#include "./TPS.h"
 
 namespace dsme {
 
@@ -67,7 +67,7 @@ void MLController::multisuperframeEvent() {
 
     if(platform.par("learning").boolValue()) {
         for(MLControllerData& data : this->txLinks) {
-            data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - data.messagesInLastMultisuperframe + data.messagesOutLastMultisuperframe) ;
+            data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
             data.queueLevel += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
 
             /* log the training values to file */
@@ -76,12 +76,13 @@ void MLController::multisuperframeEvent() {
                 std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
                 std::cout << "\"from\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
                 std::cout << "\"to\" : " <<  data.address << ", ";
+                std::cout << "\"ir\" : " << data.messagesInLastMultisuperframe << ", ";
                 std::cout << "\"tr\" : " <<  data.transmissionRate << ", ";
                 std::cout << "\"q\" : " << data.queueLevel << ", ";
                 std::cout << "\"slot_target\" : " <<  data.slotTarget<< "} " << std::endl;
             }
         }
-        doPID();
+        doTPS(0.1, 0xFFFF);
     } else {
         std::cout << "Not implemented / needed yet" << std::endl;
     }
@@ -127,6 +128,49 @@ void MLController::doPID() {
         data.messagesOutLastMultisuperframe = 0;
     }
 }
+
+void MLController::doTPS(float alpha, uint16_t minFreshness) {
+    for(MLControllerData& data : this->txLinks) {
+        DSME_ASSERT(alpha > 0);
+        DSME_ASSERT(minFreshness > 0);
+        data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
+
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
+        float error = data.avgIn - slots;
+
+        int8_t change = 0;
+        if(error > 0) {
+            change = ceil(error);
+        } else if(error < -2) {
+            change = ceil(error) + 1;
+        }
+
+        data.slotTarget = slots + change;
+
+        if(data.multisuperframesSinceLastPacket > minFreshness) {
+            data.slotTarget = 0;
+        }
+
+        if(data.messagesInLastMultisuperframe == 0) {
+            if(data.multisuperframesSinceLastPacket < 0xFFFE) {
+                data.multisuperframesSinceLastPacket++;
+            }
+        }
+        else {
+            data.multisuperframesSinceLastPacket = 0;
+        }
+
+        LOG_DEBUG("control"
+                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
+                  << ",0x" << data.address << "," << DECOUT << data.messagesInLastMultisuperframe
+                  << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << "," << (uint16_t)slots << "," << data.slotTarget
+                  << "," << data.multisuperframesSinceLastPacket);
+
+        data.messagesInLastMultisuperframe = 0;
+        data.messagesOutLastMultisuperframe = 0;
+    }
+}
+
 
 //void MLController::multisuperframeEvent() {
 //    global_multisuperframe++;
