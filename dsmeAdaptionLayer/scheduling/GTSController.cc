@@ -49,6 +49,11 @@
 namespace dsme {
 
 GTSControllerData::GTSControllerData() : history_position(0), error_sum(0), last_error(0) {
+    for(int i=0; i<CONTROL_HISTORY_LENGTH; i++) {
+        messagesIn[i] = 0;
+        messagesOut[i] = 0;
+        queueSize[i] = 0;
+    }
 }
 
 void GTSController::multisuperframeEvent() {
@@ -90,6 +95,8 @@ void GTSController::multisuperframeEvent() {
 
     uint8_t i = 0;
     for(GTSControllerData& data : this->txLinks) {
+        data.messagesIn[data.history_position] = data.messagesInLastMultisuperframe;
+        data.messagesOut[data.history_position] = data.messagesOutLastMultisuperframe;
         data.queueSize[data.history_position] += data.messagesIn[data.history_position] - data.messagesOut[data.history_position];
         uint16_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
         uint16_t myAddress = this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress;
@@ -97,10 +104,14 @@ void GTSController::multisuperframeEvent() {
         if(flipEnabled && i == flipLink && myAddress == platform.par("flipNode").longValue()) {
             std::cout << "trace: ";
             std::cout << omnetpp::simTime() << ",";
+            std::cout << global_multisuperframe << ",";
             std::cout << myAddress << ",";
             std::cout << data.address << ",";
             std::cout << data.slotTarget << ",";
             std::cout << slots << ",";
+            std::cout << data.messagesInLastMultisuperframe << ",";
+            std::cout << data.messagesOutLastMultisuperframe << ",";
+            std::cout << data.queueSize[data.history_position] << ",";
             std::cout << std::endl;
         }
 
@@ -165,7 +176,8 @@ void GTSController::multisuperframeEvent() {
         data.queueSize[data.history_position] = currentQueueSize;
         data.messagesIn[data.history_position] = 0;
         data.messagesOut[data.history_position] = 0;
-
+        data.messagesInLastMultisuperframe = 0;
+        data.messagesOutLastMultisuperframe = 0;
         i++;
     }
 }
