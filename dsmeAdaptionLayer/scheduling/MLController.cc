@@ -84,22 +84,8 @@ void MLController::multisuperframeEvent() {
                 std::cout << "\"slot_target\" : " <<  data.slotTarget<< "} " << std::endl;
             }
         }
-//        for(gTSRxData& data : this->rxLinks) {
-            /* log the training values to file */
-//            if(currentSuperframe == platform.par("eval").longValue()) {
-//                std:: cout << "{";
-//                std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
-//                std::cout << "\"from\" : " <<  data.address << ", ";
-//                std::cout << "\"to\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
-//                std::cout << "\"rr\" : " << data.messagesRxLastMultisuperframe << ", ";
-//                std::cout << "\"tr\" : " <<  0 << ", ";
-//                std::cout << "\"q\" : " << 0 << ", ";
-//                std::cout << "\"s_o\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) << ", "; 
-//                std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
-//                std::cout << "\"slot_target\" : " <<  0 << "} " << std::endl;
-//            }
-//        }
-        doTPS(0.1, 0xFFFF);
+        doTPS(0.1, 28);
+        //doPID();
     } else {
         std::cout << "Not implemented / needed yet" << std::endl;
     }
