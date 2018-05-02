@@ -64,15 +64,17 @@ struct MLControllerData : GTSSchedulingData {
 
 class MLController : public GTSSchedulingImpl<MLControllerData, GTSRxData> {
 public:
-    MLController(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), currentSuperframe(0) {
+    MLController(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
 
     virtual void multisuperframeEvent();
+    void finish();   
+ 
+private:
+    NeuralNetwork network;
+
     void doPID();
     void doTPS(float alpha, uint16_t minFreshness);
-
-private:
-    uint32_t currentSuperframe;
 };
 
 } /* namespace dsme */

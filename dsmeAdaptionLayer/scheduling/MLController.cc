@@ -65,31 +65,47 @@ MLControllerData::MLControllerData() : error_sum(0), last_error(0), queueLevel(0
 void MLController::multisuperframeEvent() {
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
-    if(platform.par("learning").boolValue()) {
-        for(MLControllerData& data : this->txLinks) {
-            data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
-            data.queueLevel += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+    for(MLControllerData& data : this->txLinks) {
+        data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
+        data.queueLevel += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+    }
 
-            /* log the training values to file */
-            if(currentSuperframe == platform.par("eval").longValue()) {
-                std:: cout << "{";
-                std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
-                std::cout << "\"from\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
-                std::cout << "\"to\" : " <<  data.address << ", ";
-                std::cout << "\"rr\" : " << data.messagesInLastMultisuperframe << ", ";
-                std::cout << "\"tr\" : " <<  data.transmissionRate << ", ";
-                std::cout << "\"q\" : " << data.queueLevel << ", ";
-                std::cout << "\"s_o\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) << ", "; 
-                std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
-                std::cout << "\"slot_target\" : " <<  data.slotTarget<< "} " << std::endl;
-            }
-        }
-        doTPS(0.1, 28);
+    if(platform.par("learning").boolValue()) {
+       doTPS(0.1, 28);
         //doPID();
     } else {
-        std::cout << "Not implemented / needed yet" << std::endl;
+        for(MLControllerData& data : this->txLinks) {
+            float inputArray[6];
+            inputArray[0] = data.transmissionRate;
+            inputArray[1] = data.messagesInLastMultisuperframe;
+            inputArray[2] = data.queueLevel;
+            inputArray[3] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX); 
+            inputArray[4] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX);
+            inputArray[5] = data.slotTarget;
+        
+            quicknet::vector_t input{6, inputArray};
+            /* input: slots | l0 | l1 | l2 | l3 | l4 | l5 | l6 | l7 */
+            quicknet::vector_t& output = this->network.feedForward(input);
+            /* output: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 */
+            data.slotTarget = quicknet::idmax(output);
+        }
     }
-    currentSuperframe++;
+}
+
+void MLController::finish() {
+    for(MLControllerData& data : this->txLinks) {
+        /* log the training values to file */
+        std:: cout << "{";
+        std::cout << "\"time\" : " << omnetpp::simTime() << ", ";
+        std::cout << "\"from\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
+        std::cout << "\"to\" : " <<  data.address << ", ";
+        std::cout << "\"rr\" : " << data.messagesInLastMultisuperframe << ", ";
+        std::cout << "\"tr\" : " <<  data.transmissionRate << ", ";
+        std::cout << "\"q\" : " << data.queueLevel << ", ";
+        std::cout << "\"s_o\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) << ", "; 
+        std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
+        std::cout << "\"slot_target\" : " <<  data.slotTarget<< "} " << std::endl;
+    }
 }
 
 void MLController::doPID() {
