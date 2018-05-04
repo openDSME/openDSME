@@ -74,19 +74,21 @@ void MLController::multisuperframeEvent() {
        doTPS(0.1, 28);
         //doPID();
     } else {
+	static uint16_t maxTr= 0;
+	static uint16_t maxRr= 0;
         for(MLControllerData& data : this->txLinks) {
-            float inputArray[6];
-            inputArray[0] = data.transmissionRate;
-            inputArray[1] = data.messagesInLastMultisuperframe;
-            inputArray[2] = data.queueLevel;
-            inputArray[3] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX); 
-            inputArray[4] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX);
-            inputArray[5] = data.slotTarget;
-        
-            quicknet::vector_t input{6, inputArray};
-            /* input: slots | l0 | l1 | l2 | l3 | l4 | l5 | l6 | l7 */
+            maxTr = data.transmissionRate > maxTr ? data.transmissionRate : maxTr;
+            maxRr = data.messagesInLastMultisuperframe > maxRr ? data.transmissionRate : maxRr;
+		
+	    float inputArray[5];
+            inputArray[0] = data.transmissionRate / maxTr;
+	    inputArray[1] = data.messagesInLastMultisuperframe / maxRr;
+            inputArray[2] = data.queueLevel / 22;
+            inputArray[3] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) / 14; 
+            inputArray[4] = dsmeAdaptionLayer.getMAC_PIB().macShortAddress / 19;
+       
+            quicknet::vector_t input{5, inputArray};
             quicknet::vector_t& output = this->network.feedForward(input);
-            /* output: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 */
             data.slotTarget = quicknet::idmax(output);
         }
     }
