@@ -78,13 +78,15 @@ void MLController::multisuperframeEvent() {
 	static uint16_t maxRr= 0;
         for(MLControllerData& data : this->txLinks) {
             maxRr = data.messagesInLastMultisuperframe > maxRr ? data.transmissionRate : maxRr;
-		
-	    float inputArray[3];
-	        inputArray[1] = data.messagesInLastMultisuperframe / maxRr;
-            inputArray[2] = data.queueLevel / 22;
-            inputArray[3] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) / 14; 
+            maxTr = data.messagesOutLastMultisuperframe > maxTr ? data.messagesOutLastMultisuperframe : maxTr;
+	    
+            float inputArray[3];
+	        inputArray[1] = data.messagesInLastMultisuperframe / maxTr;
+            inputArray[2] = data.messagesInLastMultisuperframe / maxRr;
+            inputArray[3] = data.queueLevel / 22;
+            inputArray[4] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) / 14; 
        
-            quicknet::vector_t input{3, inputArray};
+            quicknet::vector_t input{4, inputArray};
             quicknet::vector_t& output = this->network.feedForward(input);
             data.slotTarget = quicknet::idmax(output);
         }
