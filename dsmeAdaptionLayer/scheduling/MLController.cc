@@ -67,7 +67,7 @@ void MLController::multisuperframeEvent() {
 
     for(MLControllerData& data : this->txLinks) {
         data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
-        data.queueLevel += data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+        data.queueLevel = data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
     }
 
     if(platform.par("learning").boolValue()) {
