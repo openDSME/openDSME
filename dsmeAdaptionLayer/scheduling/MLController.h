@@ -51,13 +51,17 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 
+uint8_t const HISTORY_LENGTH = 7;
+
 struct MLControllerData : GTSSchedulingData {
     MLControllerData();
 
     int16_t error_sum;
     int16_t last_error;
-    uint16_t queueLevel;
-    uint16_t transmissionRate;
+    uint16_t queueLevel[HISTORY_LENGTH];
+    uint16_t transmissionRate[HISTORY_LENGTH];
+    uint16_t receptionRate[HISTORY_LENGTH];
+    uint16_t slots[HISTORY_LENGTH];
     float avgIn; // TODO no float!
     uint16_t multisuperframesSinceLastPacket;
 };
@@ -72,6 +76,7 @@ public:
  
 private:
     NeuralNetwork network;
+    uint8_t historyPosition;
 
     void doPID();
     void doTPS(float alpha, uint16_t minFreshness);

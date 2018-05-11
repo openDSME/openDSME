@@ -66,7 +66,6 @@
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
-uint8_t mCh;
 
 namespace dsme {
 
@@ -167,7 +166,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
-                    mCh = this->currentACTElement->getChannel();
                 } else {
                     /* Channel hopping: Calculate channel for given slotID */
                     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
@@ -184,7 +182,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                                               << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
                                               << " Direction: " << currentACTElement->getDirection());
                     this->dsme.getPlatform().setChannelNumber(channel);
-                    mCh = channel;
                 }
             }
 
