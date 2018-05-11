@@ -69,8 +69,8 @@ MLControllerData::MLControllerData() : error_sum(0), last_error(0),  avgIn(0), m
 }
 
 void MLController::multisuperframeEvent() {
-    static uint16_t maxTr= 0;
-    static uint16_t maxRr= 0;
+    static float maxTr= 0;
+    static float maxRr= 0;
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
 
@@ -79,10 +79,10 @@ void MLController::multisuperframeEvent() {
         maxRr = data.messagesInLastMultisuperframe > maxRr ? data.messagesInLastMultisuperframe : maxRr;
         maxTr = data.messagesOutLastMultisuperframe > maxTr ? data.messagesOutLastMultisuperframe : maxTr;
 	    
-        data.transmissionRate[historyPosition] = data.messagesOutLastMultisuperframe / maxTr;
-        data.receptionRate[historyPosition] = data.messagesInLastMultisuperframe / maxRr;
-        data.queueLevel[historyPosition] = data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe / 22;
-        data.slots[historyPosition] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) / 14; 
+        data.transmissionRate[historyPosition] = data.messagesOutLastMultisuperframe;
+        data.receptionRate[historyPosition] = data.messagesInLastMultisuperframe;
+        data.queueLevel[historyPosition] = data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+        data.slots[historyPosition] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX); 
  
         //data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
     }
@@ -95,10 +95,10 @@ void MLController::multisuperframeEvent() {
         for(MLControllerData& data : this->txLinks) {
             float inputArray[4 * HISTORY_LENGTH];
             for(int i=0; i<HISTORY_LENGTH; i++) {
-                inputArray[i] = data.transmissionRate[i];
-                inputArray[HISTORY_LENGTH + i] = data.receptionRate[i];
-                inputArray[2*HISTORY_LENGTH + i] = data.queueLevel[i];
-                inputArray[3*HISTORY_LENGTH + i] = data.slots[i];
+                inputArray[i] = data.transmissionRate[i] / maxTr;
+                inputArray[HISTORY_LENGTH + i] = data.receptionRate[i] / maxRr;
+                inputArray[2*HISTORY_LENGTH + i] = data.queueLevel[i] / 22.0f;
+                inputArray[3*HISTORY_LENGTH + i] = data.slots[i] / 14.0f;
             }
 
             quicknet::vector_t input{4*HISTORY_LENGTH, inputArray};
