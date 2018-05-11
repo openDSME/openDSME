@@ -73,6 +73,8 @@ void MLController::multisuperframeEvent() {
     static uint16_t maxRr= 0;
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
+
+    historyPosition = (historyPosition+1) % HISTORY_LENGTH;
     for(MLControllerData& data : this->txLinks) {
         maxRr = data.messagesInLastMultisuperframe > maxRr ? data.messagesInLastMultisuperframe : maxRr;
         maxTr = data.messagesOutLastMultisuperframe > maxTr ? data.messagesOutLastMultisuperframe : maxTr;
@@ -84,19 +86,21 @@ void MLController::multisuperframeEvent() {
  
         //data.transmissionRate = data.messagesInLastMultisuperframe + (data.queueLevel - (data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe));
     }
-    historyPosition = (historyPosition+1) % HISTORY_LENGTH;
 
+    
     if(platform.par("learning").boolValue()) {
        doTPS(0.1, 28);
         //doPID();
     } else {
         for(MLControllerData& data : this->txLinks) {
             float inputArray[4 * HISTORY_LENGTH];
-            memcpy(inputArray, data.transmissionRate, HISTORY_LENGTH);
-            memcpy(&(inputArray[7]), data.receptionRate, HISTORY_LENGTH);
-            memcpy(&(inputArray[14]), data.queueLevel, HISTORY_LENGTH);
-            memcpy(&(inputArray[21]), data.slots, HISTORY_LENGTH);
- 
+            for(int i=0; i<HISTORY_LENGTH; i++) {
+                inputArray[i] = data.transmissionRate[i];
+                inputArray[HISTORY_LENGTH + i] = data.receptionRate[i];
+                inputArray[2*HISTORY_LENGTH + i] = data.queueLevel[i];
+                inputArray[3*HISTORY_LENGTH + i] = data.slots[i];
+            }
+
             quicknet::vector_t input{4*HISTORY_LENGTH, inputArray};
             quicknet::vector_t& output = this->network.feedForward(input);
             data.slotTarget = quicknet::idmax(output);
@@ -112,7 +116,6 @@ void MLController::finish() {
         std::cout << "\"from\" : " <<  dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", ";
         std::cout << "\"to\" : " <<  data.address << ", ";
         std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
-        std::cout << "\"slot_target\" : " <<  data.slotTarget<< ", ";
         for(int i=0; i<HISTORY_LENGTH; i++) {
             uint8_t n = (historyPosition + i) % HISTORY_LENGTH;
             std::cout << "\"rr" << (int)n << "\" : " << data.receptionRate[n] << ", ";
@@ -120,7 +123,7 @@ void MLController::finish() {
             std::cout << "\"q" << (int)n << "\" : " << data.queueLevel[n] << ", ";
             std::cout << "\"s_o" << (int)n << "\" : " << data.slots[n] << ", "; 
         }
-        std::cout << "}" << std::endl;
+        std::cout << "\"slot_target\" : " <<  data.slotTarget << "}" << std::endl;
     }
 }
 
