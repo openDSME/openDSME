@@ -59,11 +59,12 @@ using namespace dsme;
 DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
 }
 
-void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels) {
+void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, IDSMEPlatform* platform) {
     this->numSuperFramesPerMultiSuperframe = numSuperFramesPerMultiSuperframe;
     this->numGTSlots = numGTSlots;
     this->numChannels = numChannels;
     bitmap.initialize(numSuperFramesPerMultiSuperframe * numGTSlots, false);
+    this->platform = platform;
 }
 
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::begin() {
@@ -116,6 +117,8 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
+    this->platform->signalGTSChange(false, IEEE802154MacAddress(address));
+
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
     }
@@ -150,6 +153,8 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     uint8_t gtSlotID = it->getGTSlotID();
 
     printChange("dealloc", it->superframeID, it->slotID, it->channel, it->direction, it->address);
+
+    this->platform->signalGTSChange(true, IEEE802154MacAddress(it->address));
 
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 

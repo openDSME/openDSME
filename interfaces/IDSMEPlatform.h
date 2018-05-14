@@ -111,6 +111,12 @@ public:
      */
     virtual void signalAckedTransmissionResult(bool success, uint8_t transmissionAttempts, IEEE802154MacAddress receiver) {
     }
+
+    /*
+     * Signal GTS allocation or deallocation
+     */
+    virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
+    }
 };
 
 } /* namespace dsme */
