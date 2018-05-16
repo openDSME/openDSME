@@ -65,10 +65,12 @@ public:
     //virtual uint8_t registerIncomingMessage(uint16_t address) override;
     void setAlpha(float alpha);
     void setMinFreshness(uint16_t freshness);
+    void setUseHysteresis(bool useHysteresis);
 
 private:
     float alpha{0}; // TODO no float
     uint16_t minFreshness{0xFFFF};
+    bool useHysteresis{true};
 };
 
 } /* namespace dsme */

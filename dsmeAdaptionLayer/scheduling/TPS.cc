@@ -64,6 +64,10 @@ void TPS::setMinFreshness(uint16_t minFreshness) {
     this->minFreshness = minFreshness;
 }
 
+void TPS::setUseHysteresis(bool useHysteresis) {
+    this->useHysteresis = useHysteresis;
+}
+
 void TPS::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
@@ -96,10 +100,15 @@ void TPS::multisuperframeEvent() {
         float error = data.avgIn - slots;
 
         int8_t change = 0;
-        if(error > 0) {
+        if(useHysteresis) {
+            if(error > 0) {
+                change = ceil(error);
+            } else if(error < -2) {
+                change = ceil(error) + 1;
+            }
+        }
+        else {
             change = ceil(error);
-        } else if(error < -2) {
-            change = ceil(error) + 1;
         }
 
         data.slotTarget = slots + change;
