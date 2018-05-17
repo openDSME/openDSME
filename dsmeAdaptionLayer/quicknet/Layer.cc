@@ -48,25 +48,17 @@ namespace dsme {
 
 namespace quicknet {
 
-Layer::Layer(const matrix_t& weights, const vector_t& bias, vector_t& output, activation_t activation)
+Layer::Layer(const Matrix<float>& weights, const Vector<float>& bias, Vector<float>& output, activation_t activation)
     : weights{weights}, bias{bias}, output{output}, activation{activation} {
     DSME_ASSERT(output.length() == bias.length());
     DSME_ASSERT(output.length() == weights.rows());
 }
 
-vector_t& Layer::feedForward(vector_t& input) {
+Vector<float>& Layer::feedForward(Vector<float>& input) {
     DSME_ASSERT(input.length() == this->weights.columns());
 
+    this->weights.mult(input, this->output);
     for(uint8_t i = 0; i < this->output.length(); i++) {
-        /* initialize to 0.0 */
-        this->output(i) = 0;
-
-        /* perform element-wise weighted accumulation */
-        for(uint8_t j = 0; j < input.length(); j++) {
-            this->output(i) += input(j) * this->weights(i, j);
-        }
-
-        /* add bias to each element */
         this->output(i) += this->bias(i);
     }
 

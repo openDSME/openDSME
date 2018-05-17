@@ -99,8 +99,8 @@ void MLController::multisuperframeEvent() {
                 inputArray[3*HISTORY_LENGTH + i] = data.slots[i] / 14.0f;
             }
 
-            quicknet::vector_t input{4*HISTORY_LENGTH, inputArray};
-            quicknet::vector_t& output = this->network.feedForward(input);
+            quicknet::Vector<float> input{4*HISTORY_LENGTH, inputArray};
+            quicknet::Vector<float>& output = this->network.feedForward(input);
             data.slotTarget = quicknet::idmax(output);
         }
     }

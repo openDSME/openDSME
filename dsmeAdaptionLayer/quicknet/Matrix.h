@@ -44,6 +44,8 @@
 #define QUICKNET__MATRIX_H_
 
 #include "../../helper/Integers.h"
+#include "Vector.h"
+#include "../../../dsme_platform.h"
 
 namespace dsme {
 
@@ -66,6 +68,18 @@ public:
         return this->m;
     }
 
+    virtual void mult(const Vector<T> &input, Vector<T> &output) const {
+        DSME_ASSERT(input.length() == this->m);
+        DSME_ASSERT(output.length() == this->n);
+        
+        for(int i=0; i<this->n; i++) {
+            output(i) = 0;
+            for(int j=0; j<this->m; j++) {
+                output(i) += input(j) * (*this)(i, j);
+            }
+        }
+    } 
+
     T operator()(uint8_t i, uint8_t j) const {
         return this->matrix[static_cast<uint16_t>(i) * this->m + j];
     }
@@ -73,6 +87,8 @@ public:
 private:
     const uint8_t n;
     const uint8_t m;
+
+protected:
     const T* const matrix;
 };
 

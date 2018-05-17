@@ -54,7 +54,7 @@ public:
     Network(uint8_t n, Layer* const layers);
     ~Network() = default;
 
-    vector_t& feedForward(vector_t& input);
+    Vector<float>& feedForward(Vector<float>& input);
 
 private:
     const uint8_t n;

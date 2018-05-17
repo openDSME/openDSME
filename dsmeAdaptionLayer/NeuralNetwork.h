@@ -53,7 +53,7 @@ public:
     NeuralNetwork();
     ~NeuralNetwork() = default;
 
-    quicknet::vector_t& feedForward(quicknet::vector_t& input) {
+    quicknet::Vector<float>& feedForward(quicknet::Vector<float>& input) {
         return this->network.feedForward(input);
     }
 

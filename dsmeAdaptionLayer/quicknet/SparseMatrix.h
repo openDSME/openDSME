@@ -40,59 +40,47 @@
  * SUCH DAMAGE.
  */
 
-#include "./Math.h"
-
-#include <math.h>
+#ifndef QUICKNET__SPARSEMATRIX_H_
+#define QUICKNET__SPARSEMATRIX_H_
 
 #include "../../helper/Integers.h"
+#include "Matrix.h"
 
 namespace dsme {
 
 namespace quicknet {
 
-void quick_linear(vector_t& vector) {
-    return;
-}
-
-void quick_sigmoid(vector_t& vector) {
-    for(uint8_t j = 0; j < vector.length(); j++) {
-        vector(j) = (1.0 + (tanh(vector(j) / 2.0))) / 2.0;
-    }
-}
-
-void quick_softmax(vector_t& vector) {
-    weight_t sum = 0;
-    for(uint8_t j = 0; j < vector.length(); j++) {
-        vector(j) = exp(vector(j));
-        sum += vector(j);
+template <typename T>
+class SparseMatrix : public Matrix{
+public:
+    SparseMatrix(uint8_t n, uint8_t m, const T* sparse_matrix, const uint8_t* index_rows, const uint8_t* index_columns, const float* dictionary) : Matrix(n, m, sparse_matrix), index_rows(index_rows), index_rolumns(index_columns), dictionary(dictionary) {
     }
 
-    for(uint8_t j = 0; j < vector.length(); j++) {
-        vector(j) = vector(j) / sum;
-    }
-    return;
-}
-
-void quick_tanh(vector_t& vector) {
-    for(uint8_t j = 0; j < vector.length(); j++) {
-        vector(j) = tanh(vector(j));
-    }
-    return;
-}
-
-uint8_t idmax(const vector_t& vector) {
-    uint8_t max_index = 0;
-    weight_t max_score = 0.0;
-
-    for(uint8_t i = 0; i < vector.length(); i++) {
-        if(vector(i) > max_score) {
-            max_index = i;
-            max_score = vector(i);
+    SparseMatrix(const SparseMatrix&) = delete;
+    SparseMatrix& operator=(const SparseMatrix&) = delete;
+   
+    virtual void mult(const Vector<T> &input, Vector<T> &output) const override {
+        DSME_ASSERT(input.length() == this->columns());
+        DSME_ASSERT(output.length() == this->rows());
+       
+        uint8_t entry_index = 0;
+        for(int i=0; i<this->rows(); i++) {
+            output(i) = 0;
+            for(int j=0; j<index_rows[i]; j++) {
+                 uint8_t col = index_columns[entry_index++];
+                 output(i) += input(col) * dictionary[(*this)(i, col)];
+            }
         }
     }
-    return max_index;
-}
+
+private:
+    const uint8_t* index_rows;
+    const uint8_t* index_columns;
+    const float* dictionary;
+};
 
 } /* namespace quicknet */
 
 } /* namespace dsme */
+
+#endif /* QUICKNET__MATRIX_H_ */

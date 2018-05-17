@@ -46,19 +46,60 @@
 #include "./Layer.h"
 #include "./Vector.h"
 
+#include <math.h>
+#include "../../helper/Integers.h"
+
 namespace dsme {
 
 namespace quicknet {
 
-void quick_linear(vector_t&);
+template<typename T>
+void quick_linear(Vector<T>& vector) {
+    return;
+}
 
-void quick_sigmoid(vector_t&);
+template<typename T>
+void quick_sigmoid(Vector<T>& vector) {
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = (1.0 + (tanh(vector(j) / 2.0))) / 2.0;
+    }
+}
 
-void quick_softmax(vector_t&);
+template<typename T>
+void quick_softmax(Vector<T>& vector) {
+    T sum = 0;
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = exp(vector(j));
+        sum += vector(j);
+    }
 
-void quick_tanh(vector_t&);
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = vector(j) / sum;
+    }
+    return;
+}
 
-uint8_t idmax(const vector_t&);
+template<typename T>
+void quick_tanh(Vector<T>& vector) {
+    for(uint8_t j = 0; j < vector.length(); j++) {
+        vector(j) = tanh(vector(j));
+    }
+    return;
+}
+
+template<typename T>
+uint8_t idmax(const Vector<T>& vector) {
+    uint8_t max_index = 0;
+    T max_score = 0.0;
+
+    for(uint8_t i = 0; i < vector.length(); i++) {
+        if(vector(i) > max_score) {
+            max_index = i;
+            max_score = vector(i);
+        }
+    }
+    return max_index;
+}
 
 } /* namespace quicknet */
 

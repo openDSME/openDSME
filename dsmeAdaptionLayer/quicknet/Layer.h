@@ -50,27 +50,23 @@ namespace dsme {
 
 namespace quicknet {
 
-typedef float weight_t;
 
-typedef Matrix<weight_t> matrix_t;
-typedef Vector<weight_t> vector_t;
-
-typedef void (*activation_t)(vector_t&);
+typedef void (*activation_t)(Vector<float>&);
 
 class Layer {
 public:
-    Layer(const matrix_t& weights, const vector_t& bias, vector_t& output, activation_t activation);
+    Layer(const Matrix<float>& weights, const Vector<float>& bias, Vector<float>& output, activation_t activation);
 
     Layer(const Layer&) = delete;
     Layer& operator=(const Layer&) = delete;
     ~Layer() = default;
 
-    vector_t& feedForward(vector_t& input);
+    Vector<float>& feedForward(Vector<float>& input);
 
 private:
-    const matrix_t& weights;
-    const vector_t& bias;
-    vector_t& output;
+    const Matrix<float>& weights;
+    const Vector<float>& bias;
+    Vector<float>& output;
     const activation_t activation;
 };
 
