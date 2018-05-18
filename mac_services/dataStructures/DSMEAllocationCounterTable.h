@@ -48,6 +48,7 @@
 #include "./DSMEBitVector.h"
 #include "./DSMESABSpecification.h"
 #include "./RBTree.h"
+#include "../../interfaces/IDSMEPlatform.h"
 
 namespace dsme {
 
@@ -88,7 +89,7 @@ public:
 
     DSMEAllocationCounterTable();
 
-    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels);
+    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, IDSMEPlatform* platform);
 
     iterator begin();
 
@@ -126,6 +127,8 @@ private:
 
     // TODO integrate this nicely into the NeighborQueue
     RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
+
+    IDSMEPlatform* platform;
 };
 
 } /* namespace dsme */

@@ -215,7 +215,14 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     uint8_t skippedSlots = 0;
     if(currentSlot == 1) { // beginning of CAP
-        skippedSlots = 7; // no (pre) slot events required during CAP
+        if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
+            // no CAP available
+            skippedSlots = 0;
+        }
+        else {
+            // no (pre) slot events required during CAP
+            skippedSlots = 7;
+        }
     }
 
     this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime,skippedSlots);
