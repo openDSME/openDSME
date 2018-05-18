@@ -45,6 +45,7 @@
 
 #include "./Matrix.h"
 #include "./Vector.h"
+#include "../../../dsme_platform.h"
 
 namespace dsme {
 
@@ -53,20 +54,38 @@ namespace quicknet {
 
 typedef void (*activation_t)(Vector<float>&);
 
+template<typename T>
 class Layer {
 public:
-    Layer(const Matrix<float>& weights, const Vector<float>& bias, Vector<float>& output, activation_t activation);
+    Layer(const Matrix<T>& weights, const Vector<T>& bias, Vector<T>& output, activation_t activation): weights{weights}, bias{bias}, output{output}, activation{activation} {
+        DSME_ASSERT(output.length() == bias.length());
+        DSME_ASSERT(output.length() == weights.rows());
+    }
 
     Layer(const Layer&) = delete;
     Layer& operator=(const Layer&) = delete;
     ~Layer() = default;
 
-    Vector<float>& feedForward(Vector<float>& input);
+    Vector<T>& feedForward(Vector<T>& input) {
+        DSME_ASSERT(input.length() == this->weights.columns());
+
+        this->weights.mult(input, this->output);
+        for(uint8_t i = 0; i < this->output.length(); i++) {
+            this->output(i) += this->bias(i);
+        }   
+
+        if(this->activation) {
+            activation(this->output);
+        }
+
+        return this->output;
+    }
+
 
 private:
-    const Matrix<float>& weights;
-    const Vector<float>& bias;
-    Vector<float>& output;
+    const Matrix<T>& weights;
+    const Vector<T>& bias;
+    Vector<T>& output;
     const activation_t activation;
 };
 

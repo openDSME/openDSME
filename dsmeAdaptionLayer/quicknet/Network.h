@@ -49,16 +49,27 @@ namespace dsme {
 
 namespace quicknet {
 
+template<typename T>
 class Network {
 public:
-    Network(uint8_t n, Layer* const layers);
+    Network(uint8_t n, Layer<T>* const layers) : n(n), layers(layers) {
+    }
+
     ~Network() = default;
 
-    Vector<float>& feedForward(Vector<float>& input);
+    Vector<T>& feedForward(Vector<T>& input) {
+        Vector<T>* output = &input;
+
+        for(uint8_t i = 0; i < n; i++) {
+            output = &layers[i].feedForward(*output);
+        }
+
+        return *output;
+    }
 
 private:
     const uint8_t n;
-    Layer* const layers;
+    Layer<T>* const layers;
 };
 
 } /* namespace quicknet */

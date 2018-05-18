@@ -75,7 +75,7 @@ public:
     void finish();   
  
 private:
-    NeuralNetwork network;
+    NeuralNetwork<float> network;
     uint8_t historyPosition;
 
     void doPID();
