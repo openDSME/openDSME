@@ -73,7 +73,7 @@ void MLController::multisuperframeEvent() {
     static float maxRr= 0;
     DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
 
-
+    uint8_t lastHistoryPosition = historyPosition;
     historyPosition = (historyPosition+1) % HISTORY_LENGTH;
     for(MLControllerData& data : this->txLinks) {
         maxRr = data.messagesInLastMultisuperframe > maxRr ? data.messagesInLastMultisuperframe : maxRr;
@@ -81,7 +81,8 @@ void MLController::multisuperframeEvent() {
 	    
         data.transmissionRate[historyPosition] = data.messagesOutLastMultisuperframe;
         data.receptionRate[historyPosition] = data.messagesInLastMultisuperframe;
-        data.queueLevel[historyPosition] = data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+        data.queueLevel[historyPosition] = data.queueLevel[lastHistoryPosition] + data.messagesInLastMultisuperframe - data.messagesOutLastMultisuperframe;
+        if(data.queueLevel[historyPosition] > 22) data.queueLevel[historyPosition] = 22;
         data.slots[historyPosition] = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX); 
     }
 
@@ -117,11 +118,12 @@ void MLController::finish() {
         std::cout << "\"to\" : " <<  data.address << ", ";
         std::cout << "\"s_i\" : " << dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX) << ", ";
         for(int i=0; i<HISTORY_LENGTH; i++) {
-            uint8_t n = (historyPosition + i) % HISTORY_LENGTH;
-            std::cout << "\"rr" << (int)n << "\" : " << data.receptionRate[n] << ", ";
-            std::cout << "\"tr" << (int)n << "\" : " <<  data.transmissionRate[n] << ", ";
-            std::cout << "\"q" << (int)n << "\" : " << data.queueLevel[n] << ", ";
-            std::cout << "\"s_o" << (int)n << "\" : " << data.slots[n] << ", "; 
+            uint8_t n = (historyPosition - i);
+            if(n<0) n = HISTORY_LENGTH - (i - historyPosition); 
+            std::cout << "\"rr" << (int)i << "\" : " << data.receptionRate[n] << ", ";
+            std::cout << "\"tr" << (int)i << "\" : " <<  data.transmissionRate[n] << ", ";
+            std::cout << "\"q" << (int)i << "\" : " << data.queueLevel[n] << ", ";
+            std::cout << "\"s_o" << (int)i << "\" : " << data.slots[n] << ", "; 
         }
         std::cout << "\"slot_target\" : " <<  data.slotTarget << "}" << std::endl;
     }
