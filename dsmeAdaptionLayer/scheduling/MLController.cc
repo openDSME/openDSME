@@ -102,6 +102,8 @@ void MLController::multisuperframeEvent() {
             quicknet::Vector<float> input{4*HISTORY_LENGTH, inputArray};
             quicknet::Vector<float>& output = this->network.feedForward(input);
             data.slotTarget = quicknet::idmax(output);
+            data.messagesInLastMultisuperframe = 0;
+            data.messagesOutLastMultisuperframe = 0;
         }
     }
 }
