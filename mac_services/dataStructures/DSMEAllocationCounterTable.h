@@ -81,6 +81,8 @@ struct ACTPosition {
     }
 };
 
+class DSMELayer;
+
 // own allocated slots
 class DSMEAllocationCounterTable {
 public:
@@ -89,7 +91,7 @@ public:
 
     DSMEAllocationCounterTable();
 
-    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, IDSMEPlatform* platform);
+    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, DSMELayer* dsme);
 
     iterator begin();
 
@@ -128,7 +130,7 @@ private:
     // TODO integrate this nicely into the NeighborQueue
     RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
 
-    IDSMEPlatform* platform;
+    DSMELayer* dsme;
 };
 
 } /* namespace dsme */

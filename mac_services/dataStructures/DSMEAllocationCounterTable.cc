@@ -53,18 +53,19 @@
 #include "./DSMESABSpecification.h"
 #include "./GTS.h"
 #include "./RBTree.h"
+#include "../../dsmeLayer/DSMELayer.h"
 
 using namespace dsme;
 
 DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
 }
 
-void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, IDSMEPlatform* platform) {
+void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, DSMELayer* dsme) {
     this->numSuperFramesPerMultiSuperframe = numSuperFramesPerMultiSuperframe;
     this->numGTSlots = numGTSlots;
     this->numChannels = numChannels;
     bitmap.initialize(numSuperFramesPerMultiSuperframe * numGTSlots, false);
-    this->platform = platform;
+    this->dsme = dsme;
 }
 
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::begin() {
@@ -117,7 +118,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
-    this->platform->signalGTSChange(false, IEEE802154MacAddress(address));
+    this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
 
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
@@ -154,7 +155,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     printChange("dealloc", it->superframeID, it->slotID, it->channel, it->direction, it->address);
 
-    this->platform->signalGTSChange(true, IEEE802154MacAddress(it->address));
+    this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(it->address));
 
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 
@@ -173,6 +174,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 }
 
 bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSlotID) const {
+    DSME_ASSERT(gtSlotID < dsme->getMAC_PIB().helper.getNumGTSlots(superframeID));
     return bitmap.get(superframeID * numGTSlots + gtSlotID);
 }
 
