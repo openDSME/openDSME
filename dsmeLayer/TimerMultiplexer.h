@@ -85,6 +85,8 @@ protected:
     }
 
     void _reset() {
+        wasReset = true;
+
         this->lastDispatchSymbolCounter = _NOW;
         for(uint8_t i = 0; i < timer_t::TIMER_COUNT; ++i) {
             this->symbols_until[i] = -1;
@@ -179,6 +181,10 @@ private:
 #endif
 
                 (this->instance->*(this->handlers[i]))(lateness);
+                if(wasReset) {
+                    wasReset = false;
+                    return;
+                }
             }
         }
 
@@ -198,6 +204,8 @@ private:
     uint32_t lastDispatchSymbolCounter;
 
     uint32_t currentDispatchSymbolCounter;
+
+    bool wasReset = false;
 
     /**
      * Values >  0: timer is activated
