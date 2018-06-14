@@ -91,7 +91,7 @@ public:
 
     DSMEAllocationCounterTable();
 
-    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, DSMELayer* dsme);
+    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels, DSMELayer* dsme);
 
     iterator begin();
 
@@ -119,9 +119,11 @@ public:
 
 private:
     DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) = delete;
+    uint16_t getBitmapPosition(uint8_t superframeID, uint8_t slotID) const;
 
     uint16_t numSuperFramesPerMultiSuperframe;
-    uint8_t numGTSlots;
+    uint8_t numGTSlotsFirstSuperframe;
+    uint8_t numGTSlotsLatterSuperframes;
     uint8_t numChannels;
 
     BitVector<MAX_SUPERFRAMES_PER_MULTI_SUPERFRAME * MAX_GTSLOTS> bitmap;

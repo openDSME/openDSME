@@ -107,9 +107,13 @@ GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle
 }
 
 void GTSManager::initialize() {
-    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(1),
+    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(0),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(1),
                                             dsme.getMAC_PIB().helper.getNumChannels());
-    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(1),
+    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(0),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(1),
                                             dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
     return;
 }
@@ -264,7 +268,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     params.prioritizedChannelAccess = Priority::LOW;
                     params.numSlot = 1;
 
-                    uint8_t subBlockLengthBytes = dsme.getMAC_PIB().helper.getSubBlockLengthBytes();
+                    uint8_t subBlockLengthBytes = dsme.getMAC_PIB().helper.getSubBlockLengthBytes(it->getSuperframeID());
                     params.dsmeSabSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
                     params.dsmeSabSpecification.setSubBlockIndex(it->getSuperframeID());
                     params.dsmeSabSpecification.getSubBlock().fill(false);

@@ -72,7 +72,7 @@ public:
 
     const channelList_t& getChannels() const;
 
-    uint8_t getSubBlockLengthBytes() const;
+    uint8_t getSubBlockLengthBytes(uint8_t superframeID) const;
 
     uint16_t getAckWaitDuration() const;
 

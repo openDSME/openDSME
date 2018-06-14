@@ -62,23 +62,4 @@ GTS& GTS::operator=(const GTS& other) {
     return (*this);
 }
 
-// TODO: Types -> Related to TODO in GTSManager.h
-abs_slot_idx_t GTS::absoluteIndex(uint8_t numGTSlots, uint8_t numChannels) {
-    abs_slot_idx_t idx = this->superframeID;
-    idx *= numGTSlots;
-    idx += this->slotID;
-    idx *= numChannels;
-    idx += this->channel;
-    return idx;
-}
-
-GTS GTS::GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t numChannels, uint8_t numSuperframesPerMultiSuperframe) {
-    uint8_t channel = idx % numChannels;
-    idx /= numChannels;
-    uint16_t slotID = idx % numGTSlots;
-    idx /= numGTSlots;
-    uint16_t superframeID = idx % numSuperframesPerMultiSuperframe;
-    return GTS(superframeID, slotID, channel);
-}
-
 } /* namespace dsme */

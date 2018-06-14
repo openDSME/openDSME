@@ -57,15 +57,25 @@
 
 using namespace dsme;
 
-DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlots(0), numChannels(0) {
+DSMEAllocationCounterTable::DSMEAllocationCounterTable() : numSuperFramesPerMultiSuperframe(0), numGTSlotsFirstSuperframe(0), numGTSlotsLatterSuperframes(0), numChannels(0) {
 }
 
-void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels, DSMELayer* dsme) {
+void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels, DSMELayer* dsme) {
     this->numSuperFramesPerMultiSuperframe = numSuperFramesPerMultiSuperframe;
-    this->numGTSlots = numGTSlots;
+    this->numGTSlotsFirstSuperframe = numGTSlotsFirstSuperframe;
+    this->numGTSlotsLatterSuperframes = numGTSlotsLatterSuperframes;
     this->numChannels = numChannels;
-    bitmap.initialize(numSuperFramesPerMultiSuperframe * numGTSlots, false);
+    bitmap.initialize((numGTSlotsFirstSuperframe + (numSuperFramesPerMultiSuperframe-1)*numGTSlotsLatterSuperframes), false);
     this->dsme = dsme;
+}
+
+uint16_t DSMEAllocationCounterTable::getBitmapPosition(uint8_t superframeID, uint8_t slotID) const {
+    if(superframeID == 0) {
+        return slotID;
+    }
+    else {
+        return (numGTSlotsFirstSuperframe+(superframeID-1)*numGTSlotsLatterSuperframes) + slotID;
+    }
 }
 
 DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::begin() {
@@ -141,7 +151,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
             LOG_DEBUG("Incrementing slot count " << d << HEXOUT << " for 0x" << address << DECOUT << " (now at " << *numSlotIt << ").");
         }
 
-        bitmap.set(superframeID * numGTSlots + gtSlotID, true);
+        bitmap.set(getBitmapPosition(superframeID,gtSlotID), true);
     }
 
     return success;
@@ -159,7 +169,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 
-    bitmap.set(superframeID * numGTSlots + gtSlotID, false);
+    bitmap.set(getBitmapPosition(superframeID,gtSlotID), false);
 
     int d = (it->direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
@@ -175,7 +185,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
 bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSlotID) const {
     DSME_ASSERT(gtSlotID < dsme->getMAC_PIB().helper.getNumGTSlots(superframeID));
-    return bitmap.get(superframeID * numGTSlots + gtSlotID);
+    return bitmap.get(getBitmapPosition(superframeID,gtSlotID));
 }
 
 uint16_t DSMEAllocationCounterTable::getNumAllocatedGTS(uint16_t address, Direction direction) {
@@ -224,8 +234,8 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
     DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
 
     for(DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
-        GTS gts = GTS::GTSfromAbsoluteIndex((*it) + subBlock.getSubBlockIndex() * numGTSlots * numChannels, numGTSlots, numChannels,
-                                            numSuperFramesPerMultiSuperframe);
+        // this calculation assumes there is always exactly one superframe in the subblock
+        GTS gts(subBlock.getSubBlockIndex(), (*it) / numChannels, (*it) % numChannels);
 
         LOG_DEBUG("search slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " (" << (uint16_t)gts.channel << ")");
         DSMEAllocationCounterTable::iterator actit = find(gts.superframeID, gts.slotID);
