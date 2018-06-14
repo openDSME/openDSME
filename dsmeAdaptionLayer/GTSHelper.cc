@@ -139,7 +139,6 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
 
     GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
@@ -158,7 +157,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     params.preferredSuperframeId = preferredGTS.superframeID;
     params.preferredSlotId = preferredGTS.slotID;
 
-    params.dsmeSabSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
+    params.dsmeSabSpecification.setSubBlockLengthBytes(this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(preferredGTS.superframeID));
     params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
     macDSMESAB.getOccupiedSubBlock(params.dsmeSabSpecification, preferredGTS.superframeID);
 
@@ -196,7 +195,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
                                       << toDeallocate->getAddress() << DECOUT);
 
         DSMESABSpecification dsmeSABSpecification;
-        uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
+        uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(toDeallocate->getSuperframeID());
         dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
         dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
         dsmeSABSpecification.getSubBlock().fill(false);
@@ -390,7 +389,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
 
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
         LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
-        for(gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
+        for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
