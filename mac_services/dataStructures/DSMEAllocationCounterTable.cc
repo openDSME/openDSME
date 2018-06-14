@@ -54,6 +54,7 @@
 #include "./GTS.h"
 #include "./RBTree.h"
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../pib/MAC_PIB.h"
 
 using namespace dsme;
 
