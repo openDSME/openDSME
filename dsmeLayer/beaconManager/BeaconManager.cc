@@ -113,6 +113,15 @@ void BeaconManager::initialize() {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
+    // Currently these parameters have to be predefined. 
+    dsmePANDescriptor.superframeSpec.beaconOrder = dsme.getMAC_PIB().macBeaconOrder;
+    dsmePANDescriptor.superframeSpec.superframeOrder = dsme.getMAC_PIB().macSuperframeOrder;
+    dsmePANDescriptor.superframeSpec.finalCAPSlot = dsme.getMAC_PIB().helper.getFinalCAPSlot(0);
+    dsmePANDescriptor.superframeSpec.batteryLifeExtension = 0;
+    dsmePANDescriptor.superframeSpec.reserved = 0;
+    dsmePANDescriptor.superframeSpec.PANCoordinator = dsme.getMAC_PIB().macIsPANCoord;
+    dsmePANDescriptor.superframeSpec.associationPermit = 1;
+
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
 }
 
