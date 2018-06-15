@@ -53,7 +53,7 @@ static bool header = false;
 
 namespace dsme {
 
-TPSTxData::TPSTxData() : avgIn(0) {
+TPSTxData::TPSTxData() : avgIn(0), multisuperframesSinceLastPacket(0) {
 }
 
 void TPS::setAlpha(float alpha) {
