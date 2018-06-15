@@ -107,7 +107,7 @@ void CAPLayer::sendDone(AckLayerResponse response, IDSMEMessage* msg) {
 }
 
 bool CAPLayer::pushMessage(IDSMEMessage* msg) {
-    LOG_DEBUG("push " << (uint64_t)msg);
+    LOG_DEBUG("push");
 
     bool pushed = false;
 
@@ -347,7 +347,7 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
 
     uint8_t transmissionAttempts = NR+1;
 
-    LOG_DEBUG("pop " << (uint64_t)msg << " 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " " << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
+    LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " " << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs, transmissionAttempts);
 }
 
