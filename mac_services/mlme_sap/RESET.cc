@@ -59,10 +59,6 @@ void RESET::request(request_parameters& params) {
 
     this->dsme.reset();
 
-    RESET_confirm_parameters confirm_params;
-    confirm_params.status = ResetStatus::SUCCESS;
-    this->notify_confirm(confirm_params);
-
     return;
 }
 

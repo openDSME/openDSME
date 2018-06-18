@@ -156,6 +156,10 @@ void DSMELayer::doReset() {
     /* restart slot timer */
     this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(),0);
 
+    mlme_sap::RESET_confirm_parameters confirm_params;
+    confirm_params.status = ResetStatus::SUCCESS;
+    this->getMLME_SAP().getRESET().notify_confirm(confirm_params);
+
     resetPending = false;
 }
 

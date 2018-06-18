@@ -84,6 +84,8 @@ void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, uint8_t scanDura
     this->scanHelper.setSyncLossAfterSyncedDelegate(DELEGATE(&DSMEAdaptionLayer::handleSyncLossAfterSynced, *this));
     this->associationHelper.setAssociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleAssociationComplete, *this));
     this->associationHelper.setDisassociationCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleDisassociationComplete, *this));
+    this->getMLME_SAP().getRESET().confirm(DELEGATE(&DSMEAdaptionLayer::handleResetComplete, *this));
+
     return;
 }
 
@@ -184,14 +186,14 @@ void DSMEAdaptionLayer::reset() {
     params.setDefaultPib = false;
 
     getMLME_SAP().getRESET().request(params);
+    return;
+}
 
-    mlme_sap::RESET_confirm_parameters confirm_params;
-    bool confirmed = getMLME_SAP().getRESET().confirm(&confirm_params);
-    DSME_ASSERT(confirmed);
-    DSME_ASSERT(confirm_params.status == ResetStatus::SUCCESS);
+void DSMEAdaptionLayer::handleResetComplete(mlme_sap::RESET_confirm_parameters& parameters) {
+    bool confirmed = getMLME_SAP().getRESET().confirm(&parameters);
+    DSME_ASSERT(parameters.status == ResetStatus::SUCCESS);
 
     this->gtsHelper.reset();
-    return;
 }
 
 void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
