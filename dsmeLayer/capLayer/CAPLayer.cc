@@ -345,9 +345,10 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     IDSMEMessage* msg = queue.front();
     queue.pop();
 
-    uint8_t transmissionAttempts = NR+1;
+    uint8_t transmissionAttempts = NR + 1;
 
-    LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " " << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
+    LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " "
+                       << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs, transmissionAttempts);
 }
 

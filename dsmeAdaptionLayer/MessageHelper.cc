@@ -284,9 +284,10 @@ void MessageHelper::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params)
     }
 
     if(params.gtsTX) {
-        int32_t serviceTime = (int32_t)this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter() - (int32_t)msg->getStartOfFrameDelimiterSymbolCounter();
-        this->dsmeAdaptionLayer.getGTSHelper().indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(), params.status == DataStatus::SUCCESS,
-                                                    serviceTime, params.msduHandle->queueAtCreation);
+        int32_t serviceTime =
+            (int32_t) this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter() - (int32_t)msg->getStartOfFrameDelimiterSymbolCounter();
+        this->dsmeAdaptionLayer.getGTSHelper().indicateOutgoingMessage(params.msduHandle->getHeader().getDestAddr().getShortAddress(),
+                                                                       params.status == DataStatus::SUCCESS, serviceTime, params.msduHandle->queueAtCreation);
     }
 
     DSME_ASSERT(callback_confirm);
@@ -301,7 +302,7 @@ void MessageHelper::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
         this->associationInProgress = true;
         this->scanOrSyncInProgress = false;
         this->dsmeAdaptionLayer.getAssociationHelper().associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
-                                                                  panDescriptor->channelNumber);
+                                                                 panDescriptor->channelNumber);
     } else {
         LOG_INFO("Trying scan again!");
         this->dsmeAdaptionLayer.getScanHelper().startScan();

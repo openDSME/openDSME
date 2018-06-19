@@ -107,14 +107,10 @@ GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle
 }
 
 void GTSManager::initialize() {
-    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(0),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(1),
-                                            dsme.getMAC_PIB().helper.getNumChannels());
-    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(0),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(1),
-                                            dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
+    dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels());
+    dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
+                                            dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
     return;
 }
 
@@ -301,7 +297,6 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             // pending SEND_COMPLETE (e.g. delay due to serial output)
             LOG_ERROR("CFP during sending");
             return FSM_IGNORED;
-            
 
         case GTSEvent::MLME_REQUEST_ISSUED:
         case GTSEvent::MLME_RESPONSE_ISSUED:

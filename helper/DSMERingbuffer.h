@@ -90,7 +90,7 @@ public:
     void pop() {
         DSME_ATOMIC_BLOCK {
             this->count--;
-            this->next = (this->next + 1)%N;
+            this->next = (this->next + 1) % N;
         }
         return;
     }
@@ -98,7 +98,7 @@ public:
     T* freeElement() {
         T* result;
         DSME_ATOMIC_BLOCK {
-            result = &(this->buffer[(this->next+this->count)%N]);
+            result = &(this->buffer[(this->next + this->count) % N]);
         }
         return result;
     }

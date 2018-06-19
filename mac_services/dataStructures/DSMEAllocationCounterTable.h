@@ -44,11 +44,11 @@
 #define DSMEALLOCATIONCOUNTERTABLE_H_
 
 #include "../../../dsme_settings.h"
+#include "../../interfaces/IDSMEPlatform.h"
 #include "./ACTElement.h"
 #include "./DSMEBitVector.h"
 #include "./DSMESABSpecification.h"
 #include "./RBTree.h"
-#include "../../interfaces/IDSMEPlatform.h"
 
 namespace dsme {
 
@@ -91,7 +91,8 @@ public:
 
     DSMEAllocationCounterTable();
 
-    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels, DSMELayer* dsme);
+    void initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels,
+                    DSMELayer* dsme);
 
     iterator begin();
 

@@ -253,7 +253,7 @@ bool RBTree<T, K>::insert(T obj, K key) {
          * correct position for insertion found
          */
         while(true) {
-            RBNode<T, K>*P, *G, *U;
+            RBNode<T, K> *P, *G, *U;
             P = node->parent;
             G = grandparent(node); // grandparent of node
             U = uncle(node);       // uncle of node
@@ -427,7 +427,7 @@ void RBTree<T, K>::remove(iterator& iter) {
         return;
     }
 
-    RBNode<T, K>*node = iter.node(), *rnode, *parent, *child;
+    RBNode<T, K> *node = iter.node(), *rnode, *parent, *child;
     /*
      * preparation for one child
      */
@@ -581,7 +581,7 @@ typename RBTree<T, K>::tree_size_t RBTree<T, K>::size() const {
 
 template <typename T, typename K>
 void RBTree<T, K>::rotate_right(RBNode<T, K>* x) {
-    RBNode<T, K>*leftchild, *rightgrandchild, *parent;
+    RBNode<T, K> *leftchild, *rightgrandchild, *parent;
 
     leftchild = x->leftChild;
     rightgrandchild = leftchild->rightChild;
@@ -611,7 +611,7 @@ void RBTree<T, K>::rotate_right(RBNode<T, K>* x) {
 
 template <typename T, typename K>
 void RBTree<T, K>::rotate_left(RBNode<T, K>* x) {
-    RBNode<T, K>*rightchild, *leftgrandchild, *parent;
+    RBNode<T, K> *rightchild, *leftgrandchild, *parent;
     rightchild = x->rightChild;
     leftgrandchild = rightchild->leftChild;
     parent = x->parent;

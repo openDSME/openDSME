@@ -106,8 +106,7 @@ void TPS::multisuperframeEvent() {
             } else if(error < -2) {
                 change = ceil(error) + 1;
             }
-        }
-        else {
+        } else {
             change = ceil(error);
         }
 
@@ -121,16 +120,14 @@ void TPS::multisuperframeEvent() {
             if(data.multisuperframesSinceLastPacket < 0xFFFE) {
                 data.multisuperframesSinceLastPacket++;
             }
-        }
-        else {
+        } else {
             data.multisuperframesSinceLastPacket = 0;
         }
 
         LOG_DEBUG("control"
-                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress
-                  << ",0x" << data.address << "," << DECOUT << data.messagesInLastMultisuperframe
-                  << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << "," << (uint16_t)slots << "," << data.slotTarget
-                  << "," << data.multisuperframesSinceLastPacket);
+                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
+                  << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
+                  << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;

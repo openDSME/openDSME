@@ -78,7 +78,7 @@ void DSMEAdaptionLayer::initialize(channelList_t& scanChannels, uint8_t scanDura
     this->associationHelper.initialize();
     this->messageHelper.initialize();
     this->gtsHelper.initialize(scheduling);
-    this->scanHelper.initialize(scanChannels,scanDuration);
+    this->scanHelper.initialize(scanChannels, scanDuration);
 
     this->scanHelper.setScanAndSyncCompleteDelegate(DELEGATE(&DSMEAdaptionLayer::handleScanAndSyncComplete, *this));
     this->scanHelper.setSyncLossAfterSyncedDelegate(DELEGATE(&DSMEAdaptionLayer::handleSyncLossAfterSynced, *this));

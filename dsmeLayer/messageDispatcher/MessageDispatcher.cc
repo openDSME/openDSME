@@ -139,8 +139,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     if(this->currentACTElement != act.end()) {
         if(this->currentACTElement->getDirection() == Direction::RX) {
             this->currentACTElement = act.end();
-        }
-        else {
+        } else {
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
             DSME_SIM_ASSERT(false);
@@ -389,7 +388,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
                 /* '-> the neighbor associated with the current slot does not exist */
 
-                LOG_ERROR("neighborQueue.size: " << ((uint8_t)this->neighborQueue.getNumNeighbors()));
+                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
                 LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
                 for(auto it : this->neighborQueue) {
                     LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
@@ -424,8 +423,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 // statistics
                 this->numTxGtsFrames++;
             }
-        }
-        else {
+        } else {
             finalizeGTSTransmission();
         }
     }
@@ -449,7 +447,8 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts) {
     if(status == DataStatus::Data_Status::NO_ACK || status == DataStatus::Data_Status::SUCCESS) {
         if(msg->getHeader().isAckRequested() && !msg->getHeader().getDestAddr().isBroadcast()) {
-            this->dsme.getPlatform().signalAckedTransmissionResult(status == DataStatus::Data_Status::SUCCESS,transmissionAttempts,msg->getHeader().getDestAddr());
+            this->dsme.getPlatform().signalAckedTransmissionResult(status == DataStatus::Data_Status::SUCCESS, transmissionAttempts,
+                                                                   msg->getHeader().getDestAddr());
         }
     }
 
@@ -521,7 +520,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     if(response == AckLayerResponse::ACK_FAILED || response == AckLayerResponse::ACK_SUCCESSFUL) {
-        this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL,msg->getRetryCounter()+1,msg->getHeader().getDestAddr());
+        this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1,
+                                                               msg->getHeader().getDestAddr());
     }
 
     neighborQueue.popFront(lastSendGTSNeighbor);

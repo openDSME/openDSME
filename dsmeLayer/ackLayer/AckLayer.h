@@ -43,8 +43,8 @@
 #ifndef ACKLAYER_H_
 #define ACKLAYER_H_
 
-#include "../../helper/DSMEDelegate.h"
 #include "../../helper/DSMEBufferedFSM.h"
+#include "../../helper/DSMEDelegate.h"
 
 namespace dsme {
 

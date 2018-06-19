@@ -80,14 +80,7 @@ struct GTSSchedulingDecision {
     uint8_t preferredSlotId;
 };
 
-static constexpr GTSSchedulingDecision NO_SCHEDULING_ACTION {
-    IEEE802154MacAddress::NO_SHORT_ADDRESS,
-    ManagementType::ALLOCATION,
-    Direction::TX,
-    0,
-    0,
-    0
-};
+static constexpr GTSSchedulingDecision NO_SCHEDULING_ACTION{IEEE802154MacAddress::NO_SHORT_ADDRESS, ManagementType::ALLOCATION, Direction::TX, 0, 0, 0};
 
 class GTSScheduling {
 public:
