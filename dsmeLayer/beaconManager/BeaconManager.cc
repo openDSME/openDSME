@@ -138,8 +138,6 @@ void BeaconManager::reset() {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
-    lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
-
     this->dsme.getMAC_PIB().macSdBitmap.fill(false);
     this->neighborOrOwnHeardBeacons.fill(false);
 }
