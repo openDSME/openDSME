@@ -182,6 +182,7 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * aSymbolDuration);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
+    dsmePANDescriptor.getBeaconBitmap().copyBitsFrom(this->dsme.getMAC_PIB().macSdBitmap);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
