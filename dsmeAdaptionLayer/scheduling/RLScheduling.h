@@ -54,7 +54,7 @@ class DSMEAdaptionLayer;
 
 class RLScheduling : public TPS {
 public:
-    RLScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : TPS(dsmeAdaptionLayer) {
+    RLScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : cursor(0), TPS(dsmeAdaptionLayer) {
     }
 
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) override;
@@ -64,7 +64,9 @@ private:
 
     uint8_t toActionID(const uint8_t slotID, const uint8_t superframeID) const;
     void fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t &superframeID) const;
-    void observeState(float *state, uint8_t numStates) const; 
+    void observeState(float *state, uint8_t numStates) const;
+    
+    uint8_t cursor;
 };  
 
 } /* namespace dsme */

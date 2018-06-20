@@ -50,28 +50,37 @@ namespace dsme {
 
 GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
     uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
-    int16_t target = getSlotTarget(address);
+    //int16_t target = getSlotTarget(address);
+    uint16_t target = 1;
 
     if(target > numAllocatedSlots) {
         // Observe initial state
-        uint8_t numInputs = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()-1);
+        uint8_t numInputs = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()-1)) * 2;
         float initialState[numInputs] = {0};
         observeState(initialState, numInputs);
-  
+        std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"slots\" : ["; 
+        for(int i=0; i<numInputs; i++) {
+            std::cout << initialState[i] << " ";
+            if(i == numInputs/2) {
+                std::cout << "|";
+            }
+        }  
+        std::cout << "]}" << std::endl;
+
         // Decide for an action  
         DSMEPlatform& platform = *dynamic_cast<DSMEPlatform*>(&(this->dsmeAdaptionLayer.getDSME().getPlatform()));
-        uint8_t eps = platform.par("eps").intValue();
         bool learning = platform.par("learning").boolValue();
-        uint8_t actions = platform.par("actions").intValue();
-        uint8_t p = this->dsmeAdaptionLayer.getRandom() % 100;
-        if(p > eps*100 || !learning) {
+        if(!learning) {
             quicknet::Vector<float> input{numInputs, initialState};
             quicknet::Vector<float> &output = this->network.feedForward(input);
             uint8_t actionID = quicknet::idmax(output);
-            
+           
             uint8_t slotID = 0;
             uint8_t superframeID = 0;            
             fromActionID(actionID, slotID, superframeID);
+            
+            std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : " << int(actionID) << ", \"slot\" : " << int(slotID) << ", \"superframe\" : " << int(superframeID) << "}" << std::endl; 
+
             return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, superframeID, slotID};
         } else  {
             uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
@@ -86,7 +95,7 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
     // not handled in RL yet 
     } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
         /* TODO: slot and superframe ID are currently ignored for DEALLOCATION */
-        return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
+        return NO_SCHEDULING_ACTION; //GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
     } else {
         return NO_SCHEDULING_ACTION;
     }   
@@ -95,6 +104,9 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
 void RLScheduling::observeState(float *state, uint8_t numStates) const {
     for(uint8_t i=0; i<numStates; i++) state[i] = 0;
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
+    uint16_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels(); 
+    
     for(auto const& value: macDSMEACT) {
         uint8_t actionID = toActionID(value.getGTSlotID(), value.getSuperframeID()); 
         if(value.getDirection() == Direction::TX) {
@@ -104,12 +116,27 @@ void RLScheduling::observeState(float *state, uint8_t numStates) const {
             state[actionID] = -1;        
         } 
     }
+    
+    state[numStates/2 + cursor] = 1;
+    /*for(uint8_t i=0; i<numStates/2; i++) {
+        uint8_t superframeID, slotID; 
+        fromActionID(i, slotID, superframeID);       
+        BitVector<MAX_CHANNELS> occupied;
+        occupied.setLength(numChannels);
+        macDSMESAB.getOccupiedChannels(occupied, superframeID, slotID);
+        for(uint8_t channel=0; channel<numChannels; channel++) {
+            if(occupied.get(channel)) {
+                state[numStates/2 + i] = 1;
+                break;
+            }
+        }
+    }*/ 
 }
 
 uint8_t RLScheduling::toActionID(const uint8_t slotID, const uint8_t superframeID) const {
     uint8_t actionID = slotID; 
     if(superframeID > 0) actionID += this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
-    if(superframeID > 1) actionID += (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1)-1);
+    if(superframeID > 1) actionID += this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (superframeID - 1);
         
     return actionID; 
 }
@@ -118,13 +145,12 @@ void RLScheduling::fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t
     slotID = 0;
     superframeID = 0;
     uint8_t action = actionID;
-
-    for(uint8_t i=0; i< this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
-        if(action > this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i)) {
+    for(uint8_t i=0; i<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
+        if(action >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i)) {
             action -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i);
             superframeID++;
         } else {
-            slotID = actionID;
+            slotID = action;
             return;
         }
     }
