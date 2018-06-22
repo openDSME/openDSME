@@ -61,12 +61,16 @@ public:
 
 private:
     NeuralNetwork<float> network;
-
+    uint8_t cursor;
+    
     uint8_t toActionID(const uint8_t slotID, const uint8_t superframeID) const;
     void fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t &superframeID) const;
-    void observeState(float *state, uint8_t numStates) const;
     
-    uint8_t cursor;
+    void observeState(float *state, uint8_t numStates) const;
+    void logState(float *state, uint8_t numStates) const;     
+
+    GTSSchedulingDecision allocateSlot(uint16_t address) const;
+    GTSSchedulingDecision deallocateSlot(uint16_t address) const;
 };  
 
 } /* namespace dsme */
