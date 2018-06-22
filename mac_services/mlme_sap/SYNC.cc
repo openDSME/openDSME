@@ -43,8 +43,8 @@
 #include "./SYNC.h"
 
 #include "../../dsmeLayer/DSMELayer.h"
-#include "../pib/PHY_PIB.h"
 #include "../pib/MAC_PIB.h"
+#include "../pib/PHY_PIB.h"
 
 namespace dsme {
 namespace mlme_sap {

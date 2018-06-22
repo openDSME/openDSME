@@ -110,14 +110,14 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
 }
 
 void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
-    if (decision.numSlot == 0) {
+    if(decision.numSlot == 0) {
         DSME_ASSERT(decision.deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS);
         return;
     }
 
-    if (decision.managementType == ManagementType::ALLOCATION) {
+    if(decision.managementType == ManagementType::ALLOCATION) {
         checkAndAllocateGTS(decision);
-    } else if (decision.managementType == ManagementType::DEALLOCATION) {
+    } else if(decision.managementType == ManagementType::DEALLOCATION) {
         checkAndDeallocateSingeleGTS(decision.deviceAddress);
     } else {
         DSME_ASSERT(false);
@@ -394,10 +394,10 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
                 if(sabSpec != nullptr) {
-                    remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID*numChannels);
+                    remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID * numChannels);
                     occupied.setOperationJoin(remoteOccupied);
                 }
-                
+
                 gts.channel = startChannel;
                 for(uint8_t i = 0; i < numChannels; i++) {
                     if(!occupied.get(gts.channel)) {

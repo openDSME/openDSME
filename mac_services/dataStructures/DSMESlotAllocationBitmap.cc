@@ -48,15 +48,17 @@
 
 namespace dsme {
 
-DSMESlotAllocationBitmap::DSMESlotAllocationBitmap() : numSuperframesPerMultiSuperframe(0), numGTSlotsFirstSuperframe(0), numGTSlotsLatterSuperframes(0), numChannels(0) {
+DSMESlotAllocationBitmap::DSMESlotAllocationBitmap()
+    : numSuperframesPerMultiSuperframe(0), numGTSlotsFirstSuperframe(0), numGTSlotsLatterSuperframes(0), numChannels(0) {
 }
 
-void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels) {
+void DSMESlotAllocationBitmap::initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes,
+                                          uint8_t numChannels) {
     this->numSuperframesPerMultiSuperframe = numSuperframesPerMultiSuperframe;
     this->numGTSlotsFirstSuperframe = numGTSlotsFirstSuperframe;
     this->numGTSlotsLatterSuperframes = numGTSlotsLatterSuperframes;
     this->numChannels = numChannels;
-    occupied.initialize((numGTSlotsFirstSuperframe + (numSuperframesPerMultiSuperframe-1)*numGTSlotsLatterSuperframes) * numChannels);
+    occupied.initialize((numGTSlotsFirstSuperframe + (numSuperframesPerMultiSuperframe - 1) * numGTSlotsLatterSuperframes) * numChannels);
     return;
 }
 
@@ -67,9 +69,8 @@ void DSMESlotAllocationBitmap::clear() {
 uint16_t DSMESlotAllocationBitmap::getSubblockOffset(uint8_t subBlockIndex) const {
     if(subBlockIndex == 0) {
         return 0;
-    }
-    else {
-        return (numGTSlotsFirstSuperframe + (subBlockIndex-1)*numGTSlotsLatterSuperframes) * numChannels;
+    } else {
+        return (numGTSlotsFirstSuperframe + (subBlockIndex - 1) * numGTSlotsLatterSuperframes) * numChannels;
     }
 }
 

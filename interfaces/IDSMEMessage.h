@@ -73,7 +73,7 @@ public:
 
     virtual int8_t getRSSI() {
         return INVALID_RSSI;
-    } 
+    }
 
     virtual bool getReceivedViaMCPS() = 0;
 

@@ -158,7 +158,7 @@ protected:
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
     void createDataIndication(IDSMEMessage* msg);
-    
+
     void finalizeGTSTransmission();
     void transceiverOffIfAssociated();
 };

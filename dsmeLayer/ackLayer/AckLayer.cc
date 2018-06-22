@@ -57,7 +57,8 @@
 
 namespace dsme {
 
-AckLayer::AckLayer(DSMELayer& dsme) : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
+AckLayer::AckLayer(DSMELayer& dsme)
+    : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
 }
 
 void AckLayer::reset() {
@@ -120,7 +121,7 @@ void AckLayer::receive(IDSMEMessage* msg) {
         uint8_t seqNum = header.getSequenceNumber();
         dsme.getPlatform().releaseMessage(msg);
         DSME_ASSERT(!isDispatchBusy());
-        bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED,seqNum);
+        bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED, seqNum);
         DSME_ASSERT(dispatchSuccessful);
         return;
     }
@@ -175,7 +176,7 @@ void AckLayer::dispatchTimer() {
 
 void AckLayer::sendDone(bool success) {
     DSME_ASSERT(!isDispatchBusy());
-    bool dispatchSuccessful = dispatch(AckEvent::SEND_DONE,success);
+    bool dispatchSuccessful = dispatch(AckEvent::SEND_DONE, success);
     DSME_ASSERT(dispatchSuccessful);
 }
 
@@ -206,7 +207,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
         case AckEvent::PREPARE_SEND_REQUEST: {
             if(pendingMessage->getHeader().hasSequenceNumber()) {
-                if (pendingMessage->getRetryCounter() == 0) {
+                if(pendingMessage->getRetryCounter() == 0) {
                     pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
                 } else {
                     /* message is a retransmit, keeps sequence number from previous try */
