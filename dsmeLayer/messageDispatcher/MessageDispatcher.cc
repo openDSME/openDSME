@@ -228,7 +228,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 
     switch(macHdr.getFrameType()) {
         case IEEE802154eMACHeader::FrameType::BEACON: {
-            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << ".");
+            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << " " << dsme.getCurrentSuperframe() << ".");
             this->dsme.getBeaconManager().handleBeacon(msg);
             this->dsme.getPlatform().releaseMessage(msg);
             break;
