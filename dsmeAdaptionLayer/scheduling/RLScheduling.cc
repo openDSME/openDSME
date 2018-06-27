@@ -85,13 +85,18 @@ GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
 }
 
 GTSSchedulingDecision RLScheduling::deallocateSlot(uint16_t address) const {
+    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+    if(numAllocatedSlots < 2) {
+        return NO_SCHEDULING_ACTION; 
+    }
+
     uint8_t slotID = 0;
     uint8_t superframeID = 0;            
     fromActionID(cursor, slotID, superframeID);
             
     std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : dealloc" << ", \"slot\" : " << int(slotID) << ", \"superframe\" : " << int(superframeID) << "}" << std::endl; 
 
-    return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, superframeID, slotID};
+    return GTSSchedulingDecision{IEEE802154MacAddress::NO_SHORT_ADDRESS, ManagementType::DEALLOCATION, Direction::TX, 1, superframeID, slotID};
 }
 
 void RLScheduling::observeState(float *state, uint8_t numStates) const {

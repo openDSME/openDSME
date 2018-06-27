@@ -94,6 +94,8 @@ private:
 
     void checkAndDeallocateSingeleGTS(uint16_t address);
 
+    void deallocateSingleGTS(uint8_t gtsSlotID, uint8_t superframeID); 
+
     GTS getContiguousFreeGTS();
 
     GTS getRandomFreeGTS();

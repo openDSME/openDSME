@@ -118,7 +118,11 @@ void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
     if (decision.managementType == ManagementType::ALLOCATION) {
         checkAndAllocateGTS(decision);
     } else if (decision.managementType == ManagementType::DEALLOCATION) {
-        checkAndDeallocateSingeleGTS(decision.deviceAddress);
+        if(decision.deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS) {
+            deallocateSingleGTS(decision.preferredSlotId, decision.preferredSuperframeId);
+        } else {
+            checkAndDeallocateSingeleGTS(decision.deviceAddress);
+        }
     } else {
         DSME_ASSERT(false);
     }
@@ -206,6 +210,34 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
     }
 }
+
+void GTSHelper::deallocateSingleGTS(uint8_t gtsSlotID, uint8_t superframeID) {
+    DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    DSMEAllocationCounterTable::iterator toDeallocate = act.end(); 
+    for(auto it = act.begin(); it != act.end(); ++it) {
+        if(it->getDirection() == Direction::TX && it->getGTSlotID() == gtsSlotID && it->getSuperframeID() == superframeID) {
+            if(it->getState() == ACTState::VALID) {
+                toDeallocate = it;
+                break;
+            }
+        } 
+    }
+
+    if(toDeallocate != act.end()) {
+        LOG_INFO("DEALLOCATING slot " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << " with 0x" << HEXOUT
+                                      << toDeallocate->getAddress() << DECOUT);
+
+        DSMESABSpecification dsmeSABSpecification;
+        uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
+        dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
+        dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
+        dsmeSABSpecification.getSubBlock().fill(false);
+        dsmeSABSpecification.getSubBlock().set(
+            toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+
+        sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
+    }   
+} 
 
 void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters& params) {
     LOG_INFO("COMM_STATUS indication handled.");
