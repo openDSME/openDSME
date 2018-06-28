@@ -59,7 +59,9 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
     quicknet::Vector<float> input{numInputs, initialState};
     quicknet::Vector<float> &output = this->network.feedForward(input);
     uint8_t actionID = quicknet::idmax(output);
-           
+
+    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : " << (int)actionID << "}" << std::endl; 
+
     switch(actionID) {
         case 0: 
             return deallocateSlot(address); 
@@ -67,21 +69,35 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
             return allocateSlot(address); 
         case 2: // cursor left 
             cursor = (cursor + numInputs / 2 - 1) % numInputs / 2;
+            return NO_SCHEDULING_ACTION;
         case 3: // cursor right 
             cursor = (cursor + 1) % numInputs / 2; 
+            return NO_SCHEDULING_ACTION;
         case 4: // do nothing 
             return NO_SCHEDULING_ACTION;
     } 
 }
 
 GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
-    uint8_t slotID = 0;
-    uint8_t superframeID = 0;            
-    fromActionID(cursor, slotID, superframeID);
-            
-    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : alloc" << ", \"slot\" : " << int(slotID) << ", \"superframe\" : " << int(superframeID) << "}" << std::endl; 
+    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+    if(numAllocatedSlots == 0) {
+        uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+        uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
 
-    return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, superframeID, slotID};
+        uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(randomSuperframeID);
+        uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
+
+        return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
+    } else {
+        uint8_t slotID = 0;
+        uint8_t superframeID = 0;            
+        fromActionID(cursor, slotID, superframeID);
+           
+        std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : alloc" << ", \"slot\" : " << (int)slotID << ", \"superframe\" : " << (int)superframeID << "}" << std::endl; 
+
+ 
+        return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, superframeID, slotID};
+    }
 }
 
 GTSSchedulingDecision RLScheduling::deallocateSlot(uint16_t address) const {
@@ -93,8 +109,8 @@ GTSSchedulingDecision RLScheduling::deallocateSlot(uint16_t address) const {
     uint8_t slotID = 0;
     uint8_t superframeID = 0;            
     fromActionID(cursor, slotID, superframeID);
-            
-    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : dealloc" << ", \"slot\" : " << int(slotID) << ", \"superframe\" : " << int(superframeID) << "}" << std::endl; 
+        
+    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : dealloc" << ", \"slot\" : " << (int)slotID << ", \"superframe\" : " << (int)superframeID << "}" << std::endl; 
 
     return GTSSchedulingDecision{IEEE802154MacAddress::NO_SHORT_ADDRESS, ManagementType::DEALLOCATION, Direction::TX, 1, superframeID, slotID};
 }
