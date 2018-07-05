@@ -49,6 +49,15 @@
 namespace dsme {
 
 GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
+    if(!initialized) {
+        if(dsmeAdaptionLayer.getMAC_PIB().macShortAddress > 7) {
+            cursor = 1;
+        } else {
+            cursor = 0;
+        }
+        initialized = true;
+    }
+
     // Observe initial state
     uint8_t numInputs = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()-1)) * 2;
     float initialState[numInputs] = {0};
@@ -68,12 +77,10 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
         case 1:     
             return allocateSlot(address); 
         case 2: // cursor left 
-            cursor = (cursor + numInputs / 2 - 1) % numInputs / 2;
+            cursor = (cursor + numInputs / 2 - 2) % numInputs / 2;
             return NO_SCHEDULING_ACTION;
         case 3: // cursor right 
-            cursor = (cursor + 1) % numInputs / 2; 
-            return NO_SCHEDULING_ACTION;
-        case 4: // do nothing 
+            cursor = (cursor + 2) % numInputs / 2; 
             return NO_SCHEDULING_ACTION;
     } 
 }
