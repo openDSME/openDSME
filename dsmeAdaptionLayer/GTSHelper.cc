@@ -98,9 +98,7 @@ void GTSHelper::handleStartOfCFP() {
     /* Check allocation at random superframe in multi-superframe */
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
-    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
-    }
+    performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
     return;
 }
 
@@ -423,7 +421,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
         LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
         for(gts.slotID = initialSlotID; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
-            if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
+            if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID) && ((initialSlotID % 2 == 0 && gts.slotID % 2 == 0) || (initialSlotID % 2 == 1 && gts.slotID == 1))) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
                 if(sabSpec != nullptr) {

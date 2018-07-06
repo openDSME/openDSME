@@ -86,7 +86,7 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
 }
 
 GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
-    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+    /*uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
     if(numAllocatedSlots == 0) {
         uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
         uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
@@ -95,7 +95,7 @@ GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
         uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
 
         return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
-    } else {
+    } else { */
         uint8_t slotID = 0;
         uint8_t superframeID = 0;            
         fromActionID(cursor, slotID, superframeID);
@@ -104,7 +104,7 @@ GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
 
  
         return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, superframeID, slotID};
-    }
+    //}
 }
 
 GTSSchedulingDecision RLScheduling::deallocateSlot(uint16_t address) const {
