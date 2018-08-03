@@ -44,6 +44,7 @@
 #define TPS_H_
 
 #include "./GTSScheduling.h"
+#include "../DSMEAdaptionLayer.h"
 
 namespace dsme {
 
@@ -67,10 +68,19 @@ public:
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);
 
+    //virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
 private:
+    uint8_t schedule_tx(int8_t *schedule, uint8_t slots, uint8_t superframe_length) const;
+    void observeState(int8_t *state, uint8_t numStates) const; 
+    uint8_t toActionID(const uint8_t slotID, const uint8_t superframeID) const;    
+    void fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t &superframeID) const;
+    void logState(int8_t *state, uint8_t numStates) const; 
+
     float alpha{0}; // TODO no float
     uint16_t minFreshness{0xFFFF};
     bool useHysteresis{true};
+
+    uint8_t lastAction{255};
 };
 
 } /* namespace dsme */

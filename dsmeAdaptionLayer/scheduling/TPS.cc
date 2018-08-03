@@ -43,6 +43,7 @@
 #include "./TPS.h"
 
 #include <cmath>
+#include <deque>
 #include "../../../dsme_platform.h"
 #include "../../dsmeLayer/DSMELayer.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
@@ -136,5 +137,143 @@ void TPS::multisuperframeEvent() {
         data.messagesOutLastMultisuperframe = 0;
     }
 }
+
+
+
+/*GTSSchedulingDecision TPS::getNextSchedulingAction(uint16_t address) {
+    uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+    int16_t target = getSlotTarget(address);
+
+    if(target > numAllocatedSlots) {
+        uint8_t numInputs = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()-1);
+        int8_t schedule[numInputs];
+        observeState(schedule, numInputs);
+        
+        uint8_t slot = schedule_tx(schedule, numInputs, this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1));
+        if(lastAction == slot) {
+            slot = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numInputs;
+            std::cout << "Switching to new action" << std::endl;
+            //slot = schedule_tx(schedule, numInputs, this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1));
+        }
+        lastAction = slot;
+        logState(schedule, numInputs);        
+
+        uint8_t superframeID;
+        uint8_t slotID; 
+        fromActionID(slot, slotID, superframeID);  
+
+        return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, superframeID, slotID};
+    } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
+        return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
+    } else {
+        return NO_SCHEDULING_ACTION;
+    }
+}*/
+
+uint8_t TPS::schedule_tx(int8_t *schedule, uint8_t slots, uint8_t superframe_length) const {
+    float delay[slots] = {255};
+    for(uint8_t tx_slot=0; tx_slot<slots; tx_slot++) {
+	    if(schedule[tx_slot] != 0) {
+		    delay[tx_slot] = 255;
+		    continue;
+	    }
+	
+	    uint8_t local_delay[slots] = {255};
+	    for(uint8_t gen_slot=0; gen_slot<slots; gen_slot++) {
+		
+	        std::deque<uint8_t> queue;
+	        uint8_t max_delay = 0;
+	        for(uint8_t eval_slot=0; eval_slot<2*slots; eval_slot++) {
+		        uint8_t actual_slot = eval_slot % slots;
+                if(actual_slot == gen_slot) {
+                    queue.push_back(0);
+                }
+                if(schedule[actual_slot] == -1) {
+		            queue.push_back(0);
+		        }	
+		        if((schedule[actual_slot] == 1 || actual_slot == tx_slot) && !queue.empty()) {
+		            max_delay = max_delay > queue.front() ? max_delay : queue.front();
+		            queue.pop_front();
+		        }
+		        for(uint8_t elem=0; elem<queue.size(); elem++) {
+		            if((actual_slot+1)%superframe_length == 0) {
+   			            queue[elem] = queue[elem] + 10;
+		            } else {
+			            queue[elem] = queue[elem] + 1;
+		            }
+		        }
+	        }
+	        std::cout << (int)max_delay << " "; 
+	        local_delay[gen_slot] = max_delay;
+	    }
+	    std::cout << std::endl;
+
+	    /* Calculate expected delay */
+	    uint32_t exp_delay = 0;
+	    for(uint8_t slot=0; slot<slots; slot++) {
+	        exp_delay += local_delay[slot];
+	    }
+	    delay[tx_slot] = exp_delay / (float)slots;
+    }	   
+   
+    for(uint8_t i=0; i<slots;i++) {
+    	std::cout << " " << delay[i];
+    }
+    std::cout << std::endl;
+
+    uint8_t min_exp_delay_slot = 0;
+    for(uint8_t slot=0; slot<slots; slot++) {
+	    min_exp_delay_slot = delay[min_exp_delay_slot] <= delay[slot] ? min_exp_delay_slot : slot;
+    }
+    std::cout << "slot: " << (int)min_exp_delay_slot << std::endl; 
+    return min_exp_delay_slot;
+}
+
+void TPS::observeState(int8_t *state, uint8_t numStates) const {
+    for(uint8_t i=0; i<numStates; i++) state[i] = 0;
+    DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    
+    for(auto const& value: macDSMEACT) {
+        uint8_t actionID = toActionID(value.getGTSlotID(), value.getSuperframeID()); 
+        if(value.getDirection() == Direction::TX) {
+            state[actionID] = 1;        
+        } 
+        if(value.getDirection() == Direction::RX) {
+            state[actionID] = -1;        
+        } 
+    }
+}
+
+uint8_t TPS::toActionID(const uint8_t slotID, const uint8_t superframeID) const {
+    uint8_t actionID = slotID; 
+    if(superframeID > 0) actionID += this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
+    if(superframeID > 1) actionID += this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (superframeID - 1);
+        
+    return actionID; 
+}
+
+void TPS::fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t &superframeID) const {
+    slotID = 0;
+    superframeID = 0;
+    uint8_t action = actionID;
+    for(uint8_t i=0; i<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
+        if(action >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i)) {
+            action -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i);
+            superframeID++;
+        } else {
+            slotID = action;
+            return;
+        }
+    }
+}
+
+void TPS::logState(int8_t *state, uint8_t numStates) const {
+    std::cout << "{" << "\"id\" : " << this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"slots\" : ["; 
+    for(int i=0; i<numStates; i++) {
+        std::cout << (int)state[i] << " ";
+    }  
+    std::cout << "]}" << std::endl;
+}
+
 
 } /* namespace dsme */
