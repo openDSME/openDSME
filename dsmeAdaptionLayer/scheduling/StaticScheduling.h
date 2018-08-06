@@ -44,6 +44,7 @@
 #define TPS_H_
 
 #include "./GTSScheduling.h"
+#include "../../../mac_services/dataStructures/DSMEBitVector.h"
 
 namespace dsme {
 
@@ -57,7 +58,11 @@ public:
 
     virtual void multisuperframeEvent();
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
-};
+
+    void addStaticSlot(uint16_t absSlotIdx, uint16_t address, DIRECTION direction);
+
+private:
+    void fromAbsSlotID(const uint8_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const;
 
 } /* namespace dsme */
 

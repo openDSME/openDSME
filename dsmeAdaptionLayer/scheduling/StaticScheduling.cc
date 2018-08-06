@@ -57,4 +57,37 @@ GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address
     return NO_SCHEDULING_ACTION; 
 }
 
+void addStaticSlot(uint16_t absSlotID, uint16_t address, DIRECTION direction) {
+    uint8_t slotID;
+    uint8_t superframeID; 
+    uint8_t channelID; 
+    fromAbsSlotID(absSlotID, slotID, superframeID, channelID); 
+    
+    assert(dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID));
+}
+
+void StaticScheduling::fromAbsSlotID(const uint8_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
+    slotID = 0;
+    superframeID = 0;
+    channelID = 0;
+
+    uint8_t absSlot = absSlotID;
+    for(uint8_t i=0; i<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
+        if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
+            absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+            superframeID++;
+        } else {
+            for(uint8_t slot=0; slot<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i); slot++) {
+                if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
+                    absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+                } else {
+                    slotID = slot; 
+                    channelID = absSlot;
+                    return; 
+                }
+            }
+        }
+    }
+}
+
 } /* namespace dsme */
