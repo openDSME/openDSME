@@ -51,6 +51,9 @@
 namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
+    for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
+        it->resetIdleCounter();
+    }
 }
 
 GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
