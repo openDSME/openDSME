@@ -48,25 +48,22 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMEAdaptionLayer.h"
 
+namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
 }
-
 
 GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
     return NO_SCHEDULING_ACTION; 
 }
 
-void addStaticSlot(uint16_t absSlotID, uint16_t address, DIRECTION direction) {
-    uint8_t slotID;
-    uint8_t superframeID; 
-    uint8_t channelID; 
-    fromAbsSlotID(absSlotID, slotID, superframeID, channelID); 
-    
-    assert(dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID));
+
+void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
+    this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
+    this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
 }
 
-void StaticScheduling::fromAbsSlotID(const uint8_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
+void StaticScheduling::fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
     slotID = 0;
     superframeID = 0;
     channelID = 0;

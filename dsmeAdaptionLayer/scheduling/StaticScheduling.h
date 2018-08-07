@@ -40,18 +40,18 @@
  * SUCH DAMAGE.
  */
 
-#ifndef TPS_H_
-#define TPS_H_
+#ifndef STATICSCHEDULING_H_
+#define STATICSCHEDULING_H_
 
 #include "./GTSScheduling.h"
-#include "../../../mac_services/dataStructures/DSMEBitVector.h"
+#include <omnetpp.h>
 
 namespace dsme {
 
 class DSMEAdaptionLayer;
 
 
-class StaticScheduling : public GTSSchedulingImpl<GTSTxData, GTSRxData> {
+class StaticScheduling : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
 public:
     StaticScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
@@ -59,11 +59,13 @@ public:
     virtual void multisuperframeEvent();
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
 
-    void addStaticSlot(uint16_t absSlotIdx, uint16_t address, DIRECTION direction);
+    void allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address);
 
 private:
-    void fromAbsSlotID(const uint8_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const;
+    void fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const; 
+
+};
 
 } /* namespace dsme */
 
-#endif /* TPS_H_ */
+#endif /* STATICSCHEDULING_H_ */
