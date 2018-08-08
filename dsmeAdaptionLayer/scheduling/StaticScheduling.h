@@ -40,27 +40,32 @@
  * SUCH DAMAGE.
  */
 
-#include "./RESET.h"
+#ifndef STATICSCHEDULING_H_
+#define STATICSCHEDULING_H_
 
-#include "../../../dsme_platform.h"
-#include "../../dsmeLayer/DSMELayer.h"
+#include "./GTSScheduling.h"
+#include <omnetpp.h>
 
 namespace dsme {
-namespace mlme_sap {
 
-RESET::RESET(DSMELayer& dsme) : dsme(dsme) {
-}
+class DSMEAdaptionLayer;
 
-void RESET::request(request_parameters& params) {
-    if(params.setDefaultPib) {
-        LOG_ERROR("Resetting the PIB is currently not supported.");
-        DSME_ASSERT(false);
+
+class StaticScheduling : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
+public:
+    StaticScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
 
-    this->dsme.reset();
+    virtual void multisuperframeEvent();
+    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
 
-    return;
-}
+    void allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address);
 
-} /* namespace mlme_sap */
+private:
+    void fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const; 
+
+};
+
 } /* namespace dsme */
+
+#endif /* STATICSCHEDULING_H_ */

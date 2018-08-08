@@ -45,6 +45,7 @@
 
 #include "../helper/DSMEDelegate.h"
 #include "../mac_services/DSME_Common.h"
+#include "../mac_services/mlme_sap/RESET.h"
 
 #include "./AssociationHelper.h"
 #include "./GTSHelper.h"
@@ -106,6 +107,7 @@ private:
     void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
     void handleAssociationComplete(AssociationStatus::Association_Status status);
     void handleDisassociationComplete(DisassociationStatus::Disassociation_Status status);
+    void handleResetComplete(mlme_sap::RESET_confirm_parameters& parameters);
 
     void reset();
 

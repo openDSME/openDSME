@@ -68,10 +68,6 @@ public:
     bool operator!=(const GTS& b) const {
         return !(*this == b);
     }
-
-    abs_slot_idx_t absoluteIndex(uint8_t numGTSlots, uint8_t numChannels);
-
-    static GTS GTSfromAbsoluteIndex(abs_slot_idx_t idx, uint8_t numGTSlots, uint8_t numChannels, uint8_t numSuperframesPerMultiSuperframe);
 };
 
 } /* namespace dsme */

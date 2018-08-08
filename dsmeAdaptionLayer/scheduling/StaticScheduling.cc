@@ -40,27 +40,54 @@
  * SUCH DAMAGE.
  */
 
-#include "./RESET.h"
+#include "./StaticScheduling.h"
 
 #include "../../../dsme_platform.h"
 #include "../../dsmeLayer/DSMELayer.h"
+#include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
+#include "../../mac_services/pib/MAC_PIB.h"
+#include "../DSMEAdaptionLayer.h"
 
 namespace dsme {
-namespace mlme_sap {
 
-RESET::RESET(DSMELayer& dsme) : dsme(dsme) {
-}
-
-void RESET::request(request_parameters& params) {
-    if(params.setDefaultPib) {
-        LOG_ERROR("Resetting the PIB is currently not supported.");
-        DSME_ASSERT(false);
+void StaticScheduling::multisuperframeEvent() {
+    for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
+        it->resetIdleCounter();
     }
-
-    this->dsme.reset();
-
-    return;
 }
 
-} /* namespace mlme_sap */
+GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
+    return NO_SCHEDULING_ACTION; 
+}
+
+
+void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
+    this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
+    this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
+}
+
+void StaticScheduling::fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
+    slotID = 0;
+    superframeID = 0;
+    channelID = 0;
+
+    uint8_t absSlot = absSlotID;
+    for(uint8_t i=0; i<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
+        if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
+            absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+            superframeID++;
+        } else {
+            for(uint8_t slot=0; slot<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i); slot++) {
+                if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
+                    absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+                } else {
+                    slotID = slot; 
+                    channelID = absSlot;
+                    return; 
+                }
+            }
+        }
+    }
+}
+
 } /* namespace dsme */

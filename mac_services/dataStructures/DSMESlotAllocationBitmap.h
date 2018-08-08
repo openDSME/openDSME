@@ -53,7 +53,7 @@ class DSMESlotAllocationBitmap {
 public:
     DSMESlotAllocationBitmap();
 
-    void initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlots, uint8_t numChannels);
+    void initialize(uint16_t numSuperframesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes, uint8_t numChannels);
 
     /**
      * Clears all entries
@@ -83,9 +83,12 @@ public:
     bool isOccupied(abs_slot_idx_t idx);
 
 private:
+    uint16_t getSubblockOffset(uint8_t subBlockIndex) const;
+
     BitVector<MAX_OCCUPIED_SLOTS> occupied; // occupied by neighbors
     uint16_t numSuperframesPerMultiSuperframe;
-    uint8_t numGTSlots;
+    uint8_t numGTSlotsFirstSuperframe;
+    uint8_t numGTSlotsLatterSuperframes;
     uint8_t numChannels;
 };
 

@@ -80,7 +80,7 @@ uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
 
 uint32_t PIBHelper::getSymbolsPerSlot() const {
     /* aBaseSlotDuration * 2^(SO) */
-    return aBaseSlotDuration * (1 << (uint32_t)this->mac_pib.macSuperframeOrder);
+    return aBaseSlotDuration * (1 << (uint32_t) this->mac_pib.macSuperframeOrder);
 }
 
 uint8_t PIBHelper::getNumGTSlots(uint8_t superframeId) const {
@@ -108,8 +108,8 @@ const channelList_t& PIBHelper::getChannels() const {
     return emptyList;
 }
 
-uint8_t PIBHelper::getSubBlockLengthBytes() const {
-    return (getNumGTSlots(1) * getNumChannels() - 1) / 8 + 1;
+uint8_t PIBHelper::getSubBlockLengthBytes(uint8_t superframeId) const {
+    return (getNumGTSlots(superframeId) * getNumChannels() - 1) / 8 + 1;
 }
 
 uint16_t PIBHelper::getAckWaitDuration() const {

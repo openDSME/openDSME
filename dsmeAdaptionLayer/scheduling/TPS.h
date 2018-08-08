@@ -63,7 +63,7 @@ public:
     }
 
     virtual void multisuperframeEvent();
-    //virtual uint8_t registerIncomingMessage(uint16_t address) override;
+    // virtual uint8_t registerIncomingMessage(uint16_t address) override;
     void setAlpha(float alpha);
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);

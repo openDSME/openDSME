@@ -119,7 +119,7 @@ void DSMELayer::start() {
     }
 
     /* start the timer initially */
-    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(),0);
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(), 0);
 }
 
 void DSMELayer::reset() {
@@ -154,7 +154,11 @@ void DSMELayer::doReset() {
     }
 
     /* restart slot timer */
-    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(),0);
+    this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(), 0);
+
+    mlme_sap::RESET_confirm_parameters confirm_params;
+    confirm_params.status = ResetStatus::SUCCESS;
+    this->getMLME_SAP().getRESET().notify_confirm(confirm_params);
 
     resetPending = false;
 }
@@ -218,14 +222,13 @@ void DSMELayer::slotEvent(int32_t lateness) {
         if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
             // no CAP available
             skippedSlots = 0;
-        }
-        else {
+        } else {
             // no (pre) slot events required during CAP
             skippedSlots = 7;
         }
     }
 
-    this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime,skippedSlots);
+    this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime, skippedSlots);
 
     /* handle slot */
     if(currentSlot == 0) {
@@ -259,11 +262,11 @@ uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
     if(this->mac_pib->macCapReduction) {
-        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t)this->mac_pib->macMultiSuperframeOrder);
+        uint32_t symbolsPerMultiSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macMultiSuperframeOrder);
         uint32_t symbolsSinceLastMultiSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerMultiSuperframe;
         return symbolsSinceLastMultiSuperframeStart;
     } else {
-        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t)this->mac_pib->macSuperframeOrder);
+        uint32_t symbolsPerSuperframe = aNumSuperframeSlots * (uint32_t)aBaseSlotDuration * (1 << (uint32_t) this->mac_pib->macSuperframeOrder);
         uint32_t symbolsSinceLastSuperframeStart = symbolsSinceLastBeaconInterval % symbolsPerSuperframe;
         return symbolsSinceLastSuperframeStart;
     }

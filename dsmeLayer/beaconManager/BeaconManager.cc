@@ -113,6 +113,15 @@ void BeaconManager::initialize() {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
 
+    // Currently these parameters have to be predefined.
+    dsmePANDescriptor.superframeSpec.beaconOrder = dsme.getMAC_PIB().macBeaconOrder;
+    dsmePANDescriptor.superframeSpec.superframeOrder = dsme.getMAC_PIB().macSuperframeOrder;
+    dsmePANDescriptor.superframeSpec.finalCAPSlot = dsme.getMAC_PIB().helper.getFinalCAPSlot(0);
+    dsmePANDescriptor.superframeSpec.batteryLifeExtension = 0;
+    dsmePANDescriptor.superframeSpec.reserved = 0;
+    dsmePANDescriptor.superframeSpec.PANCoordinator = dsme.getMAC_PIB().macIsPANCoord;
+    dsmePANDescriptor.superframeSpec.associationPermit = 1;
+
     lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
 }
 
@@ -128,8 +137,6 @@ void BeaconManager::reset() {
     } else if(dsme.getMAC_PIB().macIsCoord) {
         dsmePANDescriptor.getBeaconBitmap().fill(false);
     }
-
-    lastKnownBeaconIntervalStart = dsme.getPlatform().getSymbolCounter();
 
     this->dsme.getMAC_PIB().macSdBitmap.fill(false);
     this->neighborOrOwnHeardBeacons.fill(false);
@@ -147,8 +154,7 @@ void BeaconManager::preSuperframeEvent(uint16_t nextSuperframe, uint16_t nextMul
         // This node expects a beacon, only if not associated or a beacon from the SYNC-parent is expected
         this->dsme.getPlatform().turnTransceiverOn();
         this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
-    }
-    else {
+    } else {
         this->dsme.getPlatform().turnTransceiverOff();
     }
 }
@@ -174,6 +180,7 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * aSymbolDuration);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
+    dsmePANDescriptor.getBeaconBitmap().copyBitsFrom(this->dsme.getMAC_PIB().macSdBitmap);
     dsmePANDescriptor.prependTo(msg); // TODO this should be implemented as IE
 
     msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
@@ -224,17 +231,19 @@ void BeaconManager::sendEnhancedBeaconRequest() {
 void BeaconManager::printBeaconStatistics() {
     uint8_t j = statsIdx;
     uint32_t counter = dsme.getPlatform().getSymbolCounter();
-    LOG_ERROR("BEACON STATS " << "now " << counter << " coord 0x" << HEXOUT << this->dsme.getMAC_PIB().macCoordShortAddress << DECOUT);
+    LOG_ERROR("BEACON STATS "
+              << "now " << counter << " coord 0x" << HEXOUT << this->dsme.getMAC_PIB().macCoordShortAddress << DECOUT);
 
     for(uint8_t i = 0; i < statsValid; i++) {
         auto& stat = beaconStatistics[j];
-        LOG_ERROR("BEACON STATS " << stat.time << " 0x" << HEXOUT << stat.sender << DECOUT << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " " << (uint16_t)stat.sdIndex);
+        LOG_ERROR("BEACON STATS " << stat.time << " 0x" << HEXOUT << stat.sender << DECOUT << " " << (uint16_t)stat.lqi << " " << (int16_t)stat.rssi << " "
+                                  << (uint16_t)stat.sdIndex);
 
         uint32_t beaconIntervalSymbols = dsme.getMAC_PIB().helper.getNumberSuperframesPerBeaconInterval();
         beaconIntervalSymbols *= aNumSuperframeSlots;
         beaconIntervalSymbols *= dsme.getMAC_PIB().helper.getSymbolsPerSlot();
         for(uint8_t k = 1; k <= 5; k++) {
-            uint32_t nextExpectedBeacon = stat.time+k*beaconIntervalSymbols;
+            uint32_t nextExpectedBeacon = stat.time + k * beaconIntervalSymbols;
             LOG_ERROR("                      " << nextExpectedBeacon);
         }
 
@@ -242,14 +251,14 @@ void BeaconManager::printBeaconStatistics() {
             j = STATS_NUM;
         }
         j--;
-    }   
+    }
 }
 #endif
 
 bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& descr) {
 #ifdef STATISTICS_BEACONS
     DSME_ATOMIC_BLOCK {
-        statsIdx = (statsIdx+1)%STATS_NUM;
+        statsIdx = (statsIdx + 1) % STATS_NUM;
         auto& stat = beaconStatistics[statsIdx];
         stat.time = msg->getStartOfFrameDelimiterSymbolCounter();
         stat.sender = msg->getHeader().getSrcAddr().getShortAddress();
@@ -656,7 +665,7 @@ void BeaconManager::scanCurrentChannel() {
 void BeaconManager::channelScanPassiveComplete() {
     DSME_ASSERT(this->scanning);
 
-    LOG_INFO("Scan complete, chan " << (uint16_t)this->scanChannels[this->currentScanChannelIndex]);
+    LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;
@@ -698,7 +707,7 @@ void BeaconManager::singleBeaconScanPassiveReceived(PANDescriptor& panDescr) {
 void BeaconManager::channelScanEnhancedActiveComplete() {
     DSME_ASSERT(this->scanning);
 
-    LOG_INFO("Scan complete, chan " << (uint16_t)this->scanChannels[this->currentScanChannelIndex]);
+    LOG_INFO("Scan complete, chan " << (uint16_t) this->scanChannels[this->currentScanChannelIndex]);
     if(this->panDescriptorList.full() || this->currentScanChannelIndex >= this->scanChannels.size() - 1) {
         this->scanning = false;
         this->dsme.getMAC_PIB().macPANId = this->storedMacPANId;

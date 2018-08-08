@@ -46,6 +46,8 @@
 
 #include "./Serializer.h"
 
+#include "../../../dsme_platform.h"
+
 namespace dsme {
 
 /* CONSTRUCTORS & DESTRUCTOR *************************************************/
@@ -98,6 +100,7 @@ void BitVectorBase::fill(bool value) {
 void BitVectorBase::set(bit_vector_size_t position, bool value) {
     if(position >= this->bitSize) {
         /* '-> ERROR */
+        ASSERT(false);
         return;
     }
 
@@ -111,6 +114,7 @@ void BitVectorBase::set(bit_vector_size_t position, bool value) {
 bool BitVectorBase::get(bit_vector_size_t position) const {
     if(position >= this->bitSize) {
         /* '-> ERROR */
+        ASSERT(false);
         return false;
     }
 
@@ -124,6 +128,7 @@ bit_vector_size_t BitVectorBase::length() const {
 void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t theirOffset) {
     if(theirOffset + this->bitSize > other.bitSize) {
         /* '-> ERROR */
+        ASSERT(false);
         return;
     }
 
@@ -149,6 +154,7 @@ void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t their
 void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size_t myOffset) {
     if(myOffset + other.bitSize > this->bitSize) {
         /* '-> ERROR */
+        ASSERT(false);
         return;
     }
 
@@ -174,6 +180,7 @@ void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size
 void BitVectorBase::setOperationComplement(const BitVectorBase& other, bit_vector_size_t myOffset) {
     if(myOffset + other.bitSize > this->bitSize) {
         /* '-> ERROR */
+        ASSERT(false);
         return;
     }
 
@@ -268,7 +275,7 @@ uint8_t BitVectorBase::getSerializationLength() const {
 
 Serializer& operator<<(Serializer& serializer, const BitVectorBase& bv) {
     for(bit_vector_size_t i = 0; i < BITVECTOR_BYTE_LENGTH(bv.bitSize); i++) {
-        serializer << bv.byte_array[i]; // TODO direction ok?
+        serializer << bv.byte_array[i];
     }
 
     return serializer;

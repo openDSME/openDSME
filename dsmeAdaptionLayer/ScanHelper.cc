@@ -89,7 +89,7 @@ void ScanHelper::startScan() {
     mlme_sap::SCAN::request_parameters params;
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
-    if(((uint16_t)this->passiveScanCounter) > random_value) {
+    if(((uint16_t) this->passiveScanCounter) > random_value) {
         LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
