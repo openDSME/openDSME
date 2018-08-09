@@ -225,7 +225,7 @@ void GTSHelper::deallocateSingleGTS(uint8_t gtsSlotID, uint8_t superframeID) {
                                       << toDeallocate->getAddress() << DECOUT);
 
         DSMESABSpecification dsmeSABSpecification;
-        uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes();
+        uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(toDeallocate->getSuperframeID());
         dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
         dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
         dsmeSABSpecification.getSubBlock().fill(false);

@@ -130,11 +130,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
-<<<<<<< HEAD
-    this->platform->signalGTSChange(false, direction == Direction::TX, IEEE802154MacAddress(address));
-=======
     this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
->>>>>>> eff6e52dd5dddd536a8635f7c12c9630c6c57ea7
 
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
@@ -171,11 +167,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     printChange("dealloc", it->superframeID, it->slotID, it->channel, it->direction, it->address);
 
-<<<<<<< HEAD
-    this->platform->signalGTSChange(true, it->direction == Direction::TX, IEEE802154MacAddress(it->address));
-=======
     this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(it->address));
->>>>>>> eff6e52dd5dddd536a8635f7c12c9630c6c57ea7
 
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 

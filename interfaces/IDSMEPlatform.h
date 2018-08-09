@@ -115,7 +115,7 @@ public:
     /*
      * Signal GTS allocation or deallocation
      */
-    virtual void signalGTSChange(bool deallocation, bool tx, IEEE802154MacAddress counterpart) {
+    virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
 };
 
