@@ -329,7 +329,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
     DSME_ASSERT(destIt != neighborQueue.end());
 
     numUpperPacketsForGTS++;
-
+    this->dsme.getPlatform().signalQueueChange((uint8_t)neighborQueue.getPacketsInQueue(destIt)); 
     if(!neighborQueue.isQueueFull()) {
         /* push into queue */
         // TODO implement TRANSACTION_EXPIRED

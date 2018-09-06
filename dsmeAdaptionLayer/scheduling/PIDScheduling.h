@@ -48,6 +48,7 @@
 namespace dsme {
 
 class DSMEAdaptionLayer;
+class DSMELayer;
 
 struct PIDSchedulingData : GTSSchedulingData {
     PIDSchedulingData();

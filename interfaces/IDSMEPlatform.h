@@ -117,6 +117,18 @@ public:
      */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
+
+    /*
+     * Signal changed queue level 
+     */
+    virtual void signalQueueChange(uint8_t queueLevel) {
+    }
+
+    /*
+     * Signal dwell time of last processed packet 
+     */
+    virtual void signalDwellTime(int32_t dwellTime) { 
+    }
 };
 
 } /* namespace dsme */

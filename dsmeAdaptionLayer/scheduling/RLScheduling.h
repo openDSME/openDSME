@@ -54,14 +54,15 @@ class DSMEAdaptionLayer;
 
 class RLScheduling : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
 public:
-    RLScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : slot(0), GTSSchedulingImpl(dsmeAdaptionLayer) {
+    RLScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : action(0), lastAction(0), GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
 
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) override;
     virtual void multisuperframeEvent() {};
 private:
     NeuralNetwork<float> network;
-    uint8_t slot;
+    uint8_t action;
+    uint8_t lastAction;
     
     uint8_t toActionID(const uint8_t slotID, const uint8_t superframeID) const;
     void fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t &superframeID) const;
@@ -71,6 +72,8 @@ private:
 
     GTSSchedulingDecision allocateSlot(uint16_t address) const;
     GTSSchedulingDecision deallocateSlot(uint16_t address) const;
+
+    void blockSuperframe(float *state, const uint8_t actionID) const;
 };  
 
 } /* namespace dsme */

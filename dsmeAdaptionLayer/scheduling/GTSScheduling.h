@@ -51,6 +51,7 @@
 namespace dsme {
 
 class DSMEAdaptionLayer;
+class DSMELayer;
 
 struct GTSSchedulingData {
     GTSSchedulingData() : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), slotTarget(1) {
@@ -145,6 +146,7 @@ public:
             it->messagesOutLastMultisuperframe++;
         }
 
+        this->dsmeAdaptionLayer.getDSME().getPlatform().signalDwellTime(serviceTime); 
         return;
     }
 

@@ -55,18 +55,18 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
     observeState(initialState, numInputs);
     logState(initialState, numInputs);
 
-    // Get next action  
+    // Get next action 
+    this->lastAction = this->action;  
     quicknet::Vector<float> input{numInputs, initialState};
     quicknet::Vector<float> &output = this->network.feedForward(input);
-    uint8_t actionID = quicknet::idmax(output);
+    this->action = quicknet::idmax(output);
 
-    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : " << (int)actionID << "}" << std::endl; 
-
-    if (actionID < numInputs) {
-        this->slot = actionID;
+    std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : " << (int)this->action << "}" << std::endl; 
+ 
+    if (this->action < numInputs) {
         return allocateSlot(address);
-    } else if (actionID < 2*numInputs) {
-        this->slot = actionID;
+    } else if (this->action < 2*numInputs) {
+        this->action = this->action - numInputs;
         return deallocateSlot(address);
     } else {
         return NO_SCHEDULING_ACTION;
@@ -77,7 +77,12 @@ GTSSchedulingDecision RLScheduling::getNextSchedulingAction(uint16_t address) {
 GTSSchedulingDecision RLScheduling::allocateSlot(uint16_t address) const {
         uint8_t slotID = 0;
         uint8_t superframeID = 0;            
-        fromActionID(this->slot, slotID, superframeID);
+        fromActionID(this->action, slotID, superframeID);
+
+        if(this->action == this->lastAction) {
+            superframeID = (superframeID+1) % this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+            slotID = 0;
+         }
            
         std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : alloc" << ", \"slot\" : " << (int)slotID << ", \"superframe\" : " << (int)superframeID << "}" << std::endl; 
 
@@ -93,7 +98,7 @@ GTSSchedulingDecision RLScheduling::deallocateSlot(uint16_t address) const {
 
     uint8_t slotID = 0;
     uint8_t superframeID = 0;            
-    fromActionID(this->slot, slotID, superframeID);
+    fromActionID(this->action, slotID, superframeID);
         
     std::cout << "{" << "\"id\" : " << dsmeAdaptionLayer.getMAC_PIB().macShortAddress << ", \"action\" : dealloc" << ", \"slot\" : " << (int)slotID << ", \"superframe\" : " << (int)superframeID << "}" << std::endl; 
 
@@ -146,5 +151,17 @@ void RLScheduling::fromActionID(const uint8_t actionID, uint8_t &slotID, uint8_t
     }
 }
 
+void RLScheduling::blockSuperframe(float *schedule, const uint8_t actionID) const {
+    uint8_t slotID = 0; 
+    uint8_t superframeID = 0;
+    fromActionID(actionID, slotID, superframeID); 
+
+    uint8_t superframeStartSlot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) + this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1) * (superframeID-1);
+    uint8_t superframeSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(superframeID);
+    
+    for(uint8_t slot=superframeStartSlot; slot<superframeSlots; slot++) {
+        schedule[slot] = -1;
+    }
+}
 
 } /* namespace dsme */
