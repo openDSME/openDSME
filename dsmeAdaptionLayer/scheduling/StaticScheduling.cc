@@ -48,6 +48,11 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMEAdaptionLayer.h"
 
+#include <iostream>
+
+#define USE_CHANNELS false
+
+
 namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
@@ -57,13 +62,35 @@ void StaticScheduling::multisuperframeEvent() {
 }
 
 GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
-    return NO_SCHEDULING_ACTION; 
+    if(USE_CHANNELS) {
+        return NO_SCHEDULING_ACTION; 
+    } else {
+        for(int i=0; i<this->addresses.size(); i++) {
+            if(this->addresses[i] == address) {
+                if(!this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.isAllocated(this->superframes[i], this->slots[i])) {
+                    return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, this->superframes[i], this->slots[i]};
+                } else {
+                    std::cout << "Already allocated: " << this->superframes[i] << " " << this->slots[i] << std::endl;    
+                }
+            }
+        }
+        std::cout << "Nothing to allocate" << std::endl;
+        return NO_SCHEDULING_ACTION;
+    }
 }
 
 
 void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
-    this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
-    this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
+    if(USE_CHANNELS) {
+        this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
+        this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
+    } else {
+        if(direction == Direction::TX) {
+            this->superframes.push_back(superframeID); 
+            this->slots.push_back(slotID);
+            this->addresses.push_back(address); 
+        }
+    }
 }
 
 void StaticScheduling::fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
