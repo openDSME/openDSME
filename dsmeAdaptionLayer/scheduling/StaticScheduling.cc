@@ -56,8 +56,16 @@
 namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
+    // Reset the idle counters of the slots to prevent deallocation 
     for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
         it->resetIdleCounter();
+    }
+
+    // Set priority for the right links 
+    for(GTSSchedulingData &data : this->txLinks) {
+        if(std::find(this->addresses.begin(), this->addresses.end(), data.address) != this->addresses.end()) {
+            data.slotTarget = 9999; //inf
+        }
     }
 }
 
