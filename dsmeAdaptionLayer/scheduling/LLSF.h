@@ -7,10 +7,12 @@
  * Authors: Florian Kauer <florian.kauer@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
  *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
- *
+ * 
  * Based on
  *          DSME Implementation for the INET Framework
  *          Tobias Luebkert <tobias.luebkert@tuhh.de>
+ *
+ * This file: Florian Meyer
  *
  * Copyright (c) 2015, Institute of Telematics, Hamburg University of Technology
  * All rights reserved.
@@ -40,10 +42,10 @@
  * SUCH DAMAGE.
  */
 
-#ifndef STATICSCHEDULING_H_
-#define STATICSCHEDULING_H_
+#ifndef LLSF_H_
+#define LLSF_H_
 
-#include "./GTSScheduling.h"
+#include "./SF0.h" 
 #include <omnetpp.h>
 #include <vector>
 
@@ -51,24 +53,16 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 
-
-class StaticScheduling : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
+class LLSF : public SF0 {
 public:
-    StaticScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
-    }
-
+    LLSF(DSMEAdaptionLayer& dsmeAdaptionLayer) : SF0(dsmeAdaptionLayer) {};
     virtual void multisuperframeEvent();
-    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
+    GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
 
-    void allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address);
-
-private:
-    /* save schedule and allocate slots */
-    std::vector<uint8_t> superframes;
-    std::vector<uint8_t> slots; 
-    std::vector<uint16_t> addresses;
+private: 
+    bool isLeaf(); 
 };
 
 } /* namespace dsme */
 
-#endif /* STATICSCHEDULING_H_ */
+#endif /* LLSF_H_ */

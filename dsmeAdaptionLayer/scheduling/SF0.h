@@ -7,10 +7,12 @@
  * Authors: Florian Kauer <florian.kauer@tuhh.de>
  *          Maximilian Koestler <maximilian.koestler@tuhh.de>
  *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
- *
+ * 
  * Based on
  *          DSME Implementation for the INET Framework
  *          Tobias Luebkert <tobias.luebkert@tuhh.de>
+ *
+ * This file: Florian Meyer
  *
  * Copyright (c) 2015, Institute of Telematics, Hamburg University of Technology
  * All rights reserved.
@@ -40,8 +42,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef STATICSCHEDULING_H_
-#define STATICSCHEDULING_H_
+#ifndef SF0_H_
+#define SF0_H_
 
 #include "./GTSScheduling.h"
 #include <omnetpp.h>
@@ -51,24 +53,21 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 
-
-class StaticScheduling : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
+class SF0 : public GTSSchedulingImpl<GTSSchedulingData, GTSRxData> {
 public:
-    StaticScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
-    }
-
+    SF0(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), sf0Thresh(0) {};
     virtual void multisuperframeEvent();
-    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
 
-    void allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address);
+    /* Same interface like static schedule: requiredCells = number of scheduled slots for given address. */
+    virtual void allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address);
 
-private:
-    /* save schedule and allocate slots */
-    std::vector<uint8_t> superframes;
-    std::vector<uint8_t> slots; 
+    virtual void setThreshold(uint8_t thresh); 
+
+protected: 
+    uint8_t sf0Thresh; 
     std::vector<uint16_t> addresses;
 };
 
 } /* namespace dsme */
 
-#endif /* STATICSCHEDULING_H_ */
+#endif /* LLSF_H_ */

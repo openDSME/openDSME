@@ -96,6 +96,8 @@ public:
     virtual void registerReceivedMessage(uint16_t address) = 0;
     virtual void multisuperframeEvent() = 0;
     virtual int16_t getSlotTarget(uint16_t address) = 0;
+    virtual uint16_t getMessagesInLastMultisuperframe(uint16_t address) = 0;
+    virtual uint16_t getMessagesOutLastMultisuperframe(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) = 0;
     virtual GTSSchedulingDecision getNextSchedulingAction() = 0;
@@ -166,6 +168,18 @@ public:
         iterator it = this->txLinks.find(address);
 
         return it->slotTarget;
+    }
+
+    virtual uint16_t getMessagesInLastMultisuperframe(uint16_t address) {
+        iterator it = this->txLinks.find(address);
+
+        return it->messagesInLastMultisuperframe;
+    }
+    
+    virtual uint16_t getMessagesOutLastMultisuperframe(uint16_t address) {
+        iterator it = this->txLinks.find(address);
+
+        return it->messagesOutLastMultisuperframe;
     }
 
     static uint16_t abs(int16_t v) {

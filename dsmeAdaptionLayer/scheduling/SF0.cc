@@ -40,7 +40,7 @@
  * SUCH DAMAGE.
  */
 
-#include "./StaticScheduling.h"
+#include "./SF0.h"
 
 #include "../../../dsme_platform.h"
 #include "../../dsmeLayer/DSMELayer.h"
@@ -50,54 +50,28 @@
 
 #include <iostream>
 
-#define USE_CHANNELS false
-
-
 namespace dsme {
 
-void StaticScheduling::multisuperframeEvent() {
-    // Reset the idle counters of the slots to prevent deallocation 
-    for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
-        it->resetIdleCounter();
-    }
-
-    // Set priority for the right links 
-    for(GTSSchedulingData &data : this->txLinks) {
-        if(std::find(this->addresses.begin(), this->addresses.end(), data.address) != this->addresses.end()) {
-            data.slotTarget = 9999; //inf
-        }
-    }
-}
-
-GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
-    if(USE_CHANNELS) {
-        return NO_SCHEDULING_ACTION; 
-    } else {
-        for(int i=0; i<this->addresses.size(); i++) {
-            if(this->addresses[i] == address) {
-                if(!this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.isAllocated(this->superframes[i], this->slots[i])) {
-                    return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, this->superframes[i], this->slots[i]};
-                } else {
-                    std::cout << "Already allocated: " << this->superframes[i] << " " << this->slots[i] << std::endl;    
-                }
-            }
-        }
-        std::cout << "Nothing to allocate" << std::endl;
-        return NO_SCHEDULING_ACTION;
+void SF0::multisuperframeEvent() {
+    for(GTSSchedulingData &data : this->txLinks) { 
+        uint8_t slots = 0;    
+        for(auto &addr : this->addresses) {
+            if(data.address == addr) {
+                slots++;  
+            } 
+        } 
+        data.slotTarget = slots;
+        std::cout << "Slot target is " << data.slotTarget << std::endl;
     }
 }
 
+void SF0::setThreshold(uint8_t thresh) {
+    this->sf0Thresh = thresh;  
+}
 
-void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
-    if(USE_CHANNELS) {
-        this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
-        this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
-    } else {
-        if(direction == Direction::TX) {
-            this->superframes.push_back(superframeID); 
-            this->slots.push_back(slotID);
-            this->addresses.push_back(address); 
-        }
+void SF0::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
+    if(direction == Direction::TX) {
+        this->addresses.push_back(address);
     }
 }
 

@@ -418,7 +418,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         }
 
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
-        LOG_INFO("Checking " << (int)numGTSlots << " in superframe " << gts.superframeID);
+        LOG_INFO("Checking " << (int)numGTSlots << " slots in superframe " << gts.superframeID);
         for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
@@ -432,9 +432,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 for(uint8_t i = 0; i < numChannels; i++) {
                     if(!occupied.get(gts.channel)) {
                         /* found one */
-                        LOG_INFO("CHECKING CHANNELS: " << gts.slotID << " " << (int)initialSlotID << " " << gts.superframeID << " " << initialSuperframeID);
-                        DSME_ASSERT(gts.slotID == initialSlotID);
-                        DSME_ASSERT(gts.superframeID == initialSuperframeID); 
+                        LOG_INFO("Found slot: " << gts.slotID << " " << (int)initialSlotID << " " << gts.superframeID << " " << initialSuperframeID);
                         return gts;
                     }
 
@@ -443,10 +441,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         gts.channel = 0;
                     }
                 }
-            } else {
-                return GTS::UNDEFINED;
             }
             slotsToCheck--;
+            return GTS::UNDEFINED;
         }
     }
 
