@@ -12,6 +12,9 @@
  *          DSME Implementation for the INET Framework
  *          Tobias Luebkert <tobias.luebkert@tuhh.de>
  *
+ * This file: 
+ *          Florian Meyer <fl.meyer@tuhh.de>
+ *
  * Copyright (c) 2015, Institute of Telematics, Hamburg University of Technology
  * All rights reserved.
  *
@@ -48,11 +51,6 @@
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../DSMEAdaptionLayer.h"
 
-#include <iostream>
-
-#define USE_CHANNELS false
-
-
 namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
@@ -63,33 +61,34 @@ void StaticScheduling::multisuperframeEvent() {
 
     // Set priority for the right links 
     for(GTSSchedulingData &data : this->txLinks) {
-        if(std::find(this->addresses.begin(), this->addresses.end(), data.address) != this->addresses.end()) {
-            data.slotTarget = 9999; //inf
-        }
+        data.slotTarget = std::count(this->addresses.begin(), this->addresses.end(), data.address);
     }
+
+    this->newMsf = true;
 }
 
 GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
-    if(USE_CHANNELS) {
-        return NO_SCHEDULING_ACTION; 
-    } else {
+    if(this->negotiateChannels) {
+        //uint8_t nextSlot = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
         for(int i=0; i<this->addresses.size(); i++) {
-            if(this->addresses[i] == address) {
+            if(this->newMsf && this->addresses[i] == address) {
                 if(!this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.isAllocated(this->superframes[i], this->slots[i])) {
+                    this->newMsf = false;
                     return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, this->superframes[i], this->slots[i]};
-                } else {
-                    std::cout << "Already allocated: " << this->superframes[i] << " " << this->slots[i] << std::endl;    
                 }
             }
         }
-        std::cout << "Nothing to allocate" << std::endl;
-        return NO_SCHEDULING_ACTION;
     }
+    
+    return NO_SCHEDULING_ACTION;
 }
 
+void StaticScheduling::setNegotiateChannels(bool negotiateChannels) {
+    this->negotiateChannels = negotiateChannels; 
+}
 
 void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
-    if(USE_CHANNELS) {
+    if(!this->negotiateChannels) {
         this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
         this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
     } else {

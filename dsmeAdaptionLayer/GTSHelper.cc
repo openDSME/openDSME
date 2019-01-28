@@ -424,6 +424,14 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
                 if(sabSpec != nullptr) {
+                    for(int i=gts.slotID*numChannels; i<gts.slotID*numChannels+numChannels;i++) {
+                        std::cout << sabSpec->getSubBlock().get(i) << " ";
+                    } 
+                    std::cout << std::endl; 
+                    for(int i=0; i<numChannels;i++) {
+                        std::cout << occupied.get(i) << " ";
+                    }  
+                    std::cout << std::endl;
                     remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID * numChannels);
                     occupied.setOperationJoin(remoteOccupied);
                 }
@@ -433,6 +441,11 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                     if(!occupied.get(gts.channel)) {
                         /* found one */
                         LOG_INFO("Found slot: " << gts.slotID << " " << (int)initialSlotID << " " << gts.superframeID << " " << initialSuperframeID);
+                        if(gts.slotID != initialSlotID || gts.superframeID != initialSuperframeID) {
+                            LOG_ERROR("Expected " << (int)initialSlotID << "/" << (int)initialSuperframeID << " got " << gts.slotID << "/" << gts.superframeID << std::endl);
+                        }
+                        DSME_ASSERT(gts.slotID == initialSlotID);
+                        DSME_ASSERT(gts.superframeID == initialSuperframeID);
                         return gts;
                     }
 
@@ -441,9 +454,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         gts.channel = 0;
                     }
                 }
-            }
-            slotsToCheck--;
+            } 
             return GTS::UNDEFINED;
+            slotsToCheck--;
         }
     }
 
@@ -497,9 +510,10 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
     return result;
 }
 
-void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
-                              uint8_t preferredSlot) {
+void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe, uint8_t preferredSlot) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+ 
 
     for(uint8_t i = 0; i < numSlots; i++) {
         GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec);
