@@ -12,6 +12,9 @@
  *          DSME Implementation for the INET Framework
  *          Tobias Luebkert <tobias.luebkert@tuhh.de>
  *
+ * This file: 
+ *          Florian Meyer <fl.meyer@tuhh.de>
+ *
  * Copyright (c) 2015, Institute of Telematics, Hamburg University of Technology
  * All rights reserved.
  *
@@ -51,41 +54,48 @@
 namespace dsme {
 
 void StaticScheduling::multisuperframeEvent() {
+    // Reset the idle counters of the slots to prevent deallocation 
     for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
         it->resetIdleCounter();
     }
+
+    // Set priority for the right links 
+    for(GTSSchedulingData &data : this->txLinks) {
+        data.slotTarget = std::count(this->addresses.begin(), this->addresses.end(), data.address);
+    }
+
+    this->newMsf = true;
 }
 
 GTSSchedulingDecision StaticScheduling::getNextSchedulingAction(uint16_t address) {
-    return NO_SCHEDULING_ACTION; 
-}
-
-
-void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
-    this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
-    this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
-}
-
-void StaticScheduling::fromAbsSlotID(uint16_t absSlotID, uint8_t &slotID, uint8_t &superframeID, uint8_t &channelID) const {
-    slotID = 0;
-    superframeID = 0;
-    channelID = 0;
-
-    uint8_t absSlot = absSlotID;
-    for(uint8_t i=0; i<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(); i++) {
-        if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
-            absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-            superframeID++;
-        } else {
-            for(uint8_t slot=0; slot<this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(i); slot++) {
-                if(absSlot >= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels()) {
-                    absSlot -= this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-                } else {
-                    slotID = slot; 
-                    channelID = absSlot;
-                    return; 
+    if(this->negotiateChannels) {
+        //uint8_t nextSlot = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
+        for(int i=0; i<this->addresses.size(); i++) {
+            if(this->newMsf && this->addresses[i] == address) {
+                if(!this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.isAllocated(this->superframes[i], this->slots[i])) {
+                    this->newMsf = false;
+                    return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, this->superframes[i], this->slots[i]};
                 }
             }
+        }
+    }
+    
+    return NO_SCHEDULING_ACTION;
+}
+
+void StaticScheduling::setNegotiateChannels(bool negotiateChannels) {
+    this->negotiateChannels = negotiateChannels; 
+}
+
+void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
+    if(!this->negotiateChannels) {
+        this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
+        this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
+    } else {
+        if(direction == Direction::TX) {
+            this->superframes.push_back(superframeID); 
+            this->slots.push_back(slotID);
+            this->addresses.push_back(address); 
         }
     }
 }
