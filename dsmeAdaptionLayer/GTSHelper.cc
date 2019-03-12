@@ -59,7 +59,7 @@
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false), gtsAllocs(0), gtsUnsuccessfulAllocs(0) {
 }
 
 void GTSHelper::initialize(GTSScheduling* scheduling) {
@@ -72,6 +72,7 @@ void GTSHelper::initialize(GTSScheduling* scheduling) {
     this->dsmeAdaptionLayer.getMLME_SAP().getCOMM_STATUS().indication(DELEGATE(&GTSHelper::handleCOMM_STATUS_indication, *this));
     return;
 }
+
 
 void GTSHelper::reset() {
     this->gtsConfirmPending = false;
@@ -93,6 +94,10 @@ void GTSHelper::indicateReceivedMessage(uint16_t address) {
 void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
         this->gtsScheduling->multisuperframeEvent();
+        this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSAllocation(this->gtsAllocs);
+        this->dsmeAdaptionLayer.getDSME().getPlatform().signalUnsuccessfulGTSAllocation(this->gtsUnsuccessfulAllocs);
+        this->gtsAllocs = 0;
+        this->gtsUnsuccessfulAllocs = 0; 
     }
 
     /* Check allocation at random superframe in multi-superframe */
@@ -101,6 +106,7 @@ void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
         performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
     }
+
     return;
 }
 
@@ -354,7 +360,10 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
+            this->gtsAllocs += 1; 
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
+        } else {
+            this->gtsUnsuccessfulAllocs += 1; 
         }
     }
     return;

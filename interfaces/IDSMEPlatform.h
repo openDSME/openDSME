@@ -113,9 +113,21 @@ public:
     }
 
     /*
-     * Signal GTS allocation or deallocation
-     */
+    * Signal GTS allocation or deallocation
+    */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
+    }
+    
+    /*
+     * Signal GTS allocations per MSF 
+     */
+    virtual void signalGTSAllocation(uint8_t allocations) {
+    }
+
+    /*
+     * Signal unsuccessful GTS allocations per MSF 
+     */
+    virtual void signalUnsuccessfulGTSAllocation(uint8_t allocations) {
     }
 };
 

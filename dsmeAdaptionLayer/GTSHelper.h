@@ -113,6 +113,9 @@ private:
     GTSScheduling* gtsScheduling = nullptr;
 
     bool gtsConfirmPending;
+
+    uint8_t gtsAllocs; 
+    uint8_t gtsUnsuccessfulAllocs;
 };
 
 } /* namespace dsme */
