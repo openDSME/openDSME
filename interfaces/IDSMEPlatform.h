@@ -117,17 +117,27 @@ public:
     */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
-    
-    /*
-     * Signal GTS allocations per MSF 
-     */
-    virtual void signalGTSAllocation(uint8_t allocations) {
+   
+ 
+    virtual void signalGTSRequestsTotal(uint16_t allocations) {
     }
-
-    /*
-     * Signal unsuccessful GTS allocations per MSF 
-     */
-    virtual void signalUnsuccessfulGTSAllocation(uint8_t allocations) {
+    virtual void signalGTSRequestsSuccess(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailed(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedNoAck(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedChannelAccess(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedTransactionOverflow(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedTimeout(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedDenied(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedQueue(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedDeallocated(uint16_t allocations) {
     }
 };
 

@@ -314,21 +314,26 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
+                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsTotal++;      // TODO: ANALYZE  
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
                     LOG_DEBUG("GTSManager sending request failed " << (uint16_t)event.dataStatus);
+                    if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailed++;  // TODO: ANALYZE                    
 
                     switch(event.dataStatus) {
                         case DataStatus::NO_ACK:
                             actUpdater.requestNoAck(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::NO_ACK;
+                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedNoAck++;
                             break;
                         case DataStatus::CHANNEL_ACCESS_FAILURE:
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::CHANNEL_ACCESS_FAILURE;
+                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedChannelAccess++;
                             break;
                         case DataStatus::TRANSACTION_EXPIRED:
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::TRANSACTION_OVERFLOW; // TODO TRANSACTION_EXPIRED not available!
+                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedTransactionOverflow++;
                             break;
                         default:
                             DSME_ASSERT(false);
@@ -455,7 +460,6 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 if(event.management.type == ALLOCATION) {
                     if(checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, true)) { // TODO issue #3
                         uint8_t numSlotsOk = event.replyNotifyCmd.getSABSpec().getSubBlock().count(true);
-
                         if(numSlotsOk == 0) {
                             event.management.status = GTSStatus::DENIED;
                         } else {
@@ -471,6 +475,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(params);
 
             if(event.management.status == GTSStatus::SUCCESS) {
+                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsSuccess++;
                 /* the requesting node has to notify its one hop neighbors */
                 IDSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);
@@ -481,15 +486,27 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                     LOG_INFO("NOTIFY could not be sent");
                     actUpdater.notifyAccessFailure(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
                     dsme.getPlatform().releaseMessage(msg_notify);
+                    this->gtsRequestsFailed++;
+                    this->gtsRequestsFailedChannelAccess++;
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     return transition(fsmId, &GTSManager::stateSending);
                 }
             } else if(event.management.status == GTSStatus::NO_DATA) { // misuse NO_DATA to signal that the destination was busy
                 // actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) {
+                    this->gtsRequestsFailedTimeout++; 
+                    this->gtsRequestsFailed++;
+                }                
+
                 actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
+                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) { 
+                    this->gtsRequestsFailedDenied++;
+                    this->gtsRequestsFailed++; 
+                }
+
                 DSME_ASSERT(event.management.status == GTSStatus::DENIED);
                 actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
@@ -498,6 +515,11 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
         case GTSEvent::CFP_STARTED: {
             if(isTimeoutPending(fsmId)) {
+                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) {
+                    //this->gtsRequestsFailed++;
+                    //this->gtsRequestsFailedTimeout++;
+                }                
+
                 LOG_INFO("GTS timeout for response");
                 mlme_sap::DSME_GTS_confirm_parameters& pendingConfirm = data[fsmId].pendingConfirm;
 
@@ -711,6 +733,11 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());
         actUpdater.duplicateAllocation(req.getSABSpec(), 0);
+    } else if(man.type == ManagementType::DEALLOCATION) {
+        //if(man.direction == Direction::TX) {
+            this->gtsRequestsFailedDeallocated++; 
+            this->gtsRequestsFailed++; 
+        //} 
     }
 
     this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
@@ -779,6 +806,28 @@ bool GTSManager::handleGTSNotify(IDSMEMessage* msg) {
 }
 
 bool GTSManager::handleStartOfCFP(uint8_t superframe) {
+    if(superframe == 0) {
+        dsme.getPlatform().signalGTSRequestsTotal(gtsRequestsTotal); 
+        dsme.getPlatform().signalGTSRequestsSuccess(gtsRequestsSuccess); 
+        dsme.getPlatform().signalGTSRequestsFailed(gtsRequestsFailed); 
+        dsme.getPlatform().signalGTSRequestsFailedNoAck(gtsRequestsFailedNoAck); 
+        dsme.getPlatform().signalGTSRequestsFailedChannelAccess(gtsRequestsFailedChannelAccess); 
+        dsme.getPlatform().signalGTSRequestsFailedTransactionOverflow(gtsRequestsFailedTransactionOverflow); 
+        dsme.getPlatform().signalGTSRequestsFailedTimeout(gtsRequestsFailedTimeout); 
+        dsme.getPlatform().signalGTSRequestsFailedDenied(gtsRequestsFailedDenied);       
+        dsme.getPlatform().signalGTSRequestsFailedDeallocated(gtsRequestsFailedDeallocated);
+ 
+        gtsRequestsTotal = 0;
+        gtsRequestsSuccess = 0;
+        gtsRequestsFailed = 0; 
+        gtsRequestsFailedNoAck = 0; 
+        gtsRequestsFailedChannelAccess = 0; 
+        gtsRequestsFailedTransactionOverflow = 0;  
+        gtsRequestsFailedTimeout = 0; 
+        gtsRequestsFailedDenied = 0;
+        gtsRequestsFailedDeallocated = 0; 
+    }
+
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         data[i].superframesInCurrentState++;
     }

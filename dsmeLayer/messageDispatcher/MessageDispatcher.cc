@@ -217,6 +217,12 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {
+    /* statistics */ 
+    if(slot == 0 && superframe == 0) {
+        this->dsme.getPlatform().signalGTSRequestsFailedQueue(this->gtsRequestsFailedQueue); 
+        this->gtsRequestsFailedQueue = 0;
+    }
+
     if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)) {
         handleGTS(lateness);
     }
@@ -362,6 +368,7 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
     }
 
     if(!this->dsme.getCapLayer().pushMessage(msg)) {
+        this->gtsRequestsFailedQueue++;
         LOG_INFO("CAP queue full!");
         return false;
     }

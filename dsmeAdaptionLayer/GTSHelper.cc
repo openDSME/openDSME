@@ -59,7 +59,7 @@
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false), gtsAllocs(0), gtsUnsuccessfulAllocs(0) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false) {
 }
 
 void GTSHelper::initialize(GTSScheduling* scheduling) {
@@ -94,10 +94,6 @@ void GTSHelper::indicateReceivedMessage(uint16_t address) {
 void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
         this->gtsScheduling->multisuperframeEvent();
-        this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSAllocation(this->gtsAllocs);
-        this->dsmeAdaptionLayer.getDSME().getPlatform().signalUnsuccessfulGTSAllocation(this->gtsUnsuccessfulAllocs);
-        this->gtsAllocs = 0;
-        this->gtsUnsuccessfulAllocs = 0; 
     }
 
     /* Check allocation at random superframe in multi-superframe */
@@ -354,16 +350,13 @@ const char* printStatus(GTSStatus::GTS_Status status) {
 void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& params) {
     LOG_DEBUG("GTS confirmation handled (Status: " << printStatus(params.status) << ").");
 
-    // TODO handle channel access failure! retransmission?
-
+    // TODO handle channel access failure! retransmission
     if(params.managementType == ManagementType::ALLOCATION) {
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
-            this->gtsAllocs += 1; 
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
         } else {
-            this->gtsUnsuccessfulAllocs += 1; 
         }
     }
     return;

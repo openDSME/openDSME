@@ -234,6 +234,16 @@ private:
     DSMELayer& dsme;
     ACTUpdater actUpdater;
     GTSData data[GTS_STATE_MULTIPLICITY + 1];
+
+    uint16_t gtsRequestsTotal; 
+    uint16_t gtsRequestsSuccess; 
+    uint16_t gtsRequestsFailed;
+    uint16_t gtsRequestsFailedNoAck; 
+    uint16_t gtsRequestsFailedChannelAccess; 
+    uint16_t gtsRequestsFailedTransactionOverflow; 
+    uint16_t gtsRequestsFailedTimeout; 
+    uint16_t gtsRequestsFailedDenied;  
+    uint16_t gtsRequestsFailedDeallocated;
 };
 
 } /* namespace dsme */

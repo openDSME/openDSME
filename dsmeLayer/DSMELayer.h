@@ -233,6 +233,7 @@ protected:
      * TODO currently platform specific!
      */
     void updateDisplay();
+
 };
 
 } /* namespace dsme */
