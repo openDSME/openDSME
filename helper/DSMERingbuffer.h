@@ -109,6 +109,10 @@ public:
         }
         return;
     }
+
+    ringbuffer_size_t length() {
+        return count; 
+    }
 };
 
 } /* namespace dsme */

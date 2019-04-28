@@ -236,7 +236,7 @@ bool MessageHelper::queueMessageIfPossible(IDSMEMessage* msg) {
             this->retryBuffer.pop();
         }
     }
-    if(!this->retryBuffer.isEmpty()) {
+    if(!this->retryBuffer.isFull()) {
         this->retryBuffer.freeElement()->message = msg;
         this->retryBuffer.freeElement()->initialSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
         this->retryBuffer.pushFreeElement();
