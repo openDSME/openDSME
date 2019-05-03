@@ -117,8 +117,89 @@ public:
     */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
-   
- 
+
+    // TIMING    
+    virtual void signalStartOfCFP() {   //DONE 
+    }
+    virtual void signalStartOfSF() {    //DONE 
+    }
+    virtual void signalStartOfMSF() {   //DONE 
+    }     
+    // REQUEST
+    virtual void signalRequestInitialized() {       // DONE 
+    }
+    virtual void signalRequestBackoffs(uint8_t backoffs) { // DONE 
+    }
+    virtual void signalRequestSendSuccess() {   // DONE 
+    }
+    virtual void signalRequestSendFailedNoAck() { // DONE 
+    }
+    virtual void signalRequestSendFailedChannelAccess() { // DONE 
+    }
+    virtual void signalRequestSendFailedTransactionOverflow() { // DONE 
+    }
+    virtual void signalRequestSendFailedQueue() {
+    }
+    // RESPONSE
+    virtual void signalResponseReceiveSuccess() { // DONE 
+    }
+    virtual void signalResponseReceiveFailedTimeout() { // DONE 
+    }
+    virtual void signalResponseReceiveFailedDenied() { // DONE 
+    }
+    // NOTIFIY 
+    virtual void signalNotifyInitialized() { // DONE 
+    }
+    virtual void signalNotifyBackoffs(uint8_t backoffs) { // DONE 
+    }
+    virtual void signalNotifySendSuccess() { // DONE 
+    }
+    virtual void signalNotifySendFailedChannelAccess() { // DONE 
+    }
+    virtual void signalNotifySendFailedTransactionOverflow() { // DONE 
+    }
+    // DEALLOCATION 
+    virtual void signalDeallocationScheduler() {    // DONE 
+    }
+    virtual void signalDeallocationInvalid() {  // DONE 
+    } 
+    virtual void signalDeallocationUnconfirmed() { // DONE 
+    }
+    virtual void signalDeallocationExpiration() {   // DONE 
+    }
+    // DEALLOCATION REQUEST
+    virtual void signalDeallocationRequestInitialized() {   // DONE 
+    }
+    virtual void signalDeallocationRequestBackoffs(uint8_t backoffs) { // DONE 
+    }
+    virtual void signalDeallocationRequestSendSuccess() {   // DONE 
+    }
+    virtual void signalDeallocationRequestSendFailedNoAck() { // DONE 
+    } 
+    virtual void signalDeallocationRequestSendFailedChannelAccess() { // DONE 
+    }
+    virtual void signalDeallocationRequestSendFailedTransactionOverflow() { // DONE 
+    } 
+    // DEALLOCATION RESPONSE
+    virtual void signalDeallocationResponseReceiveSuccess() { // DONE 
+    }
+    virtual void signalDeallocationResponseReceiveFailedTimeout() { // DONE 
+    }
+    virtual void signalDeallocationResponseReceiveFailedDenied() { // DONE 
+    }
+    // DEALLOCATION NOTIFY  
+    virtual void signalDeallocationNotifyInitialized() { // DONE 
+    }
+    virtual void signalDeallocationNotifyBackoffs(uint8_t backoffs) { // DONE 
+    }
+    virtual void signalDeallocationNotifySendSuccess() { // DONE 
+    }
+    virtual void signalDeallocationNotifySendFailedChannelAccess() { // DONE 
+    }
+    virtual void signalDeallocationNotifySendFailedTransactionOverflow() { // DONE 
+    }
+
+    // PER MSF
     virtual void signalGTSRequestsTotal(uint16_t allocations) {
     }
     virtual void signalGTSRequestsSuccess(uint16_t allocations) {

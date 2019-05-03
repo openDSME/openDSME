@@ -167,13 +167,18 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         case GTSEvent::EXIT_SIGNAL:
             return FSM_IGNORED;
         case GTSEvent::MLME_REQUEST_ISSUED: {
+            if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestInitialized(); // STAT 
+            if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestInitialized(); // STAT 
+            if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationScheduler(); // STAT 
+
             preparePendingConfirm(event);
-
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
-
             event.requestCmd.prependTo(msg);
 
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REQUEST, event.deviceAddr)) {
+                if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestSendFailedTransactionOverflow(); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestSendFailedTransactionOverflow(); // STAT 
+
                 dsme.getPlatform().releaseMessage(msg);
 
                 LOG_INFO("TRANSACTION_OVERFLOW");
@@ -244,14 +249,17 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 if(it->getState() == INVALID || it->getState() == UNCONFIRMED || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     if(it->getState() == INVALID) {
                         LOG_INFO("DEALLOCATE: Due to state INVALID");
+                        this->dsme.getPlatform().signalDeallocationInvalid(); // STAT 
                     } else if(it->getState() == UNCONFIRMED) {
                         if(hasBusyFsm()) {
                             continue;
                         }
                         LOG_INFO("DEALLOCATE: Due to state UNCONFIRMED");
+                        this->dsme.getPlatform().signalDeallocationUnconfirmed(); // STAT 
                     } else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                         it->resetIdleCounter();
                         LOG_INFO("DEALLOCATE: Due to expiration");
+                        this->dsme.getPlatform().signalDeallocationExpiration(); // STAT 
                     } else {
                         DSME_ASSERT(false);
                     }
@@ -307,6 +315,12 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             return FSM_IGNORED;
 
         case GTSEvent::SEND_COMPLETE: {
+            if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendSuccess(); // STAT 
+            if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendSuccess(); // STAT 
+            if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedChannelAccess(); // STAT 
+            if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedChannelAccess(); // STAT 
+            if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedTransactionOverflow(); // STAT 
+            if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedTransactionOverflow(); // STAT 
             DSME_ASSERT(event.cmdId == DSME_GTS_REQUEST || event.cmdId == DSME_GTS_REPLY || event.cmdId == DSME_GTS_NOTIFY);
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
@@ -314,26 +328,35 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
-                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsTotal++;      // TODO: ANALYZE  
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsTotal++;     
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
                     LOG_DEBUG("GTSManager sending request failed " << (uint16_t)event.dataStatus);
-                    if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailed++;  // TODO: ANALYZE                    
+                    if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsFailed++;          
 
                     switch(event.dataStatus) {
                         case DataStatus::NO_ACK:
+                            if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestSendFailedNoAck(); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestSendFailedNoAck(); // STAT 
+                            if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsFailedNoAck++; // STAT
+                            
                             actUpdater.requestNoAck(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::NO_ACK;
-                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedNoAck++;
                             break;
                         case DataStatus::CHANNEL_ACCESS_FAILURE:
+                            if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestSendFailedChannelAccess(); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestSendFailedChannelAccess(); // STAT 
+                            if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsFailedChannelAccess++; // STAT
+                           
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::CHANNEL_ACCESS_FAILURE;
-                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedChannelAccess++;
                             break;
                         case DataStatus::TRANSACTION_EXPIRED:
+                            if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestSendFailedTransactionOverflow(); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestSendFailedTransactionOverflow(); // STAT 
+                            if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsFailedTransactionOverflow++; // STAT
+                            
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::TRANSACTION_OVERFLOW; // TODO TRANSACTION_EXPIRED not available!
-                            if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsFailedTransactionOverflow++;
                             break;
                         default:
                             DSME_ASSERT(false);
@@ -343,6 +366,9 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     // REQUEST_SUCCESS
+                    if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestSendSuccess(); // STAT 
+                    if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestSendSuccess(); // STAT 
+
                     data[fsmId].responsePartnerAddress = event.deviceAddr;
                     return transition(fsmId, &GTSManager::stateWaitForResponse);
                 }
@@ -457,7 +483,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             params.status = event.management.status;
 
             if(event.management.status == GTSStatus::SUCCESS) {
-                if(event.management.type == ALLOCATION) {
+                if(event.management.type == ManagementType::ALLOCATION) {
                     if(checkAndHandleGTSDuplicateAllocation(event.replyNotifyCmd.getSABSpec(), event.deviceAddr, true)) { // TODO issue #3
                         uint8_t numSlotsOk = event.replyNotifyCmd.getSABSpec().getSubBlock().count(true);
                         if(numSlotsOk == 0) {
@@ -475,7 +501,10 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(params);
 
             if(event.management.status == GTSStatus::SUCCESS) {
-                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) this->gtsRequestsSuccess++;
+                if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalResponseReceiveSuccess(); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationResponseReceiveSuccess(); // STAT 
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsSuccess++; // STAT 
+                
                 /* the requesting node has to notify its one hop neighbors */
                 IDSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);
@@ -488,13 +517,19 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                     dsme.getPlatform().releaseMessage(msg_notify);
                     this->gtsRequestsFailed++;
                     this->gtsRequestsFailedChannelAccess++;
+                    if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedTransactionOverflow(); // STAT 
+                    if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedTransactionOverflow(); // STAT 
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
+                    if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifyInitialized(); // STAT 
+                    if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifyInitialized(); // STAT 
                     return transition(fsmId, &GTSManager::stateSending);
                 }
             } else if(event.management.status == GTSStatus::NO_DATA) { // misuse NO_DATA to signal that the destination was busy
                 // actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
-                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) {
+                if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalResponseReceiveFailedTimeout(); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationResponseReceiveFailedTimeout(); // STAT 
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) {
                     this->gtsRequestsFailedTimeout++; 
                     this->gtsRequestsFailed++;
                 }                
@@ -502,7 +537,9 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
-                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) { 
+                if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalResponseReceiveFailedDenied(); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationResponseReceiveFailedDenied(); // STAT 
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) { 
                     this->gtsRequestsFailedDenied++;
                     this->gtsRequestsFailed++; 
                 }
@@ -515,9 +552,11 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
 
         case GTSEvent::CFP_STARTED: {
             if(isTimeoutPending(fsmId)) {
-                if(event.management.direction == Direction::TX && event.management.type == ALLOCATION) {
-                    //this->gtsRequestsFailed++;
-                    //this->gtsRequestsFailedTimeout++;
+                if(event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalResponseReceiveFailedTimeout(); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationResponseReceiveFailedTimeout(); // STAT 
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) {
+                    this->gtsRequestsFailed++;
+                    this->gtsRequestsFailedTimeout++;
                 }                
 
                 LOG_INFO("GTS timeout for response");
@@ -859,6 +898,11 @@ bool GTSManager::handleStartOfCFP(uint8_t superframe) {
 bool GTSManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     GTSManagement management;
     management.decapsulateFrom(msg);
+
+    if(cmdId == DSME_GTS_REQUEST && management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalRequestBackoffs(numBackoffs); // STAT 
+    if(cmdId == DSME_GTS_REQUEST && management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationRequestBackoffs(numBackoffs); // STAT 
+    if(cmdId == DSME_GTS_NOTIFY && management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifyBackoffs(numBackoffs); // STAT 
+    if(cmdId == DSME_GTS_NOTIFY && management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifyBackoffs(numBackoffs); // STAT 
 
     bool returnStatus;
     if(management.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
