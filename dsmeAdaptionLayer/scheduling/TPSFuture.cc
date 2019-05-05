@@ -72,6 +72,10 @@ void TPSFuture::setFutureLength(uint16_t multisuperframes) {
     this->futureLength = multisuperframes; 
 }
 
+void TPSFuture::setAllocateLeastSlots(bool allocateLeastSlots) {
+    this->allocateLeastSlots = allocateLeastSlots;
+}
+
 void TPSFuture::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
@@ -143,9 +147,19 @@ GTSSchedulingDecision TPSFuture::getNextSchedulingAction(uint16_t address) {
  
     int16_t target = getSlotTarget(address);
     if(target > numAllocatedSlots) {
-        uint8_t randomSuperframeOffset = this->dsmeAdaptionLayer.getRandom() % this->futureLength;  
+        uint8_t randomSuperframeID; 
         uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-        uint8_t randomSuperframeID = (this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() + randomSuperframeOffset) % numSuperFramesPerMultiSuperframe; 
+        if(this->allocateLeastSlots) {
+            uint8_t leftSlots = 0; 
+            for(uint8_t i=0; i<this->futureLength; i++) {
+                uint8_t checkID = (this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() + i) % numSuperFramesPerMultiSuperframe; 
+                //TODO
+            }
+        } else {
+            uint8_t randomSuperframeOffset = this->dsmeAdaptionLayer.getRandom() % this->futureLength;  
+            randomSuperframeID = (this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() + randomSuperframeOffset) % numSuperFramesPerMultiSuperframe; 
+        }
+        
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(randomSuperframeID);                                                          
         uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
         return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};

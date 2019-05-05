@@ -67,14 +67,16 @@ public:
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);
     void setFutureLength(uint16_t multisuperframes); 
-    
+    void setAllocateLeastSlots(bool allocateLeastSlots);
+
     GTSSchedulingDecision getNextSchedulingAction(uint16_t address) override; 
 
 private:
     float alpha{0}; // TODO no float
     uint16_t minFreshness{0xFFFF};
     bool useHysteresis{true};
-    uint16_t futureLength{5}; 
+    uint16_t futureLength{5};
+    bool allocateLeastSlots{true};
 };
 
 } /* namespace dsme */

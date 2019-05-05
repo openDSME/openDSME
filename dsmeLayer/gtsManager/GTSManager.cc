@@ -315,16 +315,17 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             return FSM_IGNORED;
 
         case GTSEvent::SEND_COMPLETE: {
-            if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendSuccess(); // STAT 
-            if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendSuccess(); // STAT 
-            if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedChannelAccess(); // STAT 
-            if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedChannelAccess(); // STAT 
-            if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedTransactionOverflow(); // STAT 
-            if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedTransactionOverflow(); // STAT 
             DSME_ASSERT(event.cmdId == DSME_GTS_REQUEST || event.cmdId == DSME_GTS_REPLY || event.cmdId == DSME_GTS_NOTIFY);
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
             if(event.cmdId == DSME_GTS_NOTIFY) {
+                if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendSuccess(); // STAT 
+                if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendSuccess(); // STAT 
+                if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedChannelAccess(); // STAT 
+                if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedChannelAccess(); // STAT 
+                if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::ALLOCATION) this->dsme.getPlatform().signalNotifySendFailedTransactionOverflow(); // STAT 
+                if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationNotifySendFailedTransactionOverflow(); // STAT 
+ 
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
