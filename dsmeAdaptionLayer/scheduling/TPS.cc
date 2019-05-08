@@ -60,12 +60,47 @@ void TPS::setAlpha(float alpha) {
     this->alpha = alpha;
 }
 
+void TPS::setBeta(float beta) {
+    this->beta = beta; 
+}
+
 void TPS::setMinFreshness(uint16_t minFreshness) {
     this->minFreshness = minFreshness;
 }
 
 void TPS::setUseHysteresis(bool useHysteresis) {
     this->useHysteresis = useHysteresis;
+}
+
+uint8_t TPS::registerIncomingMessage(uint16_t address) {
+    uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address); 
+
+/*    for(TPSTxData& data : this->txLinks) {
+        if(data.messagesInLastMultisuperframe > data.avgIn) {
+            data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
+        } else {
+            data.avgIn = data.messagesInLastMultisuperframe * beta + data.avgIn * (1 - beta); 
+        }
+
+        uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
+        float error = data.avgIn - slots;
+
+        int8_t change = 0;
+        if(useHysteresis) {
+            if(error > 0) {
+                change = ceil(error);
+            } else if(error < -2) {
+                change = ceil(error) + 1;
+            }
+        } else {
+            change = ceil(error);
+        }
+
+        data.slotTarget = slots + change;
+    } */
+
+
+    return queueLevel;
 }
 
 void TPS::multisuperframeEvent() {
@@ -94,7 +129,12 @@ void TPS::multisuperframeEvent() {
     for(TPSTxData& data : this->txLinks) {
         DSME_ASSERT(alpha > 0);
         DSME_ASSERT(minFreshness > 0);
-        data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
+        
+        if(data.messagesInLastMultisuperframe > data.avgIn) {
+            data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
+        } else {
+            data.avgIn = data.messagesInLastMultisuperframe * beta + data.avgIn * (1 - beta); 
+        }
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
         float error = data.avgIn - slots;

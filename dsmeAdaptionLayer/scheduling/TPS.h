@@ -58,17 +58,19 @@ struct TPSTxData : GTSSchedulingData {
 
 class TPS : public GTSSchedulingImpl<TPSTxData, GTSRxData> {
 public:
-    TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha(0) {
+    TPS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha(0), beta(0) {
     }
 
     virtual void multisuperframeEvent();
-    // virtual uint8_t registerIncomingMessage(uint16_t address) override;
+    virtual uint8_t registerIncomingMessage(uint16_t address) override; // recalculate slot target on incoming message
     void setAlpha(float alpha);
+    void setBeta(float beta); 
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);
 
 private:
     float alpha{0}; // TODO no float
+    float beta{0};
     uint16_t minFreshness{0xFFFF};
     bool useHysteresis{true};
 };
