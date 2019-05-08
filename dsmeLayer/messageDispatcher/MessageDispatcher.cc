@@ -226,8 +226,11 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
     if(slot == 0) {
         this->dsme.getPlatform().signalStartOfSF(); 
     }
-    if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)) {
+    if(slot == dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)+1) {
         this->dsme.getPlatform().signalStartOfCFP();
+    }
+
+    if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)) {
         handleGTS(lateness);
     }
     return true;

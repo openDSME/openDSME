@@ -176,6 +176,8 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
+    dsme.getPlatform().signalMessageTransmissionStarted();
+
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         actionStartBackoffTimer();
         return FSM_HANDLED;

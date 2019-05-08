@@ -198,6 +198,9 @@ public:
     }
     virtual void signalDeallocationNotifySendFailedTransactionOverflow() { // DONE 
     }
+    // MESSAGE 
+    virtual void signalMessageTransmissionStarted() {
+    }
 
     // PER MSF
     virtual void signalGTSRequestsTotal(uint16_t allocations) {
