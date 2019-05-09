@@ -75,7 +75,7 @@ void TPS::setUseHysteresis(bool useHysteresis) {
 uint8_t TPS::registerIncomingMessage(uint16_t address) {
     uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address); 
 
-/*    for(TPSTxData& data : this->txLinks) {
+    for(TPSTxData& data : this->txLinks) {
         if(data.messagesInLastMultisuperframe > data.avgIn) {
             data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
         } else {
@@ -97,9 +97,7 @@ uint8_t TPS::registerIncomingMessage(uint16_t address) {
         }
 
         data.slotTarget = slots + change;
-    } */
-
-
+    } 
     return queueLevel;
 }
 
