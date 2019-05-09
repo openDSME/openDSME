@@ -53,6 +53,7 @@
 #include "../DSMEEventDispatcher.h"
 #include "../DSMELayer.h"
 #include "../messageDispatcher/MessageDispatcher.h"
+#include "../../../DSMEMessage.h"
 
 namespace dsme {
 
@@ -176,10 +177,39 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
-    dsme.getPlatform().signalMessageTransmissionStarted();
+
 
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        actionStartBackoffTimer();
+    //Retrieve an IDSMEmessage from the CAP queue and check which type of message it is
+    // 1. Retrieve messsage from the CAP queue
+    // 2. read the property type of message ("COMMAND")
+
+        IDSMEMessage* capMsg = nullptr; //declare a IDSMEmessage -> capMsg
+        // if the CAP queue is not empty retrieve the value
+
+        if(!queue.empty()){
+               capMsg =  queue.front();
+         }
+
+        //from the message the MAC header will be read
+        IEEE802154eMACHeader macHdr = capMsg->getHeader();
+        //check for the appropiate frame type
+        if(macHdr.getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND){
+            LOG_DEBUG("IT IS A COMMAND");
+            //Cast the IDSMEMessage to a DSMEMessage
+            DSMEMessage* DsmeCapMsg = dynamic_cast<DSMEMessage*>(capMsg);
+            DSME_ASSERT(DsmeCapMsg != nullptr);
+            uint8_t capCmd = DsmeCapMsg->packet->peekDataAsBytes()->getByte(0);
+            if((CommandFrameIdentifier)capCmd == DSME_GTS_REQUEST) {
+                LOG_DEBUG("DSME_GTS_REQUEST");
+                LOG_DEBUG("Number of backoffs" << (int)NB);
+                if(NB <1){
+                    LOG_DEBUG("Number of backoffs equals 0" << int(NB));
+                    dsme.getPlatform().signalMessageTransmissionStarted();
+                }
+             }
+         }
+       actionStartBackoffTimer();
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
