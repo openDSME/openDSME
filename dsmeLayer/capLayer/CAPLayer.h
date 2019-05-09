@@ -50,6 +50,7 @@
 #include "../../helper/Integers.h"
 #include "../../mac_services/DSME_Common.h"
 #include "../ackLayer/AckLayer.h"
+#include "../../../DSMEMessage.h"
 
 namespace dsme {
 
