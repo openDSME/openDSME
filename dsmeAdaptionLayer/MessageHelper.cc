@@ -312,6 +312,9 @@ void MessageHelper::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
 
 void MessageHelper::handleAssociationComplete(AssociationStatus::Association_Status status) {
     this->associationInProgress = false;
+    if(status != AssociationStatus::SUCCESS) {
+        startAssociation();
+    }
     return;
 }
 
