@@ -100,6 +100,7 @@ public:
 
 protected:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
+    bool start{false};
 };
 
 template <typename SchedulingData, typename RxData>
@@ -192,7 +193,7 @@ public:
 
         int16_t target = getSlotTarget(address);
 
-        if(target > numAllocatedSlots) {
+        if(target > numAllocatedSlots && start) {
             uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
             uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
 

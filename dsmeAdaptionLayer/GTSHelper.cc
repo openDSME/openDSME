@@ -57,6 +57,21 @@
 #include "../mac_services/pib/PIBHelper.h"
 #include "./DSMEAdaptionLayer.h"
 
+/* Adaptive high level backoff:  
+ *  Sliding window mechanism where the number of requests per CAP is based on the 
+ *  number of successful allocations per CAP. 
+ *
+ *  1. Start with a window of 0 (a new request is initialized as soon as the previous 
+ *     one finished. 
+ *  2. Failed allocations increase the window by one. 
+ *  3. Successful allocations decrease the window by one (half the window) with a 
+ *     minimum of 0. 
+ *  
+ *
+ *
+ */ 
+
+
 namespace dsme {
 
 GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false) {
@@ -363,6 +378,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
 }
 
 GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
+    LOG_INFO("Finding next slot for SF: " << (int)initialSuperframeID << " SLOT: " << (int)initialSlotID << " SAB: " << (int*)sabSpec);
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -384,6 +400,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
     }
 
     for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
+        LOG_INFO("Slots to check: " << (int)slotsToCheck);
         if(sabSpec != nullptr && gts.superframeID != initialSuperframeID) {
             /* currently per convention a sub block holds exactly one superframe */
             return GTS::UNDEFINED;
@@ -414,6 +431,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 }
             }
             slotsToCheck--;
+            if((gts.slotID+1)%numGTSlots == initialSlotID) {
+                break;
+            }
         }
     }
 

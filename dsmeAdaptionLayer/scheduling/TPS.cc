@@ -127,7 +127,11 @@ void TPS::multisuperframeEvent() {
     for(TPSTxData& data : this->txLinks) {
         DSME_ASSERT(alpha > 0);
         DSME_ASSERT(minFreshness > 0);
-        
+    
+        if(data.messagesInLastMultisuperframe > 0) {
+            start = true;   
+        }
+
         if(data.messagesInLastMultisuperframe > data.avgIn) {
             data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
         } else {
