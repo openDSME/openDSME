@@ -371,8 +371,8 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
+            performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
         }
-        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
     }
     return;
 }
