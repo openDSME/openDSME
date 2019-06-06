@@ -76,6 +76,7 @@ public:
     void indicateReceivedMessage(uint16_t address);
 
     void handleStartOfCFP();
+    void handleStartOfCAP();
 
 private:
     /* MLME handlers */

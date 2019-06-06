@@ -81,6 +81,7 @@ void GTSHelper::initialize(GTSScheduling* scheduling) {
     this->gtsScheduling = scheduling;
 
     this->dsmeAdaptionLayer.getDSME().setStartOfCFPDelegate(DELEGATE(&GTSHelper::handleStartOfCFP, *this)); /* BAD cross-layer hack */
+    this->dsmeAdaptionLayer.getDSME().setStartOfCAPDelegate(DELEGATE(&GTSHelper::handleStartOfCAP, *this)); /* BAD cross-layer hack */
 
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().indication(DELEGATE(&GTSHelper::handleDSME_GTS_indication, *this));
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().confirm(DELEGATE(&GTSHelper::handleDSME_GTS_confirm, *this));
@@ -107,6 +108,7 @@ void GTSHelper::indicateReceivedMessage(uint16_t address) {
 }
 
 void GTSHelper::handleStartOfCFP() {
+    return; //TODO
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
         this->gtsScheduling->multisuperframeEvent();
     }
@@ -114,9 +116,24 @@ void GTSHelper::handleStartOfCFP() {
     /* Check allocation at random superframe in multi-superframe */
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
-   // if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+    //if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
         performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
-   // }
+    //}
+
+    return;
+}
+
+void GTSHelper::handleStartOfCAP() {
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
+        this->gtsScheduling->multisuperframeEvent();
+    }
+
+    /* Check allocation at random superframe in multi-superframe */
+    uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
+    //if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
+    //}
 
     return;
 }
@@ -146,6 +163,9 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     DSME_ATOMIC_BLOCK {
         if(gtsConfirmPending) {
             LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+            return;
+        }
+        if(this->dsmeAdaptionLayer.getDSME().getCurrentSlot() < 1 || this->dsmeAdaptionLayer.getDSME().getCurrentSlot() > 8) {
             return;
         }
 

@@ -150,6 +150,10 @@ public:
         startOfCFPDelegate = delegate;
     }
 
+    void setStartOfCAPDelegate(Delegate<void()> delegate) {
+        startOfCAPDelegate = delegate;
+    }
+
     DSMEEventDispatcher& getEventDispatcher() {
         return eventDispatcher;
     }
@@ -199,6 +203,7 @@ protected:
     IDSMEPlatform* platform;
     DSMEEventDispatcher eventDispatcher;
     Delegate<void()> startOfCFPDelegate;
+    Delegate<void()> startOfCAPDelegate;
 
 #ifdef STATISTICS_MONITOR_LATENESS
     int latenessStatisticsCount;
