@@ -354,6 +354,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         gtsConfirmPending = false;
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
+            LOG_DEBUG("IAMG. GTS confirmed");
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
         }
     }
@@ -381,6 +382,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         remoteOccupied.setLength(numChannels);
     }
 
+    LOG_DEBUG("IAMG. initialSFid -> " << (uint16_t) initialSuperframeID << " initial slotID -> "<< (uint16_t)initialSlotID);
     for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
         if(sabSpec != nullptr && gts.superframeID != initialSuperframeID) {
             /* currently per convention a sub block holds exactly one superframe */
@@ -413,6 +415,8 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
             }
             slotsToCheck--;
             if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
+
+                LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
                 break;
             }
         }
