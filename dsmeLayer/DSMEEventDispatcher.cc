@@ -88,6 +88,10 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
     this->dsme.getAckLayer().dispatchTimer();
 }
 
+void DSMEEventDispatcher::fireIFSTimer(int32_t lateness) {
+    this->dsme.getAckLayer().dispatchTimer();
+}
+
 /********** Setup Methods **********/
 
 uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime, uint8_t skippedSlots) {
@@ -126,6 +130,23 @@ void DSMEEventDispatcher::setupACKTimer() {
 void DSMEEventDispatcher::stopACKTimer() {
     DSME_ATOMIC_BLOCK {
         DSMETimerMultiplexer::_stopTimer<ACK_TIMER>();
+        DSMETimerMultiplexer::_scheduleTimer();
+    }
+    return;
+}
+
+void DSMEEventDispatcher::setupIFSTimer(bool LIFS) {
+    DSME_ATOMIC_BLOCK {
+        uint32_t ifsDuration = LIFS ? const_redefines::macLIFSPeriod : const_redefines::macSIFSPeriod;
+        DSMETimerMultiplexer::_startTimer<IFS_TIMER>(ifsDuration + NOW, &DSMEEventDispatcher::fireIFSTimer);
+        DSMETimerMultiplexer::_scheduleTimer();
+    }
+    return;
+}
+
+void DSMEEventDispatcher::stopIFSTimer() {
+    DSME_ATOMIC_BLOCK {
+        DSMETimerMultiplexer::_stopTimer<IFS_TIMER>();
         DSMETimerMultiplexer::_scheduleTimer();
     }
     return;
