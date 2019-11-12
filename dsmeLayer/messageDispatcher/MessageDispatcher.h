@@ -126,9 +126,10 @@ public:
 
     /**
      * This shall be called one SIFS or LIFS after the reception of an acknowledgement,
-     * depending on the length of the transmitted frame.
+     * depending on the length of the transmitted frame. Transmits the next frame
+     * AFTER a frame has already been transmitted.
      */
-    bool handleIFSEvent();
+    bool handleIFSEvent(int32_t lateness);
 
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
@@ -143,7 +144,6 @@ protected:
      */
     void handleGTS(int32_t lateness);
 
-    IDSMEMessage* getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor);
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
@@ -153,7 +153,7 @@ protected:
      * Prepares the transmission of a single message if the queue is not empty
      *  and no message has been prepared yet.
      */
-    bool prepareNextMessageIfAny(IDSMEMessage* msg);
+    bool prepareNextMessageIfAny();
 
     /**
      * Sends the prepared message if there is sufficient time for transmission.
@@ -162,6 +162,8 @@ protected:
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
+
+    IDSMEMessage* getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor);
 
     void createDataIndication(IDSMEMessage* msg);
 

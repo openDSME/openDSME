@@ -223,9 +223,19 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
     return true;
 }
 
-bool MessageDispatcher::handleIFSEvent() {
-    /* TODO: prepare message and transmit it */
-    return false;
+bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
+    /* Neighbor and slot have to be valid at this point */
+    DSME_ASSERT(this->lastSendGTSNeighbor != this->neighborQueue.end());
+    DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
+    DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
+      == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
+
+    if(!sendPreparedMessage()) {
+        /* If the message could not be sent handle it as failed */
+        LOG_INFO("Frame could not be transmitted after one IFS");
+        sendDoneGTS(AckLayerReponse::SEND_FAILED, this->pendingMessage);
+    }
+    return true;
 }
 
 void MessageDispatcher::receive(IDSMEMessage* msg) {
@@ -574,13 +584,26 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     finalizeGTSTransmission();
 }
 
-bool MessageDispatcher::prepareNextMessageIfAny(IDSMEMessage *msg) {
+bool MessageDispatcher::prepareNextMessageIfAny() {
     /* TODO: prepare first message in the queue */
     return false;
 }
 
 bool MessageDispatcher::sendPreparedMessage() {
-    /* TODO: check if time sufficient, send via ack layer */ 
+    DSME_ASSERT(this->preparedMsg);
+
+    // get number of symbols for SIFS / LIFS according to size of current message
+    uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+    uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
+
+    if(this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
+        /* There is enough time to send the msg during the current slot */
+        bool prepared = this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->sendDoneGTS);
+        if (prepared) {
+            this->dsme.getAckLayer().sendNowIfPending();
+            return true;
+        }
+    }
     return false;
 }
 

@@ -181,6 +181,9 @@ public:
 
     bool isWithinCAP(uint32_t time, uint16_t duration);
 
+    /* Returns true if time and time+duration are within the same slot */
+    bool isWithinTimeSlot(uint32_t time, uint16_t duration);
+
     uint16_t getCurrentSuperframe() const {
         return currentSuperframe;
     }

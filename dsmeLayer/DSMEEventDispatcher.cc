@@ -89,7 +89,7 @@ void DSMEEventDispatcher::fireACKTimer(int32_t lateness) {
 }
 
 void DSMEEventDispatcher::fireIFSTimer(int32_t lateness) {
-    this->dsme.getMessageDispatcher().handleIFSEvent();
+    this->dsme.getMessageDispatcher().handleIFSEvent(lateness);
 }
 
 /********** Setup Methods **********/
