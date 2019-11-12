@@ -291,7 +291,7 @@ bool DSMELayer::isWithinTimeSlot(uint32_t time, uint16_t duration) {
     uint32_t timeSlotStart = symbolsSinceLastBeaconInterval / symbolsPerSlot * symbolsPerSlot;
     uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot;
 
-    return (time >= timeSlotStart) && (time+dration <= timeSlotEnd);
+    return (time >= timeSlotStart) && (time+duration <= timeSlotEnd);
 }
 
 void DSMELayer::startTrackingBeacons() {
