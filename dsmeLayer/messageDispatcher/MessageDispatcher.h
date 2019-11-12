@@ -124,6 +124,12 @@ public:
      */
     bool handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness);
 
+    /**
+     * This shall be called one SIFS or LIFS after the reception of an acknowledgement,
+     * depending on the length of the transmitted frame.
+     */
+    bool handleIFSEvent();
+
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
 
@@ -142,17 +148,16 @@ protected:
      */
     void handleGTSFrame(IDSMEMessage*);
 
-    long numTxGtsFrames = 0;
-    long numRxAckFrames = 0;
-    long numRxGtsFrames = 0;
-    long numUnusedTxGts = 0;
-    long numUnusedRxGts = 0;
+    /**
+     * Prepares the transmission of a single message if the queue is not empty
+     *  and no message has been prepared yet.
+     */
+    bool prepareNextMessageIfAny(IDSMEMessage* msg);
 
-    long numUpperPacketsDroppedFullQueue = 0;
-    long numUpperPacketsForCAP = 0;
-    long numUpperPacketsForGTS = 0;
-
-    bool recordGtsUpdates = false;
+    /**
+     * Sends the prepared message if there is sufficient time for transmission.
+     */
+    bool sendPreparedMessage();
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
@@ -161,6 +166,17 @@ protected:
 
     void finalizeGTSTransmission();
     void transceiverOffIfAssociated();
+
+    /* Statistics */
+    long numTxGtsFrames = 0;
+    long numRxAckFrames = 0;
+    long numRxGtsFrames = 0;
+    long numUnusedTxGts = 0;
+    long numUnusedRxGts = 0;
+    long numUpperPacketsDroppedFullQueue = 0;
+    long numUpperPacketsForCAP = 0;
+    long numUpperPacketsForGTS = 0;
+    bool recordGtsUpdates = false;
 };
 
 } /* namespace dsme */

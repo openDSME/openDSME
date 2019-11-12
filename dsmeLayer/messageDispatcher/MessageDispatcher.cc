@@ -223,6 +223,11 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
     return true;
 }
 
+bool MessageDispatcher::handleIFSEvent() {
+    /* TODO: prepare message and transmit it */
+    return false;
+}
+
 void MessageDispatcher::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader macHdr = msg->getHeader();
 
@@ -561,6 +566,16 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     params.numBackoffs = 0;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     finalizeGTSTransmission();
+}
+
+bool MessageDispatcher::prepareNextMessageIfAny(IDSMEMessage *msg) {
+    /* TODO: prepare first message in the queue */
+    return false;
+}
+
+bool MessageDispatcher::sendPreparedMessage() {
+    /* TODO: check if time sufficient, send via ack layer */ 
+    return false;
 }
 
 } /* namespace dsme */
