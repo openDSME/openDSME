@@ -409,7 +409,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             } else {
                 /* '-> a message is queued for transmission */
 
-                IDSMEMessage* msg = neighborQueue.front(this->lastSendGTSNeighbor);
+                //IDSMEMessage* msg = neighborQueue.front(this->lastSendGTSNeighbor);
+                IDSMEMessage* msg = getMsgFromQueue(this->lastSendGTSNeighbor);
 
                 DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= lateness + msg->getTotalSymbols() +
                                                                                       this->dsme.getMAC_PIB().helper.getAckWaitDuration() +
@@ -432,6 +433,11 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             finalizeGTSTransmission();
         }
     }
+}
+
+IDSMEMessage* MessageDispatcher::getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor){
+    IDSMEMessage* msg = neighborQueue.front(neighbor);
+    return msg;
 }
 
 void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {

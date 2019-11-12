@@ -143,6 +143,7 @@ protected:
      */
     void handleGTS(int32_t lateness);
 
+    IDSMEMessage* getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor);
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
