@@ -131,6 +131,7 @@ public:
      */
     bool handleIFSEvent(int32_t lateness);
 
+
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
 
@@ -147,7 +148,11 @@ protected:
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
-    void handleGTSFrame(IDSMEMessage*);
+    void handleGTSFrame(IDSMEMessage* msg);
+
+    IDSMEMessage* getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
+
+    bool msgToPrepare(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
 
     /**
      * Prepares the transmission of a single message if the queue is not empty
@@ -163,8 +168,6 @@ protected:
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
     IDSMEMessage *preparedMsg{nullptr};
-
-    IDSMEMessage* getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor);
 
     void createDataIndication(IDSMEMessage* msg);
 
