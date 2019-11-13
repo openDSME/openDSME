@@ -181,7 +181,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     params.numBackoffs = 0;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
 
-    if(!prepareNextMessageIfAny()) {
+    if(!prepareNextMessageIfAny(this->lastSendGTSNeighbor)) {
         /* '-> prepare next frame for transmission after one IFS */
         finalizeGTSTransmission();
     }
@@ -506,7 +506,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 DSME_ASSERT(false);
             }
 
-            bool prepared = prepareNextMessageIfAny();
+            bool prepared = prepareNextMessageIfAny(this->lastSendGTSNeighbor);
             if(prepared) {
                 /* '-> a message is queued for transmission */
                 sendPreparedMessage();
@@ -544,7 +544,8 @@ IDSMEMessage* MessageDispatcher::getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::i
 // Function to determine if a message should be prepared for next transmission or not.
 // Returns: True if no message is pending to transmit or there are message in the queue for target neighbor
 //          False otherwise
-bool MessageDispatcher::msgToPrepare(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor){
+
+bool MessageDispatcher::prepareNextMessageIfAny(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor) {
     bool result = false;
     // check if there exists a pending Message
     if(this->dsme.getAckLayer().ifMsgPending()) {
@@ -555,12 +556,6 @@ bool MessageDispatcher::msgToPrepare(NeighborQueue<MAX_NEIGHBORS>::iterator neig
         result = true;
     }
     return result;
-}
-
-
-bool MessageDispatcher::prepareNextMessageIfAny() {
-    /* TODO: prepare first message in the queue */
-    return false;
 }
 
 void MessageDispatcher::sendPreparedMessage() {

@@ -152,13 +152,11 @@ protected:
 
     IDSMEMessage* getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
 
-    bool msgToPrepare(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
-
     /**
      * Prepares the transmission of a single message if the queue is not empty
      *  and no message has been prepared yet.
      */
-    bool prepareNextMessageIfAny();
+    bool prepareNextMessageIfAny(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
 
     /**
      * Sends the prepared message if there is sufficient time for transmission.
