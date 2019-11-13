@@ -54,6 +54,7 @@
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../mac_services/mcps_sap/DATA.h"
 #include "../../mac_services/mcps_sap/MCPS_SAP.h"
+#include "../../mac_services/pib/dsme_mac_constants.h"
 #include "../../mac_services/pib/MAC_PIB.h"
 #include "../../mac_services/pib/PHY_PIB.h"
 #include "../../mac_services/pib/PIBHelper.h"
@@ -118,6 +119,7 @@ void MessageDispatcher::reset(void) {
 
 void MessageDispatcher::finalizeGTSTransmission() {
     transceiverOffIfAssociated();
+    this->dsme.getEventDispatcher().stopIFSTimer();
     this->lastSendGTSNeighbor = this->neighborQueue.end();
     this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
 }
@@ -158,7 +160,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             DSME_ASSERT(this->currentACTElement != act.end());
             // For TX currentACTElement will be reset in finalizeGTSTransmission, called by
             // either handleGTS if nothing is to send or by sendDoneGTS.
-            // For RX it is reset in the next handlePreSlotEvent.
+            // For RX it is reset in the next handlePreSlotEvent.   TODO: is the reset actually required?
 
             // For RX also if INVALID or UNCONFIRMED!
             if((this->currentACTElement->getState() == VALID) || (this->currentACTElement->getDirection() == Direction::RX)) {
@@ -230,11 +232,7 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
     DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
       == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
 
-    if(!sendPreparedMessage()) {
-        /* If the message could not be sent handle it as failed */
-        LOG_INFO("Frame could not be transmitted after one IFS");
-        sendDoneGTS(AckLayerReponse::SEND_FAILED, this->pendingMessage);
-    }
+    sendPreparedMessage();
     return true;
 }
 
@@ -412,32 +410,15 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 DSME_ASSERT(false);
             }
 
-            if(this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)) {
+            bool prepared = prepareNextMessageIfAny();
+            if(prepared) {
+                /* '-> a message is queued for transmission */
+                sendPreparedMessage();
+                this->numTxGtsFrames++;
+            } else {
                 /* '-> no message to be sent */
                 finalizeGTSTransmission();
                 this->numUnusedTxGts++;
-            } else {
-                /* '-> a message is queued for transmission */
-
-                //IDSMEMessage* msg = neighborQueue.front(this->lastSendGTSNeighbor);
-                IDSMEMessage* msg = getMsgFromQueue(this->lastSendGTSNeighbor);
-
-                DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= lateness + msg->getTotalSymbols() +
-                                                                                      this->dsme.getMAC_PIB().helper.getAckWaitDuration() +
-                                                                                      10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
-
-                bool result = this->dsme.getAckLayer().prepareSendingCopy(msg, this->doneGTS);
-                if(result) {
-                    /* '-> ACK-layer was ready, send message now
-                     * sendDoneGTS might have already been called, then sendNowIfPending does nothing! */
-                    this->dsme.getAckLayer().sendNowIfPending();
-                } else {
-                    /* '-> message could not be sent -> probably currently receiving external interference */
-                    sendDoneGTS(AckLayerResponse::SEND_FAILED, msg);
-                }
-
-                // statistics
-                this->numTxGtsFrames++;
             }
         } else {
             finalizeGTSTransmission();
@@ -528,25 +509,25 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     DSME_ASSERT(this->currentACTElement != act.end());
 
+    this->dsme.getEventDispatcher().setupIFSTimer(msg->getTotalSymbols() > aMaxSIFSFrameSize);
+
     if(response != AckLayerResponse::NO_ACK_REQUESTED && response != AckLayerResponse::ACK_SUCCESSFUL) {
         currentACTElement->incrementIdleCounter();
 
         // not successful -> retry?
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
-            finalizeGTSTransmission();
+            //finalizeGTSTransmission();
             LOG_DEBUG("sendDoneGTS - retry");
             return; // will stay at front of queue
         }
     }
 
     if(response == AckLayerResponse::ACK_FAILED || response == AckLayerResponse::ACK_SUCCESSFUL) {
-        this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1,
-                                                               msg->getHeader().getDestAddr());
+        this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
     neighborQueue.popFront(lastSendGTSNeighbor);
-    lastSendGTSNeighbor = neighborQueue.end();
 
     mcps_sap::DATA_confirm_parameters params;
     params.msduHandle = msg;
@@ -581,7 +562,11 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     params.numBackoffs = 0;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
-    finalizeGTSTransmission();
+
+    if(!prepareNextMessageIfAny()) {
+        /* '-> prepare next frame for transmission after one IFS */
+        finalizeGTSTransmission();
+    }
 }
 
 bool MessageDispatcher::prepareNextMessageIfAny() {
@@ -589,22 +574,24 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     return false;
 }
 
-bool MessageDispatcher::sendPreparedMessage() {
+void MessageDispatcher::sendPreparedMessage() {
     DSME_ASSERT(this->preparedMsg);
+    DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
-    // get number of symbols for SIFS / LIFS according to size of current message
     uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
     uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
+    /* '-> Duration for the transmission of the next frame */
 
     if(this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
-        /* There is enough time to send the msg during the current slot */
-        bool prepared = this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->sendDoneGTS);
+        /* '-> Sufficient time to send message in remaining slot time */
+
+        bool prepared = this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->doneGTS);
         if (prepared) {
             this->dsme.getAckLayer().sendNowIfPending();
-            return true;
+        } else {
+            sendDoneGTS(AckLayerResponse::SEND_FAILED, this->preparedMsg);
         }
     }
-    return false;
 }
 
 } /* namespace dsme */

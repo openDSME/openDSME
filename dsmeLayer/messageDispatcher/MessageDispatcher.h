@@ -140,7 +140,7 @@ protected:
 
     /**
      * Called on start of every GTSlot.
-     * Switch channel for reception or transmit from queue in allocated slots.
+     * Switch channel for reception or transmit from queue in allocated slots. TODO: correct?
      */
     void handleGTS(int32_t lateness);
 
@@ -158,10 +158,11 @@ protected:
     /**
      * Sends the prepared message if there is sufficient time for transmission.
      */
-    bool sendPreparedMessage();
+    void sendPreparedMessage();
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
+    IDSMEMessage *preparedMsg{nullptr};
 
     IDSMEMessage* getMsgFromQueue(RBTree<NeighborListEntry<IDSMEMessage>, IEEE802154MacAddress>::iterator& neighbor);
 

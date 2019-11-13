@@ -285,10 +285,10 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
 }
 
 bool DSMELayer::isWithinTimeSlot(uint32_t time, uint16_t duration) {
-    uint32_t symbolsPerSlot = getMAC_PIB.helper.getSymbolsPerSlot();
+    uint32_t symbolsPerSlot = getMAC_PIB().helper.getSymbolsPerSlot();
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
-    uint32_t timeSlotStart = symbolsSinceLastBeaconInterval / symbolsPerSlot * symbolsPerSlot;
+    uint32_t timeSlotStart = (symbolsSinceLastBeaconInterval / symbolsPerSlot) * symbolsPerSlot;
     uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot;
 
     return (time >= timeSlotStart) && (time+duration <= timeSlotEnd);
