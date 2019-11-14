@@ -146,6 +146,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     neighborQueue.popFront(lastSendGTSNeighbor);
+    this->preparedMsg = nullptr;
 
     mcps_sap::DATA_confirm_parameters params;
     params.msduHandle = msg;
@@ -189,8 +190,10 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 }
 
 void MessageDispatcher::finalizeGTSTransmission() {
+    LOG_DEBUG("Finalizing transmission for " << this->currentACTElement->getGTSlotID() << " " << this->currentACTElement->getSuperframeID() << " " << this->currentACTElement->getChannel());
     transceiverOffIfAssociated();
     this->dsme.getEventDispatcher().stopIFSTimer();
+    this->preparedMsg = nullptr;    // TODO correct here?
     this->lastSendGTSNeighbor = this->neighborQueue.end();
     this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
 
@@ -383,6 +386,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         } else {
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
+            LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
             DSME_SIM_ASSERT(false);
             return false;
         }
@@ -465,12 +469,13 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
 }
 
 bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
+    LOG_DEBUG("IFS timer triggered");
+
     /* Neighbor and slot have to be valid at this point */
     DSME_ASSERT(this->lastSendGTSNeighbor != this->neighborQueue.end());
     DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
     DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
       == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
-
 
     sendPreparedMessage();
 
@@ -510,7 +515,6 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             if(prepared) {
                 /* '-> a message is queued for transmission */
                 sendPreparedMessage();
-                this->numTxGtsFrames++;
             } else {
                 /* '-> no message to be sent */
                 finalizeGTSTransmission();
@@ -535,35 +539,29 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
     createDataIndication(msg);
 }
-IDSMEMessage* MessageDispatcher::getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor){
-    IDSMEMessage* msg = neighborQueue.front(neighbor);
-    return msg;
-}
-
 
 // Function to determine if a message should be prepared for next transmission or not.
 // Returns: True if no message is pending to transmit or there are message in the queue for target neighbor
 //          False otherwise
-bool MessageDispatcher::msgToPrepare(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor){
+bool MessageDispatcher::prepareNextMessageIfAny() {
+    LOG_DEBUG("Entered prepareNextMessageIfAny");
     bool result = false;
+
     // check if there exists a pending Message
-    if(this->dsme.getAckLayer().ifMsgPending()) {
+    if(this->preparedMsg) {
+        return true;
+    } else if (this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)){ // if no pending message, then check if there is a message to send in the queue
+        this->preparedMsg = nullptr;
         return result;
-    }else if (this->neighborQueue.isQueueEmpty(neighbor)){ // if no pending message, then check if there is a message to send in the queue
-        return result;
-    }else{
+    } else {
+        this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
         result = true;
     }
     return result;
 }
 
-
-bool MessageDispatcher::prepareNextMessageIfAny() {
-    /* TODO: prepare first message in the queue */
-    return false;
-}
-
 void MessageDispatcher::sendPreparedMessage() {
+    LOG_DEBUG("Entering sendPreparedMessage");
     DSME_ASSERT(this->preparedMsg);
     DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
@@ -573,13 +571,17 @@ void MessageDispatcher::sendPreparedMessage() {
 
     if(this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
         /* '-> Sufficient time to send message in remaining slot time */
-
+        LOG_DEBUG("Sufficient time left to transmit frame");
         bool prepared = this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->doneGTS);
         if (prepared) {
             this->dsme.getAckLayer().sendNowIfPending();
+            this->numTxGtsFrames++;
         } else {
             sendDoneGTS(AckLayerResponse::SEND_FAILED, this->preparedMsg);
         }
+    } else {
+        LOG_DEBUG("No sufficient time to transmit frame");
+        finalizeGTSTransmission();
     }
 }
 
