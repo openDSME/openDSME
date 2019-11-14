@@ -174,6 +174,15 @@ void AckLayer::dispatchTimer() {
     DSME_ASSERT(dispatchSuccessful);
 }
 
+// ifMsgPending(): retrieves true if there are message pending to be sent. False, otherwise
+bool AckLayer::ifMsgPending(){
+    bool pending = false;
+    if(this->pendingMessage != nullptr) {
+        pending = true;
+    }
+return pending;
+}
+
 void AckLayer::sendDone(bool success) {
     DSME_ASSERT(!isDispatchBusy());
     bool dispatchSuccessful = dispatch(AckEvent::SEND_DONE, success);

@@ -477,6 +477,7 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
     DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
       == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
 
+
     sendPreparedMessage();
 
     return true;
@@ -539,6 +540,11 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
     createDataIndication(msg);
 }
+IDSMEMessage* MessageDispatcher::getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor){
+    IDSMEMessage* msg = neighborQueue.front(neighbor);
+    return msg;
+}
+
 
 // Function to determine if a message should be prepared for next transmission or not.
 // Returns: True if no message is pending to transmit or there are message in the queue for target neighbor

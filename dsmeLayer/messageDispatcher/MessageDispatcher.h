@@ -150,6 +150,8 @@ protected:
      */
     void handleGTSFrame(IDSMEMessage* msg);
 
+    IDSMEMessage* getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
+
     /**
      * Prepares the transmission of a single message if the queue is not empty
      *  and no message has been prepared yet.
