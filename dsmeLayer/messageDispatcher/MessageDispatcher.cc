@@ -561,7 +561,15 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         return result;
     } else {
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
-        result = true;
+
+        uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+        uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
+        if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
+            LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
+            return false;
+        } else {
+            return true;
+        }
     }
     return result;
 }

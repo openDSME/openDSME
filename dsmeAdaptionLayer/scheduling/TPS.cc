@@ -97,7 +97,10 @@ void TPS::multisuperframeEvent() {
         data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
-        float error = data.avgIn - slots;
+        uint8_t packets_per_slot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() / (127*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod + PRE_EVENT_SHIFT);
+            /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */ 
+        LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
+        float error = data.avgIn / packets_per_slot - slots;
 
         int8_t change = 0;
         if(useHysteresis) {
