@@ -78,6 +78,10 @@ public:
     void setupCSMATimer(uint32_t absSymCnt);
     void setupACKTimer();
     void stopACKTimer();
+
+    /*! Sets up a timer for a SIFS (12 sybols) or LIFS (40 symbols).
+     *\param LIFS true for a LIFS, false for a SIFS.
+     */
     void setupIFSTimer(bool LIFS);
     void stopIFSTimer();
 

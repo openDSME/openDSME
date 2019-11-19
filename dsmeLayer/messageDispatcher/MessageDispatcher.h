@@ -152,16 +152,21 @@ protected:
 
     IDSMEMessage* getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
 
-    /**
-     * Prepares the transmission of a single message if the queue is not empty
-     *  and no message has been prepared yet.
+    /*! Prepares the next GTS message from the packet queue for transmission.
+     *\return true if a message was prepared, false otherwise, i.e., if there is
+     *        no packet in the queue or the remaining time is not sufficient for
+     *        transmission.
      */
     bool prepareNextMessageIfAny();
 
-    /**
-     * Sends the prepared message if there is sufficient time for transmission.
+    /*! Transmits the prepared GTS message by passing the message to the ACKLayer.
+     *  The MessageDispatcher maintains ownership of the packet so it must not be
+     *  deleted before the ACKLayer finishes the transmission. The callback-function
+     *  sendDoneGTS is called after every attempted transmission.
+     *\brief Transmits the prepared GTS message.
+     *\return true if the transmission is attempted, false otherwise.
      */
-    void sendPreparedMessage();
+    bool sendPreparedMessage();
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
