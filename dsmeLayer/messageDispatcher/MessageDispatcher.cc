@@ -540,10 +540,6 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
     createDataIndication(msg);
 }
-IDSMEMessage* MessageDispatcher::getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor){
-    IDSMEMessage* msg = neighborQueue.front(neighbor);
-    return msg;
-}
 
 
 // Function to determine if there is any message that can be transmitted or not.
@@ -551,40 +547,38 @@ IDSMEMessage* MessageDispatcher::getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::i
 //                2. If there exits any message in the queue to transmit.
 //          False otherwise
 bool MessageDispatcher::prepareNextMessageIfAny() {
-    LOG_DEBUG("Entered prepareNextMessageIfAny");
     bool result = false;
     bool checkTimeToSendMessage = false;
+
     // check if there exists a pending Message
     if(this->preparedMsg) {
         checkTimeToSendMessage = true; // if true, set a flag to to check if pending message can be sent in remaining slot time
-        //return true;
-    }// there is no pending message, then check if the queue is empty (i.e. there is not any message to transmit to a target neighbor)
-    else if (this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)){
+    } else if (this->neighborQueue.isQueueEmpty(this->lastSendGTSNeighbor)) {  // there is no pending message, then check if the queue is empty (i.e. there is not any message to transmit to a target neighbor)
         this->preparedMsg = nullptr; // reset value of pending Message
-        return result;
-    }// if there is a message to send retrieve a copy of it from the queue and set the flag to check if possible to send the message
-    else {
-            checkTimeToSendMessage = true;
-            this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
-        }
-   if(checkTimeToSendMessage){//if the timming for transmission must be checked
-       // determined how long the transmission of the preparedMessage will take.
-       uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+        checkTimeToSendMessage = false;
+        result = false;
+    } else { // if there is a message to send retrieve a copy of it from the queue and set the flag to check if possible to send the message
+        checkTimeToSendMessage = true;
+        this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
+    }
+
+    if(checkTimeToSendMessage) {//if the timming for transmission must be checked
+        // determined how long the transmission of the preparedMessage will take.
+        uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
         uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
         // check if the remaining slot time is enough to transmit the prepared packet
         if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
             LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
             this->preparedMsg = nullptr; // reset value of pending Message
-            return false; // there is no enough time, no transmission will take place
+            result = false; // there is no enough time, no transmission will take place
         } else {
-            return true; // there is time, then proceed
+            result = true; // there is time, then proceed
         }
     }
     return result;
 }
 
 bool MessageDispatcher::sendPreparedMessage() {
-    LOG_DEBUG("Entering sendPreparedMessage");
     DSME_ASSERT(this->preparedMsg);
     DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 

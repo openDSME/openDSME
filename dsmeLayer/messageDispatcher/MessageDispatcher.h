@@ -103,28 +103,26 @@ public:
         return numUpperPacketsForGTS;
     }
 
-    /**
-     * This shall be called shortly before the start of every slot to allow for setting up the transceiver.
+    /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
      *
-     * @param nextSlot The upcoming slot number
-     * @param nextSuperframe The upcoming superframe number
-     * @param nextMultiSuperframe The upcoming multisuperframe number
+     * \param nextSlot The upcoming slot number
+     * \param nextSuperframe The upcoming superframe number
+     * \param nextMultiSuperframe The upcoming multisuperframe number
      *
-     * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
+     * \return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
     bool handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
 
-    /**
-     * This shall be called at the start of every slot.
+    /*! This shall be called at the start of every slot.
      *
-     * @param slot The new slot number
-     * @param superframe The new superframe number
+     * \param slot The new slot number
+     * \param superframe The new superframe number
      *
-     * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
+     * \return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
     bool handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness);
 
-    /**
+    /*!
      * This shall be called one SIFS or LIFS after the reception of an acknowledgement,
      * depending on the length of the transmitted frame. Transmits the next frame
      * AFTER a frame has already been transmitted.
@@ -150,8 +148,6 @@ protected:
      */
     void handleGTSFrame(IDSMEMessage* msg);
 
-    IDSMEMessage* getMsgFromQueue(NeighborQueue<MAX_NEIGHBORS>::iterator neighbor);
-
     /*! Prepares the next GTS message from the packet queue for transmission.
      *\return true if a message was prepared, false otherwise, i.e., if there is
      *        no packet in the queue or the remaining time is not sufficient for
@@ -174,9 +170,9 @@ protected:
 
     void createDataIndication(IDSMEMessage* msg);
 
-    /*! Finalizes the current GTS. Turns of the transceiver if transmitting,
+    /*! Finalizes the current GTS. Turns off the transceiver if transmitting,
      *  resets the neighbor associated with the time slot and ensures there
-     *  is no message pending. 
+     *  is no message pending.
      */
     void finalizeGTSTransmission();
 
