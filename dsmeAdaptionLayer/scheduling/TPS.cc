@@ -104,7 +104,7 @@ void TPS::multisuperframeEvent() {
         //PHR = 2 symbols;
         //PSDU = MHR + MACPayload + MFR;
 
-        uint8_t packets_per_slot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() / (6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod + PRE_EVENT_SHIFT);
+        uint8_t packets_per_slot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() / ((6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod + PRE_EVENT_SHIFT);
             /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */ 
 
         LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);

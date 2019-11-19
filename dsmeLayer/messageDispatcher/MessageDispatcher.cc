@@ -569,7 +569,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         }
    if(checkTimeToSendMessage){//if the timming for transmission must be checked
        // determined how long the transmission of the preparedMessage will take.
-       uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+       uint8_t ifsSymbols = this->preparedMsg->getMPDUSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
         uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
         // check if the remaining slot time is enough to transmit the prepared packet
         if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
@@ -588,7 +588,7 @@ bool MessageDispatcher::sendPreparedMessage() {
     DSME_ASSERT(this->preparedMsg);
     DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
-    uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+    uint8_t ifsSymbols = this->preparedMsg->getMPDUSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
 
     uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
     /* '-> Duration for the transmission of the next frame */
