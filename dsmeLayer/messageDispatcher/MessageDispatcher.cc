@@ -566,7 +566,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
         if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
             LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
-            return false;
+            return false;,
         } else {
             return true;
         }

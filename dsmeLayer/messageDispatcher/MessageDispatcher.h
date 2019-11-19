@@ -174,7 +174,12 @@ protected:
 
     void createDataIndication(IDSMEMessage* msg);
 
+    /*! Finalizes the current GTS. Turns of the transceiver if transmitting,
+     *  resets the neighbor associated with the time slot and ensures there
+     *  is no message pending. 
+     */
     void finalizeGTSTransmission();
+
     void transceiverOffIfAssociated();
 
     /* Statistics */

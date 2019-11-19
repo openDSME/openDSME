@@ -183,8 +183,8 @@ public:
 
     /*! Checks if now and now + duration are in the same time slot.
      *\param now Current time in symbols.
-     *\param duration Duration to check.
-     *\return true if duration is within same slot false otherwise.
+     *\param duration Duration in symbols to check.
+     *\return true if duration is within same slot, false otherwise.
      */
     bool isWithinTimeSlot(uint32_t now, uint16_t duration);
 
