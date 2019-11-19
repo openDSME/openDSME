@@ -574,7 +574,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     return result;
 }
 
-void MessageDispatcher::sendPreparedMessage() {
+bool MessageDispatcher::sendPreparedMessage() {
     LOG_DEBUG("Entering sendPreparedMessage");
     DSME_ASSERT(this->preparedMsg);
     DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
@@ -597,6 +597,7 @@ void MessageDispatcher::sendPreparedMessage() {
         LOG_DEBUG("No sufficient time to transmit frame");
         finalizeGTSTransmission();
     }
+    return true;
 }
 
 

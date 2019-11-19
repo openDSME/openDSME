@@ -137,7 +137,7 @@ void DSMEEventDispatcher::stopACKTimer() {
 
 void DSMEEventDispatcher::setupIFSTimer(bool LIFS) {
     DSME_ATOMIC_BLOCK {
-        uint32_t ifsDuration = LIFS ? const_redefines::macLIFSPeriod : const_redefines::macSIFSPeriod;
+        uint8_t ifsDuration = LIFS ? const_redefines::macLIFSPeriod : const_redefines::macSIFSPeriod;
         DSMETimerMultiplexer::_startTimer<IFS_TIMER>(ifsDuration + NOW, &DSMEEventDispatcher::fireIFSTimer);
         DSMETimerMultiplexer::_scheduleTimer();
     }
