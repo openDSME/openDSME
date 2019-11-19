@@ -196,8 +196,8 @@ void MessageDispatcher::finalizeGTSTransmission() {
     this->preparedMsg = nullptr;    // TODO correct here?
     this->lastSendGTSNeighbor = this->neighborQueue.end();
     this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
-
 }
+
 void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts) {
     if(status == DataStatus::Data_Status::NO_ACK || status == DataStatus::Data_Status::SUCCESS) {
         if(msg->getHeader().isAckRequested() && !msg->getHeader().getDestAddr().isBroadcast()) {
@@ -469,16 +469,15 @@ bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_
 }
 
 bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
-    LOG_DEBUG("IFS timer triggered");
-
     /* Neighbor and slot have to be valid at this point */
     DSME_ASSERT(this->lastSendGTSNeighbor != this->neighborQueue.end());
     DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
     DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
       == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
 
-
-    sendPreparedMessage();
+    if(!sendPreparedMessage()) {
+        finalizeGTSTransmission();
+    }
 
     return true;
 }
@@ -512,11 +511,13 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 DSME_ASSERT(false);
             }
 
-            bool prepared = prepareNextMessageIfAny();
-            if(prepared) {
+            bool endOfFrame = prepareNextMessageIfAny();
+            if(!endOfFrame) {
                 /* '-> a message is queued for transmission */
-                sendPreparedMessage();
-            } else {
+                endOfFrame = sendPreparedMessage();
+            }
+
+            if(endOfFrame) {
                 /* '-> no message to be sent */
                 finalizeGTSTransmission();
                 this->numUnusedTxGts++;
@@ -588,19 +589,17 @@ bool MessageDispatcher::sendPreparedMessage() {
 
     if(this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
         /* '-> Sufficient time to send message in remaining slot time */
-        LOG_DEBUG("Sufficient time left to transmit frame");
-        bool prepared = this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->doneGTS);
-        if (prepared) {
+        if (this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->doneGTS)) {
+            /* '-> Message transmission can be attempted */
             this->dsme.getAckLayer().sendNowIfPending();
             this->numTxGtsFrames++;
         } else {
+            /* '-> Message could not be sent via ACKLayer (FAILED) */
             sendDoneGTS(AckLayerResponse::SEND_FAILED, this->preparedMsg);
         }
-    } else {
-        LOG_DEBUG("No sufficient time to transmit frame");
-        finalizeGTSTransmission();
+        return true;
     }
-    return true;
+    return false;
 }
 
 
