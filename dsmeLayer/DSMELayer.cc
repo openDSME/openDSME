@@ -292,7 +292,7 @@ bool DSMELayer::isWithinTimeSlot(uint32_t now, uint16_t duration) {
     uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot - PRE_EVENT_SHIFT;
 
     DSME_ASSERT(now >= timeSlotStart && now <= timeSlotEnd);
-    LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << time << ") <= duration ("
+    LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << now << ") <= duration ("
         << now+duration << ") <= slot end time (" << timeSlotEnd << ")");
 
     return now + duration <= timeSlotEnd;

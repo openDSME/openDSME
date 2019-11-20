@@ -511,16 +511,19 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
                 DSME_ASSERT(false);
             }
 
-            bool endOfFrame = prepareNextMessageIfAny();
-            if(!endOfFrame) {
+            bool success = prepareNextMessageIfAny();
+            LOG_DEBUG(success);
+            if(success) {
                 /* '-> a message is queued for transmission */
-                endOfFrame = sendPreparedMessage();
+                success = sendPreparedMessage();
             }
+            LOG_DEBUG(success);
 
-            if(endOfFrame) {
+            if(success == false) {
                 /* '-> no message to be sent */
-                finalizeGTSTransmission();
+                LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
                 this->numUnusedTxGts++;
+                finalizeGTSTransmission();
             }
         } else {
             finalizeGTSTransmission();
@@ -599,6 +602,7 @@ bool MessageDispatcher::sendPreparedMessage() {
         }
         return true;
     }
+    LOG_DEBUG("No packet sent (remaining slot time insufficient)");
     return false;
 }
 
