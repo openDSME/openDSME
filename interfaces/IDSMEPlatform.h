@@ -119,6 +119,63 @@ public:
     }
 };
 
+    //ALLOCATIONS
+
+    // NOTIFIY
+ /*    virtual void signalNotifyInitialized() { // DONE
+     }
+     virtual void signalNotifyBackoffs(uint8_t backoffs) { // DONE
+     }
+     virtual void signalNotifySendSuccess() { // DONE
+     }
+     virtual void signalNotifySendFailedChannelAccess() { // DONE
+     }
+     virtual void signalNotifySendFailedTransactionOverflow() { // DONE
+     }*/
+
+    //DEALLOCATIONS
+
+/*    // DEALLOCATION NOTIFY
+    virtual void signalDeallocationNotifyInitialized() { // DONE
+    }
+    virtual void signalDeallocationNotifyBackoffs(uint8_t backoffs) { // DONE
+    }
+    virtual void signalDeallocationNotifySendSuccess() { // DONE
+    }
+    virtual void signalDeallocationNotifySendFailedChannelAccess() { // DONE
+    }
+    virtual void signalDeallocationNotifySendFailedTransactionOverflow() { // DONE
+    }*/
+
+    //PER MSF
+
+/*    virtual void signalGTSRequestsTotal(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsSuccess(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailed(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedNoAck(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedChannelAccess(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedTransactionOverflow(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedTimeout(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedDenied(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedQueue(uint16_t allocations) {
+    }
+    virtual void signalGTSRequestsFailedDeallocated(uint16_t allocations) {
+    }*/
+
+    // QUEUE LEVEL
+    /*
+    virtual void signalGTSQueueLevel(bool push) {
+    }
+    */
+
 } /* namespace dsme */
 
 #endif /* IDSMEPLATFORM_H_ */
