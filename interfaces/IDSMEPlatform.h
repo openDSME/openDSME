@@ -147,13 +147,14 @@ public:
     virtual void signalDeallocationNotifySendFailedTransactionOverflow() { // DONE
     }*/
 
-    //PER MSF
+    //PER SF
+    virtual void signalSuperframe(uint8_t limits); //signal to define the begin and end of a SF
 
-/*    virtual void signalGTSRequestsTotal(uint16_t allocations) {
+    virtual void signalGTSRequestsTotal(uint16_t allocations) {
     }
-    virtual void signalGTSRequestsSuccess(uint16_t allocations) {
+    virtual void signalGTSNotifySuccess(uint16_t allocations) {
     }
-    virtual void signalGTSRequestsFailed(uint16_t allocations) {
+/*    virtual void signalGTSRequestsFailed(uint16_t allocations) {
     }
     virtual void signalGTSRequestsFailedNoAck(uint16_t allocations) {
     }

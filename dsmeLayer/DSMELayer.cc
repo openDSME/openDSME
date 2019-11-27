@@ -233,6 +233,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     /* handle slot */
     if(currentSlot == 0) {
         beaconManager.superframeEvent(lateness, currentSlotTime);
+        platform->signalSuperframe(-2);
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);

@@ -314,6 +314,8 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
+                if(event.management.direction == Direction::TX && event.management.type == ManagementType::ALLOCATION) this->gtsRequestsTotal++; //capture the number of gtsRequestsTotal per SF
+
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
                     LOG_DEBUG("GTSManager sending request failed " << (uint16_t)event.dataStatus);
 
@@ -534,6 +536,10 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
             return FSM_IGNORED;
 
         case GTSEvent::NOTIFY_CMD_FOR_ME: {
+
+            //collect the number of notifySuccess messages recieved by requested node
+            gtsNotifySuccess++;
+
             // TODO! DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REPLY) || state == State::WAIT_FOR_NOTIFY); // TODO what if the notify comes
             // too late, probably send a deallocation again???
             actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
@@ -779,6 +785,15 @@ bool GTSManager::handleGTSNotify(IDSMEMessage* msg) {
 }
 
 bool GTSManager::handleStartOfCFP(uint8_t superframe) {
+
+    //emit signals per superframe
+    this->dsme.getPlatform().signalGTSRequestsTotal(gtsRequestsTotal);
+    this->dsme.getPlatform().signalGTSNotifySuccess(gtsNotifySuccess);
+
+    //reset the global variables
+    gtsRequestsTotal = 0;
+    gtsNotifySuccess = 0;
+
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         data[i].superframesInCurrentState++;
     }

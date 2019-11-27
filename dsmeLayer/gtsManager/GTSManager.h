@@ -234,6 +234,11 @@ private:
     DSMELayer& dsme;
     ACTUpdater actUpdater;
     GTSData data[GTS_STATE_MULTIPLICITY + 1];
+
+    uint16_t gtsRequestsTotal;
+    uint16_t gtsNotifySuccess;
+
+
 };
 
 } /* namespace dsme */
