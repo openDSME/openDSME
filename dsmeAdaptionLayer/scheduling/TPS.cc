@@ -131,7 +131,20 @@ void TPS::multisuperframeEvent() {
 
         data.messagesInLastMultisuperframe = 0;
         data.messagesOutLastMultisuperframe = 0;
+        this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevelMSF(queueLevel);
     }
 }
+
+uint8_t TPS::registerIncomingMessage(uint16_t address){
+    uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address);
+    this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevel(true); // signal one incoming packet to the queue
+    return queueLevel;
+}
+
+void TPS::registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation){
+    GTSSchedulingImpl::registerOutgoingMessage(address,success,serviceTime,queueAtCreation);
+    this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevel(false); // signal one incoming packet to the queue
+}
+
 
 } /* namespace dsme */

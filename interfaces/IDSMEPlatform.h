@@ -117,7 +117,7 @@ public:
      */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
-};
+
 
     //ALLOCATIONS
 
@@ -171,10 +171,13 @@ public:
     }*/
 
     // QUEUE LEVEL
-    /*
+
     virtual void signalGTSQueueLevel(bool push) {
     }
-    */
+    // QUEUE LEVEL PER MSF
+    virtual void signalGTSQueueLevelMSF(uint8_t queueLevel){
+    }
+};
 
 } /* namespace dsme */
 

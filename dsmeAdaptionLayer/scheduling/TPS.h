@@ -66,6 +66,8 @@ public:
     void setAlpha(float alpha);
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);
+    uint8_t registerIncomingMessage(uint16_t address);
+    void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation);
 
 private:
     float alpha{0}; // TODO no float
