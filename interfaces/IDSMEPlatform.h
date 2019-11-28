@@ -148,13 +148,14 @@ public:
     }*/
 
     //PER SF
-    virtual void signalSuperframe(uint8_t limits); //signal to define the begin and end of a SF
+    virtual void signalSuperframe(bool limits){//signal to define the begin and end of a SF
+    }
 
-    virtual void signalGTSRequestsTotal(uint16_t allocations) {
+    virtual void signalGTSRequestsTotal(uint16_t allocations) {//signal to retrieve the number of GTS requests
     }
-    virtual void signalGTSNotifySuccess(uint16_t allocations) {
+    virtual void signalGTSNotifySuccess(uint16_t allocations) {//signal to retrieve successful handshake GTS allocations
     }
-/*    virtual void signalGTSRequestsFailed(uint16_t allocations) {
+ /*   virtual void signalGTSRequestsFailed(uint16_t allocations) {
     }
     virtual void signalGTSRequestsFailedNoAck(uint16_t allocations) {
     }

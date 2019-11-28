@@ -138,6 +138,7 @@ void TPS::multisuperframeEvent() {
 uint8_t TPS::registerIncomingMessage(uint16_t address){
     uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address);
     this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevel(true); // signal one incoming packet to the queue
+    //this->dsmeAdaptionLayer.getDSME().getPlatform().signalSuperframe(true);
     return queueLevel;
 }
 
