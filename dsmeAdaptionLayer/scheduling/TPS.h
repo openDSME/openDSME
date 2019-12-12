@@ -66,11 +66,13 @@ public:
     void setAlpha(float alpha);
     void setMinFreshness(uint16_t freshness);
     void setUseHysteresis(bool useHysteresis);
+    void setUseMultiplePacketsPerGTS(bool useMultiplePackets);
 
 private:
     float alpha{0}; // TODO no float
     uint16_t minFreshness{0xFFFF};
     bool useHysteresis{true};
+    bool useMultiplePacketsPerGTS{true};
 };
 
 } /* namespace dsme */

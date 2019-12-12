@@ -103,6 +103,18 @@ public:
         return numUpperPacketsForGTS;
     }
 
+    long getNumUnusedTxGTS() const {
+        return this->numUnusedTxGts;
+    }
+
+    long getNumUnusedRxGTS() const {
+        return this->numUnusedRxGts;
+    }
+
+    void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
+        this->multiplePacketsPerGTS = multiplePacketsPerGTS;
+    }
+
     /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
      *
      * \param nextSlot The upcoming slot number
@@ -188,6 +200,8 @@ protected:
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
     bool recordGtsUpdates = false;
+
+    bool multiplePacketsPerGTS{false};
 };
 
 } /* namespace dsme */

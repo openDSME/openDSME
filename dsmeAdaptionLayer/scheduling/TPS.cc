@@ -68,6 +68,10 @@ void TPS::setUseHysteresis(bool useHysteresis) {
     this->useHysteresis = useHysteresis;
 }
 
+void TPS::setUseMultiplePacketsPerGTS(bool useMultiplePackets) {
+    this->useMultiplePacketsPerGTS = useMultiplePackets;
+}
+
 void TPS::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
@@ -103,12 +107,16 @@ void TPS::multisuperframeEvent() {
         //SFD = 2 symbols;
         //PHR = 2 symbols;
         //PSDU = MHR + MACPayload + MFR;
-
-        uint8_t packets_per_slot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() / ((6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod + PRE_EVENT_SHIFT);
-            /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */ 
+        uint8_t packets_per_slot = 1;
+        if(useMultiplePacketsPerGTS) {
+            packets_per_slot = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() / ((6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod + PRE_EVENT_SHIFT);
+                /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */
+        }
 
         LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
         float error = (data.avgIn / packets_per_slot) - slots;
+        LOG_DEBUG("TPS error: " << error);
+        LOG_DEBUG("TPS slots: " << (int)slots);
 
         int8_t change = 0;
         if(useHysteresis) {
@@ -122,10 +130,7 @@ void TPS::multisuperframeEvent() {
         }
 
         data.slotTarget = slots + change;
-
-        if(data.multisuperframesSinceLastPacket > minFreshness) {
-            data.slotTarget = 0;
-        }
+        LOG_DEBUG("TPS target: " << data.slotTarget);
 
         if(data.messagesInLastMultisuperframe == 0) {
             if(data.multisuperframesSinceLastPacket < 0xFFFE) {
@@ -133,6 +138,10 @@ void TPS::multisuperframeEvent() {
             }
         } else {
             data.multisuperframesSinceLastPacket = 0;
+        }
+
+        if(data.multisuperframesSinceLastPacket > minFreshness) {
+            data.slotTarget = 0;
         }
 
         LOG_DEBUG("control"

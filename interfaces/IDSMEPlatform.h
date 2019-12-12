@@ -117,6 +117,24 @@ public:
      */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
+
+    /*
+     * Signal current queue length
+     */
+    virtual void signalQueueLength(uint32_t length) {
+    }
+
+    /*
+     * Signal transmitted packets per slot
+     */
+    virtual void signalPacketsTXPerSlot(uint32_t packets) {
+    }
+
+    /*
+     * Signal received packets per slot
+     */
+    virtual void signalPacketsRXPerSlot(uint32_t packets) {
+    }
 };
 
 } /* namespace dsme */

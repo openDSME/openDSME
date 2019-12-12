@@ -148,6 +148,14 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     neighborQueue.popFront(lastSendGTSNeighbor);
     this->preparedMsg = nullptr;
 
+    /* STATISTICS */
+    uint16_t totalSize = 0;
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
+        totalSize += it->queueSize;
+    }
+    this->dsme.getPlatform().signalQueueLength(totalSize);
+    /* END STATISTICS */
+
     mcps_sap::DATA_confirm_parameters params;
     params.msduHandle = msg;
     params.timestamp = 0; // TODO
@@ -182,11 +190,11 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     params.numBackoffs = 0;
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
 
-    if(!prepareNextMessageIfAny()) {
+
+    if(!this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {
         /* '-> prepare next frame for transmission after one IFS */
         finalizeGTSTransmission();
     }
-
 }
 
 void MessageDispatcher::finalizeGTSTransmission() {
@@ -196,6 +204,10 @@ void MessageDispatcher::finalizeGTSTransmission() {
     this->preparedMsg = nullptr;    // TODO correct here?
     this->lastSendGTSNeighbor = this->neighborQueue.end();
     this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
+    if(this->numTxGtsFrames > 0) this->dsme.getPlatform().signalPacketsTXPerSlot(this->numTxGtsFrames);
+    if(this->numRxGtsFrames > 0) this->dsme.getPlatform().signalPacketsRXPerSlot(this->numRxGtsFrames);
+    this->numTxGtsFrames = 0;
+    this->numRxGtsFrames = 0;
 }
 
 void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts) {
@@ -268,6 +280,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         }
         LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
+        this->dsme.getPlatform().signalQueueLength(totalSize);
         return true;
     } else {
         /* queue full */
@@ -278,7 +291,6 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
 }
 
 bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
-    numUpperPacketsForCAP++;
     LOG_INFO("Inserting message into CAP queue.");
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
         LOG_INFO("Message dropped due to missing association!");
@@ -286,12 +298,13 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
         // TODO send appropriate MCPS confirm or better remove this handling and implement TRANSACTION_EXPIRED
         return false;
     }
-
     if(!this->dsme.getCapLayer().pushMessage(msg)) {
         LOG_INFO("CAP queue full!");
         return false;
     }
-
+    if(msg->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+        numUpperPacketsForCAP++;
+    }
     return true;
 }
 

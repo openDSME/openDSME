@@ -98,9 +98,9 @@ void GTSHelper::handleStartOfCFP() {
     /* Check allocation at random superframe in multi-superframe */
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
-    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
-    }
+    //if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+    performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
+    //}
     return;
 }
 
@@ -111,9 +111,11 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
 
 void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
     if(decision.numSlot == 0) {
+        LOG_DEBUG("NO SCHEDULING ACTION");
         DSME_ASSERT(decision.deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS);
         return;
     }
+    LOG_DEBUG("GTSHelper: performSchedulingAction");
 
     if(decision.managementType == ManagementType::ALLOCATION) {
         checkAndAllocateGTS(decision);
@@ -355,6 +357,9 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
+        }
+        if(params.status != GTSStatus::TRANSACTION_OVERFLOW) {
+            //performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
         }
     }
     return;
