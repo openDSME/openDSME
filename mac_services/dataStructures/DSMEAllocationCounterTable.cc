@@ -130,8 +130,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
-    this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
-
+  
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
     }
@@ -143,6 +142,8 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     bool success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state), pos);
 
     if(success) {
+        this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
+
         int d = (direction == TX) ? 0 : 1;
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
         if(numSlotIt == numAllocatedSlots[d].end()) {

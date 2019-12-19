@@ -114,6 +114,6 @@ uint8_t PIBHelper::getSubBlockLengthBytes(uint8_t superframeId) const {
 
 uint16_t PIBHelper::getAckWaitDuration() const {
     return aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet + ADDITIONAL_ACK_WAIT_DURATION;
-}
+}// 12 + 20 + 12 + 12
 
 } /* namespace dsme */
