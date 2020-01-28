@@ -359,7 +359,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
         }
         if(params.status != GTSStatus::TRANSACTION_OVERFLOW) {
-            //performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
+            performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
         }
     }
     return;

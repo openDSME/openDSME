@@ -280,7 +280,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         }
         LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
-        this->dsme.getPlatform().signalQueueLength(totalSize);
+        this->dsme.getPlatform().signalQueueLength(totalSize+1);
         return true;
     } else {
         /* queue full */
