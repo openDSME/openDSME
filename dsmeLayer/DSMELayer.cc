@@ -260,6 +260,25 @@ void DSMELayer::handleStartOfCFP() {
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
+//proof of concept
+//IAMG
+void DSMELayer::handleStartOfBI() {
+//#ifdef STATISTICS_MONITOR_LATENESS
+//    if(latenessStatisticsCount++ % 10 == 0) {
+//        this->eventDispatcher.printLatenessHistogram();
+//    }
+//#endif
+
+    if(this->startOfCFPDelegate) {
+        this->startOfCFPDelegate();
+    }
+
+    this->gtsManager.handleStartOfCFP(this->currentSuperframe);
+    this->associationManager.handleStartOfCFP(this->currentSuperframe);
+    this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
+}
+
+
 uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
