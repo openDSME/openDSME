@@ -106,7 +106,7 @@ public:
     /*
      * Allows the platform to inform the DSME-layer about the start of a BI (beacon interval) while decoupling from the ISR control flow
      */
-    virtual void scheduleStartOfBI() = 0;
+    //virtual void scheduleStartOfBI() = 0;
 
 
     /*
