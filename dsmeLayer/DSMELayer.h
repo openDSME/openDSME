@@ -96,7 +96,25 @@ private:
     mcps_sap::MCPS_SAP* mcps_sap;
     mlme_sap::MLME_SAP* mlme_sap;
 
+    //IAMG
+    //proof of concept Cap On cap Off
+    bool switchCap;
+
 public:
+
+    //IAMG
+    //proof of concept Cap On cap Off
+    bool getSwitchCap() const {
+        return switchCap;
+    }
+
+    //IAMG
+    //proof of concept Cap On cap Off
+    void setSwitchCap(bool status) {
+        this->switchCap = status;
+    }
+
+
     PHY_PIB& getPHY_PIB() {
         return *(phy_pib);
     }

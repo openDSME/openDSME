@@ -66,6 +66,10 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
     BeaconBitmap& getBeaconBitmap() {
         return beaconBitmap;
     }
+    //IAMG proof of concept capOn capOff
+    DSMESuperframeSpecification& getDSMESuperframeSpecification(){
+        return dsmeSuperframeSpec;
+    }
 
     DSMEPANDescriptor& operator=(const DSMEPANDescriptor& other) {
         this->superframeSpec = other.superframeSpec;

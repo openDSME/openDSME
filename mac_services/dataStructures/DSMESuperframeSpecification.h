@@ -68,10 +68,17 @@ public:
           CAPReductionFlag(false),
           deferredBeaconFlag(false) {
     }
+
+    //IAMG proof of concept capOn capOff
+    void setCAPReductionFlag(bool CAPReductionFlag);
 };
 
 Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec);
 
+
+
 } /* namespace dsme */
+
+
 
 #endif /* DSMESUPERFRAMESPECIFICATION_H_ */

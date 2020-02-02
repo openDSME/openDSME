@@ -192,6 +192,18 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
+
+    //IAMG proof of concept capOn capOff
+    bool switchCapPeriod = this->dsme.getSwitchCap();
+    LOG_DEBUG("IAMG inside prepareEnhancedBeacon(), value of switchCapPeriod: ");
+    LOG_DEBUG(switchCapPeriod);
+    if (switchCapPeriod){
+        LOG_DEBUG(" true");
+        bool oldCAPreductionFlag = dsmePANDescriptor.getDSMESuperframeSpecification().CAPReductionFlag;
+        dsmePANDescriptor.getDSMESuperframeSpecification().setCAPReductionFlag(!(oldCAPreductionFlag));
+    }
+
+
     transmissionPending = true;
     if(!dsme.getAckLayer().prepareSendingCopy(msg, doneCallback)) {
         // message could not be sent

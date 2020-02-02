@@ -59,6 +59,9 @@ DSMELayer::DSMELayer()
       mcps_sap(nullptr),
       mlme_sap(nullptr),
 
+      //IAMG proof of concept Cap On cap Off
+      switchCap (false),
+
       platform(nullptr),
       eventDispatcher(*this),
 
@@ -88,6 +91,8 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->currentSlot = 0;
     this->currentSuperframe = 0;
     this->currentMultiSuperframe = 0;
+    //IAMG proof of concept Cap On cap Off
+    this-> switchCap = false;
 
     this->eventDispatcher.initialize();
     this->gtsManager.initialize();
@@ -150,6 +155,9 @@ void DSMELayer::doReset() {
         this->currentSuperframe = 0;
         this->currentMultiSuperframe = 0;
 
+        //IAMG proof of concept Cap On cap Off
+        this-> switchCap = false;
+
         this->trackingBeacons = false;
     }
 
@@ -180,8 +188,28 @@ void DSMELayer::preSlotEvent(void) {
     superframe /= getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     nextMultiSuperframe = superframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();
 
+    //IAMG proof of concept capON capOff
+    //calculate the current slot position
+    uint32_t currentCnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart();
+    uint16_t numberSlotsSinceLastKnownBeaconIntervalStart = currentCnt / getMAC_PIB().helper.getSymbolsPerSlot();
+    uint16_t numberSuperframes = numberSlotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
+    uint16_t currentSuperframe = numberSuperframes % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+
+
     if(nextSlot == 0) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
+    }
+
+    //IAMG proof of concept capON capOff
+    //calculate the current slot position
+
+
+    else if(nextSlot == 1 && this->switchCap != false && getMAC_PIB().macCapReduction == false && currentSuperframe == 0){
+        LOG_DEBUG("IAMG inside preSlotEvent(), value of switchCapPeriod: true & capReductionMode= false & currentSuperframe == 0");
+        bool oldmacCapReduction =  getMAC_PIB().macCapReduction;
+        getMAC_PIB().macCapReduction = !oldmacCapReduction;
+        this->switchCap = false;
+
     }
 
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe, nextMultiSuperframe);
@@ -260,23 +288,6 @@ void DSMELayer::handleStartOfCFP() {
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
-//proof of concept
-//IAMG
-void DSMELayer::handleStartOfBI() {
-//#ifdef STATISTICS_MONITOR_LATENESS
-//    if(latenessStatisticsCount++ % 10 == 0) {
-//        this->eventDispatcher.printLatenessHistogram();
-//    }
-//#endif
-
-    if(this->startOfCFPDelegate) {
-        this->startOfCFPDelegate();
-    }
-
-    this->gtsManager.handleStartOfCFP(this->currentSuperframe);
-    this->associationManager.handleStartOfCFP(this->currentSuperframe);
-    this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
-}
 
 
 uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
