@@ -149,7 +149,12 @@ public:
     void setStartOfCFPDelegate(Delegate<void()> delegate) {
         startOfCFPDelegate = delegate;
     }
+    //IAMG proof of concept Cap On cap Off
+    // every MSF tha cap reduction mode is switched between On and Off
 
+    void setStartOfCAPDelegate(Delegate<void()>delegate){
+        startOfCAPDelegate = delegate;
+    }
     DSMEEventDispatcher& getEventDispatcher() {
         return eventDispatcher;
     }
@@ -199,6 +204,10 @@ protected:
     IDSMEPlatform* platform;
     DSMEEventDispatcher eventDispatcher;
     Delegate<void()> startOfCFPDelegate;
+
+    //IAMG proof of concept Cap On cap Off
+    // every MSF tha cap reduction mode is switched between On and Off
+    Delegate<void()> startOfCAPDelegate;
 
 #ifdef STATISTICS_MONITOR_LATENESS
     int latenessStatisticsCount;
