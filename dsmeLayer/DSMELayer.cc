@@ -50,6 +50,7 @@
 #include "../mac_services/pib/MAC_PIB.h"
 #include "../mac_services/pib/PIBHelper.h"
 #include "../mac_services/pib/dsme_mac_constants.h"
+#include "../mac_services/dataStructures/PANDescriptor.h"
 
 namespace dsme {
 
@@ -195,7 +196,7 @@ void DSMELayer::preSlotEvent(void) {
     uint16_t numberSuperframes = numberSlotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
     uint16_t currentSuperframe = numberSuperframes % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
 
-
+    LOG_DEBUG("IAMG inside preSlotEvent()");
     if(nextSlot == 0) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
     }
@@ -204,11 +205,32 @@ void DSMELayer::preSlotEvent(void) {
     //calculate the current slot position
 
 
-    else if(nextSlot == 1 && this->switchCap != false && getMAC_PIB().macCapReduction == false && currentSuperframe == 0){
-        LOG_DEBUG("IAMG inside preSlotEvent(), value of switchCapPeriod: true & capReductionMode= false & currentSuperframe == 0");
-        bool oldmacCapReduction =  getMAC_PIB().macCapReduction;
-        getMAC_PIB().macCapReduction = !oldmacCapReduction;
-        this->switchCap = false;
+
+    else if(nextSlot == 1 && currentSuperframe == 0){
+        LOG_DEBUG("IAMG slot 0, SF = 0, value of switch: ");
+
+        bool currentMacCapReduction =  getMAC_PIB().macCapReduction;
+        bool currentCapReductionFlag = dsmePANDescriptor.getDSMESuperframeSpecification().CAPReductionFlag;
+        if(this->switchCap == false){
+            LOG_DEBUG("IAMG false");
+            if(!currentMacCapReduction && !currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction false -> switchCap = true");
+                this->switchCap = true;
+            }else if (currentMacCapReduction && !currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction true -> switchCap = true & macCapReduction= false");
+                getMAC_PIB().macCapReduction = false;
+                this->switchCap = true; // TODO optimize code
+            }
+
+        }else{
+            LOG_DEBUG("IAMG true");
+            if(!currentMacCapReduction && currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction false -> switchCap = false & macCapReduction= true");
+                getMAC_PIB().macCapReduction = true;
+                this->switchCap = false;
+
+            }
+        }
 
     }
 
@@ -248,9 +270,11 @@ void DSMELayer::slotEvent(int32_t lateness) {
     uint8_t skippedSlots = 0;
     if(currentSlot == 1) { // beginning of CAP
         if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
+            LOG_DEBUG("IAMG SLOT 1 & SF>0 CAP ON ");
             // no CAP available
             skippedSlots = 0;
         } else {
+            LOG_DEBUG("IAMG SLOT 1 & SF>0 CAP OFF ");
             // no (pre) slot events required during CAP
             skippedSlots = 7;
         }

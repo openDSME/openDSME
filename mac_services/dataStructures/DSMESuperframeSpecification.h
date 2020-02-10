@@ -71,7 +71,12 @@ public:
 
     //IAMG proof of concept capOn capOff
     void setCAPReductionFlag(bool CAPReductionFlag);
+
+    //IAMG proof of concept capOn capOff
+    bool getCAPReductionFlag();
 };
+
+
 
 Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec);
 

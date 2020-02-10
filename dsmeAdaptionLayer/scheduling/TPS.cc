@@ -111,29 +111,29 @@ void TPS::multisuperframeEvent() {
         }
 
         data.slotTarget = slots + change;
+         LOG_DEBUG("TPS target: " << data.slotTarget);
 
-        if(data.multisuperframesSinceLastPacket > minFreshness) {
-            data.slotTarget = 0;
-        }
+         if(data.messagesInLastMultisuperframe == 0) {
+             if(data.multisuperframesSinceLastPacket < 0xFFFE) {
+                 data.multisuperframesSinceLastPacket++;
+             }
+         } else {
+             data.multisuperframesSinceLastPacket = 0;
+         }
 
-        if(data.messagesInLastMultisuperframe == 0) {
-            if(data.multisuperframesSinceLastPacket < 0xFFFE) {
-                data.multisuperframesSinceLastPacket++;
-            }
-        } else {
-            data.multisuperframesSinceLastPacket = 0;
-        }
+         if(data.multisuperframesSinceLastPacket > minFreshness) {
+             data.slotTarget = 0;
+         }
 
-        LOG_DEBUG("control"
-                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
-                  << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
-                  << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
+         LOG_DEBUG("control"
+                   << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
+                   << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
+                   << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
 
-        data.messagesInLastMultisuperframe = 0;
-        data.messagesOutLastMultisuperframe = 0;
-        this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevelMSF(queueLevel);
-    }
-}
+         data.messagesInLastMultisuperframe = 0;
+         data.messagesOutLastMultisuperframe = 0;
+     }
+ }
 
 uint8_t TPS::registerIncomingMessage(uint16_t address){
     uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address);

@@ -197,10 +197,20 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     bool switchCapPeriod = this->dsme.getSwitchCap();
     LOG_DEBUG("IAMG inside prepareEnhancedBeacon(), value of switchCapPeriod: ");
     LOG_DEBUG(switchCapPeriod);
+    bool currentMacPibCapReductionMode = this->dsme.getMAC_PIB().macCapReduction;
     if (switchCapPeriod){
-        LOG_DEBUG(" true");
-        bool oldCAPreductionFlag = dsmePANDescriptor.getDSMESuperframeSpecification().CAPReductionFlag;
-        dsmePANDescriptor.getDSMESuperframeSpecification().setCAPReductionFlag(!(oldCAPreductionFlag));
+        LOG_DEBUG("IAMG true");
+        if(!currentMacPibCapReductionMode){
+            LOG_DEBUG("IAMG currentMacCapReduction false -> CapReductionFlag= true");
+            dsmePANDescriptor.getDSMESuperframeSpecification().setCAPReductionFlag(true);
+        }
+     }else{
+         LOG_DEBUG("IAMG false");
+         if(currentMacPibCapReductionMode){
+             LOG_DEBUG("IAMG currentMacCapReduction true -> CapReductionFlag= false");
+             dsmePANDescriptor.getDSMESuperframeSpecification().setCAPReductionFlag(false);
+         }
+
     }
 
 
