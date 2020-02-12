@@ -55,6 +55,10 @@ PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) : phy_pib(phy_pib), mac
     return;
 }
 
+uint8_t PIBHelper::getNumberGTSlotsPerMultisuperframe() const {
+    return getNumGTSlots(0) + (getNumberSuperframesPerMultiSuperframe()-1) * getNumGTSlots(1);
+}
+
 uint8_t PIBHelper::getNumberSuperframesPerMultiSuperframe() const {
     /* 2^(MO-SO) */
     return 1 << (uint8_t)(this->mac_pib.macMultiSuperframeOrder - this->mac_pib.macSuperframeOrder);
@@ -71,20 +75,20 @@ unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
 }
 
 uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
-    if((mac_pib.macCapReduction == false) || (superframeId == 0)) { // correct?
+    if((mac_pib.macCapReduction == false) || (superframeId == 0)) {
         return 8;
     } else {
         return 0;
     }
 }
 
+uint8_t PIBHelper::getNumGTSlots(uint8_t superframeId) const {
+    return (aNumSuperframeSlots - 1 - getFinalCAPSlot(superframeId));
+}
+
 uint32_t PIBHelper::getSymbolsPerSlot() const {
     /* aBaseSlotDuration * 2^(SO) */
     return aBaseSlotDuration * (1 << (uint32_t) this->mac_pib.macSuperframeOrder);
-}
-
-uint8_t PIBHelper::getNumGTSlots(uint8_t superframeId) const {
-    return (aNumSuperframeSlots - 1 - getFinalCAPSlot(superframeId));
 }
 
 uint8_t PIBHelper::getNumChannels() const {

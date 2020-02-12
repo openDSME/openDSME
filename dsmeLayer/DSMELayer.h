@@ -179,9 +179,14 @@ public:
 
     uint32_t getSymbolsSinceCapFrameStart(uint32_t time);
 
+    /** Checks if \p time + \p duration is withing a CAP.
+     *\param time Current time in symbols
+     *\param duration Duration in symbols
+     *\return \p true if \p time + \p duration is within a CAP, \p false otherwise
+     */
     bool isWithinCAP(uint32_t time, uint16_t duration);
 
-    /*! Checks if now and now + duration are in the same time slot.
+    /** Checks if now and now + duration are in the same time slot.
      *\param now Current time in symbols.
      *\param duration Duration in symbols to check.
      *\return true if duration is within same slot, false otherwise.

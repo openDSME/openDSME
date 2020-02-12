@@ -55,6 +55,7 @@ public:
     PIBHelper(PHY_PIB&, MAC_PIB&);
 
     /* Access to MAC_PIB variable dependent attributes */
+    uint8_t getNumberGTSlotsPerMultisuperframe() const;
 
     uint8_t getNumberSuperframesPerMultiSuperframe() const;
 

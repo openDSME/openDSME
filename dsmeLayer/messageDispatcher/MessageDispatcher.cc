@@ -67,8 +67,6 @@
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
-uint8_t mCh;
-
 namespace dsme {
 
 MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
@@ -390,9 +388,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
     // Prepare next slot
     // Switch to next slot channel and radio mode
-
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
-
     if(this->currentACTElement != act.end()) {
         if(this->currentACTElement->getDirection() == Direction::RX) {
             this->currentACTElement = act.end();
@@ -424,24 +420,9 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
-                    mCh = this->currentACTElement->getChannel();
                 } else {
-                    /* Channel hopping: Calculate channel for given slotID */
-                    uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
-                    uint8_t ebsn = 0; // this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
-                    uint16_t sdIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
-                    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(sdIndex);
-
-                    uint8_t slotId = this->currentACTElement->getGTSlotID();
-                    uint16_t channelOffset = this->currentACTElement->getChannel(); // holds the channel offset in channel hopping mode
-
-                    uint8_t channel =
-                        this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex * numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
-                    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex
-                                              << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
-                                              << " Direction: " << currentACTElement->getDirection());
+                    uint8_t channel = nextHoppingSequenceChannel();
                     this->dsme.getPlatform().setChannelNumber(channel);
-                    mCh = channel;
                 }
             }
 
@@ -472,6 +453,23 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     }
 
     return true;
+}
+
+uint8_t MessageDispatcher::nextHoppingSequenceChannel() {
+    uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
+    uint8_t ebsn = 0; // this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
+    uint16_t sdIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
+    uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(sdIndex);
+
+    uint8_t slotId = this->currentACTElement->getGTSlotID();
+    uint16_t channelOffset = this->currentACTElement->getChannel();
+
+    uint8_t channel =
+        this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex * numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
+    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex
+                              << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
+                              << " Direction: " << currentACTElement->getDirection());
+    return channel;
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {

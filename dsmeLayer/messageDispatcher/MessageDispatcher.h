@@ -190,6 +190,10 @@ protected:
 
     void transceiverOffIfAssociated();
 
+    /** Returns the next channel in the hopping sequence.
+     */
+    uint8_t nextHoppingSequenceChannel();
+
     /* Statistics */
     long numTxGtsFrames = 0;
     long numRxAckFrames = 0;
