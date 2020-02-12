@@ -421,7 +421,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
                 } else {
-                    uint8_t channel = nextHoppingSequenceChannel();
+                    uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);
                     this->dsme.getPlatform().setChannelNumber(channel);
                 }
             }
@@ -455,7 +455,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     return true;
 }
 
-uint8_t MessageDispatcher::nextHoppingSequenceChannel() {
+uint8_t MessageDispatcher::nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
     uint8_t ebsn = 0; // this->dsme.getMAC_PIB().macPanCoordinatorBsn;    //TODO is this set correctly
     uint16_t sdIndex = nextSuperframe + this->dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() * nextMultiSuperframe;
