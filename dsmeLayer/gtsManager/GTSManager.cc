@@ -107,10 +107,19 @@ GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle
 }
 
 void GTSManager::initialize() {
+    //dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
+    //                                        dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels());
+    //dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
+    //                                        dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
+
+    //IAMG proof of concept capOncapOff
+    // idea is to have a unified bitmap like bitmap in original capOn. This is dsme.getMAC_PIB().helper.getNumGTSlots(1) = 15
+
     dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels());
+                                            15, dsme.getMAC_PIB().helper.getNumChannels());
     dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
-                                            dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
+                                            15, dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
+
     return;
 }
 
@@ -268,7 +277,23 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     params.dsmeSabSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
                     params.dsmeSabSpecification.setSubBlockIndex(it->getSuperframeID());
                     params.dsmeSabSpecification.getSubBlock().fill(false);
+
                     params.dsmeSabSpecification.getSubBlock().set(it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+
+
+                    //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
+                    if((it->getSuperframeID()!= 0) && (it->getGTSlotID()<15) && (6 <it->getGTSlotID())){
+                        params.numSlot = 2;
+                        uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(1);
+                        if(it->getGTSlotID() % 2 == 0){
+                            params.dsmeSabSpecification.getSubBlock().set((it->getGTSlotID()-1) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+
+                        }else{
+                            params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()+1) % numGTSlots) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+
+                            }
+                        }
+
 
                     this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
                     break;
@@ -461,7 +486,11 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         if(numSlotsOk == 0) {
                             event.management.status = GTSStatus::DENIED;
                         } else {
-                            DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
+                            LOG_DEBUG("IAMG DUPLICATE ALLOCATION TRUE. NUMBERSLOTSOK: " << (int16_t)numSlotsOk);
+
+                            //DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
+                            //IAMG PRoof of concept capOn capOff. idea to handle more than one slot per negotiation
+                            event.management.status = GTSStatus::DENIED;
                         }
                     } else {
                         actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr,

@@ -84,7 +84,15 @@ uint32_t PIBHelper::getSymbolsPerSlot() const {
 }
 
 uint8_t PIBHelper::getNumGTSlots(uint8_t superframeId) const {
-    return (aNumSuperframeSlots - 1 - getFinalCAPSlot(superframeId));
+    //return (aNumSuperframeSlots - 1 - getFinalCAPSlot(superframeId));
+    //IAMG proof of concept capOff capOn
+    // idea is return always the same number of gts slots per superframes different to 0 ?  is this correct
+    // if superframe ID == 0 numGTSSlots = 7 else 15
+    if (superframeId == 0){
+        return (aNumSuperframeSlots - 9);
+    }else{
+        return (aNumSuperframeSlots - 1);
+    }
 }
 
 uint8_t PIBHelper::getNumChannels() const {

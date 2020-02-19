@@ -147,9 +147,22 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
         if(numSlotIt == numAllocatedSlots[d].end()) {
             LOG_DEBUG("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
-            numAllocatedSlots[d].insert(1, address);
+
+            //IAMG Proof of concept capOn capOff. idea -> in case of CAP GTS the number of allocated GTS will be one for two CAP GTS.
+            if(((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15) && (gtSlotID % 2 == 1)) || (gtSlotID < 7)){
+                //IAMG
+                numAllocatedSlots[d].insert(1, address);
+            }
+
+
         } else {
-            (*numSlotIt)++;
+
+            //IAMG Proof of concept capOn capOff. idea -> in case of CAP GTS the number of allocated GTS will be one for two CAP GTS.
+            if(((superframeID !=0) && (6 < gtSlotID) && (gtSlotID < 15) && (gtSlotID % 2 == 1)) || (gtSlotID < 7)){
+                (*numSlotIt)++;
+            }
+
+
             LOG_DEBUG("Incrementing slot count " << d << HEXOUT << " for 0x" << address << DECOUT << " (now at " << *numSlotIt << ").");
         }
 
@@ -173,10 +186,35 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
 
+/*    if ((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15) && (gtsSlotID % 2 == 0)){
+        bitmap.set(getBitmapPosition(superframeID, (gtSlotID -1)), false);
+
+    }else if ((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15) && (gtsSlotID % 2 == 1)){
+        bitmap.set(getBitmapPosition(superframeID, (gtSlotID + 1)), false);
+    }*/
+
     int d = (it->direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
     DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
-    (*numSlotIt)--;
+
+    //IAMG Proof of concept capOn capOff. idea -> in case of CAP GTS the number of allocated GTS will be one for two CAP GTS.
+    if(gtSlotID < 7){
+            (*numSlotIt)--;
+        }
+
+    if(((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15))){
+        if(gtSlotID % 2 == 0){
+            if (!isAllocated(superframeID, (gtSlotID-1))){
+                (*numSlotIt)--;
+            }
+        }else if (gtSlotID % 2 == 1){
+            if(!isAllocated(superframeID, (gtSlotID+1))){
+                (*numSlotIt)--;
+            }
+        }
+    }
+
+
     LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
     if((*numSlotIt) == 0) {
         numAllocatedSlots[d].remove(numSlotIt);
@@ -233,7 +271,7 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
     }
-    DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
+    DSME_ASSERT(subBlock.getSubBlock().count(true) < 3); //IAMG CAP ON CAP OFF. IDea to trigger assert if count (i.e. number of slots > 3)
 
     for(DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
         // this calculation assumes there is always exactly one superframe in the subblock

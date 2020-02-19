@@ -221,7 +221,7 @@ public:
 protected:
     IDSMEPlatform* platform;
     DSMEEventDispatcher eventDispatcher;
-    DSMEPANDescriptor dsmePANDescriptor;
+    //DSMEPANDescriptor dsmePANDescriptor; // to check
     Delegate<void()> startOfCFPDelegate;
 
     //IAMG proof of concept Cap On cap Off

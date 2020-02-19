@@ -114,6 +114,11 @@ public:
      */
     void handleBeaconRequest(IDSMEMessage*);
 
+
+    //IAMG PROOF of concept cap off cap On
+    DSMEPANDescriptor getDsmePANDescriptor() {
+            return dsmePANDescriptor;
+        }
 protected:
     DSMELayer& dsme;
 

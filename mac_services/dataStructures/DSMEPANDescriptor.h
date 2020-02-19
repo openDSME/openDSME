@@ -68,7 +68,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
     }
     //IAMG proof of concept capOn capOff
     DSMESuperframeSpecification& getDSMESuperframeSpecification(){
-        return dsmeSuperframeSpec;
+        return this->dsmeSuperframeSpec;
     }
 
     DSMEPANDescriptor& operator=(const DSMEPANDescriptor& other) {

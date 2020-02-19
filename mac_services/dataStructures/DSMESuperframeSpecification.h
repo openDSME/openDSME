@@ -70,10 +70,10 @@ public:
     }
 
     //IAMG proof of concept capOn capOff
-    void setCAPReductionFlag(bool CAPReductionFlag);
+    void setCAPReductionFlag(DSMESuperframeSpecification& spec,bool CAPReductionFlag);
 
     //IAMG proof of concept capOn capOff
-    bool getCAPReductionFlag();
+    bool getCAPReductionFlag(DSMESuperframeSpecification& spec);
 };
 
 

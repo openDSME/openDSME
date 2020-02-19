@@ -83,6 +83,7 @@ struct GTSSchedulingDecision {
 static constexpr GTSSchedulingDecision NO_SCHEDULING_ACTION{IEEE802154MacAddress::NO_SHORT_ADDRESS, ManagementType::ALLOCATION, Direction::TX, 0, 0, 0};
 
 class GTSScheduling {
+
 public:
     GTSScheduling(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
     }
@@ -195,11 +196,24 @@ public:
         if(target > numAllocatedSlots) {
             uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
             uint8_t randomSuperframeID = this->dsmeAdaptionLayer.getRandom() % numSuperFramesPerMultiSuperframe;
-
             uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(randomSuperframeID);
             uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
 
-            return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
+            //IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 7 TO 15 IN SF different to 0, to evaluate only slots available in CAP
+
+            /*if (randomSuperframeID !=0){
+                if (randomSlotID < 7)
+                randomSlotID = randomSlotID + 7;
+            }*/
+
+            //IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 0 TO 6 IN SFs, to evaluate only slots available in CFP
+
+            if (6 < randomSlotID){
+                randomSlotID = randomSlotID % 7;
+            }
+
+
+         return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
         } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
             /* TODO: slot and superframe ID are currently ignored for DEALLOCATION */
             return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};

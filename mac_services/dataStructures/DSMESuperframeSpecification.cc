@@ -70,12 +70,14 @@ Serializer& operator<<(Serializer& serializer, DSMESuperframeSpecification& spec
 }
 
 //IAMG proof of concept capOn capOff
-void DSMESuperframeSpecification::setCAPReductionFlag(bool CAPReductionFlag){
-    this->CAPReductionFlag = CAPReductionFlag;
+void DSMESuperframeSpecification::setCAPReductionFlag(DSMESuperframeSpecification& spec,bool CAPReductionFlag){
+    //this->CAPReductionFlag = CAPReductionFlag;
+
+    spec.CAPReductionFlag = true;
 }
 //IAMG proof of concept capOn capOff
-bool DSMESuperframeSpecification::getCAPReductionFlag(){
-    return  this->CAPReductionFlag;
+bool DSMESuperframeSpecification::getCAPReductionFlag(DSMESuperframeSpecification& spec){
+    return  spec.CAPReductionFlag;
 }
 
 } /* namespace dsme */

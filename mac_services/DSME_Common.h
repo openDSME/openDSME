@@ -94,6 +94,10 @@ enum Direction { TX = 0x00, RX = 0x01 };
 
 enum Priority { LOW = 0x00, HIGH = 0x01 };
 
+//IAMG Proof of concept CAP On capOff. idea to create an enum to differentiate which type of GTS it is going to be treated. GTS_CAP Or GTS_CFP
+enum GTSType { GTS_CFP = 0X00, GTS_CAP = 0X01 };
+
+
 struct GTSStatus {
     enum GTS_Status {
         SUCCESS,
