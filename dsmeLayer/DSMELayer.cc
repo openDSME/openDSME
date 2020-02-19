@@ -359,6 +359,22 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
            && (symbolsSinceCapFrameStart + duration <= capEnd); // before pre-event of first GTS
 }
 
+bool DSMELayer::isWithinTimeSlot(uint32_t now, uint16_t duration) {
+    uint32_t symbolsPerSlot = getMAC_PIB().helper.getSymbolsPerSlot();
+    uint32_t symbolsSinceLastBeaconInterval = now - this->beaconManager.getLastKnownBeaconIntervalStart();
+
+    uint32_t timeSlotStart = (symbolsSinceLastBeaconInterval / symbolsPerSlot) * symbolsPerSlot + this->beaconManager.getLastKnownBeaconIntervalStart();
+    uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot - PRE_EVENT_SHIFT;
+
+    DSME_ASSERT(now >= timeSlotStart && now <= timeSlotEnd);
+    LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << now << ") <= duration ("
+        << now+duration << ") <= slot end time (" << timeSlotEnd << ")");
+
+    return now + duration <= timeSlotEnd;
+}
+
+
+
 void DSMELayer::startTrackingBeacons() {
     this->trackingBeacons = true;
     return;

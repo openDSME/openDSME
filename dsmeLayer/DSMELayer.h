@@ -204,6 +204,14 @@ public:
 
     bool isWithinCAP(uint32_t time, uint16_t duration);
 
+    /*! Checks if now and now + duration are in the same time slot.
+      *\param now Current time in symbols.
+      *\param duration Duration in symbols to check.
+      *\return true if duration is within same slot, false otherwise.
+      */
+     bool isWithinTimeSlot(uint32_t now, uint16_t duration);
+
+
     uint16_t getCurrentSuperframe() const {
         return currentSuperframe;
     }

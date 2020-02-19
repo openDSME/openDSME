@@ -58,6 +58,7 @@ enum EventTimers {
     NEXT_SLOT,
     CSMA_TIMER,
     ACK_TIMER,
+    IFS_TIMER,  /* IFS after dataframe transmission */
     TIMER_COUNT /* always last element */
 };
 
@@ -78,6 +79,12 @@ public:
     void setupACKTimer();
     void stopACKTimer();
 
+    /*! Sets up a timer for a SIFS (12 sybols) or LIFS (40 symbols).
+     *\param LIFS true for a LIFS, false for a SIFS.
+     */
+    void setupIFSTimer(bool LIFS);
+    void stopIFSTimer();
+
 private:
     DSMELayer& dsme;
 
@@ -85,6 +92,7 @@ private:
     void fireSlotTimer(int32_t lateness);
     void fireCSMATimer(int32_t lateness);
     void fireACKTimer(int32_t lateness);
+    void fireIFSTimer(int32_t lateness);
 
     ReadonlyTimerAbstraction<IDSMEPlatform> NOW;
     WriteonlyTimerAbstraction<IDSMEPlatform> TIMER;

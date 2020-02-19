@@ -68,11 +68,13 @@ public:
     void setUseHysteresis(bool useHysteresis);
     uint8_t registerIncomingMessage(uint16_t address);
     void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation);
+    void setUseMultiplePacketsPerGTS(bool useMultiplePackets);
 
 private:
     float alpha{0}; // TODO no float
     uint16_t minFreshness{0xFFFF};
     bool useHysteresis{true};
+    bool useMultiplePacketsPerGTS{false};
 };
 
 } /* namespace dsme */

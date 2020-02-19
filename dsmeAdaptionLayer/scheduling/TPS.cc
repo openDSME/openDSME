@@ -68,6 +68,11 @@ void TPS::setUseHysteresis(bool useHysteresis) {
     this->useHysteresis = useHysteresis;
 }
 
+void TPS::setUseMultiplePacketsPerGTS(bool useMultiplePackets) {
+    this->useMultiplePacketsPerGTS = useMultiplePackets;
+}
+
+
 void TPS::multisuperframeEvent() {
     if(!header) {
         LOG_DEBUG("control"
@@ -97,7 +102,22 @@ void TPS::multisuperframeEvent() {
         data.avgIn = data.messagesInLastMultisuperframe * alpha + data.avgIn * (1 - alpha);
 
         uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
-        float error = data.avgIn - slots;
+
+        //LengthFrameInSymbols = Preamble +SFD + PHR + PSDU (PHYPayload)
+        //Preamble = 8 symbols;
+        //SFD = 2 symbols;
+        //PHR = 2 symbols;
+        //PSDU = MHR + MACPayload + MFR;
+        uint8_t packets_per_slot = 1;
+        if(useMultiplePacketsPerGTS) {
+            packets_per_slot = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() - PRE_EVENT_SHIFT) / ((6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod);
+                /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */
+        }
+
+        LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
+        float error = (data.avgIn / packets_per_slot) - slots;
+        LOG_DEBUG("TPS error: " << error);
+        LOG_DEBUG("TPS slots: " << (int)slots);
 
         int8_t change = 0;
         if(useHysteresis) {
@@ -111,29 +131,29 @@ void TPS::multisuperframeEvent() {
         }
 
         data.slotTarget = slots + change;
-         LOG_DEBUG("TPS target: " << data.slotTarget);
+        LOG_DEBUG("TPS target: " << data.slotTarget);
 
-         if(data.messagesInLastMultisuperframe == 0) {
-             if(data.multisuperframesSinceLastPacket < 0xFFFE) {
-                 data.multisuperframesSinceLastPacket++;
-             }
-         } else {
-             data.multisuperframesSinceLastPacket = 0;
-         }
+        if(data.messagesInLastMultisuperframe == 0) {
+            if(data.multisuperframesSinceLastPacket < 0xFFFE) {
+                data.multisuperframesSinceLastPacket++;
+            }
+        } else {
+            data.multisuperframesSinceLastPacket = 0;
+        }
 
-         if(data.multisuperframesSinceLastPacket > minFreshness) {
-             data.slotTarget = 0;
-         }
+        if(data.multisuperframesSinceLastPacket > minFreshness) {
+            data.slotTarget = 0;
+        }
 
-         LOG_DEBUG("control"
-                   << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
-                   << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
-                   << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
+        LOG_DEBUG("control"
+                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
+                  << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
+                  << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
 
-         data.messagesInLastMultisuperframe = 0;
-         data.messagesOutLastMultisuperframe = 0;
-     }
- }
+        data.messagesInLastMultisuperframe = 0;
+        data.messagesOutLastMultisuperframe = 0;
+    }
+}
 
 uint8_t TPS::registerIncomingMessage(uint16_t address){
     uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address);

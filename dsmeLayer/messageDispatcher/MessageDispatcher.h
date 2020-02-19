@@ -103,26 +103,44 @@ public:
         return numUpperPacketsForGTS;
     }
 
-    /**
-     * This shall be called shortly before the start of every slot to allow for setting up the transceiver.
+    long getNumUnusedTxGTS() const {
+        return this->numUnusedTxGts;
+    }
+
+    long getNumUnusedRxGTS() const {
+        return this->numUnusedRxGts;
+    }
+
+    void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
+        this->multiplePacketsPerGTS = multiplePacketsPerGTS;
+    }
+
+    /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
      *
-     * @param nextSlot The upcoming slot number
-     * @param nextSuperframe The upcoming superframe number
-     * @param nextMultiSuperframe The upcoming multisuperframe number
+     * \param nextSlot The upcoming slot number
+     * \param nextSuperframe The upcoming superframe number
+     * \param nextMultiSuperframe The upcoming multisuperframe number
      *
-     * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
+     * \return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
     bool handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
 
-    /**
-     * This shall be called at the start of every slot.
+    /*! This shall be called at the start of every slot.
      *
-     * @param slot The new slot number
-     * @param superframe The new superframe number
+     * \param slot The new slot number
+     * \param superframe The new superframe number
      *
-     * @return false if the MessageDispatcher is busy and can not handle the event, true otherwise
+     * \return false if the MessageDispatcher is busy and can not handle the event, true otherwise
      */
     bool handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness);
+
+    /*!
+     * This shall be called one SIFS or LIFS after the reception of an acknowledgement,
+     * depending on the length of the transmitted frame. Transmits the next frame
+     * AFTER a frame has already been transmitted.
+     */
+    bool handleIFSEvent(int32_t lateness);
+
 
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
@@ -133,34 +151,57 @@ protected:
 
     /**
      * Called on start of every GTSlot.
-     * Switch channel for reception or transmit from queue in allocated slots.
+     * Switch channel for reception or transmit from queue in allocated slots. TODO: correct?
      */
     void handleGTS(int32_t lateness);
 
     /**
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
-    void handleGTSFrame(IDSMEMessage*);
+    void handleGTSFrame(IDSMEMessage* msg);
 
+    /*! Prepares the next GTS message from the packet queue for transmission.
+     *\return true if a message was prepared, false otherwise, i.e., if there is
+     *        no packet in the queue or the remaining time is not sufficient for
+     *        transmission.
+     */
+    bool prepareNextMessageIfAny();
+
+    /*! Transmits the prepared GTS message by passing the message to the ACKLayer.
+     *  The MessageDispatcher maintains ownership of the packet so it must not be
+     *  deleted before the ACKLayer finishes the transmission. The callback-function
+     *  sendDoneGTS is called after every attempted transmission.
+     *\brief Transmits the prepared GTS message.
+     *\return true if the transmission is attempted, false otherwise.
+     */
+    bool sendPreparedMessage();
+
+    NeighborQueue<MAX_NEIGHBORS> neighborQueue;
+    NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
+    IDSMEMessage *preparedMsg{nullptr};
+
+    void createDataIndication(IDSMEMessage* msg);
+
+    /*! Finalizes the current GTS. Turns off the transceiver if transmitting,
+     *  resets the neighbor associated with the time slot and ensures there
+     *  is no message pending.
+     */
+    void finalizeGTSTransmission();
+
+    void transceiverOffIfAssociated();
+
+    /* Statistics */
     long numTxGtsFrames = 0;
     long numRxAckFrames = 0;
     long numRxGtsFrames = 0;
     long numUnusedTxGts = 0;
     long numUnusedRxGts = 0;
-
     long numUpperPacketsDroppedFullQueue = 0;
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
-
     bool recordGtsUpdates = false;
 
-    NeighborQueue<MAX_NEIGHBORS> neighborQueue;
-    NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
-
-    void createDataIndication(IDSMEMessage* msg);
-
-    void finalizeGTSTransmission();
-    void transceiverOffIfAssociated();
+    bool multiplePacketsPerGTS{false};
 };
 
 } /* namespace dsme */
