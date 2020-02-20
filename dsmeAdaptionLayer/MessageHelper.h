@@ -85,6 +85,8 @@ public:
     void handleAssociationComplete(AssociationStatus::Association_Status status);
     void handleScanAndSyncComplete(PANDescriptor* panDescriptor);
 
+    bool isAssociated();
+
 private:
     void handleDataConfirm(mcps_sap::DATA_confirm_parameters& params);
     void handleDataIndication(mcps_sap::DATA_indication_parameters& params);

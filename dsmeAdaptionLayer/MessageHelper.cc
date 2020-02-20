@@ -57,7 +57,7 @@ MessageHelper::MessageHelper(DSMEAdaptionLayer& dsmeAdaptionLayer)
     : dsmeAdaptionLayer(dsmeAdaptionLayer),
 
       scanOrSyncInProgress(false),
-      associationInProgress(false) {
+      associationInProgress(false){
 }
 
 void MessageHelper::initialize() {
@@ -315,7 +315,10 @@ void MessageHelper::handleAssociationComplete(AssociationStatus::Association_Sta
     if(status != AssociationStatus::SUCCESS) {
         startAssociation(); 
     }
+
     return;
 }
+
+
 
 } /* namespace dsme */
