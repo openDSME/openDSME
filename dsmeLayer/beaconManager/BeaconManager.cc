@@ -321,6 +321,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     //IAMG PROOF of concept capOncapOff
     //assign the value of capReductionFlag from Beacon into dsmePANDescriptor
     dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = descr.dsmeSuperframeSpec.CAPReductionFlag;
+    LOG_DEBUG("IAMG. InsideHandleBeacon. CAPreductionFlag " << descr.dsmeSuperframeSpec.CAPReductionFlag << ".");
 
     neighborOrOwnHeardBeacons.set(descr.getBeaconBitmap().getSDIndex(), true);
     neighborOrOwnHeardBeacons.orWith(descr.getBeaconBitmap());
