@@ -217,22 +217,20 @@ void DSMELayer::preSlotEvent(void) {
 
         if(this->switchCap == false){
             LOG_DEBUG("IAMG false");
-            if(!currentMacCapReduction && !currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction & flag: false -> switchCap = true");
+            if(currentMacCapReduction && currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction & flag: true -> switchCap = true");
                 this->switchCap = true;
-            }else if (currentMacCapReduction && !currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction true -> switchCap = true & macCapReduction= false");
-                //getMAC_PIB().macCapReduction = false;
-                this->mac_pib->macCapReduction = false;
+            }else if (!currentMacCapReduction && currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction false -> switchCap = true & macCapReduction= true");
+                this->mac_pib->macCapReduction = true;
                 this->switchCap = true; // TODO optimize code
             }
 
         }else{
             LOG_DEBUG("IAMG true");
-            if(!currentMacCapReduction && currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction false & CapReductionFlag= true-> switchCap = false ");
-                //getMAC_PIB().macCapReduction = true;
-                this->mac_pib->macCapReduction = true;
+            if(currentMacCapReduction && !currentCapReductionFlag){
+                LOG_DEBUG("IAMG currentMacCapReduction true & CapReductionFlag= false-> switchCap = false ");
+                this->mac_pib->macCapReduction = false;
                 this->switchCap = false;
 
             }

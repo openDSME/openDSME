@@ -188,18 +188,18 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
         LOG_DEBUG("IAMG true");
         LOG_DEBUG("IAMG inside prepareEnhancedBeacon(), value of currentMacPibCapReductionMode: ");
         LOG_DEBUG(currentMacPibCapReductionMode);
-        if(currentMacPibCapReductionMode == false){
-            LOG_DEBUG("IAMG currentMacCapReduction false -> CapReductionFlag= true");
-            dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = true;
+        if(currentMacPibCapReductionMode){
+            LOG_DEBUG("IAMG currentMacCapReduction true -> CapReductionFlag= false");
+            dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = false;
             bool aux = dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag;
             LOG_DEBUG("IAMG value of CAPreductionFlag");
             LOG_DEBUG(aux);
         }
      }else{
          LOG_DEBUG("IAMG false");
-         if(currentMacPibCapReductionMode){
-             LOG_DEBUG("IAMG currentMacCapReduction true -> CapReductionFlag= false");
-             dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = false;
+         if(!currentMacPibCapReductionMode){
+             LOG_DEBUG("IAMG currentMacCapReduction false -> CapReductionFlag= true");
+             dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = true;
          }
 
     }

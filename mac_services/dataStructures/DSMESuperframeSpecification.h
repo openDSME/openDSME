@@ -65,7 +65,9 @@ public:
         : multiSuperframeOrder(0),
           macChannelDiversityMode(Channel_Diversity_Mode::CHANNEL_ADAPTATION),
           GACKFlag(false),
-          CAPReductionFlag(false),
+          //CAPReductionFlag(false),
+          //IAMG proof of concept capOn capOff. idea-> start with capReductionFlag = true
+          CAPReductionFlag(true),
           deferredBeaconFlag(false) {
     }
 
