@@ -198,11 +198,27 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     int16_t highestIdleCounter = -1;
     DSMEAllocationCounterTable::iterator toDeallocate = act.end();
+    bool foundGTSCAP = false;
+
     for(auto it = act.begin(); it != act.end(); ++it) {
-        if(it->getDirection() == Direction::TX && it->getAddress() == address) {
-            if(it->getState() == ACTState::VALID && it->getIdleCounter() > highestIdleCounter) {
-                highestIdleCounter = it->getIdleCounter();
-                toDeallocate = it;
+            if(it->getDirection() == Direction::TX && it->getAddress() == address) {
+                if(it->getState() == ACTState::VALID && it->getSuperframeID()!=0 &&
+                        it->getGTSlotID()>6 && it->getGTSlotID()<15 && it->getIdleCounter() > highestIdleCounter) {
+                    highestIdleCounter = it->getIdleCounter();
+                    toDeallocate = it;
+                    foundGTSCAP = true;
+                }
+            }
+        }
+
+    if (!foundGTSCAP){
+        for(auto it = act.begin(); it != act.end(); ++it) {
+            if(it->getDirection() == Direction::TX && it->getAddress() == address) {
+                if(it->getState() == ACTState::VALID && it->getGTSlotID()>=0 && it->getGTSlotID()<7
+                        && it->getIdleCounter() > highestIdleCounter) {
+                    highestIdleCounter = it->getIdleCounter();
+                    toDeallocate = it;
+                }
             }
         }
     }
