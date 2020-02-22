@@ -121,7 +121,8 @@ void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
     if(decision.managementType == ManagementType::ALLOCATION) {
         checkAndAllocateGTS(decision);
     } else if(decision.managementType == ManagementType::DEALLOCATION) {
-        checkAndDeallocateSingeleGTS(decision.deviceAddress);
+        checkAndDeallocateMultipleGTS(decision);
+        //checkAndDeallocateSingeleGTS(decision.deviceAddress);
     } else {
         DSME_ASSERT(false);
     }
@@ -195,6 +196,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
 }
 
 void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
+    //IAMG CODE For single GTS deallocation
     DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     int16_t highestIdleCounter = -1;
     DSMEAllocationCounterTable::iterator toDeallocate = act.end();
@@ -255,6 +257,125 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
     }
 }
+
+
+void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
+    //IAMG CODE For multiple GTS deallocation at most the number of required GTS in one SF
+
+    DSMEAllocationCounterTable& act = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint8_t numberTargetGTStoDealloc = decision.numSlot;
+    uint8_t numberGTStoDealloc = 0;
+    uint8_t slotsToDeallocate = 0;
+    float highestSlotCounter = 0;
+    uint16_t highestSlotCounterSuperframeId = 0;
+    //check which SF has the highest number of allocated slots at least equals to numberGTStoDealloc
+
+    for (uint16_t superframeId = 0 ; superframeId == numSuperFramesPerMultiSuperframe; ++superframeId){
+        float temporalSlotCounter = 0;
+        for(auto it = act.begin(); it != act.end(); ++it) {
+            if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID()==superframeId) {
+                if(it->getState() == ACTState::VALID  && it->getGTSlotID()>= 0 && it->getGTSlotID()< 7) {
+                        ++temporalSlotCounter;
+                }else if(it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 && it->getGTSlotID()> 6 && it->getGTSlotID()< 15){
+                    if (it->getGTSlotID()%2 == 1){
+                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()+1))){
+                            temporalSlotCounter = temporalSlotCounter + 0.5;
+                        }
+                    }else if(it->getGTSlotID()%2 ==0){
+                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()-1))){
+                            temporalSlotCounter = temporalSlotCounter + 0.5;
+                        }
+
+                    }
+
+                }
+            }
+        }
+        if (temporalSlotCounter > highestSlotCounter){
+            highestSlotCounter = temporalSlotCounter;
+            highestSlotCounterSuperframeId = superframeId;
+        }
+    }
+
+    //once the highestSlotCounter per SF is retrieved then it is compare with the number of slots to deallocate
+
+    if(numberTargetGTStoDealloc >= highestSlotCounter){
+        numberGTStoDealloc = highestSlotCounter;
+    }else if(highestSlotCounter > numberTargetGTStoDealloc){
+        numberGTStoDealloc = numberTargetGTStoDealloc;
+    }
+
+    // once the number of slots to deallocate is known perform deallocation
+
+    int16_t highestIdleCounter = -1;
+    DSMEAllocationCounterTable::iterator toDeallocate = act.end();
+    bool foundGTSCAP = false;
+    DSMESABSpecification dsmeSABSpecification;
+
+    while (slotsToDeallocate <= numberGTStoDealloc){
+        auto itUpdated = act.begin();
+        for(auto it = itUpdated; it != act.end(); ++it) {
+            if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID() == highestSlotCounterSuperframeId) {
+                if(it->getState() == ACTState::VALID && it->getSuperframeID()!=0 &&
+                            it->getGTSlotID()>6 && it->getGTSlotID()<15 && it->getIdleCounter() > highestIdleCounter) {
+                    highestIdleCounter = it->getIdleCounter();
+                    toDeallocate = it;
+                    itUpdated = it;
+                    foundGTSCAP = true;
+                 }
+            }
+        }
+
+        if (!foundGTSCAP){
+            for(auto it = itUpdated; it != act.end(); ++it) {
+                if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID() == highestSlotCounterSuperframeId) {
+                    if(it->getState() == ACTState::VALID && it->getGTSlotID()>=0 && it->getGTSlotID()<7
+                            && it->getIdleCounter() > highestIdleCounter) {
+                        highestIdleCounter = it->getIdleCounter();
+                        toDeallocate = it;
+                        itUpdated = it;
+
+                    }
+                }
+            }
+        }
+
+        if(toDeallocate != act.end()) {
+            LOG_INFO("DEALLOCATING slot " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << " with 0x" << HEXOUT
+                                          << toDeallocate->getAddress() << DECOUT);
+
+
+            uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(toDeallocate->getSuperframeID());
+            dsmeSABSpecification.setSubBlockLengthBytes(subBlockLengthBytes);
+            dsmeSABSpecification.setSubBlockIndex(toDeallocate->getSuperframeID());
+            dsmeSABSpecification.getSubBlock().fill(false);
+
+
+            dsmeSABSpecification.getSubBlock().set(
+                toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+
+            //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
+            if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<15) && (6 <toDeallocate->getGTSlotID())){
+
+                uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+                if(toDeallocate->getGTSlotID() % 2 == 0){
+                    dsmeSABSpecification.getSubBlock().set(
+                                            ((toDeallocate->getGTSlotID() - 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+
+                }else{
+                dsmeSABSpecification.getSubBlock().set(
+                            ((toDeallocate->getGTSlotID() + 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+                }
+            }
+        }
+        foundGTSCAP = false;
+        ++slotsToDeallocate;
+    }
+    sendDeallocationRequest(toDeallocate->getAddress(), toDeallocate->getDirection(), dsmeSABSpecification);
+
+}
+
 
 void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters& params) {
     LOG_INFO("COMM_STATUS indication handled.");

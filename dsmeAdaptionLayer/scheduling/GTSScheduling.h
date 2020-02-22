@@ -216,7 +216,9 @@ public:
          return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
         } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
             /* TODO: slot and superframe ID are currently ignored for DEALLOCATION */
-            return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
+            //IAMG PROOF of concept capOn capOff -> idea to perform multiple deallocations instead 1 GTS per dealloc.
+            uint8_t numberGTStoDealloc= numAllocatedSlots - target;
+            return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, numberGTStoDealloc, 0, 0};
         } else {
             return NO_SCHEDULING_ACTION;
         }

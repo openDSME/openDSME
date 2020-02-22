@@ -94,6 +94,9 @@ private:
 
     void checkAndDeallocateSingeleGTS(uint16_t address);
 
+    //IAMG PROOF of concept CapOn capOFf. -> function to deallocate multiple slots
+    void checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision);
+
     GTS getContiguousFreeGTS();
 
     GTS getRandomFreeGTS();
