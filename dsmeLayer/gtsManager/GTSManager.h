@@ -4,13 +4,13 @@
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
  * introduced in the IEEE 802.15.4e-2012 standard
  *
- * Authors: Florian Meier <florian.meier@tuhh.de>
- *          Maximilian Koestler <maximilian.koestler@tuhh.de>
- *          Sandrina Backhauss <sandrina.backhauss@tuhh.de>
+ * Authors: Florian Meier <florian.meier\tuhh.de>
+ *          Maximilian Koestler <maximilian.koestler\tuhh.de>
+ *          Sandrina Backhauss <sandrina.backhauss\tuhh.de>
  *
  * Based on
  *          DSME Implementation for the INET Framework
- *          Tobias Luebkert <tobias.luebkert@tuhh.de>
+ *          Tobias Luebkert <tobias.luebkert\tuhh.de>
  *
  * Copyright (c) 2015, Institute of Telematics, Hamburg University of Technology
  * All rights reserved.
@@ -109,84 +109,83 @@ public:
 
     void reset();
 
-    /*
+    /*!
      * For external calling from upper layer (over MLME.request).
      * Request for allocating  new GTSSlots to specified Address.
      *
-     * @param deviceAddr The address of the respective other device
-     * @param gtsManagement The management field of the MLME Request
-     * @param gtsRequestAllocationCmd The request command field of the MLME Request
+     * \param deviceAddr The address of the respective other device
+     * \param gtsManagement The management field of the MLME Request
+     * \param gtsRequestAllocationCmd The request command field of the MLME Request
      *
-     * @return false if the GTSManager is busy and can not handle the request, true otherwise
+     * \return false if the GTSManager is busy and can not handle the request, true otherwise
      */
     bool handleMLMERequest(uint16_t deviceAddr, GTSManagement& gtsManagement, GTSRequestCmd& gtsRequestAllocationCmd);
 
-    /*
+    /*!
      * Called on reception of a GTS-response from upper layer.
      * Handles the response.
      *
-     * @param gtsManagement The management field of the MLME Response
-     * @param gtsReply The reply command field of the MLME Response
+     * \param gtsManagement The management field of the MLME Response
+     * \param gtsReply The reply command field of the MLME Response
      *
-     * @return false if the GTSManager is busy and can not handle the response, true otherwise
+     * \return false if the GTSManager is busy and can not handle the response, true otherwise
      */
     bool handleMLMEResponse(GTSManagement& gtsManagement, GTSReplyNotifyCmd& gtsReply);
 
-    /**
+    /*!
      * Called on reception of a GTS-request.
      * Send request to upper layer.
      *
-     * @param msg The received message. Might be modified afterwards (even in case of false),
+     * \param msg The received message. Might be modified afterwards (even in case of false),
      *            but the caller still owns the memory and has to release it.
      *
-     * @return false if the GTSManager is busy and can not handle the message, true otherwise
+     * \return false if the GTSManager is busy and can not handle the message, true otherwise
      */
     bool handleGTSRequest(IDSMEMessage* msg);
 
-    /**
+    /*!
      * Update slot allocation
      * Request initiator then sends GTS Notify to its neighbors.
      *
-     * @param msg The received message. Might be modified afterwards (even in case of false),
+     * \param msg The received message. Might be modified afterwards (even in case of false),
      *            but the caller still owns the memory and has to release it.
      *
-     * @return false if the GTSManager is busy and can not handle the message, true otherwise
+     * \return false if the GTSManager is busy and can not handle the message, true otherwise
      */
     bool handleGTSResponse(IDSMEMessage* msg);
 
-    /**
+    /*!
      * Update slot allocation on reception of GTS Notify
      *
-     * @param msg The received message. Might be modified afterwards (even in case of false),
+     * \param msg The received message. Might be modified afterwards (even in case of false),
      *            but the caller still owns the memory and has to release it.
      *
-     * @return false if the GTSManager is busy and can not handle the message, true otherwise
+     * \return false if the GTSManager is busy and can not handle the message, true otherwise
      */
     bool handleGTSNotify(IDSMEMessage* msg);
 
-    /**
+    /*!
      * This shall be called at the start of every CFP.
      *
-     * @param superframe The superframe number
+     * \param superframe The superframe number
      *
-     * @return false if the GTSManager is busy and can not handle the event, true otherwise
+     * \return false if the GTSManager is busy and can not handle the event, true otherwise
      */
     bool handleStartOfCFP(uint8_t superframe);
 
-    /**
-     * Gets called when CSMA Message was sent down to the PHY
+    /*!
+     * Gets called when CSMA Message was sent down to the physical layer
      *
-     * @param msg The received message. Might be modified afterwards (even in case of false),
+     * \param msg The received message. Might be modified afterwards (even in case of false),
      *            but the caller still owns the memory and has to release it.
-     * @param cmdId The command ID of the sent message.
-     * @param status The data status of the sent message.
-     * @param numBackoffs The total number of backoffs required to sent or drop the message.
+     * \param cmdId The command ID of the sent message.
+     * \param status The data status of the sent message.
+     * \param numBackoffs The total number of backoffs required to sent or drop the message.
      *
-     * @return false if the GTSManager is busy and can not handle the message, true otherwise
+     * \return false if the GTSManager is busy and can not handle the message, true otherwise
      */
     bool onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
-    uint32_t numGTSMessages{0};
 
 private:
     /**
@@ -211,7 +210,6 @@ private:
      */
     bool sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement& man, CommandFrameIdentifier commandId, uint16_t dst, bool reportOnSent = true);
     bool checkAndHandleGTSDuplicateAllocation(DSMESABSpecification& sabSpec, uint16_t addr, bool allChannels);
-    unsigned getNumAllocatedGTS(bool direction);
     void sendNotify(GTSReplyNotifyCmd& reply, uint16_t sourceAddr, GTSManagement& man);
     bool isTimeoutPending(uint8_t fsmId);
     void preparePendingConfirm(GTSEvent& event);

@@ -56,7 +56,7 @@ PIBHelper::PIBHelper(PHY_PIB& phy_pib, MAC_PIB& mac_pib) : phy_pib(phy_pib), mac
 }
 
 uint8_t PIBHelper::getNumberGTSlotsPerMultisuperframe() const {
-    return getNumGTSlots(0) + (getNumberSuperframesPerMultiSuperframe()-1) * getNumGTSlots(1);
+    return getNumGTSlots(0) + (getNumberSuperframesPerMultiSuperframe() - 1) * getNumGTSlots(1);
 }
 
 uint8_t PIBHelper::getNumberSuperframesPerMultiSuperframe() const {
@@ -75,7 +75,7 @@ unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
 }
 
 uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
-    if((mac_pib.macCapReduction == false) || (superframeId == 0)) {
+    if((!mac_pib.macCapReduction && !mac_pib.macDynamicCap) || superframeId == 0) {
         return 8;
     } else {
         return 0;

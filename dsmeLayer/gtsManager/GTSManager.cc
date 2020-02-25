@@ -937,7 +937,6 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
         data[fsmId].msgToSend = msg;
     }
 
-    numGTSMessages++;
     return dsme.getMessageDispatcher().sendInCAP(msg);
 }
 

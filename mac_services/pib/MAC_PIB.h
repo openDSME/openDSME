@@ -427,6 +427,12 @@ public:
     /** Indicates whether DSME GTSs are allocated during the association procedure. This attribute is set to TRUE if a device requests assignment of a DSME GTS
      * during association. */
     bool macDsmeAssociation{true};
+
+    /* DSME  EXTENSIONS FROM HERE ON ---------------------------------------> */
+
+    /* Indicates if CAPs should be dynamically shrinked (and extended) to allow
+     * for more GTS depending on the traffic demand of the network */ 
+    bool macDynamicCap{true};
 };
 
 } /* namespace dsme */

@@ -218,15 +218,15 @@ void DSMELayer::slotEvent(int32_t lateness) {
     }
 
     uint8_t skippedSlots = 0;
-    if(currentSlot == 1) { // beginning of CAP
-        if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
-            // no CAP available
-            skippedSlots = 0;
-        } else {
-            // no (pre) slot events required during CAP
-            skippedSlots = 7;
-        }
-    }
+    //if(currentSlot == 1) { // beginning of CAP
+    //    if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
+    //        // no CAP available
+    //        skippedSlots = 0;
+    //    } else {
+    //        // no (pre) slot events required during CAP
+    //        skippedSlots = 7;
+    //    }
+    //}
 
     this->nextSlotTime = eventDispatcher.setupSlotTimer(currentSlotTime, skippedSlots);
 
@@ -237,7 +237,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);
 
-    if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1) {
+    if(currentSlot == 8) {
         platform->scheduleStartOfCFP();
     }
 }
@@ -272,7 +272,7 @@ uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     }
 }
 
-bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
+bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {             // CAP REDUCTION IS NOT EVEN CONSIDERED HERE
     uint32_t symbolsPerSlot = getMAC_PIB().helper.getSymbolsPerSlot();
 
     uint32_t symbolsSinceCapFrameStart = getSymbolsSinceCapFrameStart(time);

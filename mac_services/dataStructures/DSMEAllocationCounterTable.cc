@@ -130,7 +130,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
-  
+
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
     }
