@@ -268,10 +268,14 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress,
                                              uint16_t channelOffset, bool useChannelOffset, condition_t condition, bool checkAddress) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
+    bit_vector_size_t count = 0;
+    count = subBlock.getSubBlock().count(true);
+
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
     }
-    DSME_ASSERT(subBlock.getSubBlock().count(true) < 3); //IAMG CAP ON CAP OFF. IDea to trigger assert if count (i.e. number of slots > 3)
+    LOG_DEBUG("IAMG. Inside DSMEALlocationCounterTable. setACTState. retrieve the count of sbublock: "<< count);
+    //DSME_ASSERT(subBlock.getSubBlock().count(true) < 3); //IAMG CAP ON CAP OFF. IDea to trigger assert if count (i.e. number of slots > 3)
 
     for(DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
         // this calculation assumes there is always exactly one superframe in the subblock

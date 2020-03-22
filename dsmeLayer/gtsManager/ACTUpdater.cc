@@ -137,6 +137,10 @@ void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement&
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
                                                        useChannelOffset);
     } else if(management.type == ManagementType::DEALLOCATION) {
+        LOG_DEBUG("IAMG. INSIDE ACTupdater approvalDelivered.");
+        bit_vector_size_t count =  sabSpec.getSubBlock().count(true);
+        LOG_DEBUG("IAMG. INSIDE ACTUpdater numbersetBits in sabSpec: "<< (uint16_t)count);
+
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, 0, false);
     } else {
         // No action required

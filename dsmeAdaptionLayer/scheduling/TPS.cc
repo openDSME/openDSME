@@ -125,7 +125,7 @@ void TPS::multisuperframeEvent() {
                 change = ceil(error);
             } else if(error < -2) {
                 //IAMG. PROof of concept capOncapOff. queue management implementation in case the incomming traffic decreases drastically
-                uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(data.address);
+                uint16_t queueLevel = GTSSchedulingImpl::getNeighborQueue(data.address);
                 //if the level of the queue is equal or greater than the number of allocated slots. then change = 0
                 if(queueLevel >= slots){
                     LOG_DEBUG("IAMG. Inside TPS queueLevel >= slots");
@@ -167,7 +167,8 @@ void TPS::multisuperframeEvent() {
 
 uint8_t TPS::registerIncomingMessage(uint16_t address){
     uint8_t queueLevel = GTSSchedulingImpl::registerIncomingMessage(address);
-    this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevel(true); // signal one incoming packet to the queue
+    //this->dsmeAdaptionLayer.getDSME().getPlatform().signalGTSQueueLevel(true); // signal one incoming packet to the queue
+
     return queueLevel;
 }
 

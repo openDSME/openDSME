@@ -114,6 +114,7 @@ public:
     }
 
     friend Serializer& operator<<(Serializer& serializer, DSMESABSpecification& b);
+
 };
 
 inline Serializer& operator<<(Serializer& serializer, DSMESABSpecification& b) {

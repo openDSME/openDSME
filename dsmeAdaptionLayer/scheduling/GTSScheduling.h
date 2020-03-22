@@ -52,13 +52,14 @@ namespace dsme {
 class DSMEAdaptionLayer;
 
 struct GTSSchedulingData {
-    GTSSchedulingData() : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0), slotTarget(1) {
+    GTSSchedulingData() : address(0xffff), messagesInLastMultisuperframe(0), messagesOutLastMultisuperframe(0),messagesInQueue(0) ,slotTarget(1) {
     }
 
     uint16_t address;
 
     uint16_t messagesInLastMultisuperframe;
     uint16_t messagesOutLastMultisuperframe;
+    uint16_t messagesInQueue;
 
     int16_t slotTarget;
 };
@@ -91,6 +92,7 @@ public:
     virtual ~GTSScheduling() = default;
     virtual void reset() = 0;
     virtual uint8_t registerIncomingMessage(uint16_t address) = 0;
+    virtual uint16_t getNeighborQueue(uint16_t address) = 0;
     virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) = 0;
     virtual void registerReceivedMessage(uint16_t address) = 0;
     virtual void multisuperframeEvent() = 0;
@@ -131,11 +133,24 @@ public:
             SchedulingData data;
             data.address = address;
             data.messagesInLastMultisuperframe++;
+            data.messagesInQueue++; // IAMG:insert QUEUE count per Neighbor
             this->txLinks.insert(data, address);
         } else {
             it->messagesInLastMultisuperframe++;
+            it->messagesInQueue++;// IAMG:insert QUEUE count per Neighbor
         }
         return queueLevel;
+    }
+
+    virtual uint16_t getNeighborQueue(uint16_t address){
+
+        uint16_t neighborQueue = 0;
+        iterator it = this->txLinks.find(address);
+        if(it == this->txLinks.end()) {
+            return neighborQueue;
+        }else{
+            neighborQueue = it->messagesInQueue;
+        }
     }
 
     virtual void registerOutgoingMessage(uint16_t address, bool success, int32_t serviceTime, uint8_t queueAtCreation) {

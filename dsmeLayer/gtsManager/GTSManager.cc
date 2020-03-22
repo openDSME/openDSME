@@ -405,6 +405,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     if(event.management.status == GTSStatus::SUCCESS) {
+                        LOG_DEBUG("IAMG. INSIDE GTS managerstateMachine. state sending event GTSreply and GTSStatus= success is rigth?");
                         actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
                         data[fsmId].notifyPartnerAddress = event.deviceAddr;
                         return transition(fsmId, &GTSManager::stateWaitForNotify);
