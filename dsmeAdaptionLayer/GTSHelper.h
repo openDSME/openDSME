@@ -77,6 +77,8 @@ public:
 
     void handleStartOfCFP();
 
+    void setUseMultipleGTSDeallocation(bool useMultipleGTSDeallocation);//IAMG set multiple deallocations
+
 private:
     /* MLME handlers */
 
@@ -120,6 +122,9 @@ private:
 
     bool gtsConfirmPending;
     bool gtsDeallocConfirmPending;
+
+    bool useMultipleGTSDeallocation{false}; //IAMG control parameter to enable mulitple or single deallocation
+
 };
 
 } /* namespace dsme */

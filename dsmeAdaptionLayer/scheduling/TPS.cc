@@ -72,6 +72,9 @@ void TPS::setUseMultiplePacketsPerGTS(bool useMultiplePackets) {
     this->useMultiplePacketsPerGTS = useMultiplePackets;
 }
 
+void TPS::setUseQueueManagement(bool useQueueManagement) {
+    this->useQueueManagement = useQueueManagement;
+}
 
 void TPS::multisuperframeEvent() {
     if(!header) {
@@ -124,17 +127,21 @@ void TPS::multisuperframeEvent() {
             if(error > 0) {
                 change = ceil(error);
             } else if(error < -2) {
-                //IAMG. PROof of concept capOncapOff. queue management implementation in case the incomming traffic decreases drastically
-                uint16_t queueLevel = GTSSchedulingImpl::getNeighborQueue(data.address);
-                //if the level of the queue is equal or greater than the number of allocated slots. then change = 0
-                if(queueLevel >= slots){
-                    LOG_DEBUG("IAMG. Inside TPS queueLevel >= slots");
-                    change = 0; //keep slots in order to alliviate the queue
-                }else if(queueLevel < slots){
-                    LOG_DEBUG("IAMG. Inside TPS queueLevel < slots");
-                    change= ceil(queueLevel-slots) +1; // deallocate slots that are not needed to supply queue demand and keep 1 slot.
+
+                if (useQueueManagement){
+                    //IAMG. PROof of concept capOncapOff. queue management implementation in case the incomming traffic decreases drastically
+                    uint16_t queueLevel = GTSSchedulingImpl::getNeighborQueue(data.address);
+                    //if the level of the queue is equal or greater than the number of allocated slots. then change = 0
+                    if(queueLevel >= slots){
+                        LOG_DEBUG("IAMG. Inside TPS queueLevel >= slots");
+                        change = 0; //keep slots in order to alliviate the queue
+                    }else if(queueLevel < slots){
+                        LOG_DEBUG("IAMG. Inside TPS queueLevel < slots");
+                        change= ceil(queueLevel-slots) +1; // deallocate slots that are not needed to supply queue demand and keep 1 slot.
+                    }
+                }else{
+                    change = ceil(error) + 1; //original code
                 }
-                //change = ceil(error) + 1; //original code
             }
         } else {
             change = ceil(error);
