@@ -214,18 +214,27 @@ public:
             uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(randomSuperframeID);
             uint8_t randomSlotID = this->dsmeAdaptionLayer.getRandom() % numGTSlots;
 
-            //IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 7 TO 15 IN SF different to 0, to evaluate only slots available in CAP
+            //IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 9 TO 15 IN SF different to 0, to evaluate only slots available in CfP. In case of SF=0,
+            //the value of slot ids is between 0 -6
 
-            /*if (randomSuperframeID !=0){
-                if (randomSlotID < 7)
-                randomSlotID = randomSlotID + 7;
-            }*/
+            if (randomSuperframeID !=0){
+                if (randomSlotID < 8){
+                    randomSlotID = (randomSlotID + 8)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+                    if(randomSlotID == 0){
+                        randomSlotID = 8;
+                    }
+                }
+            }else if(randomSuperframeID == 0){
+                if (randomSlotID > 6){
+                    randomSlotID = randomSlotID % this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
+                }
+            }
 
-            //IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 0 TO 6 IN SFs, to evaluate only slots available in CFP
+            /*//IAMG PROOF OF CONCEPT CAP OFF CAP ON. IDEA IS TO SELECT RANDOM SLOT BETWEEN 0 TO 6 IN SFs, to evaluate only slots available in CFP
 
             if (6 < randomSlotID){
                 randomSlotID = randomSlotID % 7;
-            }
+            }*/
 
 
          return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};

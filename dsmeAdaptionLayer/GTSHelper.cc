@@ -183,7 +183,8 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
 
     //IAMG PROOF Of concept CAPON capOFf. Idea is to check if preferred slot is in CFP or CAP. If iT is a GTS_CAP then trigger allocation of 2 slots.
     // TODO// CHECK how the allocation of GTS happens in the receiver side
-    if((preferredGTS.superframeID !=0) && (6 < preferredGTS.slotID) && (preferredGTS.slotID < 15)){
+    //if((preferredGTS.superframeID !=0) && (6 < preferredGTS.slotID) && (preferredGTS.slotID < 15)){
+    if((preferredGTS.superframeID !=0) && (preferredGTS.slotID < 8)){
         LOG_DEBUG("IAMG. Inside CheckAndAllocateGTS. vaule of preferred slotId: " << (uint16_t)preferredGTS.slotID);
         params.numSlot = 2;
         }else{
@@ -747,30 +748,29 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
 GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
     GTS gts(0,0,0);
 
-    if (initialSlotID < 7){
+    if (((initialSlotID < 7) && (initialSuperframeID == 0)) || ((initialSlotID > 7) && (initialSlotID < 15) && (initialSuperframeID != 0))){ //SF=0 , slots between 0-6 are part of CFP
         gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
         if (gts == GTS::UNDEFINED){
-            if (initialSuperframeID == 0){
-                return GTS::UNDEFINED;
-            }else{
-                initialSlotID = 7;
-                gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
-                return gts;
-            }
-
-        }
-        return gts;
-    }else if((initialSuperframeID !=0) && (6 < initialSlotID) && (initialSlotID < 15)){
-        gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
-        if (gts == GTS::UNDEFINED){
             initialSlotID = 0;
-            gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
+            if(initialSuperframeID = 0){
+                initialSuperframeID = 1;
+            }
+            gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
+            return gts;
+            }
+        return gts;
+
+        }else if((initialSuperframeID !=0) && (initialSlotID < 8)){
+            gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
+            if (gts == GTS::UNDEFINED){
+                initialSlotID = 8;
+                gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
         }
         return gts;
     }
     return GTS::UNDEFINED;
 }
-GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, GTSType typeOfGTS) {
+/*GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, GTSType typeOfGTS) {
 
 
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
@@ -831,7 +831,7 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
                 gts.channel = startChannel;
                 for(uint8_t i = 0; i < numChannels; i++) {
                     if(!occupied.get(gts.channel)) {
-                        /* found one */
+                         found one
                         //IAMG. PRoof of concept CAPon CAPoff. Idea-> after a GTS is found in GTS_CAP. check if the next one is available as well
                         if(typeOfGTS == GTSType::GTS_CAP){
                             // TODO CHECK if slot is odd and THE NEXT SLOT IS AVAILABLE(?)
@@ -870,7 +870,191 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
     }
 
     return GTS::UNDEFINED;
+}*/
+
+GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, GTSType typeOfGTS) {
+
+
+    DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
+
+    uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+
+    uint16_t slotsToCheck = 0;
+    uint8_t numGTSlots = 0;
+
+    GTS gts(0, 0, 0);
+
+    BitVector<MAX_CHANNELS> occupied;
+    BitVector<MAX_CHANNELS> remoteOccupied; // only used if sabSpec != nullptr
+    occupied.setLength(numChannels);
+
+    if(sabSpec != nullptr) {
+            DSME_ASSERT(sabSpec->getSubBlockIndex() == initialSuperframeID);
+            remoteOccupied.setLength(numChannels);
+        }
+
+    if (typeOfGTS == GTSType::GTS_CFP){
+
+        slotsToCheck = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) +
+                       (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
+                       this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
+
+        numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0); // numGTS in SF
+
+
+/*
+        if(initialSuperframeID == 0){
+            if(initialSlotID > 6){
+                return GTS::UNDEFINED;
+            }
+        }else if(initialSlotID < 8){
+            return GTS::UNDEFINED;
+        }
+*/
+
+    }else if (typeOfGTS == GTSType::GTS_CAP){
+
+        gts = GTS(1,0,0);
+
+        slotsToCheck = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
+                        ((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)); // 8 slots per SF
+        numGTSlots = ((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)); // numGTS available in CAP 8 slots
+
+        //verify that preferred GTS is in the correct range. IN this case, if initialSF==0 -> slotId < 7. Otherwise, 7< slotId < 15
+
+//        if(initialSuperframeID == 0){
+            /*initialSuperframeID = 1;
+            if(initialSlotID > 7){
+                initialSlotID = initialSlotID % this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
+}*/
+
+//        }else if (initialSuperframeID != 0){
+/*            if(initialSlotID > 7){
+                initialSlotID = initialSlotID % this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0);
+            }*/
+
+        if(gts.superframeID ==0){
+            LOG_DEBUG("IAMG. gts undefined because there is no slots for CAp in SF 0");
+            //gts.superframeID=1;
+            return GTS::UNDEFINED;
+            }
+    }
+
+    LOG_DEBUG("IAMG. initialSFid -> " << (uint16_t) initialSuperframeID << " initial slotID -> "<< (uint16_t)initialSlotID);
+    for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
+
+
+        if(sabSpec != nullptr && gts.superframeID != initialSuperframeID) {
+            // currently per convention a sub block holds exactly one superframe
+            return GTS::UNDEFINED;
+        }
+
+
+        //redefinition of superframe id for gts in cfp, when superframeId ==0
+        if(typeOfGTS == GTSType::GTS_CAP){
+            //IAMG proof of concept CAPON OFF. idea is to select only solts number 7 to 15. for selecting only available slots in CAP when CAPreduction is on or onoff
+            if(gts.superframeID ==0){
+                LOG_DEBUG("IAMG. getnextFreeGTS -> superframeID==0 bypass SF = 0");
+                gts.superframeID=1;
+                //return GTS::UNDEFINED;
+            }
+        }
+
+         LOG_INFO("Checking " <<  (uint16_t) numGTSlots << " in superframe " << gts.superframeID);
+
+         // in case the initial slot id is not in the range (8,14) is it neccesary?
+         uint8_t delimiter = numGTSlots;
+         if (typeOfGTS == GTSType::GTS_CFP){
+             if(gts.superframeID!=0){
+                 delimiter = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+ /*                if (initialSlotID % delimiter < 8){
+                     initialSlotID = 8;
+                 }*/
+             }
+         }
+
+         for(gts.slotID = initialSlotID % delimiter; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % delimiter) {
+
+             if (typeOfGTS == GTSType::GTS_CFP){
+                 if(gts.superframeID!=0){
+                     if (gts.slotID < 8){
+                         gts.slotID = 8;
+                     }
+                 }
+             }
+            if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
+
+                uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
+                macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
+                if(sabSpec != nullptr) {
+                    remoteOccupied.copyFrom(sabSpec->getSubBlock(), gts.slotID * numChannels);
+                    occupied.setOperationJoin(remoteOccupied);
+                }
+
+                gts.channel = startChannel;
+                for(uint8_t i = 0; i < numChannels; i++) {
+                    if(!occupied.get(gts.channel)) {
+                        /* found one */
+                        //IAMG. PRoof of concept CAPon CAPoff. Idea-> after a GTS is found in GTS_CAP. check if the next one is available as well
+                        if((typeOfGTS == GTSType::GTS_CAP)){
+                            // TODO CHECK if slot is odd and THE NEXT SLOT IS AVAILABLE(?)
+                            if ((gts.slotID % 2 == 0) && (gts.superframeID != 0) && (gts.slotID < 8) && (!macDSMEACT.isAllocated(gts.superframeID, ((gts.slotID +1) % (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1)-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)))))){
+                                return gts;
+                            }
+
+                        }else if (typeOfGTS == GTSType::GTS_CFP){
+                            if(((gts.superframeID==0)&&(gts.slotID<7))||((gts.superframeID!=0) && (7<gts.slotID) && (gts.slotID <15))){
+                                return gts;
+                            }
+
+                        }
+
+                    }
+
+                    gts.channel++;
+                    if(gts.channel == numChannels) {
+                        gts.channel = 0;
+                    }
+                }
+            }
+            slotsToCheck--;
+
+            // calculate the next slot id to check
+
+            //special case is for CFP next slot, in which the next slot is not in range slotId(8,14)
+            if((typeOfGTS == GTSType::GTS_CFP)){
+
+                if((((gts.slotID+1)% this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))<8) && (gts.superframeID!=0)){
+                gts.slotID = 7;
+                }
+                if((((gts.slotID+1)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1)) == initialSlotID) && (gts.superframeID!=0)) {
+                    LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
+                    break;
+                }
+                if(((gts.slotID+1)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) == initialSlotID) && (gts.superframeID==0)) {
+                    LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
+                    break;
+                }
+
+            }else if(typeOfGTS == GTSType::GTS_CAP){
+                if(gts.superframeID !=0){
+                    if((gts.slotID+1)%((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-(this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0))) == initialSlotID) {
+                        LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    return GTS::UNDEFINED;
 }
+
+
+
+
 
 
 /*GTS GTSHelper::getNextFreeCAPGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {

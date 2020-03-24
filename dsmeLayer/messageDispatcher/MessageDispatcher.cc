@@ -409,7 +409,25 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     if(nextSlot > this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe)) {
         /* '-> next slot will be GTS */
 
-        unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);
+        //unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);// original code
+
+        //IAMG MODIFICATION TO RETRIEVE THE CORRECT NEXTGTS
+        // CASE CAP_ON and SF != 0
+        // unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);//
+        // CASE CAP_ON and SF == 0  && CASE CAP_OFF and SF == 0
+        // unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);//
+        // CASE CAP_OFF and SF != 0
+        // unsigned nextGTS = nextSlot - 1;//
+
+        unsigned nextGTS = 0;
+        if(nextSuperframe !=0){
+            nextGTS = nextSlot - 1;//
+        }else if(nextSuperframe == 0){
+            nextGTS = (nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1))%this->dsme.getMAC_PIB().helper.getNumGTSlots(nextSuperframe);
+        }
+
+
+
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             /* '-> this slot might be used */
 
