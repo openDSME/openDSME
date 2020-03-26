@@ -208,9 +208,16 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
                 //IAMG PROOF of concept capOn capOff. idea-> to set the GTS_CAP in pairs
                 if(params.numSlot == 2){
                     LOG_DEBUG("INSIDE gtsHelper-> checkAndAllocateGTS. If params.numSlot =2");
-                    uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
-                    params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()+1)% numGTSlots) * numChannels + channel, true);
-                }
+                    if (preferredGTS.slotID%2 == 0){
+                        params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()+1)% (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1)) * numChannels + channel, true);
+
+                    }else if(preferredGTS.slotID%2 == 1){
+                        params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()-1)% (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1)) * numChannels + channel, true);
+
+                    }
+
+
+                 }
             }
         }
     }
@@ -229,7 +236,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     for(auto it = act.begin(); it != act.end(); ++it) {
             if(it->getDirection() == Direction::TX && it->getAddress() == address) {
                 if(it->getState() == ACTState::VALID && it->getSuperframeID()!=0 &&
-                        it->getGTSlotID()>6 && it->getGTSlotID()<15 && it->getIdleCounter() > highestIdleCounter) {
+                        it->getGTSlotID()>8 && it->getIdleCounter() > highestIdleCounter) {
                     highestIdleCounter = it->getIdleCounter();
                     toDeallocate = it;
                     foundGTSCAP = true;
@@ -240,8 +247,9 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     if (!foundGTSCAP){
         for(auto it = act.begin(); it != act.end(); ++it) {
             if(it->getDirection() == Direction::TX && it->getAddress() == address) {
-                if(it->getState() == ACTState::VALID && it->getGTSlotID()>=0 && it->getGTSlotID()<7
-                        && it->getIdleCounter() > highestIdleCounter) {
+                if((it->getState() == ACTState::VALID && it->getGTSlotID()>7 && it->getGTSlotID()<15 && it->getSuperframeID()!=0
+                        && it->getIdleCounter() > highestIdleCounter) || (it->getState() == ACTState::VALID && it->getSuperframeID()==0 && it->getGTSlotID()<7
+                                && it->getIdleCounter() > highestIdleCounter)) {
                     highestIdleCounter = it->getIdleCounter();
                     toDeallocate = it;
                 }
@@ -264,16 +272,16 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
             toDeallocate->getGTSlotID() * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
 
         //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
-        if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<15) && (6 <toDeallocate->getGTSlotID())){
+        if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<8)){
 
             uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
             if(toDeallocate->getGTSlotID() % 2 == 0){
                 dsmeSABSpecification.getSubBlock().set(
-                                        ((toDeallocate->getGTSlotID() - 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+                                        ((toDeallocate->getGTSlotID() + 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
 
             }else{
             dsmeSABSpecification.getSubBlock().set(
-                        ((toDeallocate->getGTSlotID() + 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
+                        ((toDeallocate->getGTSlotID() - 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
             }
         }
 
@@ -752,9 +760,9 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
         if (gts == GTS::UNDEFINED){
             initialSlotID = 0;
-            if(initialSuperframeID = 0){
+            /*if(initialSuperframeID == 0){
                 initialSuperframeID = 1;
-            }
+            }*/
             gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
             return gts;
             }

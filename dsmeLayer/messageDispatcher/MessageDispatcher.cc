@@ -516,51 +516,156 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
 
 
 void MessageDispatcher::handleGTS(int32_t lateness) {
-    if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
-       this->currentACTElement->getGTSlotID() ==
-           this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
-        /* '-> this slot matches the prepared ACT element */
 
-        if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
-            /* '-> a message may be received during this slot */
+    //IAMG-> modify code to fit with previous model, GtsID = Slot - 1 in case sf!=0. If sf== 0, GtsID = slot -1
 
-        } else if(this->currentACTElement->getState() == VALID) {
-            /* '-> if any messages are queued for this link, send one */
+    bool CAP_On = this->dsme.getMAC_PIB().macCapReduction;
 
-            DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+    if (this->dsme.getCurrentSuperframe()==0){
+        LOG_DEBUG("HI IVONNE! sf=0");
+        if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
+           this->currentACTElement->getGTSlotID() ==
+               this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { // IAMG original code
+            /* '-> this slot matches the prepared ACT element */
+            LOG_DEBUG("HI IVONNE!MUT");
+            if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+                /* '-> a message may be received during this slot */
 
-            IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
-            this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
-            if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
-                /* '-> the neighbor associated with the current slot does not exist */
+            } else if(this->currentACTElement->getState() == VALID) {
+                /* '-> if any messages are queued for this link, send one */
 
-                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
-                LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
-                for(auto it : this->neighborQueue) {
-                    LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
-                                                   << DECOUT);
+                DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+
+                IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
+                this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
+                if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
+                    /* '-> the neighbor associated with the current slot does not exist */
+
+                    LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                    LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                    for(auto it : this->neighborQueue) {
+                        LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                       << DECOUT);
+                    }
+                    DSME_ASSERT(false);
                 }
-                DSME_ASSERT(false);
-            }
 
-            bool success = prepareNextMessageIfAny();
-            LOG_DEBUG(success);
-            if(success) {
-                /* '-> a message is queued for transmission */
-                success = sendPreparedMessage();
-            }
-            LOG_DEBUG(success);
+                bool success = prepareNextMessageIfAny();
+                LOG_DEBUG(success);
+                if(success) {
+                    /* '-> a message is queued for transmission */
+                    success = sendPreparedMessage();
+                }
+                LOG_DEBUG(success);
 
-            if(success == false) {
-                /* '-> no message to be sent */
-                LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
-                this->numUnusedTxGts++;
+                if(success == false) {
+                    /* '-> no message to be sent */
+                    LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
+                    this->numUnusedTxGts++;
+                    finalizeGTSTransmission();
+                }
+            } else {
                 finalizeGTSTransmission();
             }
-        } else {
-            finalizeGTSTransmission();
+        }
+    }else if(CAP_On){
+        LOG_DEBUG("HI IVONNE! CAPOn");
+        if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
+           this->currentACTElement->getGTSlotID() ==
+               //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { // IAMG original code
+               this->dsme.getCurrentSlot() - 1) {
+            /* '-> this slot matches the prepared ACT element */
+            LOG_DEBUG("HI IVONNE!MUT");
+            if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+                /* '-> a message may be received during this slot */
+
+            } else if(this->currentACTElement->getState() == VALID) {
+                /* '-> if any messages are queued for this link, send one */
+
+                DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+
+                IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
+                this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
+                if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
+                    /* '-> the neighbor associated with the current slot does not exist */
+
+                    LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                    LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                    for(auto it : this->neighborQueue) {
+                        LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                       << DECOUT);
+                    }
+                    DSME_ASSERT(false);
+                }
+
+                bool success = prepareNextMessageIfAny();
+                LOG_DEBUG(success);
+                if(success) {
+                    /* '-> a message is queued for transmission */
+                    success = sendPreparedMessage();
+                }
+                LOG_DEBUG(success);
+
+                if(success == false) {
+                    /* '-> no message to be sent */
+                    LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
+                    this->numUnusedTxGts++;
+                    finalizeGTSTransmission();
+                }
+            } else {
+                finalizeGTSTransmission();
+            }
+        }
+    }else if(!CAP_On){
+        LOG_DEBUG("HI IVONNE CAP OFf!");
+        if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
+           this->currentACTElement->getGTSlotID() ==
+                   this->dsme.getCurrentSlot() - 1) { // IAMG original code
+
+            /* '-> this slot matches the prepared ACT element */
+            LOG_DEBUG("HI IVONNE CAP OFf! MUT");
+            if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
+                /* '-> a message may be received during this slot */
+
+            } else if(this->currentACTElement->getState() == VALID) {
+                /* '-> if any messages are queued for this link, send one */
+
+                DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+
+                IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
+                this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
+                if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
+                    /* '-> the neighbor associated with the current slot does not exist */
+
+                    LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                    LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                    for(auto it : this->neighborQueue) {
+                        LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                       << DECOUT);
+                    }
+                    DSME_ASSERT(false);
+                }
+
+                bool success = prepareNextMessageIfAny();
+                LOG_DEBUG(success);
+                if(success) {
+                    /* '-> a message is queued for transmission */
+                    success = sendPreparedMessage();
+                }
+                LOG_DEBUG(success);
+
+                if(success == false) {
+                    /* '-> no message to be sent */
+                    LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
+                    this->numUnusedTxGts++;
+                    finalizeGTSTransmission();
+                }
+            } else {
+                finalizeGTSTransmission();
+            }
         }
     }
+
 }
 void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     DSME_ASSERT(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end());
