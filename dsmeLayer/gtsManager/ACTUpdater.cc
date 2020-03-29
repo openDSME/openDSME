@@ -91,7 +91,7 @@ void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& 
 void ACTUpdater::disapproved(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
     LOG_ACT("disapproved");
     if(management.type == ManagementType::DEALLOCATION) {
-        DSME_ASSERT(sabSpec.getSubBlock().count(true) > 0);
+        //DSME_ASSERT(sabSpec.getSubBlock().count(true) > 0);
 
         if(management.status == GTSStatus::DENIED) {
             this->dsme.getMAC_PIB().macDSMEACT.setACTStateIfExists(sabSpec, ACTState::REMOVED,

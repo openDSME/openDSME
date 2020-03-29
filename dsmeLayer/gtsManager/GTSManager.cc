@@ -282,14 +282,14 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
 
                     //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
-                    if((it->getSuperframeID()!= 0) && (it->getGTSlotID()<15) && (6 <it->getGTSlotID())){
+                    if((it->getSuperframeID()!= 0) && (it->getGTSlotID()<8)){
                         params.numSlot = 2;
-                        uint8_t numGTSlots = this->dsme.getMAC_PIB().helper.getNumGTSlots(1);
+                        uint8_t numGTSlots = 15;
                         if(it->getGTSlotID() % 2 == 0){
-                            params.dsmeSabSpecification.getSubBlock().set((it->getGTSlotID()-1) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+                            params.dsmeSabSpecification.getSubBlock().set((it->getGTSlotID()+1) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
 
                         }else{
-                            params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()+1) % numGTSlots) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
+                            params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()-1) % numGTSlots) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
 
                             }
                         }

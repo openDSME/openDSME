@@ -236,7 +236,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     for(auto it = act.begin(); it != act.end(); ++it) {
             if(it->getDirection() == Direction::TX && it->getAddress() == address) {
                 if(it->getState() == ACTState::VALID && it->getSuperframeID()!=0 &&
-                        it->getGTSlotID()>8 && it->getIdleCounter() > highestIdleCounter) {
+                        it->getGTSlotID()<8 && it->getIdleCounter() > highestIdleCounter) {
                     highestIdleCounter = it->getIdleCounter();
                     toDeallocate = it;
                     foundGTSCAP = true;
@@ -274,12 +274,12 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
         //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
         if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<8)){
 
-            uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+            uint8_t numGTSlots = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) +1);
             if(toDeallocate->getGTSlotID() % 2 == 0){
                 dsmeSABSpecification.getSubBlock().set(
                                         ((toDeallocate->getGTSlotID() + 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
 
-            }else{
+            }else if(toDeallocate->getGTSlotID() % 2 == 1){
             dsmeSABSpecification.getSubBlock().set(
                         ((toDeallocate->getGTSlotID() - 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
             }
@@ -314,19 +314,24 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
         for(auto it = itUpdated; it != act.end(); ++it) {
             LOG_DEBUG("IAMG. inside multipleDealloc in for act to retrieve allocated slots");
             if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID()==superframeId) {
-                if(it->getState() == ACTState::VALID  && it->getGTSlotID()>= 0 && it->getGTSlotID()< 7) {
+                if(it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 &&
+                        it->getGTSlotID()>8 ) {
                         ++temporalSlotCounter;
                         itUpdated= it;
                         LOG_DEBUG("IAMG. FOUND GTS_CFP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<< (uint16_t)it->getGTSlotID());
-                }else if(it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 && it->getGTSlotID()> 6 && it->getGTSlotID()< 15){
+                }else if(it->getState() == ACTState::VALID && it->getSuperframeID()==0 && it->getGTSlotID()<7){
+                        ++temporalSlotCounter;
+                        itUpdated= it;
+                }else if(it->getState() == ACTState::VALID && it->getGTSlotID()>7 && it->getGTSlotID()<15 && it->getSuperframeID()!=0
+                        ){
                     if (it->getGTSlotID()%2 == 1){
-                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()+1))){
+                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()-1))){
                             temporalSlotCounter = temporalSlotCounter + 0.5;
                             itUpdated= it;
                             LOG_DEBUG("IAMG. FOUND GTS_CAP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<< (uint16_t)it->getGTSlotID());
                         }
                     }else if(it->getGTSlotID()%2 ==0){
-                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()-1))){
+                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()+1))){
                             temporalSlotCounter = temporalSlotCounter + 0.5;
                             itUpdated= it;
                             LOG_DEBUG("IAMG. FOUND GTS_CAP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<<(uint16_t) it->getGTSlotID());
@@ -375,9 +380,9 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
 
                     LOG_DEBUG("CONDITION FOR superframe adress and tx is true");
                     if(it->getState() == ACTState::VALID && it->getSuperframeID()!=0 &&
-                                it->getGTSlotID()>6 && it->getGTSlotID()<15 )  {
+                                it->getGTSlotID()<8 )  {
                         checkedSlots = checkedSlots + 0.5;
-                        if(it->getGTSlotID()%2 ==1){
+                        if(it->getGTSlotID()%2 ==0){
                             if(it->getIdleCounter() > highestIdleCounter){
                                 highestIdleCounter = it->getIdleCounter();
                                 toDeallocate = it;
@@ -389,8 +394,9 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
                         }
 
 
-                     }else if(it->getState() == ACTState::VALID &&
-                             it->getGTSlotID()>= 0 && it->getGTSlotID()<7 ){
+                     }else if((it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 &&
+                             it->getGTSlotID()>7 && it->getGTSlotID()<15 ) || (it->getState() == ACTState::VALID && it->getSuperframeID()==0 &&
+                                     it->getGTSlotID()<7)){
                          ++checkedSlots;
                      }
                 }
@@ -409,8 +415,11 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
 
                 LOG_DEBUG("IAMG. multiple dealloc. for itUpdated. GTS_Cfp value of it: "<< (uint16_t)it->getGTSlotID()<< " value of itUPdated: "<< (uint16_t)itUpdated->getGTSlotID() );
                 if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID() == highestSlotCounterSuperframeId) {
-                    if(it->getState() == ACTState::VALID && it->getGTSlotID()>=0 && it->getGTSlotID()<7
-                            && it->getIdleCounter() > highestIdleCounter) {
+
+                    if((it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 &&
+                            it->getGTSlotID()>7 && it->getGTSlotID()<15 ) || (it->getState() == ACTState::VALID && it->getSuperframeID()==0 &&
+                                    it->getGTSlotID()<7)) {
+
                         highestIdleCounter = it->getIdleCounter();
                         toDeallocate = it;
                         itUpdated = ++it;
@@ -431,11 +440,11 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
 
 
             //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
-            if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<15) && (6 <toDeallocate->getGTSlotID())){
+            if((toDeallocate->getSuperframeID()!= 0) && (toDeallocate->getGTSlotID()<8)){
 
                 //slotsToDeallocate = slotsToDeallocate + 0.5;
 
-                uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+                uint8_t numGTSlots = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1);
                 if(toDeallocate->getGTSlotID() % 2 == 0){
                     dsmeSABSpecification.getSubBlock().set(
                                             ((toDeallocate->getGTSlotID() - 1) % numGTSlots) * this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels() + toDeallocate->getChannel(), true);
@@ -502,6 +511,8 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             break;
         }
         case DUPLICATED_ALLOCATION_NOTIFICATION: {
+            LOG_ERROR("DUPLICATED_ALLOCATION_NOTIFICATION");
+            //ASSERT(FALSE);
             // TODO what shall we do here? With this the deallocation could be to aggressive
             uint16_t address = IEEE802154MacAddress::NO_SHORT_ADDRESS;
             Direction direction;
@@ -509,6 +520,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             if(responseParams.status == GTSStatus::SUCCESS) {
                 // Now handled by the ACTUpdater this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);
+                //this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);//IAMG ADDED to test
             } else {
                 // the deallocated slot is not allocated, so send back as DENIED
             }
@@ -526,7 +538,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
                 // only set to INVALID here and remove them not before NOTIFY
                 // if anything goes wrong, the slot will be deallocated later again
                 // Now handled by the ACTUpdater this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);
-
+                //this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.setACTState(params.dsmeSABSpecification, INVALID);//IAMG ADDED to test
             }
 
             responseParams.dsmeSabSpecification = params.dsmeSabSpecification;
@@ -755,14 +767,14 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
 
 GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
     GTS gts(0,0,0);
-
+// ojo con el rango 7-14 del sf=0 !
     if (((initialSlotID < 7) && (initialSuperframeID == 0)) || ((initialSlotID > 7) && (initialSlotID < 15) && (initialSuperframeID != 0))){ //SF=0 , slots between 0-6 are part of CFP
         gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
         if (gts == GTS::UNDEFINED){
             initialSlotID = 0;
-            /*if(initialSuperframeID == 0){
-                initialSuperframeID = 1;
-            }*/
+            if(initialSuperframeID == 0){
+                return GTS::UNDEFINED;
+            }
             gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CAP);
             return gts;
             }
@@ -773,8 +785,11 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
             if (gts == GTS::UNDEFINED){
                 initialSlotID = 8;
                 gts = getNextFreeGTS_CAP_CFP(initialSuperframeID, initialSlotID, sabSpec, GTSType::GTS_CFP);
-        }
-        return gts;
+                return gts;
+            }
+            return gts;
+    }else if (((initialSlotID > 6) && (initialSlotID < 15) && (initialSuperframeID == 0))){
+        return GTS::UNDEFINED;
     }
     return GTS::UNDEFINED;
 }
@@ -927,8 +942,8 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
         gts = GTS(1,0,0);
 
         slotsToCheck = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
-                        ((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)); // 8 slots per SF
-        numGTSlots = ((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)); // numGTS available in CAP 8 slots
+                        (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) +1); // 8 slots per SF
+        numGTSlots = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1); // numGTS available in CAP 8 slots
 
         //verify that preferred GTS is in the correct range. IN this case, if initialSF==0 -> slotId < 7. Otherwise, 7< slotId < 15
 
@@ -976,10 +991,7 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
          uint8_t delimiter = numGTSlots;
          if (typeOfGTS == GTSType::GTS_CFP){
              if(gts.superframeID!=0){
-                 delimiter = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
- /*                if (initialSlotID % delimiter < 8){
-                     initialSlotID = 8;
-                 }*/
+                 delimiter = 15; //the limit for slots in CFP for SF!=0
              }
          }
 
@@ -987,9 +999,12 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
 
              if (typeOfGTS == GTSType::GTS_CFP){
                  if(gts.superframeID!=0){
+                     delimiter =15;
                      if (gts.slotID < 8){
                          gts.slotID = 8;
                      }
+                 }else if(gts.superframeID==0){
+                     delimiter = numGTSlots;
                  }
              }
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
@@ -1008,12 +1023,13 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
                         //IAMG. PRoof of concept CAPon CAPoff. Idea-> after a GTS is found in GTS_CAP. check if the next one is available as well
                         if((typeOfGTS == GTSType::GTS_CAP)){
                             // TODO CHECK if slot is odd and THE NEXT SLOT IS AVAILABLE(?)
-                            if ((gts.slotID % 2 == 0) && (gts.superframeID != 0) && (gts.slotID < 8) && (!macDSMEACT.isAllocated(gts.superframeID, ((gts.slotID +1) % (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1)-this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)))))){
+                            if ((gts.slotID % 2 == 0) && (gts.superframeID != 0) && (gts.slotID < 8) && (!macDSMEACT.isAllocated(gts.superframeID, ((gts.slotID +1) % (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1))))){
+                                return gts;
+                            }else if ((gts.slotID % 2 == 1) && (gts.superframeID != 0) && (gts.slotID < 8) && (macDSMEACT.isAllocated(gts.superframeID, ((gts.slotID -1) % (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0)+1))))){
                                 return gts;
                             }
-
                         }else if (typeOfGTS == GTSType::GTS_CFP){
-                            if(((gts.superframeID==0)&&(gts.slotID<7))||((gts.superframeID!=0) && (7<gts.slotID) && (gts.slotID <15))){
+                            if(((gts.superframeID==0)&&(gts.slotID<7))||((gts.superframeID!=0) && (gts.slotID>7) && (gts.slotID <15))){
                                 return gts;
                             }
 
@@ -1034,21 +1050,24 @@ GTS GTSHelper::getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t init
             //special case is for CFP next slot, in which the next slot is not in range slotId(8,14)
             if((typeOfGTS == GTSType::GTS_CFP)){
 
-                if((((gts.slotID+1)% this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))<8) && (gts.superframeID!=0)){
+                if(((gts.slotID+1)% 15 <8) && (gts.superframeID!=0)){
                 gts.slotID = 7;
                 }
-                if((((gts.slotID+1)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1)) == initialSlotID) && (gts.superframeID!=0)) {
-                    LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
-                    break;
-                }
-                if(((gts.slotID+1)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) == initialSlotID) && (gts.superframeID==0)) {
-                    LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
-                    break;
+                if((gts.superframeID!=0)) {
+                    if ((((gts.slotID+1)%15) == initialSlotID)){
+                        LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
+                        break;
+                    }
+                }else if((gts.superframeID==0)) {
+                    if ((gts.slotID+1)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) == initialSlotID) {
+                        LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
+                        break;
+                    }
                 }
 
             }else if(typeOfGTS == GTSType::GTS_CAP){
                 if(gts.superframeID !=0){
-                    if((gts.slotID+1)%((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1))-(this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0))) == initialSlotID) {
+                    if((gts.slotID+1)%((this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0))+1) == initialSlotID) {
                         LOG_DEBUG("IAMG. getnextFreeGTS -> gts.slotsID+ 1 == initialSuperframeID");
                         break;
                     }
@@ -1161,6 +1180,7 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
 
     bool foundGts = false;
     bool gtsDifferentAddresses = false;
+    uint16_t foundDeviceAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
 
     for(DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
         abs_slot_idx_t idx = it->getGTSlotID();
@@ -1174,12 +1194,20 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
         if(deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS) {
             deviceAddress = it->getAddress();
             direction = it->getDirection();
-            foundGts = true;
+            if (!foundGts){
+                foundGts = true;
+                foundDeviceAddress = it->getAddress();
+            }else if (foundDeviceAddress != deviceAddress){
+                gtsDifferentAddresses = true;
+            }
+
         } else if(deviceAddress == it->getAddress()) {
-            foundGts = true;
-        } else {
-            DSME_ASSERT(!foundGts); // currently deallocation is only possible with one slot
-            gtsDifferentAddresses = true;
+            if (!foundGts){
+                foundGts = true;
+                foundDeviceAddress = it->getAddress();
+            }else if (foundDeviceAddress != deviceAddress){
+                gtsDifferentAddresses = true;
+            }
         }
     }
 

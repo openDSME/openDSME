@@ -71,11 +71,20 @@ unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
 }
 
 uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
-    if((mac_pib.macCapReduction == false) || (superframeId == 0)) { // correct?
+    if(superframeId == 0) { // correct?
+        return 8;
+    } else if(mac_pib.macCapReduction == true) {
+        return 0;
+    } else if(mac_pib.macCapReduction == false){
+       return 8;
+    }
+
+    //original code
+/*    if((mac_pib.macCapReduction == false) || (superframeId == 0)) { // correct?
         return 8;
     } else {
         return 0;
-    }
+    }*/
 }
 
 uint32_t PIBHelper::getSymbolsPerSlot() const {
@@ -90,8 +99,10 @@ uint8_t PIBHelper::getNumGTSlots(uint8_t superframeId) const {
     // if superframe ID == 0 numGTSSlots = 7 else 15
     if (superframeId == 0){
         return (aNumSuperframeSlots - 9);
-    }else{
+    }else if (mac_pib.macCapReduction == true){
         return (aNumSuperframeSlots - 1);
+    }else if (mac_pib.macCapReduction == false){
+        return (aNumSuperframeSlots - 9);
     }
 }
 
@@ -117,7 +128,12 @@ const channelList_t& PIBHelper::getChannels() const {
 }
 
 uint8_t PIBHelper::getSubBlockLengthBytes(uint8_t superframeId) const {
-    return (getNumGTSlots(superframeId) * getNumChannels() - 1) / 8 + 1;
+//    return (getNumGTSlots(superframeId) * getNumChannels() - 1) / 8 + 1; ORIGINAL CODE
+    if (superframeId == 0){
+        return (getNumGTSlots(superframeId) * getNumChannels() - 1) / 8 + 1;
+    }else{
+        return (15 * getNumChannels() - 1) / 8 + 1;
+    }
 }
 
 uint16_t PIBHelper::getAckWaitDuration() const {

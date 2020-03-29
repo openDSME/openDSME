@@ -206,12 +206,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 
     bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
 
-/*    if ((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15) && (gtsSlotID % 2 == 0)){
-        bitmap.set(getBitmapPosition(superframeID, (gtSlotID -1)), false);
 
-    }else if ((superframeID !=0) && (6 < gtSlotID)  && (gtSlotID < 15) && (gtsSlotID % 2 == 1)){
-        bitmap.set(getBitmapPosition(superframeID, (gtSlotID + 1)), false);
-    }*/
 
     int d = (it->direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
@@ -221,18 +216,15 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     //IAMG Proof of concept capOn capOff. idea -> in case of CAP GTS the number of allocated GTS will be one for two CAP GTS.
     if((superframeID ==0) && (gtSlotID < 7)){
         (*numSlotIt)--;
-    }
-    if ((superframeID !=0) && (gtSlotID > 7) && (gtSlotID < 15)){
+    }else if ((superframeID !=0) && (gtSlotID > 7) && (gtSlotID < 15)){
         (*numSlotIt)--;
-    }
-
-    if((superframeID !=0) && (gtSlotID < 8)){
+    }else if ((superframeID !=0) && (gtSlotID < 8)){
         if(gtSlotID % 2 == 0){
             if (!isAllocated(superframeID, ((gtSlotID+1)%8))){
                 (*numSlotIt)--;
             }
-        }else if (gtSlotID % 2 == 1){
-            if(!isAllocated(superframeID, ((gtSlotID-1)%8))){
+        }else if (gtSlotID % 2 != 0){
+            if (!isAllocated(superframeID, ((gtSlotID-1)%8))){
                 (*numSlotIt)--;
             }
         }
@@ -248,7 +240,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
 }
 
 bool DSMEAllocationCounterTable::isAllocated(uint16_t superframeID, uint8_t gtSlotID) const {
-    DSME_ASSERT(gtSlotID < dsme->getMAC_PIB().helper.getNumGTSlots(superframeID));
+    //DSME_ASSERT(gtSlotID < dsme->getMAC_PIB().helper.getNumGTSlots(superframeID));
     return bitmap.get(getBitmapPosition(superframeID, gtSlotID));
 }
 

@@ -219,10 +219,7 @@ public:
 
             if (randomSuperframeID !=0){
                 if (randomSlotID < 8){
-                    randomSlotID = (randomSlotID + 8)%this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
-                    if(randomSlotID == 0){
-                        randomSlotID = 8;
-                    }
+                    randomSlotID = 8;
                 }
             }else if(randomSuperframeID == 0){
                 if (randomSlotID > 6){
