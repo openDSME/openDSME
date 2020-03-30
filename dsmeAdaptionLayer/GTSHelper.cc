@@ -290,7 +290,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     }
 }
 
-
+// TODO to check the main idea ...
 void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
     //IAMG CODE For multiple GTS deallocation at most the number of required GTS in one SF
 
@@ -315,27 +315,27 @@ void GTSHelper::checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision) {
             LOG_DEBUG("IAMG. inside multipleDealloc in for act to retrieve allocated slots");
             if(it->getDirection() == Direction::TX && it->getAddress() == decision.deviceAddress && it->getSuperframeID()==superframeId) {
                 if(it->getState() == ACTState::VALID  && it->getSuperframeID()!=0 &&
-                        it->getGTSlotID()>8 ) {
+                        it->getGTSlotID()>7 && it->getGTSlotID()<15 ) {
                         ++temporalSlotCounter;
                         itUpdated= it;
                         LOG_DEBUG("IAMG. FOUND GTS_CFP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<< (uint16_t)it->getGTSlotID());
                 }else if(it->getState() == ACTState::VALID && it->getSuperframeID()==0 && it->getGTSlotID()<7){
                         ++temporalSlotCounter;
                         itUpdated= it;
-                }else if(it->getState() == ACTState::VALID && it->getGTSlotID()>7 && it->getGTSlotID()<15 && it->getSuperframeID()!=0
+                }else if(it->getState() == ACTState::VALID && it->getGTSlotID()<8 && it->getSuperframeID()!=0
                         ){
                     if (it->getGTSlotID()%2 == 1){
-                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()-1))){
+                        //if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()-1))){
                             temporalSlotCounter = temporalSlotCounter + 0.5;
                             itUpdated= it;
                             LOG_DEBUG("IAMG. FOUND GTS_CAP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<< (uint16_t)it->getGTSlotID());
-                        }
+                        //}
                     }else if(it->getGTSlotID()%2 ==0){
-                        if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()+1))){
+                        //if(act.isAllocated(it->getSuperframeID(),(it->getGTSlotID()+1))){
                             temporalSlotCounter = temporalSlotCounter + 0.5;
                             itUpdated= it;
                             LOG_DEBUG("IAMG. FOUND GTS_CAP_add to temporalSLotCounter: "<< temporalSlotCounter << " itUpdated superframe: " << itUpdated->getSuperframeID()<< " itUpdated slotId: "<<(uint16_t) it->getGTSlotID());
-                        }
+                        //}
 
                     }
 
