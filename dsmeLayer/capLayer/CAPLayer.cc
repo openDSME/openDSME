@@ -189,7 +189,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 
         LOG_DEBUG("Slot " << (int)currentSlot << " SF " << (int)currentSuperframe);
         if(enoughTimeLeft()) {
-            if(it != this->dsme.getMAC_PIB().macDSMEACT.end()) { // && (it->getDirection() == RX || it->getState() == VALID)) {
+            if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && (it->getDirection() == RX || it->getState() == VALID)) {
                 LOG_DEBUG("GOING INTO REBACKOFF");
                 return transition(&CAPLayer::stateBackoff);
             }
@@ -355,7 +355,7 @@ bool CAPLayer::enoughTimeLeft() {
     uint8_t currentSuperframe = dsme.getCurrentSuperframe();
     unsigned nextGTS = currentSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1);
     DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, nextGTS+1);
-    if(it != this->dsme.getMAC_PIB().macDSMEACT.end()) {
+    if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && (it->getDirection() == RX || it->getState() == VALID)) {
         isWithinTimeSlot = this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), symbolsRequired());
     }
 
