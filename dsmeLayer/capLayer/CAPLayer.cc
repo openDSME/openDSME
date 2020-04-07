@@ -182,7 +182,14 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        uint8_t currentSlot = dsme.getCurrentSlot();
+        uint8_t currentSuperframe = dsme.getCurrentSuperframe();
+        DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, currentSlot);
+
         if(enoughTimeLeft()) {
+            if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && (it->getDirection() == RX || it->getState() == VALID)) {
+                return transition(&CAPLayer::stateBackoff);
+            }
             return transition(&CAPLayer::stateCCA);
         } else {
             // This only happens in rare cases (e.g. resync).
@@ -202,6 +209,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        LOG_DEBUG("Starting CCA");
         if(!dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
         } else {
@@ -338,7 +346,16 @@ void CAPLayer::actionStartBackoffTimer() {
 }
 
 bool CAPLayer::enoughTimeLeft() {
-    return dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), symbolsRequired());
+    bool isWithinTimeSlot = true;
+    uint8_t currentSlot = dsme.getCurrentSlot();
+    uint8_t currentSuperframe = dsme.getCurrentSuperframe();
+    DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, currentSlot+1);
+    if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && it->getState() == VALID) {
+        isWithinTimeSlot = this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), symbolsRequired());
+    }
+
+    LOG_DEBUG("CAP Layer: checking time -> within timeslot " << (int)isWithinTimeSlot);
+    return dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), symbolsRequired()) & isWithinTimeSlot;
 }
 
 void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {

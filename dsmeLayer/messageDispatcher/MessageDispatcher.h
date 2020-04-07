@@ -152,8 +152,10 @@ public:
 
 /* Event handlers (END) ------------------------------------------------------*/
 
-protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
+
+protected:
+
 
     AckLayer::done_callback_t doneGTS;
 

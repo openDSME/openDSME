@@ -196,7 +196,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 }
 
 void MessageDispatcher::finalizeGTSTransmission() {
-    LOG_DEBUG("Finalizing transmission for " << this->currentACTElement->getGTSlotID() << " " << this->currentACTElement->getSuperframeID() << " " << this->currentACTElement->getChannel());
+    LOG_DEBUG("Finalizing transmission for slot " << (int)this->currentACTElement->getGTSlotID() << " " << (int)this->currentACTElement->getSuperframeID() << " " << (int)this->currentACTElement->getChannel());
     if(currentACTElement->getGTSlotID() > 7)
         transceiverOffIfAssociated();
     this->dsme.getEventDispatcher().stopIFSTimer();
@@ -425,6 +425,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             /* '-> this slot might be used */
+            LOG_DEBUG("Current slot is allocated as GTS");
 
             this->currentACTElement = act.find(nextSuperframe, nextGTS);
             DSME_ASSERT(this->currentACTElement != act.end());
@@ -446,6 +447,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             // statistic
             if(this->currentACTElement->getDirection() == RX) {
+                LOG_DEBUG("Current GTS is RX");
                 this->numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
             }
         } else {
@@ -644,7 +646,7 @@ void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
 
 void MessageDispatcher::transceiverOffIfAssociated() {
     if(this->dsme.getMAC_PIB().macAssociatedPANCoord) {
-        this->dsme.getPlatform().turnTransceiverOff();
+      this->dsme.getPlatform().turnTransceiverOff();
     } else {
         /* '-> do not turn off the transceiver while we might be scanning */
     }
