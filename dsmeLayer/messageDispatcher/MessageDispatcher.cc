@@ -387,6 +387,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 }
 
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
+    LOG_DEBUG("NEXT SLOT: " << (int)nextSlot << " NEXT SF: " << (int)nextSuperframe);
     // Prepare next slot
     // Switch to next slot channel and radio mode
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
@@ -438,6 +439,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                 this->dsme.getPlatform().turnTransceiverOn();
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
+                    LOG_DEBUG("Switching to channel " << (int)this->currentACTElement->getChannel());
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
                 } else {
                     uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);

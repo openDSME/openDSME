@@ -184,12 +184,16 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         uint8_t currentSlot = dsme.getCurrentSlot();
         uint8_t currentSuperframe = dsme.getCurrentSuperframe();
-        DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, currentSlot);
+        unsigned nextGTS = currentSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1);
+        DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, nextGTS);
 
+        LOG_DEBUG("Slot " << (int)currentSlot << " SF " << (int)currentSuperframe);
         if(enoughTimeLeft()) {
-            if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && (it->getDirection() == RX || it->getState() == VALID)) {
+            if(it != this->dsme.getMAC_PIB().macDSMEACT.end()) { // && (it->getDirection() == RX || it->getState() == VALID)) {
+                LOG_DEBUG("GOING INTO REBACKOFF");
                 return transition(&CAPLayer::stateBackoff);
             }
+            LOG_DEBUG("TRANSITIONING TO CCA");
             return transition(&CAPLayer::stateCCA);
         } else {
             // This only happens in rare cases (e.g. resync).
@@ -349,8 +353,9 @@ bool CAPLayer::enoughTimeLeft() {
     bool isWithinTimeSlot = true;
     uint8_t currentSlot = dsme.getCurrentSlot();
     uint8_t currentSuperframe = dsme.getCurrentSuperframe();
-    DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, currentSlot+1);
-    if(it != this->dsme.getMAC_PIB().macDSMEACT.end() && it->getState() == VALID) {
+    unsigned nextGTS = currentSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1);
+    DSMEAllocationCounterTable::iterator it = this->dsme.getMAC_PIB().macDSMEACT.find(currentSuperframe, nextGTS+1);
+    if(it != this->dsme.getMAC_PIB().macDSMEACT.end()) {
         isWithinTimeSlot = this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), symbolsRequired());
     }
 
