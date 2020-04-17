@@ -155,7 +155,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         totalSize += it->queueSize;
     }
-    //this->dsme.getPlatform().signalQueueLength(totalSize);
+    this->dsme.getPlatform().signalQueueLength(totalSize);
     /* END STATISTICS */
 
     mcps_sap::DATA_confirm_parameters params;

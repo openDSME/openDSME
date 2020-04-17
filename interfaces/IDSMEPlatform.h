@@ -115,14 +115,14 @@ public:
     virtual uint8_t getMinCoordinatorLQI() = 0;
 
     /*
-     * Signal result of messages with requested acknowledgement sent by the MAC layers.
+     * Signal result of messages with requested acknowledgment sent by the MAC layers.
      * Can be used to generate link statistics (i.e. ETX).
      */
     virtual void signalAckedTransmissionResult(bool success, uint8_t transmissionAttempts, IEEE802154MacAddress receiver) {
     }
 
     /*
-     * Signal GTS allocation or deallocation
+     * Signal GTS allocation or deallocation (indication is cumulative)
      */
     virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
     }
@@ -186,6 +186,13 @@ public:
 
     virtual void signalGTSQueueLevel(bool push) {
     }
+
+    /*
+     * Signal current queue length
+     */
+    virtual void signalQueueLength(uint32_t length) {
+    }
+
     // QUEUE LEVEL PER MSF
     virtual void signalGTSQueueLevelMSF(uint8_t queueLevel){
     }

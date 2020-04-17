@@ -61,6 +61,7 @@ namespace dsme {
 
 class MAC_PIB;
 class PHY_PIB;
+class DSMESuperframeSpecification; //IAMG. PROOF OF CONCEPT CAPONCAPOFF
 
 /*
  * Forward declarations for MAC services:
@@ -92,6 +93,7 @@ public:
 private:
     PHY_PIB* phy_pib;
     MAC_PIB* mac_pib;
+    DSMESuperframeSpecification* dsmeSuperframe_spec; //IAMG. PROOF OF CONCEPT CAPONCAPOFF
 
     mcps_sap::MCPS_SAP* mcps_sap;
     mlme_sap::MLME_SAP* mlme_sap;
@@ -123,6 +125,12 @@ public:
         return *(mac_pib);
     }
 
+    //IAMG
+    //proof of concept Cap On cap Off
+    DSMESuperframeSpecification& getDSMESuperframe_SPEC(){
+        return *(dsmeSuperframe_spec);
+    }
+
     mcps_sap::MCPS_SAP& getMCPS_SAP() {
         return *(this->mcps_sap);
     }
@@ -139,6 +147,13 @@ public:
     void setMAC_PIB(MAC_PIB* mac_pib) {
         this->mac_pib = mac_pib;
         return;
+    }
+
+    //IAMG
+    //proof of concept Cap On cap Off
+    void  setDSMESuperframe_SPEC(DSMESuperframeSpecification* dsmeSuperframe_spec){
+        this->dsmeSuperframe_spec = dsmeSuperframe_spec;
+         return;
     }
 
     void setMCPS(mcps_sap::MCPS_SAP* mcps_sap) {

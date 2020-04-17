@@ -131,7 +131,7 @@ private:
     RBTree<ACTElement, ACTPosition> act;
 
     // TODO integrate this nicely into the NeighborQueue
-    RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
+    RBTree<float, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
 
     DSMELayer* dsme;
 };

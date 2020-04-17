@@ -57,6 +57,7 @@ namespace dsme {
 DSMELayer::DSMELayer()
     : phy_pib(nullptr),
       mac_pib(nullptr),
+      dsmeSuperframe_spec(nullptr), //IAMG. PROOF OF CONCEPT CAPONCAPOFF should be initializated here?
       mcps_sap(nullptr),
       mlme_sap(nullptr),
 
@@ -181,13 +182,13 @@ void DSMELayer::preSlotEvent(void) {
     // calculate time within next slot
     uint32_t cnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart() + PRE_EVENT_SHIFT + 1;
 
-    // calculate slot position
+    // calculate next slot position
     uint16_t slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
     nextSlot = slotsSinceLastKnownBeaconIntervalStart % aNumSuperframeSlots;
-    uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
-    nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    superframe /= getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    nextMultiSuperframe = superframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();
+    uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;//IAMG elapsed number of superframes
+    nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();//IAMG  ID of the next superframe
+    uint16_t multisuperframe = superframe/getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();//IAMG elapsed number of multisuperframes
+    nextMultiSuperframe = multisuperframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();//IAMG  ID of the next multisuperframe
 
     //IAMG proof of concept capON capOff
     //calculate the current slot position
@@ -203,37 +204,31 @@ void DSMELayer::preSlotEvent(void) {
 
     //IAMG proof of concept capON capOff
 
-    else if(nextSlot == 1 && currentSuperframe == 0){
+    else if(nextSlot == 1 && nextSuperframe == 0 && nextMultiSuperframe==0){
         LOG_DEBUG("IAMG slot 0, SF = 0, value of switch: ");
         LOG_DEBUG(this->switchCap);
 
         bool currentMacCapReduction =  getMAC_PIB().macCapReduction;
-        bool currentCapReductionFlag = this->beaconManager.getDsmePANDescriptor().dsmeSuperframeSpec.CAPReductionFlag;
+        //bool currentCapReductionFlag = this->beaconManager.getDsmePANDescriptor().dsmeSuperframeSpec.CAPReductionFlag;
 
         LOG_DEBUG("IAMG value of current MacCapReduction: ");
         LOG_DEBUG(currentMacCapReduction);
         LOG_DEBUG("IAMG value of current CapReductionFlag: ");
-        LOG_DEBUG(currentCapReductionFlag);
+        //LOG_DEBUG(currentCapReductionFlag);
 
-        if(this->switchCap == false){
-            LOG_DEBUG("IAMG false");
-            if(currentMacCapReduction && currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction & flag: true -> switchCap = true");
-                this->switchCap = true;
-            }else if (!currentMacCapReduction && currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction false -> switchCap = true & macCapReduction= true");
-                this->mac_pib->macCapReduction = true;
-                this->switchCap = true; // TODO optimize code
-            }
+        if((this->switchCap == false) && (!this->mac_pib->macIsPANCoord)){
+            LOG_DEBUG("IAMG slot= 0, SF=0, MSF= 0. SwitchCap = false");
+        }else if (((this->switchCap == false) && (this->mac_pib->macIsPANCoord)) || ((this->switchCap == true) & (!this->mac_pib->macIsPANCoord))){
 
-        }else{
-            LOG_DEBUG("IAMG true");
-            if(currentMacCapReduction && !currentCapReductionFlag){
-                LOG_DEBUG("IAMG currentMacCapReduction true & CapReductionFlag= false-> switchCap = false ");
+            LOG_DEBUG("IAMG slot= 0, SF=0, MSF= 0. SwitchCap = true");
+            if(currentMacCapReduction){
                 this->mac_pib->macCapReduction = false;
-                this->switchCap = false;
-
+            }else{
+                this->mac_pib->macCapReduction = true;
             }
+
+            //this->dsmeSuperframe_spec->CAPReductionFlag = getMAC_PIB().macCapReduction;//update capReductionFlag with value of macCapReduction
+
         }
 
     }
