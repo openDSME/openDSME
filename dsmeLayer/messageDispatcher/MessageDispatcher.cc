@@ -392,13 +392,13 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     // Switch to next slot channel and radio mode
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     if(this->currentACTElement != act.end()) {
-        if(this->currentACTElement->getDirection() == Direction::RX) {
+        if(true) { //this->currentACTElement->getDirection() == Direction::RX) {
             this->currentACTElement = act.end();
         } else {
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
             LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
-            DSME_SIM_ASSERT(false);
+            //DSME_SIM_ASSERT(false);
             return false;
         }
     }
