@@ -77,7 +77,7 @@ public:
 
     void handleStartOfCFP();
 
-    void setUseMultipleGTSDeallocation(bool useMultipleGTSDeallocation);//IAMG set multiple deallocations
+    void setUseMultipleGTSDeallocation(bool useMultipleGTSDeallocation);// set multiple deallocations
 
 private:
     /* MLME handlers */
@@ -96,7 +96,7 @@ private:
 
     void checkAndDeallocateSingeleGTS(uint16_t address);
 
-    //IAMG PROOF of concept CapOn capOFf. -> function to deallocate multiple slots
+    // PROOF of concept CapOn capOFf. -> function to deallocate multiple slots
     void checkAndDeallocateMultipleGTS(GTSSchedulingDecision decision);
 
     GTS getContiguousFreeGTS();
@@ -105,7 +105,7 @@ private:
 
     GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec = nullptr);
 
-    //IAMG Proof of concept capOn capOff
+    // Proof of concept capOn capOff
     GTS getNextFreeGTS_CAP_CFP(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, GTSType typeOfGTS);
 
     GTSStatus::GTS_Status verifyDeallocation(DSMESABSpecification& requestSABSpec, uint16_t& deviceAddress, Direction& direction);
@@ -123,7 +123,7 @@ private:
     bool gtsConfirmPending;
     bool gtsDeallocConfirmPending;
 
-    bool useMultipleGTSDeallocation{false}; //IAMG control parameter to enable mulitple or single deallocation
+    bool useMultipleGTSDeallocation{false}; // control parameter to enable mulitple or single deallocation
 
 };
 

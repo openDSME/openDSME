@@ -65,16 +65,15 @@ public:
         : multiSuperframeOrder(0),
           macChannelDiversityMode(Channel_Diversity_Mode::CHANNEL_ADAPTATION),
           GACKFlag(false),
-          //CAPReductionFlag(false),
-          //IAMG proof of concept capOn capOff. idea-> start with capReductionFlag = true
+          // proof of concept capOn capOff. idea-> start with capReductionFlag = true
           CAPReductionFlag(true),
           deferredBeaconFlag(false) {
     }
 
-    //IAMG proof of concept capOn capOff
+    // proof of concept capOn capOff
     void setCAPReductionFlag(DSMESuperframeSpecification& spec,bool CAPReductionFlag);
 
-    //IAMG proof of concept capOn capOff
+    // proof of concept capOn capOff
     bool getCAPReductionFlag(DSMESuperframeSpecification& spec);
 };
 

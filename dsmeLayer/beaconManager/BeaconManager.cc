@@ -178,22 +178,16 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     DSME_ASSERT(!transmissionPending);
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
-    //IAMG proof of concept capOn capOff
+    // proof of concept capOn capOff
     bool switchCap = this->dsme.getSwitchCap();
-    LOG_DEBUG("IAMG inside prepareEnhancedBeacon(), value of switchCap: ");
+    LOG_DEBUG(" inside prepareEnhancedBeacon(), value of switchCap: ");
     LOG_DEBUG(switchCap);
     bool currentMacPibCapReductionMode = this->dsme.getMAC_PIB().macCapReduction;
 
-//    if (switchCap){// set CapReductionFlag = currentMACPIBCapReductionMode
-        LOG_DEBUG("IAMG inside prepareEnhancedBeacon and switchCap =true");
-        LOG_DEBUG("IAMG inside prepareEnhancedBeacon(), value of currentMacPibCapReductionMode: ");
-        LOG_DEBUG(currentMacPibCapReductionMode);
-        dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = currentMacPibCapReductionMode;
-
-/*     }else{// this is not possible. SwitchCap must be true to become a coordinator
-         LOG_DEBUG("IAMG inside prepareEnhancedBeacon and switchCap = false. Not possible");
-         DSME_ASSERT(false);
-    }*/
+    LOG_DEBUG(" inside prepareEnhancedBeacon and switchCap =true");
+    LOG_DEBUG(" inside prepareEnhancedBeacon(), value of currentMacPibCapReductionMode: ");
+    LOG_DEBUG(currentMacPibCapReductionMode);
+    dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = currentMacPibCapReductionMode;
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * aSymbolDuration);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
@@ -329,13 +323,13 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     if(msg->getHeader().getSrcAddr().getShortAddress() != this->dsme.getMAC_PIB().macSyncParentShortAddress) {
         LOG_DEBUG("Only synchronize to beacons by SYNC parent -> discard");
         return true;
-    }else     //IAMG PROOF of concept capOncapOff
+    }else     // PROOF of concept capOncapOff
         //assign the value of capReductionFlag from Beacon into dsmePANDescriptor only if associated
         if (this->dsme.getMAC_PIB().macAssociatedPANCoord){
             bool switchCap = this->dsme.getSwitchCap();
             if (switchCap == false){
                 dsmePANDescriptor.dsmeSuperframeSpec.CAPReductionFlag = descr.dsmeSuperframeSpec.CAPReductionFlag; //update dsmePANDescriptor
-                LOG_DEBUG("IAMG. InsideHandleBeacon. CAPreductionFlag " << descr.dsmeSuperframeSpec.CAPReductionFlag << ".");
+                LOG_DEBUG(". InsideHandleBeacon. CAPreductionFlag " << descr.dsmeSuperframeSpec.CAPReductionFlag << ".");
                 this->dsme.setSwitchCap(true);//must be changed in dsmeLayer in SF=0 slot=0 MSF=0?
                 this->dsme.getMAC_PIB().macCapReduction = descr.dsmeSuperframeSpec.CAPReductionFlag;// update the capReductionMode
 
@@ -344,9 +338,7 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
                 bool currentMacPibCapReductionMode = this->dsme.getMAC_PIB().macCapReduction;
                 if (!retrievedCapReductionFlag == currentMacPibCapReductionMode){
                     /* '-> retrievedcapFlag must be the current cap reduction mode */
-                    LOG_DEBUG("IAMG ASSERT !retrievedCapReductionFlag == currentMacPibCapReductionMode");
-                    //DSME_ASSERT(false);
-
+                    LOG_DEBUG(" ASSERT !retrievedCapReductionFlag == currentMacPibCapReductionMode");
                 }
             }
         }

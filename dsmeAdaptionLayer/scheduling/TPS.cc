@@ -129,7 +129,7 @@ void TPS::multisuperframeEvent() {
             } else if(error < -2) {
 
                 if (useQueueManagement){
-                    //IAMG. PROof of concept capOncapOff. queue management implementation in case the incoming traffic decreases drastically
+                    // Proof of concept capOncapOff. queue management implementation in case the incoming traffic decreases drastically
                     uint16_t queueLevel = GTSSchedulingImpl::getNeighborQueue(data.address);
                     //if the level of the queue is equal or greater than the number of allocated slots. then change = 0
                     if(queueLevel >= slots){

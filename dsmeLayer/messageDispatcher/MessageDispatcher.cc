@@ -136,10 +136,10 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         // not successful -> retry?
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
-            //finalizeGTSTransmission(); // IAMG no retrasmision enable
-            LOG_DEBUG("IAMG no retrasmision enable");
+            //finalizeGTSTransmission(); //  no retrasmision enable
+            LOG_DEBUG(" no retrasmision enable");
             //LOG_DEBUG("sendDoneGTS - retry");
-            return; // will stay at front of queue // IAMG no retrasmision enable if commented
+            return; // will stay at front of queue //  no retrasmision enable if commented
         }
     }
 
@@ -410,7 +410,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         }
     }
 
-    //IAMG PROOF OF CONCEPT
+    // PROOF OF CONCEPT
     unsigned nextGTS = 0;
     uint8_t thresholdSlot = 0;
     bool CAP_On = this->dsme.getMAC_PIB().macCapReduction;
@@ -428,7 +428,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
         //unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);// original code
 
-        //IAMG MODIFICATION TO RETRIEVE THE CORRECT NEXTGTS
+        // MODIFICATION TO RETRIEVE THE CORRECT NEXTGTS
         // CASE CAP_ON and SF != 0
         // unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);//
         // CASE CAP_ON and SF == 0  && CASE CAP_OFF and SF == 0
@@ -513,7 +513,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {
-    //IAMG PROOF OF CONCEPT
+    // PROOF OF CONCEPT
     bool CAP_On = this->dsme.getMAC_PIB().macCapReduction;
     if (this->dsme.getCurrentSuperframe() == 0){
         if(slot > 8 && slot < 16) {
@@ -561,7 +561,7 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
 
 void MessageDispatcher::handleGTS(int32_t lateness) {
 
-    //IAMG-> modify code to fit with previous model, GtsID = Slot - 1 in case sf!=0. If sf== 0, GtsID = slot -1
+    //-> modify code to fit with previous model, GtsID = Slot - 1 in case sf!=0. If sf== 0, GtsID = slot -1
 
     bool CAP_On = this->dsme.getMAC_PIB().macCapReduction;
 
@@ -575,8 +575,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         LOG_DEBUG("HI IVONNE! sf=0");
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
-               //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { // IAMG original code
-               this->dsme.getCurrentSlot() - (8 + 1)) { // IAMG original code
+               //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { //  original code
+               this->dsme.getCurrentSlot() - (8 + 1)) { //  original code
             /* '-> this slot matches the prepared ACT element */
             LOG_DEBUG("HI IVONNE!MUT");
             if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
@@ -623,7 +623,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         LOG_DEBUG("HI IVONNE! CAPOn");
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
-               //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { // IAMG original code
+               //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { //  original code
                this->dsme.getCurrentSlot() - 1) {
             /* '-> this slot matches the prepared ACT element */
             LOG_DEBUG("HI IVONNE!MUT");
@@ -671,7 +671,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         LOG_DEBUG("HI IVONNE! CAPOff");
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
-                   this->dsme.getCurrentSlot() - (1)) { // IAMG original code
+                   this->dsme.getCurrentSlot() - (1)) { //  original code
 
             /* '-> this slot matches the prepared ACT element */
             LOG_DEBUG("HI IVONNE CAP OFf! MUT");
@@ -724,7 +724,7 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     numRxGtsFrames++;
     numUnusedRxGts--;
 
-    //IAMG PROOF OF CONCEPT
+    // PROOF OF CONCEPT
 
     uint8_t thresholdSlot = 0;
     bool CAP_On = this->dsme.getMAC_PIB().macCapReduction;

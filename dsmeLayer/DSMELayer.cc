@@ -57,11 +57,11 @@ namespace dsme {
 DSMELayer::DSMELayer()
     : phy_pib(nullptr),
       mac_pib(nullptr),
-      dsmeSuperframe_spec(nullptr), //IAMG. PROOF OF CONCEPT CAPONCAPOFF should be initializated here?
+      dsmeSuperframe_spec(nullptr), //. PROOF OF CONCEPT CAPONCAPOFF should be initializated here?
       mcps_sap(nullptr),
       mlme_sap(nullptr),
 
-      //IAMG proof of concept Cap On cap Off
+      // proof of concept Cap On cap Off
       switchCap (false),
 
       platform(nullptr),
@@ -93,7 +93,7 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
     this->currentSlot = 0;
     this->currentSuperframe = 0;
     this->currentMultiSuperframe = 0;
-    //IAMG proof of concept Cap On cap Off
+    // proof of concept Cap On cap Off
     this-> switchCap = false;
 
     this->eventDispatcher.initialize();
@@ -157,7 +157,7 @@ void DSMELayer::doReset() {
         this->currentSuperframe = 0;
         this->currentMultiSuperframe = 0;
 
-        //IAMG proof of concept Cap On cap Off
+        // proof of concept Cap On cap Off
         this-> switchCap = false;
 
         this->trackingBeacons = false;
@@ -185,60 +185,57 @@ void DSMELayer::preSlotEvent(void) {
     // calculate next slot position
     uint16_t slotsSinceLastKnownBeaconIntervalStart = cnt / getMAC_PIB().helper.getSymbolsPerSlot();
     nextSlot = slotsSinceLastKnownBeaconIntervalStart % aNumSuperframeSlots;
-    uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;//IAMG elapsed number of superframes
-    nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();//IAMG  ID of the next superframe
-    uint16_t multisuperframe = superframe/getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();//IAMG elapsed number of multisuperframes
-    nextMultiSuperframe = multisuperframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();//IAMG  ID of the next multisuperframe
+    uint16_t superframe = slotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;// elapsed number of superframes
+    nextSuperframe = superframe % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();//  ID of the next superframe
+    uint16_t multisuperframe = superframe/getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();// elapsed number of multisuperframes
+    nextMultiSuperframe = multisuperframe % getMAC_PIB().helper.getNumberMultiSuperframesPerBeaconInterval();//  ID of the next multisuperframe
 
-    //IAMG proof of concept capON capOff
+    // proof of concept capON capOff
     //calculate the current slot position
     uint32_t currentCnt = platform->getSymbolCounter() - beaconManager.getLastKnownBeaconIntervalStart();
     uint16_t numberSlotsSinceLastKnownBeaconIntervalStart = currentCnt / getMAC_PIB().helper.getSymbolsPerSlot();
     uint16_t numberSuperframes = numberSlotsSinceLastKnownBeaconIntervalStart / aNumSuperframeSlots;
     uint16_t currentSuperframe = numberSuperframes % getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
 
-    LOG_DEBUG("IAMG inside preSlotEvent()");
+    LOG_DEBUG(" inside preSlotEvent()");
     if(nextSlot == 0) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
     }
 
-    //IAMG proof of concept capON capOff
+    // proof of concept capON capOff
 
     else if(nextSlot == 1 && nextSuperframe == 0 && nextMultiSuperframe==0){
-        LOG_DEBUG("IAMG slot 0, SF = 0, value of switch: ");
+        LOG_DEBUG(" slot 0, SF = 0, value of switch: ");
         LOG_DEBUG(this->switchCap);
 
         bool currentMacCapReduction =  getMAC_PIB().macCapReduction;
-        //bool currentCapReductionFlag = this->beaconManager.getDsmePANDescriptor().dsmeSuperframeSpec.CAPReductionFlag;
 
-        LOG_DEBUG("IAMG value of current MacCapReduction: ");
+        LOG_DEBUG(" value of current MacCapReduction: ");
         LOG_DEBUG(currentMacCapReduction);
-        LOG_DEBUG("IAMG value of current CapReductionFlag: ");
-        //LOG_DEBUG(currentCapReductionFlag);
+        LOG_DEBUG(" value of current CapReductionFlag: ");
+
 
         if((this->switchCap == false) && (!this->mac_pib->macIsPANCoord)){
-            LOG_DEBUG("IAMG slot= 0, SF=0, MSF= 0. SwitchCap = false");
+            LOG_DEBUG(" slot= 0, SF=0, MSF= 0. SwitchCap = false");
         }else if (((this->switchCap == false) && (this->mac_pib->macIsPANCoord)) || ((this->switchCap == true) & (!this->mac_pib->macIsPANCoord))){
 
-            LOG_DEBUG("IAMG slot= 0, SF=0, MSF= 0. SwitchCap = true");
+            LOG_DEBUG(" slot= 0, SF=0, MSF= 0. SwitchCap = true");
             if(currentMacCapReduction){
                 this->mac_pib->macCapReduction = false;
             }else{
                 this->mac_pib->macCapReduction = true;
             }
 
-            //this->dsmeSuperframe_spec->CAPReductionFlag = getMAC_PIB().macCapReduction;//update capReductionFlag with value of macCapReduction
-
         }
 
     }
-    // IAMG Proof of concept CAP On Cap Off. To signal slot 0 of every MSF
+    //  Proof of concept CAP On Cap Off. To signal slot 0 of every MSF
     else if(nextSlot == 1 && currentSuperframe == 1){
-        LOG_DEBUG("IAMG slot 0, SF = 1");
+        LOG_DEBUG(" slot 0, SF = 1");
     }else if(nextSlot == 1 && currentSuperframe == 2){
-        LOG_DEBUG("IAMG slot 0, SF = 2");
+        LOG_DEBUG(" slot 0, SF = 2");
     }else if(nextSlot == 1 && currentSuperframe == 3){
-        LOG_DEBUG("IAMG slot 0, SF = 3");
+        LOG_DEBUG(" slot 0, SF = 3");
     }
 
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe, nextMultiSuperframe);
@@ -277,14 +274,14 @@ void DSMELayer::slotEvent(int32_t lateness) {
     uint8_t skippedSlots = 0;
     if(currentSlot == 1) { // beginning of CAP
         if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
-            LOG_DEBUG("IAMG SLOT 1. SF>0 & CAP-reduction ON ");
+            LOG_DEBUG(" SLOT 1. SF>0 & CAP-reduction ON ");
             // no CAP available
             skippedSlots = 0;
         } else {
             if (this->mac_pib->macCapReduction == false){
-                LOG_DEBUG("IAMG SLOT 1. SF==0 & CAP-reduction OFF");
+                LOG_DEBUG(" SLOT 1. SF==0 & CAP-reduction OFF");
             }else{
-                LOG_DEBUG("IAMG SLOT 1. SF==0 & CAP-reduction ON");
+                LOG_DEBUG(" SLOT 1. SF==0 & CAP-reduction ON");
             }
 
             // no (pre) slot events required during CAP

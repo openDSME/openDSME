@@ -61,7 +61,7 @@ namespace dsme {
 
 class MAC_PIB;
 class PHY_PIB;
-class DSMESuperframeSpecification; //IAMG. PROOF OF CONCEPT CAPONCAPOFF
+class DSMESuperframeSpecification; //. PROOF OF CONCEPT CAPONCAPOFF
 
 /*
  * Forward declarations for MAC services:
@@ -93,24 +93,24 @@ public:
 private:
     PHY_PIB* phy_pib;
     MAC_PIB* mac_pib;
-    DSMESuperframeSpecification* dsmeSuperframe_spec; //IAMG. PROOF OF CONCEPT CAPONCAPOFF
+    DSMESuperframeSpecification* dsmeSuperframe_spec; //. PROOF OF CONCEPT CAPONCAPOFF
 
     mcps_sap::MCPS_SAP* mcps_sap;
     mlme_sap::MLME_SAP* mlme_sap;
 
-    //IAMG
+    //
     //proof of concept Cap On cap Off
     bool switchCap;
 
 public:
 
-    //IAMG
+    //
     //proof of concept Cap On cap Off
     bool getSwitchCap() const {
         return switchCap;
     }
 
-    //IAMG
+    //
     //proof of concept Cap On cap Off
     void setSwitchCap(bool status) {
         this->switchCap = status;
@@ -125,7 +125,7 @@ public:
         return *(mac_pib);
     }
 
-    //IAMG
+    //
     //proof of concept Cap On cap Off
     DSMESuperframeSpecification& getDSMESuperframe_SPEC(){
         return *(dsmeSuperframe_spec);
@@ -149,7 +149,7 @@ public:
         return;
     }
 
-    //IAMG
+    //
     //proof of concept Cap On cap Off
     void  setDSMESuperframe_SPEC(DSMESuperframeSpecification* dsmeSuperframe_spec){
         this->dsmeSuperframe_spec = dsmeSuperframe_spec;
@@ -182,7 +182,7 @@ public:
     void setStartOfCFPDelegate(Delegate<void()> delegate) {
         startOfCFPDelegate = delegate;
     }
-    //IAMG proof of concept Cap On cap Off
+    // proof of concept Cap On cap Off
     // every MSF tha cap reduction mode is switched between On and Off
 
     void setStartOfCAPDelegate(Delegate<void()>delegate){
@@ -244,10 +244,9 @@ public:
 protected:
     IDSMEPlatform* platform;
     DSMEEventDispatcher eventDispatcher;
-    //DSMEPANDescriptor dsmePANDescriptor; // to check
     Delegate<void()> startOfCFPDelegate;
 
-    //IAMG proof of concept Cap On cap Off
+    // proof of concept Cap On cap Off
     // every MSF tha cap reduction mode is switched between On and Off
     Delegate<void()> startOfCAPDelegate;
 

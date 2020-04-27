@@ -107,12 +107,7 @@ GTSManager::GTSManager(DSMELayer& dsme) : GTSManagerFSM_t(&GTSManager::stateIdle
 }
 
 void GTSManager::initialize() {
-    //dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
-    //                                        dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels());
-    //dsme.getMAC_PIB().macDSMEACT.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
-    //                                        dsme.getMAC_PIB().helper.getNumGTSlots(1), dsme.getMAC_PIB().helper.getNumChannels(), &dsme);
-
-    //IAMG proof of concept capOncapOff
+    // proof of concept capOncapOff
     // idea is to have a unified bitmap like bitmap in original capOn. This is dsme.getMAC_PIB().helper.getNumGTSlots(1) = 15
 
     dsme.getMAC_PIB().macDSMESAB.initialize(dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe(), dsme.getMAC_PIB().helper.getNumGTSlots(0),
@@ -281,7 +276,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                     params.dsmeSabSpecification.getSubBlock().set(it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
 
 
-                    //IAMG proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
+                    // proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
                     if((it->getSuperframeID()!= 0) && (it->getGTSlotID()<8)){
                         params.numSlot = 2;
                         uint8_t numGTSlots = 15;
@@ -405,7 +400,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     if(event.management.status == GTSStatus::SUCCESS) {
-                        LOG_DEBUG("IAMG. INSIDE GTS managerstateMachine. state sending event GTSreply and GTSStatus= success is rigth?");
+                        LOG_DEBUG(". INSIDE GTS managerstateMachine. state sending event GTSreply and GTSStatus= success is rigth?");
                         actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
                         data[fsmId].notifyPartnerAddress = event.deviceAddr;
                         return transition(fsmId, &GTSManager::stateWaitForNotify);
@@ -487,10 +482,10 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         if(numSlotsOk == 0) {
                             event.management.status = GTSStatus::DENIED;
                         } else {
-                            LOG_DEBUG("IAMG DUPLICATE ALLOCATION TRUE. NUMBERSLOTSOK: " << (int16_t)numSlotsOk);
+                            LOG_DEBUG(" DUPLICATE ALLOCATION TRUE. NUMBERSLOTSOK: " << (int16_t)numSlotsOk);
 
                             //DSME_ASSERT(false); /* This case is not handled properly, better use only one slot per request */
-                            //IAMG PRoof of concept capOn capOff. idea to handle more than one slot per negotiation
+                            // PRoof of concept capOn capOff. idea to handle more than one slot per negotiation
                             event.management.status = GTSStatus::DENIED;
                         }
                     } else {

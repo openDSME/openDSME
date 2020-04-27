@@ -66,7 +66,7 @@ struct DSMEPANDescriptor : public DSMEMessageElement {
     BeaconBitmap& getBeaconBitmap() {
         return beaconBitmap;
     }
-    //IAMG proof of concept capOn capOff
+    // proof of concept capOn capOff
     DSMESuperframeSpecification& getDSMESuperframeSpecification(){
         return this->dsmeSuperframeSpec;
     }
