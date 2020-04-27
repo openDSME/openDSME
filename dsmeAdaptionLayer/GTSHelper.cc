@@ -127,24 +127,11 @@ void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
             if(decision.numSlot == 1){
                 checkAndDeallocateSingeleGTS(decision.deviceAddress);
                 LOG_DEBUG(". Inside GTSHelper performSchedulingAction->deallocate single slot? : "<< (uint16_t)decision.numSlot);
-            }else{
-                checkAndDeallocateMultipleGTS(decision);
-                LOG_DEBUG(". Inside GTSHelper performSchedulingAction->deallocate multiple slots? : "<< (uint16_t)decision.numSlot);
             }
 
         }else{
             checkAndDeallocateSingeleGTS(decision.deviceAddress);
         }
-
-        /*if(decision.numSlot == 1){
-            checkAndDeallocateSingeleGTS(decision.deviceAddress);
-            LOG_DEBUG("Inside GTSHelper performSchedulingAction->deallocate single slot? : "<< (uint16_t)decision.numSlot);
-        }else{
-            checkAndDeallocateMultipleGTS(decision);
-            LOG_DEBUG("Inside GTSHelper performSchedulingAction->deallocate multiple slots? : "<< (uint16_t)decision.numSlot);
-        }*/
-
-        //checkAndDeallocateSingeleGTS(decision.deviceAddress);
 
     } else {
         DSME_ASSERT(false);
