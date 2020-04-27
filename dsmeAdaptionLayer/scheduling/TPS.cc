@@ -114,7 +114,7 @@ void TPS::multisuperframeEvent() {
         uint8_t packets_per_slot = 1;
         if(useMultiplePacketsPerGTS) {
             packets_per_slot = (this->dsmeAdaptionLayer.getMAC_PIB().helper.getSymbolsPerSlot() - PRE_EVENT_SHIFT) / ((6 + 127)*2 + this->dsmeAdaptionLayer.getMAC_PIB().helper.getAckWaitDuration() + const_redefines::macLIFSPeriod);
-                /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */
+                /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgment wait duration -> THIS CAN BE DONE MUCH BETTER */
         }
 
         LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
@@ -129,12 +129,12 @@ void TPS::multisuperframeEvent() {
             } else if(error < -2) {
 
                 if (useQueueManagement){
-                    //IAMG. PROof of concept capOncapOff. queue management implementation in case the incomming traffic decreases drastically
+                    //IAMG. PROof of concept capOncapOff. queue management implementation in case the incoming traffic decreases drastically
                     uint16_t queueLevel = GTSSchedulingImpl::getNeighborQueue(data.address);
                     //if the level of the queue is equal or greater than the number of allocated slots. then change = 0
                     if(queueLevel >= slots){
                         LOG_DEBUG("IAMG. Inside TPS queueLevel >= slots");
-                        change = 0; //keep slots in order to alliviate the queue
+                        change = 0; //keep slots in order to alleviate the queue
                     }else if(queueLevel < slots){
                         LOG_DEBUG("IAMG. Inside TPS queueLevel < slots");
                         change= ceil(queueLevel-slots) +1; // deallocate slots that are not needed to supply queue demand and keep 1 slot.

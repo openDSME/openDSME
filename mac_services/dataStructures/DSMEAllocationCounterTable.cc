@@ -137,9 +137,6 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
 
     uint8_t numSlots = 1;
 
-/*    if ((superframeID !=0)&&(gtSlotID <8)){
-        numSlots = 2;
-    }*/
     bool success = false;
     for (uint8_t i=0; i<numSlots ; i++){
         ACTPosition pos;
@@ -169,7 +166,8 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
                 }else  if((superframeID !=0) && (gtSlotID < 8)){
                     //IAMG
                     LOG_DEBUG("IAMG. Adding 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
-                    numAllocatedSlots[d].insert(0.5, address);
+                    //numAllocatedSlots[d].insert(0.5, address);
+                    numAllocatedSlots[d].insert(1, address);
                 }
 
 
@@ -185,7 +183,8 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
                 }else  if((superframeID !=0) && (gtSlotID < 8)){
                     //IAMG
                     LOG_DEBUG("IAMG. Adding 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
-                    (*numSlotIt) = (*numSlotIt) + 0.5;
+                    //(*numSlotIt) = (*numSlotIt) + 0.5;
+                    (*numSlotIt) = (*numSlotIt) + 1;
                 }
 
 
@@ -194,13 +193,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
 
             bitmap.set(getBitmapPosition(superframeID, gtSlotID), true);
         }
-/*        if (numSlots == 2){
-           if(gtSlotID % 2 == 0){
-               gtSlotID=gtSlotID+1;
-           }else{
-               gtSlotID=gtSlotID-1;
-           }
-        }*/
+
 
     }
     return success;
@@ -234,7 +227,8 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     }else if ((superframeID !=0) && (gtSlotID > 7) && (gtSlotID < 15)){
         (*numSlotIt)--;
     }else if ((superframeID !=0) && (gtSlotID < 8)){
-        if(gtSlotID % 2 == 0){
+        (*numSlotIt)--;
+/*        if(gtSlotID % 2 == 0){
             //if (!isAllocated(superframeID, ((gtSlotID+1)%8))){ // first version from capOncapOff
                 //(*numSlotIt)--;
             //}
@@ -242,11 +236,11 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
             //DSME_ASSERT(false);
             (*numSlotIt) = (*numSlotIt) - 0.5;
         }else if (gtSlotID % 2 != 0){
-            /*if (!isAllocated(superframeID, ((gtSlotID-1)%8))){
+            if (!isAllocated(superframeID, ((gtSlotID-1)%8))){
                 (*numSlotIt)--;
-            }*/ // first version from capOncapOff
+            } // first version from capOncapOff
             (*numSlotIt) = (*numSlotIt) - 0.5;
-        }
+        }*/
     }
 
 

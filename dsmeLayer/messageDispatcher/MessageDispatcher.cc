@@ -139,7 +139,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
             //finalizeGTSTransmission(); // IAMG no retrasmision enable
             LOG_DEBUG("IAMG no retrasmision enable");
             //LOG_DEBUG("sendDoneGTS - retry");
-            //return; // will stay at front of queue // IAMG no retrasmision enable if commented
+            return; // will stay at front of queue // IAMG no retrasmision enable if commented
         }
     }
 
@@ -396,7 +396,10 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
 
     if(this->currentACTElement != act.end()) {
-        if(this->currentACTElement->getDirection() == Direction::RX) {
+        if(this->currentACTElement->getDirection() == Direction::RX) {// TODO check if this is a fixed ->
+        //if(true) { //this->currentACTElement->getDirection() == Direction::RX) {
+            //this->currentACTElement = act.end();
+        //}
             this->currentACTElement = act.end();
         } else {
             // Rarely happens, only if the sendDoneGTS is delayed
