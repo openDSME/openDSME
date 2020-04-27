@@ -928,6 +928,10 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
 
+    /* STATISTICS (START) */
+    msg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
+    /* STATISTICS (END) */
+
     // The DUPLICATED_ALLOCATION_NOTIFICATION will be sent regardless of the current state and expects no response.
     // For example a DISALLOW REPSPONE will only be sent during BUSY, but the fact that it do not expect a notify
     // is handled inside of the onCSMASent.
