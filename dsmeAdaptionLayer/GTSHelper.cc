@@ -400,7 +400,9 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
         if(params.status == GTSStatus::SUCCESS) {
             LOG_DEBUG(". GTS confirmed");
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
-            performSchedulingAction(this->gtsScheduling->getNextSchedulingAction()); //  line that is used to enable if consecutive GTS negotiations are triggered
+        }
+        if(params.status != GTSStatus::TRANSACTION_OVERFLOW) {
+            performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());//  line that is used to enable if consecutive GTS negotiations are triggered
         }
     }
     return;
@@ -671,7 +673,7 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
         /* mark slot as allocated */
         replySABSpec.getSubBlock().set(gts.slotID * numChannels + gts.channel, true);
 
-        if(i < numSlots) {
+        if(i < numSlots - 1) {
             /* mark already allocated slots as occupied for next round */
             for(uint8_t channel = 0; channel < numChannels; channel++) {
                 requestSABSpec.getSubBlock().set(gts.slotID * numChannels + channel, true);

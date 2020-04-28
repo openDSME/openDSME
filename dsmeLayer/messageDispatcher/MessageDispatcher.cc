@@ -567,18 +567,18 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
 
     if (this->dsme.getCurrentSuperframe()==0){
 
-        if (CAP_On){LOG_DEBUG("HI IVONNE! CAPOn");}
+        if (CAP_On){LOG_DEBUG("CAPOn");}
         else if (!CAP_On){
-            LOG_DEBUG("HI IVONNE! CAPOff");
+            LOG_DEBUG("CAPOff");
         }
 
-        LOG_DEBUG("HI IVONNE! sf=0");
+        LOG_DEBUG("sf=0");
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
                //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { //  original code
                this->dsme.getCurrentSlot() - (8 + 1)) { //  original code
             /* '-> this slot matches the prepared ACT element */
-            LOG_DEBUG("HI IVONNE!MUT");
+
             if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
                 /* '-> a message may be received during this slot */
 
@@ -620,13 +620,13 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             }
         }
     }else if(CAP_On && (this->dsme.getCurrentSuperframe()!=0) ){
-        LOG_DEBUG("HI IVONNE! CAPOn");
+
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
                //this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) { //  original code
                this->dsme.getCurrentSlot() - 1) {
             /* '-> this slot matches the prepared ACT element */
-            LOG_DEBUG("HI IVONNE!MUT");
+
             if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
                 /* '-> a message may be received during this slot */
 
@@ -668,13 +668,13 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             }
         }
     }else if(!CAP_On && (this->dsme.getCurrentSuperframe()!=0) ){
-        LOG_DEBUG("HI IVONNE! CAPOff");
+        LOG_DEBUG("CAPOff");
         if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
            this->currentACTElement->getGTSlotID() ==
                    this->dsme.getCurrentSlot() - (1)) { //  original code
 
             /* '-> this slot matches the prepared ACT element */
-            LOG_DEBUG("HI IVONNE CAP OFf! MUT");
+            LOG_DEBUG("CAP Off");
             if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
                 /* '-> a message may be received during this slot */
 

@@ -275,21 +275,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
                     params.dsmeSabSpecification.getSubBlock().set(it->getGTSlotID() * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
 
-
-                    // proof of concept CAPon CAP off. Idea-> to deallocate 2 slots if slot to deallocate is GTS_CAP
-                    if((it->getSuperframeID()!= 0) && (it->getGTSlotID()<8)){
-                        params.numSlot = 2;
-                        uint8_t numGTSlots = 15;
-                        if(it->getGTSlotID() % 2 == 0){
-                            params.dsmeSabSpecification.getSubBlock().set((it->getGTSlotID()+1) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
-
-                        }else{
-                            params.dsmeSabSpecification.getSubBlock().set(((it->getGTSlotID()-1) % numGTSlots) * dsme.getMAC_PIB().helper.getNumChannels() + it->getChannel(), true);
-
-                            }
-                        }
-
-
                     this->dsme.getMLME_SAP().getDSME_GTS().notify_indication(params);
                     break;
                 }
