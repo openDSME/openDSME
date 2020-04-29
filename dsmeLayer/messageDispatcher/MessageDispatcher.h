@@ -63,6 +63,7 @@ public:
 
 private:
     DSMELayer& dsme;
+    bool multiplePacketsPerGTS{false};
 
 public:
     void sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg);
@@ -78,16 +79,16 @@ public:
 
     void receive(IDSMEMessage* msg);
 
-    NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
+    inline NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
         return neighborQueue;
     }
 
-    void addNeighbor(const IEEE802154MacAddress& address) {
+    inline void addNeighbor(const IEEE802154MacAddress& address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
     }
 
-    bool neighborExists(const IEEE802154MacAddress& address) {
+    inline bool neighborExists(const IEEE802154MacAddress& address) {
         return neighborQueue.findByAddress(address) != neighborQueue.end();
     }
 
@@ -111,7 +112,7 @@ public:
         return this->numUnusedRxGts;
     }
 
-    void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
+    inline void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
         this->multiplePacketsPerGTS = multiplePacketsPerGTS;
     }
 
@@ -200,8 +201,6 @@ protected:
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
     bool recordGtsUpdates = false;
-
-    bool multiplePacketsPerGTS{false};
 };
 
 } /* namespace dsme */
