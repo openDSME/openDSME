@@ -97,13 +97,10 @@ void GTSHelper::handleStartOfCFP() {
     }
 
     /* Check allocation at random superframe in multi-superframe */
-    //uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-    //uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
+    uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
     //if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-
-        // proof of concept capOn capOff. idea -> to modify decision.numSlots if preferred GTS is a GTS CAP. However a GTS CAP will be allocated doubled by default.
-
-        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction()); //schedulingAction is triggered every superframe in CFP
+    performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
     //}
     return;
 }

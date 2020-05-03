@@ -130,6 +130,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address);
 
+  
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
     }
@@ -208,8 +209,6 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 
     bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
-
-
 
     int d = (it->direction == TX) ? 0 : 1;
     RBTree<float, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);

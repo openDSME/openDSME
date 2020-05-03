@@ -67,9 +67,6 @@
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
 
-uint8_t mCh;
-
-
 namespace dsme {
 
 MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
@@ -117,7 +114,6 @@ void MessageDispatcher::reset(void) {
 
     return;
 }
-
 
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg) {
     LOG_DEBUG("sendDoneGTS");
@@ -206,8 +202,6 @@ void MessageDispatcher::finalizeGTSTransmission() {
     this->preparedMsg = nullptr;    // TODO correct here?
     this->lastSendGTSNeighbor = this->neighborQueue.end();
     this->currentACTElement = this->dsme.getMAC_PIB().macDSMEACT.end();
-    //if(this->numTxGtsFrames > 0) this->dsme.getPlatform().signalPacketsTXPerSlot(this->numTxGtsFrames);
-    //if(this->numRxGtsFrames > 0) this->dsme.getPlatform().signalPacketsRXPerSlot(this->numRxGtsFrames);
     this->numTxGtsFrames = 0;
     this->numRxGtsFrames = 0;
 }
@@ -282,7 +276,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         }
         LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
-        //this->dsme.getPlatform().signalQueueLength(totalSize+1);
+        this->dsme.getPlatform().signalQueueLength(totalSize+1);
         return true;
     } else {
         /* queue full */
@@ -422,6 +416,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         thresholdSlot = 8;
     }
 
+    //params.dataRate = 0; // DSSS -> 0
 
     if(nextSlot > thresholdSlot) {
         /* '-> next slot will be GTS */
@@ -462,7 +457,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
-                    mCh = this->currentACTElement->getChannel();
                 } else {
                     /* Channel hopping: Calculate channel for given slotID */
                     uint16_t hoppingSequenceLength = this->dsme.getMAC_PIB().macHoppingSequenceLength;
@@ -479,7 +473,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                                               << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
                                               << " Direction: " << currentACTElement->getDirection());
                     this->dsme.getPlatform().setChannelNumber(channel);
-                    mCh = channel;
                 }
             }
 

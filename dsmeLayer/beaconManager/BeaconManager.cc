@@ -207,6 +207,7 @@ void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     transmissionPending = true;
     if(!dsme.getAckLayer().prepareSendingCopy(msg, doneCallback)) {
         // message could not be sent
+        LOG_DEBUG("Beacon could not be sent");
         dsme.getPlatform().releaseMessage(msg);
     } else {
         LOG_DEBUG("Beacon sent");

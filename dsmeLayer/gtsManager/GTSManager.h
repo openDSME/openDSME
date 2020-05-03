@@ -186,6 +186,8 @@ public:
      */
     bool onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs);
 
+    uint32_t numGTSMessages{0};
+
 private:
     /**
      * States

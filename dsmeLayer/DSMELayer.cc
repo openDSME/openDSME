@@ -321,8 +321,6 @@ void DSMELayer::handleStartOfCFP() {
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
-
-
 uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {
     uint32_t symbolsSinceLastBeaconInterval = time - this->beaconManager.getLastKnownBeaconIntervalStart();
 
@@ -343,7 +341,7 @@ bool DSMELayer::isWithinCAP(uint32_t time, uint16_t duration) {
     uint32_t symbolsSinceCapFrameStart = getSymbolsSinceCapFrameStart(time);
 
     uint32_t capStart = symbolsPerSlot; // after beacon slot
-    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot(0) + 1) - PRE_EVENT_SHIFT;
+    uint32_t capEnd = symbolsPerSlot * (getMAC_PIB().helper.getFinalCAPSlot(0) + 1) - PRE_EVENT_SHIFT;  //TODO: IS THIS CORRECT????
 
     return (symbolsSinceCapFrameStart >= capStart)              // after beacon slot
            && (symbolsSinceCapFrameStart + duration <= capEnd); // before pre-event of first GTS
@@ -362,8 +360,6 @@ bool DSMELayer::isWithinTimeSlot(uint32_t now, uint16_t duration) {
 
     return now + duration <= timeSlotEnd;
 }
-
-
 
 void DSMELayer::startTrackingBeacons() {
     this->trackingBeacons = true;

@@ -63,58 +63,36 @@ public:
 
 private:
     DSMELayer& dsme;
+    bool multiplePacketsPerGTS{false};
 
 public:
-    void sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg);
-
-    /**
-     * Gets called when CSMA Message was sent down to the PHY
-     */
-    void onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts);
-
     bool sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt);
 
+    /*! Queues a message for transmission during the CAP.
+     *
+     * \param msg The message to transmit
+     * \return true if the message was pushed to the #CAPLayer, false otherwise
+     */
     bool sendInCAP(IDSMEMessage* msg);
 
-    void receive(IDSMEMessage* msg);
-
-    NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
+    inline NeighborQueue<MAX_NEIGHBORS>& getNeighborQueue() {
         return neighborQueue;
     }
 
-    void addNeighbor(const IEEE802154MacAddress& address) {
+    inline void addNeighbor(const IEEE802154MacAddress& address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
     }
 
-    bool neighborExists(const IEEE802154MacAddress& address) {
+    inline bool neighborExists(const IEEE802154MacAddress& address) {
         return neighborQueue.findByAddress(address) != neighborQueue.end();
     }
 
-    long getNumUpperPacketsDroppedFullQueue() const {
-        return numUpperPacketsDroppedFullQueue;
-    }
-
-    long getNumUpperPacketsForCAP() const {
-        return numUpperPacketsForCAP;
-    }
-
-    long getNumUpperPacketsForGTS() const {
-        return numUpperPacketsForGTS;
-    }
-
-    long getNumUnusedTxGTS() const {
-        return this->numUnusedTxGts;
-    }
-
-    long getNumUnusedRxGTS() const {
-        return this->numUnusedRxGts;
-    }
-
-    void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
+    inline void setSendMultiplePacketsPerGTS(bool multiplePacketsPerGTS) {
         this->multiplePacketsPerGTS = multiplePacketsPerGTS;
     }
 
+/* Event handlers (START) ----------------------------------------------------*/
     /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
      *
      * \param nextSlot The upcoming slot number
@@ -141,6 +119,30 @@ public:
      */
     bool handleIFSEvent(int32_t lateness);
 
+    /*! This shall be called when CSMA Message was sent down to the physical layer.
+     *
+     * \param msg The sent message
+     * \param status The status of the transmission
+     * \param numBackoffs The number of required backoffs
+     * \param transmissionAttempts The number of required transmission attempts
+     */
+    void onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status status, uint8_t numBackoffs, uint8_t transmissionAttempts);
+
+    /*! This shall be send after a GTS transmission.
+     *
+     * \param response The status of the transmission
+     * \param msg The sent message
+     */
+    void sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg);
+
+    /*! This shall be called to receive a message after it has been decoupled from
+     * the ISR control flow.
+     *
+     * \param msg The message to received
+     */
+    void receive(IDSMEMessage* msg);
+
+/* Event handlers (END) ------------------------------------------------------*/
 
 protected:
     DSMEAllocationCounterTable::iterator currentACTElement;
@@ -149,13 +151,19 @@ protected:
 
     IDSMEMessage* dsmeAckFrame;
 
-    /**
+    NeighborQueue<MAX_NEIGHBORS> neighborQueue;
+
+    NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
+
+    IDSMEMessage *preparedMsg{nullptr};
+
+    /*!
      * Called on start of every GTSlot.
      * Switch channel for reception or transmit from queue in allocated slots. TODO: correct?
      */
     void handleGTS(int32_t lateness);
 
-    /**
+    /*!
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
     void handleGTSFrame(IDSMEMessage* msg);
@@ -176,10 +184,6 @@ protected:
      */
     bool sendPreparedMessage();
 
-    NeighborQueue<MAX_NEIGHBORS> neighborQueue;
-    NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
-    IDSMEMessage *preparedMsg{nullptr};
-
     void createDataIndication(IDSMEMessage* msg);
 
     /*! Finalizes the current GTS. Turns off the transceiver if transmitting,
@@ -190,18 +194,48 @@ protected:
 
     void transceiverOffIfAssociated();
 
-    /* Statistics */
+    /*! Returns the next channel in the hopping sequence.
+     */
+    uint8_t nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
+
+
+
+
+/* Statistics (START) ------------------------------------------------------- */
+public:
+    long getNumUpperPacketsDroppedFullQueue() const {
+        return numUpperPacketsDroppedFullQueue;
+    }
+
+    long getNumUpperPacketsForCAP() const {
+        return numUpperPacketsForCAP;
+    }
+
+    long getNumUpperPacketsForGTS() const {
+        return numUpperPacketsForGTS;
+    }
+
+    long getNumUnusedTxGTS() const {
+        return this->numUnusedTxGts;
+    }
+
+    long getNumUnusedRxGTS() const {
+        return this->numUnusedRxGts;
+    }
+
+private:
     long numTxGtsFrames = 0;
     long numRxAckFrames = 0;
     long numRxGtsFrames = 0;
     long numUnusedTxGts = 0;
     long numUnusedRxGts = 0;
+
     long numUpperPacketsDroppedFullQueue = 0;
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
-    bool recordGtsUpdates = false;
 
-    bool multiplePacketsPerGTS{false};
+    bool recordGtsUpdates = false;
+/* Statistics (END) --------------------------------------------------------- */
 };
 
 } /* namespace dsme */

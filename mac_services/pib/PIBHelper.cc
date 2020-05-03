@@ -71,20 +71,11 @@ unsigned PIBHelper::getNumberMultiSuperframesPerBeaconInterval() const {
 }
 
 uint8_t PIBHelper::getFinalCAPSlot(uint8_t superframeId) const {
-    if(superframeId == 0) { // correct?
-        return 8;
-    } else if(mac_pib.macCapReduction == true) {
-        return 0;
-    } else if(mac_pib.macCapReduction == false){
-       return 8;
-    }
-
-    //original code
-/*    if((mac_pib.macCapReduction == false) || (superframeId == 0)) { // correct?
+    if((mac_pib.macCapReduction == false) || (superframeId == 0)) {
         return 8;
     } else {
         return 0;
-    }*/
+    }
 }
 
 uint32_t PIBHelper::getSymbolsPerSlot() const {
@@ -138,6 +129,6 @@ uint8_t PIBHelper::getSubBlockLengthBytes(uint8_t superframeId) const {
 
 uint16_t PIBHelper::getAckWaitDuration() const {
     return aUnitBackoffPeriod + aTurnaroundTime + phy_pib.phySHRDuration + 6 * phy_pib.phySymbolsPerOctet + ADDITIONAL_ACK_WAIT_DURATION;
-}
+}// 12 + 20 + 12 + 12
 
 } /* namespace dsme */

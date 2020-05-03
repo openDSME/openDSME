@@ -309,6 +309,14 @@ public:
         return fcf_1;
     }
 
+    uint32_t getCreationTime() {
+        return this->creationTime;
+    }
+
+    void setCreationTime(uint32_t creationTime) {
+        this->creationTime = creationTime;
+    }
+
 private:
     FrameControl frameControl;
 
@@ -327,6 +335,8 @@ private:
     IEEE802154MacAddress srcAddr;
 
     bool finalized;
+
+    uint32_t creationTime{0};
 
     void finalize();
 

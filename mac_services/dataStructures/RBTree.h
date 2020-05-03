@@ -62,7 +62,7 @@ template <typename T, typename K>
 class RBTree {
 public:
     typedef RBTreeIterator<T, K> iterator;
-    typedef uint8_t tree_size_t;
+    typedef uint16_t tree_size_t;
 
     /*
      * initializes tree members

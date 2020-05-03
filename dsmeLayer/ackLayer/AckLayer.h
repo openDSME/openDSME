@@ -101,6 +101,7 @@ public:
     void sendAdditionalAck(uint8_t seqNum);
     void receive(IDSMEMessage* msg);
     void dispatchTimer();
+    bool ifMsgPending();
 
 private:
     void sendDone(bool success);
