@@ -104,6 +104,8 @@ public:
         dstPAN = BROADCAST_PAN;
         srcPAN = BROADCAST_PAN;
 
+        creationTime = 0;
+
         hasDstPAN = false;
         hasSrcPAN = false;
 
@@ -309,6 +311,16 @@ public:
         return fcf_1;
     }
 
+    /* STATISTICS */
+    uint32_t getCreationTime() {
+        return this->creationTime;
+    }
+
+    void setCreationTime(uint32_t symbols) {
+        this->creationTime = symbols;
+    }
+
+
 private:
     FrameControl frameControl;
 
@@ -327,6 +339,8 @@ private:
     IEEE802154MacAddress srcAddr;
 
     bool finalized;
+
+    uint32_t creationTime;  // STATISTICS
 
     void finalize();
 
