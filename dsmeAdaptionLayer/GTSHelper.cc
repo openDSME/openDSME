@@ -59,7 +59,7 @@
 
 namespace dsme {
 
-GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer), gtsConfirmPending(false) {
+GTSHelper::GTSHelper(DSMEAdaptionLayer& dsmeAdaptionLayer, ChannelAdaptor& channelAdaptor) : dsmeAdaptionLayer(dsmeAdaptionLayer), channelAdaptor(channelAdaptor), gtsConfirmPending(false) {
 }
 
 void GTSHelper::initialize(GTSScheduling* scheduling) {
@@ -403,18 +403,19 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                     occupied.setOperationJoin(remoteOccupied);
                 }
 
-                gts.channel = startChannel;
-                for(uint8_t i = 0; i < numChannels; i++) {
-                    if(!occupied.get(gts.channel)) {
+                gts.channel = channelAdaptor.selectChannel();
+                return gts;
+                //for(uint8_t i = 0; i < numChannels; i++) {
+                //    if(!occupied.get(gts.channel)) {
                         /* found one */
-                        return gts;
-                    }
+                //        return gts;
+                //    }
 
-                    gts.channel++;
-                    if(gts.channel == numChannels) {
-                        gts.channel = 0;
-                    }
-                }
+                //    gts.channel++;
+                //    if(gts.channel == numChannels) {
+                //        gts.channel = 0;
+                //    }
+                //}
             }
             slotsToCheck--;
             if((gts.slotID+1)%numGTSlots == initialSuperframeID) {

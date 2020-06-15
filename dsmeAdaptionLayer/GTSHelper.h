@@ -54,6 +54,7 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 class DSMESABSpecification;
+class ChannelAdaptor;
 
 namespace mlme_sap {
 struct COMM_STATUS_indication_parameters;
@@ -63,7 +64,7 @@ struct DSME_GTS_indication_parameters;
 
 class GTSHelper {
 public:
-    explicit GTSHelper(DSMEAdaptionLayer&);
+    explicit GTSHelper(DSMEAdaptionLayer&, ChannelAdaptor&);
 
     void initialize(GTSScheduling* scheduling);
 
@@ -109,6 +110,8 @@ private:
 
 private:
     DSMEAdaptionLayer& dsmeAdaptionLayer;
+
+    ChannelAdaptor& channelAdaptor;
 
     GTSScheduling* gtsScheduling = nullptr;
 

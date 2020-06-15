@@ -48,6 +48,7 @@
 #include "../mac_services/mlme_sap/RESET.h"
 
 #include "./AssociationHelper.h"
+#include "./ChannelAdaptor.h"
 #include "./GTSHelper.h"
 #include "./MessageHelper.h"
 #include "./ScanHelper.h"
@@ -90,6 +91,7 @@ public:
     MAC_PIB& getMAC_PIB();
 
     AssociationHelper& getAssociationHelper();
+    ChannelAdaptor& getChannelAdaptor();
     GTSHelper& getGTSHelper();
     MessageHelper& getMessageHelper();
     ScanHelper& getScanHelper();
@@ -115,6 +117,7 @@ private:
 
     AssociationHelper associationHelper;
     MessageHelper messageHelper;
+    ChannelAdaptor channelAdaptor;
     GTSHelper gtsHelper;
     ScanHelper scanHelper;
 

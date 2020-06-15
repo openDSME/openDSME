@@ -60,7 +60,8 @@ DSMEAdaptionLayer::DSMEAdaptionLayer(DSMELayer& dsme)
     : dsme(dsme),
       associationHelper(*this),
       messageHelper(*this),
-      gtsHelper(*this),
+      channelAdaptor(*this),
+      gtsHelper(*this, channelAdaptor),
       scanHelper(*this),
 
       mcps_sap(nullptr),
@@ -111,6 +112,10 @@ MAC_PIB& DSMEAdaptionLayer::getMAC_PIB() {
 
 AssociationHelper& DSMEAdaptionLayer::getAssociationHelper() {
     return this->associationHelper;
+}
+
+ChannelAdaptor& DSMEAdaptionLayer::getChannelAdaptor() {
+    return this->channelAdaptor;
 }
 
 GTSHelper& DSMEAdaptionLayer::getGTSHelper() {
