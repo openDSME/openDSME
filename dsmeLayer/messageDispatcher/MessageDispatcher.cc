@@ -197,8 +197,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
 void MessageDispatcher::finalizeGTSTransmission() {
     LOG_DEBUG("Finalizing transmission for slot " << (int)this->currentACTElement->getGTSlotID() << " " << (int)this->currentACTElement->getSuperframeID() << " " << (int)this->currentACTElement->getChannel());
-    if(currentACTElement->getGTSlotID() > 7)
-        transceiverOffIfAssociated();
+    transceiverOffIfAssociated();
     this->dsme.getEventDispatcher().stopIFSTimer();
     this->preparedMsg = nullptr;    // TODO correct here?
     this->lastSendGTSNeighbor = this->neighborQueue.end();
@@ -557,6 +556,17 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
         currentACTElement->resetIdleCounter();
     }
 
+    InformationElement* iePointer = nullptr;
+    if(msg->getHeader().getIEListPresent() == true){
+        if(msg->getHeader().ieQueue.getIEByID(0x10, &iePointer)){  //check for lastMessageIE
+            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
+                   finalizeGTSTransmission();
+                   LOG_INFO("Last Message true");
+           }
+        }
+        LOG_INFO("Information Element present");
+    }
+
     createDataIndication(msg);
 }
 
@@ -579,6 +589,16 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     } else { // if there is a message to send retrieve a copy of it from the queue and set the flag to check if possible to send the message
         checkTimeToSendMessage = true;
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
+    }
+
+    if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
+        LOG_INFO("last Packet in queue");
+        InformationElement* ie;
+        lastMessageIE lmIE;
+        lmIE.isLastMessage = true;
+        ie = &lmIE;
+        preparedMsg->getHeader().ieQueue.push(*ie);
+        LOG_INFO("lastMessageIE added to queue");
     }
 
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked
@@ -647,6 +667,7 @@ void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
 }
 
 void MessageDispatcher::transceiverOffIfAssociated() {
+    LOG_INFO("Tranceiver turned off");
     if(this->dsme.getMAC_PIB().macAssociatedPANCoord) {
       this->dsme.getPlatform().turnTransceiverOff();
     } else {
