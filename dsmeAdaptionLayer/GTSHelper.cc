@@ -93,6 +93,13 @@ void GTSHelper::indicateReceivedMessage(uint16_t address) {
 void GTSHelper::handleStartOfCFP() {
     if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == 0) {
         this->gtsScheduling->multisuperframeEvent();
+
+        //check all slots
+        for(DSMEAllocationCounterTable::iterator it = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.begin(); it != dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.end(); ++it) {
+            if(channelAdaptor.checkDeallocateGTS(it->getChannel())) {
+                it->setIdleCoutner(dsmeAdaptionLayer.getMAC_PIB().macDSMEGTSExpirationTime+1);
+            }
+        }
     }
 
     /* Check allocation at random superframe in multi-superframe */

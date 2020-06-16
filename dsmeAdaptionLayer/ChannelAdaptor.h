@@ -24,6 +24,12 @@ public:
     uint8_t selectChannel();
 
 
+    /** Checks if the GTS with the given channel id
+     *  shall be deallocated. True to deallocate the
+     *  GTS, false to keep it. Called every Multisuperframe.
+     */
+    bool checkDeallocateGTS(uint8_t channel);
+
     /** Collects information about transmissions and
      *  channel quality.
      */
@@ -31,8 +37,9 @@ public:
 
 private:
     std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> channelStatusList; // Vector of tuples (channel, transmissions, successful transmissions)
-    DSMEAdaptionLayer &dsmeAdaptionLayer;
 
+    // Not of interest
+    DSMEAdaptionLayer &dsmeAdaptionLayer;
     void printChannelStatusList();
 };
 

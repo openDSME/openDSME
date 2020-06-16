@@ -19,11 +19,18 @@ uint8_t ChannelAdaptor::selectChannel() {
     return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 }
 
+bool ChannelAdaptor::checkDeallocateGTS(uint8_t channel) {
+    //TODO implement
+    return false;
+}
+
 void ChannelAdaptor::signalTransmissionStatus(uint8_t channel, uint8_t attempts, bool success) {
     auto it = std::find_if(channelStatusList.begin(), channelStatusList.end(), [channel](const std::tuple<uint8_t, uint32_t, uint32_t>& e) {return std::get<0>(e) == channel;});
     if(it != channelStatusList.end()) {
         std::get<1>(*it) += attempts;
         std::get<2>(*it) += success ? 1 : 0;
+    } else {
+        channelStatusList.push_back(std::tuple<uint8_t, uint32_t, uint32_t>(channel, attempts, success));
     }
 }
 

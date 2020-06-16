@@ -57,6 +57,10 @@ public:
         return idleCounter;
     }
 
+    void setIdleCoutner(uint16_t idleCounter) {
+        this->idleCounter = idleCounter;
+    }
+
     uint16_t getAddress() const {
         return address;
     }
