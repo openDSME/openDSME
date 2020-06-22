@@ -196,7 +196,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 }
 
 void MessageDispatcher::finalizeGTSTransmission() {
-    LOG_DEBUG("Finalizing transmission for " << this->currentACTElement->getGTSlotID() << " " << this->currentACTElement->getSuperframeID() << " " << this->currentACTElement->getChannel());
+    LOG_DEBUG("Finalizing transmission for slot " << (int)this->currentACTElement->getGTSlotID() << " " << (int)this->currentACTElement->getSuperframeID() << " " << (int)this->currentACTElement->getChannel());
     transceiverOffIfAssociated();
     this->dsme.getEventDispatcher().stopIFSTimer();
     this->preparedMsg = nullptr;    // TODO correct here?
@@ -386,18 +386,36 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 }
 
 bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe) {
+    LOG_DEBUG("NEXT SLOT: " << (int)nextSlot << " NEXT SF: " << (int)nextSuperframe);
     // Prepare next slot
     // Switch to next slot channel and radio mode
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     if(this->currentACTElement != act.end()) {
-        if(this->currentACTElement->getDirection() == Direction::RX) {
+        if(true) { //this->currentACTElement->getDirection() == Direction::RX) {
             this->currentACTElement = act.end();
         } else {
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
             LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
-            DSME_SIM_ASSERT(false);
+            //DSME_SIM_ASSERT(false);
             return false;
+        }
+    }
+
+    if(nextSlot == 0) {
+        /* '-> beacon slots are handled by the BeaconManager */
+        DSME_ASSERT(this->currentACTElement == act.end());
+    } else if(nextSlot >= 1 && nextSlot <= 8) {
+        /* '-> next slot will be CAP */
+
+        if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {
+            /* '-> active CAP slot */
+
+            this->dsme.getPlatform().turnTransceiverOn();
+            this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
+        } else {
+            /* '-> CAP reduction */
+            transceiverOffIfAssociated();
         }
     }
 
@@ -407,6 +425,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         unsigned nextGTS = nextSlot - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe) + 1);
         if(act.isAllocated(nextSuperframe, nextGTS)) {
             /* '-> this slot might be used */
+            LOG_DEBUG("Current slot is allocated as GTS");
 
             this->currentACTElement = act.find(nextSuperframe, nextGTS);
             DSME_ASSERT(this->currentACTElement != act.end());
@@ -419,6 +438,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                 this->dsme.getPlatform().turnTransceiverOn();
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
+                    LOG_DEBUG("Switching to channel " << (int)this->currentACTElement->getChannel());
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
                 } else {
                     uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);
@@ -428,27 +448,13 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
             // statistic
             if(this->currentACTElement->getDirection() == RX) {
+                LOG_DEBUG("Current GTS is RX");
                 this->numUnusedRxGts++; // gets PURGE.cc decremented on actual reception
             }
         } else {
             /* '-> nothing to do during this slot */
             DSME_ASSERT(this->currentACTElement == act.end());
-            transceiverOffIfAssociated();
-        }
-    } else if(nextSlot == 0) {
-        /* '-> beacon slots are handled by the BeaconManager */
-        DSME_ASSERT(this->currentACTElement == act.end());
-    } else if(nextSlot == 1) {
-        /* '-> next slot will be CAP */
-
-        if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {
-            /* '-> active CAP slot */
-
-            this->dsme.getPlatform().turnTransceiverOn();
-            this->dsme.getPlatform().setChannelNumber(this->dsme.getPHY_PIB().phyCurrentChannel);
-        } else {
-            /* '-> CAP reduction */
-            transceiverOffIfAssociated();
+            //transceiverOffIfAssociated();
         }
     }
 
@@ -493,11 +499,9 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
     return true;
 }
 
-
 void MessageDispatcher::handleGTS(int32_t lateness) {
     if(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end() && this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() &&
-       this->currentACTElement->getGTSlotID() ==
-           this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
+       this->currentACTElement->getGTSlotID() == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
         /* '-> this slot matches the prepared ACT element */
 
         if(this->currentACTElement->getDirection() == RX) { // also if INVALID or UNCONFIRMED!
@@ -523,14 +527,12 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             }
 
             bool success = prepareNextMessageIfAny();
-            LOG_DEBUG(success);
             if(success) {
                 /* '-> a message is queued for transmission */
                 success = sendPreparedMessage();
             }
-            LOG_DEBUG(success);
 
-            if(success == false) {
+            if(!success) {
                 /* '-> no message to be sent */
                 LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
                 this->numUnusedTxGts++;
@@ -541,6 +543,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         }
     }
 }
+
 void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     DSME_ASSERT(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end());
 
@@ -551,6 +554,17 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
        currentACTElement->getGTSlotID() == dsme.getCurrentSlot() - (dsme.getMAC_PIB().helper.getFinalCAPSlot(dsme.getCurrentSuperframe()) + 1)) {
         // According to 5.1.10.5.3
         currentACTElement->resetIdleCounter();
+    }
+
+    InformationElement* iePointer = nullptr;
+    if(msg->getHeader().getIEListPresent() == true){
+        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){  //check for lastMessageIE
+            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
+                   //finalizeGTSTransmission();
+                   LOG_INFO("Last Message true");
+           }
+        }
+        LOG_INFO("Information Element present");
     }
 
     createDataIndication(msg);
@@ -575,6 +589,14 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     } else { // if there is a message to send retrieve a copy of it from the queue and set the flag to check if possible to send the message
         checkTimeToSendMessage = true;
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
+    }
+
+    if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
+        LOG_INFO("last Packet in queue");
+        lastMessageIE lmIE;
+        lmIE.isLastMessage = true;
+        preparedMsg->getHeader().ieQueue.push(lmIE);
+        LOG_INFO("lastMessageIE added to queue");
     }
 
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked
@@ -643,8 +665,9 @@ void MessageDispatcher::createDataIndication(IDSMEMessage* msg) {
 }
 
 void MessageDispatcher::transceiverOffIfAssociated() {
+    LOG_INFO("Tranceiver turned off");
     if(this->dsme.getMAC_PIB().macAssociatedPANCoord) {
-        this->dsme.getPlatform().turnTransceiverOff();
+      this->dsme.getPlatform().turnTransceiverOff();
     } else {
         /* '-> do not turn off the transceiver while we might be scanning */
     }

@@ -49,6 +49,166 @@
 
 namespace dsme {
 
+class lastMessageIE;
+
+class InformationElement {
+    protected:
+    uint8_t IEID;
+    public:
+    //virtual ~InformationElement() = 0;
+    virtual uint8_t parse() = 0;
+    virtual uint8_t getIEID(){return 10;};
+
+ };
+
+class lastMessageIE : public InformationElement{
+    public:
+    lastMessageIE(){
+        IEID = 0x10;
+    }
+    ~lastMessageIE(){};
+
+    bool isLastMessage;
+
+    uint8_t getIEID(){
+        return IEID;
+    }
+
+    uint8_t parse(){
+        return IEID*0xA + isLastMessage;
+    }
+};
+
+class otherIE : public InformationElement{
+    public:
+    otherIE(){
+        IEID = 0xB;
+    }
+    ~otherIE(){};
+
+    bool someFlag;
+
+    uint8_t getIEID(){
+        return IEID;
+    }
+
+    uint8_t parse(){
+        return IEID*0xA + someFlag;
+    }
+};
+
+template <uint16_t MAX_SIZE>
+class IEQueue {
+public:
+    IEQueue() : queue{}, next_back(0), size(0) {
+    }
+
+    ~ IEQueue(){
+        for(int i = 0; i < MAX_SIZE; i++){
+            delete queue[i];
+        }
+    }
+
+    // assumes queue is not full
+    template <typename T>
+    void push(T element) {
+
+        queue[next_back] = new T(element);
+        if(next_back == 0) {
+            next_back = MAX_SIZE - 1;
+        } else {
+            next_back--;
+        }
+        size++;
+    }
+
+    // assumes queue is not empty
+    void pop() {
+        size--;
+    }
+
+    // assumes queue is not empty
+    InformationElement& front() {
+        return queue[(next_back + size) % MAX_SIZE];
+    }
+
+    bool empty() const {
+        return (size == 0);
+    }
+
+    bool full() const {
+        return (size >= 10);
+    }
+
+    int getSize() const {
+        return size;
+    }
+
+    bool getIEByID(uint8_t ieID, InformationElement*& iePointer){
+        for(int i = 0; i < size; i++){
+            //LOG_INFO(queue[0]->getIEID());
+            if(queue[i]->getIEID() == ieID){ //Crash
+                iePointer = queue[i];
+                return true;
+            }
+        }
+        return false;
+    }
+
+    uint8_t* parse(){
+        otherIE oIE;
+        oIE.someFlag = true;
+        this->push(oIE);
+
+        uint8_t* buffer = new uint8_t[size];
+        uint8_t* buf = buffer;
+
+        for(InformationElement* iePointer: queue){
+            switch(iePointer->getIEID()){
+                case 16:{
+                    lastMessageIE* lMIE = dynamic_cast<lastMessageIE*>(iePointer);
+                    *buf = lMIE->parse();
+                    break;
+                }
+                case 11:{
+                    otherIE* oIE = dynamic_cast<otherIE*>(iePointer);
+                    *buf = oIE->parse();
+                    break;
+                }
+            }
+            buf++;
+        }
+        return buffer;
+    }
+
+    IEQueue unparse(const uint8_t* buffer, uint8_t payloadLength){
+        IEQueue<2> queue;
+        for(int i = 0; i < 2 ; i++){ //TODO dynamic size
+            switch((*buffer)/10){
+                case 16:{
+                    lastMessageIE lmIE;// wie lange existiert dieses Object
+                    lmIE.isLastMessage = (*buffer)%10;
+                    this->push(lmIE);
+                    break;
+                }
+                case 11:{
+                    otherIE oIE;
+                    oIE.someFlag = (*buffer)%10;
+                    this->push(oIE);
+                    break;
+                }
+            }
+            buffer++;
+        }
+        return queue;
+    }
+
+private:
+    InformationElement* queue[MAX_SIZE];
+    uint16_t next_back;
+    uint16_t size;
+};
+
 class IEEE802154eMACHeader : public DSMEMessageElement {
 public:
     /**
@@ -239,6 +399,10 @@ public:
         this->frameControl.ieListPresent = present;
     }
 
+    bool getIEListPresent() {
+            return this->frameControl.ieListPresent;
+        }
+
     void setSeqNumSuppression(bool suppression) {
         finalized = false;
         this->frameControl.seqNumSuppression = suppression;
@@ -343,7 +507,11 @@ private:
 
     void finalize();
 
+
+
 public:
+    IEQueue<2> ieQueue; //TODO private, dynamic size
+
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
 
     inline bool hasSourceAddress() const {
@@ -442,7 +610,7 @@ public:
             size += this->sourceAddressLength(); // source address
 
             size += 0; // security
-            size += 0; // IEs
+            size += 2;//this->ieQueue.getSize(); // IEs //TODO size from Queue
         }
 
         return size;
@@ -453,7 +621,6 @@ public:
     bool deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength);
     void serializeTo(uint8_t*& buffer);
 };
-
 } /* namespace dsme */
 
 #endif /* IEEE802154EMACHEADER_H_ */

@@ -130,6 +130,10 @@ void IEEE802154eMACHeader::finalize() {
         frameControl.panIDCompression = panIDCompression;
     }
 
+    if(!ieQueue.empty()){
+        this->setIEListPresent(true);
+    }
+
     finalized = true;
 }
 
@@ -176,6 +180,16 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
         *(buffer++) = shortSrcAddr >> 8;
     } else if(sourceAddressLength() == 8) {
         buffer << srcAddr;
+    }
+
+    if(getIEListPresent()){
+        uint8_t* value = ieQueue.parse();
+        LOG_INFO("IE Queue size: " << ieQueue.getSize());
+        for(int i = 0; i < ieQueue.getSize(); i++){
+            LOG_INFO("IE Queue value: " << (int)*value);
+            *(buffer++) =  *value;
+            value++;
+        }
     }
 }
 
@@ -236,8 +250,13 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     } else {
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
     }
+    if(getIEListPresent()){
+        this->ieQueue.unparse(buffer, payloadLength);
+        for(buffer; *buffer; ++buffer){// TODO size ändern
+            LOG_INFO("Information Element present: List: " <<  (int)*(buffer));
+        }
+     }
 
     return true;
 }
-
 } /* namespace dsme */
