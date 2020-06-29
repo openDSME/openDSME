@@ -64,6 +64,7 @@ DSMELayer::DSMELayer()
 
       ackLayer(*this),
       capLayer(*this),
+      qAgent(*this), 
       associationManager(*this),
       beaconManager(*this),
       gtsManager(*this),
@@ -256,6 +257,7 @@ void DSMELayer::handleStartOfCFP() {
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
+    this->qAgent.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
 }
 
 uint32_t DSMELayer::getSymbolsSinceCapFrameStart(uint32_t time) {

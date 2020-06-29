@@ -72,6 +72,7 @@ public:
 
     void reset();
     bool pushMessage(IDSMEMessage* msg);
+    uint16_t getQueueLevel() const;
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
 

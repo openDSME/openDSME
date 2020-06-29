@@ -86,6 +86,10 @@ public:
         return (size >= MAX_SIZE);
     }
 
+    uint16_t getSize() const {
+        return size;
+    };
+
 private:
     C queue[MAX_SIZE];
     uint16_t next_back;

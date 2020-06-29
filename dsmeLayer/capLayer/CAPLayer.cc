@@ -127,6 +127,10 @@ bool CAPLayer::pushMessage(IDSMEMessage* msg) {
     return pushed;
 }
 
+uint16_t CAPLayer::getQueueLevel() const {
+    return queue.getSize();
+}
+
 /*****************************
  * Choices
  *****************************/

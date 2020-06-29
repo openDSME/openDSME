@@ -56,6 +56,7 @@
 #include "./capLayer/CAPLayer.h"
 #include "./gtsManager/GTSManager.h"
 #include "./messageDispatcher/MessageDispatcher.h"
+#include "./QAgent.h"
 
 namespace dsme {
 
@@ -219,6 +220,7 @@ protected:
     /* COMPONENTS OF THE DSMELAYER ----------------------------------------> */
     AckLayer ackLayer;
     CAPLayer capLayer;
+    QAgent qAgent;
 
     AssociationManager associationManager;
     BeaconManager beaconManager;
