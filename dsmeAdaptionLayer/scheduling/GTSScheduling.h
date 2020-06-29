@@ -220,7 +220,7 @@ public:
 protected:
     RBTree<SchedulingData, uint16_t> txLinks;
     RBTree<RxData, uint16_t> rxLinks;
-    uint8_t queueLevel = 0;
+    uint16_t queueLevel = 0;
 };
 
 } /* namespace dsme */
