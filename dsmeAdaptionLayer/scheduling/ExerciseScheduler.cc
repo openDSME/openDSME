@@ -48,7 +48,7 @@ void ExerciseScheduler::multisuperframeEvent() {
         uint16_t allocatedTxGTS = dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
         int16_t currentTarget = data.slotTarget;
 
-        bool isLeaf = numChildren == 0;
+        bool isLeaf = allocatedRxGTSTotal == 0;
 
         /* Update GTS target */
         data.slotTarget = getTargetGTS(incomingPackets, outgoingPackets, allocatedTxGTS, allocatedTxGTSTotal, allocatedRxGTSTotal, neighborhoodGTS, currentTarget, queueLevel, numChildren, isLeaf);

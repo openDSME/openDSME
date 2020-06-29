@@ -17,12 +17,13 @@ public:
 
     /* Calculate the number of required GTS per node
      *
-     * incomingPackets - number of incoming (received + generated) packets at the node per MSF
-     * outgoingPackets - number of outgoing (transmitted + lost) packets at the node per MSF
-     * currentTarget - current target for the number of allocated Tx-GTS
+     * incomingPackets - number of incoming (received + generated) packets on the current link per MSF
+     * outgoingPackets - number of outgoing (transmitted + lost) packets on the current link per MSF
+     * currentTarget - current target for the number of allocated GTS for transmission
      * queueLevel - level of the queue (in packets)
-     * allocatedTxGTS - number of allocated GTS for transmission
-     * allocatedRxGTS - number of allocatd GTS for reception
+     * allocatedTxGTS - number of allocated GTS on the current link for transmission
+     * allocatedTxGTSTotal - total number of allocated GTS for transmission 
+     * allocatedRxGTSTotal - total number of allocated GTS for reception
      * numChildren - number of children
      * isLeaf - true if there are no children, false otherwise (WARNING: This changes during the network setup)
      * neighborhoodGTS - total number of GTS allocated by nodes in the neighborhood
