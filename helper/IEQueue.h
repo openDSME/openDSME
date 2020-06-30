@@ -9,6 +9,8 @@
 #define SRC_OPENDSME_HELPER_IEQUEUE_H_
 
 namespace dsme {
+
+    /* IEQueue - Stores Information Elements */
     template <uint16_t MAX_SIZE>
     class IEQueue {
     public:
@@ -17,7 +19,7 @@ namespace dsme {
 
         ~ IEQueue(){
             for(int i = 0; i < MAX_SIZE; i++){
-                //delete queue[i]; TODO: virtual destructor
+                //delete queue[i]; //TODO: virtual destructor
             }
         }
 
