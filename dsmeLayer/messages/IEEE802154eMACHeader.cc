@@ -198,6 +198,9 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
         return false;
     }
 
+    /* points to the beginning of the buffer*/
+    const uint8_t* pBuf = buffer;
+
     /* deserialize frame control */
     uint8_t fcLow = *(buffer++);
     uint8_t fcHigh = *(buffer++);
@@ -250,9 +253,11 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     } else {
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
     }
+
+    /* unparse ieQueue if present */
     if(getIEListPresent()){
-        this->ieQueue.unparse(buffer, payloadLength);
-        for(buffer; *buffer; ++buffer){// TODO size ändern
+        this->ieQueue.unparse(pBuf, buffer, payloadLength);
+        for(buffer; *buffer; ++buffer){// TODO size ändern //TODO: JND test
             LOG_INFO("Information Element present: List: " <<  (int)*(buffer));
         }
      }
