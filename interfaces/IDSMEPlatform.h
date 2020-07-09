@@ -125,6 +125,12 @@ public:
     }
 
     /*
+     * Signal current level of the CAP queue
+     */
+    virtual void signalQueueLevelCAP(uint32_t level) {
+    }
+
+    /*
      * Signal transmitted packets per slot
      */
     virtual void signalPacketsTXPerSlot(uint32_t packets) {
@@ -135,6 +141,20 @@ public:
      */
     virtual void signalPacketsRXPerSlot(uint32_t packets) {
     }
+
+    /*
+     * Signal number of successfully transmitted packets and backoffs
+     */
+    virtual void signalCSMAResult(uint8_t successful, uint8_t retransmissions, uint8_t backoffs) {
+    }
+
+    /*
+     * Signal the current reward of the QAgent
+     */
+    virtual void signalReward(int32_t reward) {
+    }
+
+    virtual void signalQ(int32_t q) {}
 };
 
 } /* namespace dsme */

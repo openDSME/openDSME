@@ -282,6 +282,9 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
+    dsme.getQAgent().handleStartOfCFP(NR, NB, lastWaitTime);
+    backoffExp = dsme.getMAC_PIB().macMinBE;
+
     const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
@@ -327,6 +330,7 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint16_t superframesToWait = superframeIterator - startingSuperframe;
         const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
         const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
+        lastWaitTime = totalWaitTime;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
 
@@ -354,6 +358,7 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " "
                        << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs, transmissionAttempts);
+    dsme.getPlatform().signalCSMAResult(status == DataStatus::SUCCESS, NR+1, NB+1);
 }
 
 } /* namespace dsme */

@@ -164,7 +164,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         }
         else {
         */
-        params.gtsTx = !dst.isBroadcast();
+        params.gtsTx = false; //!dst.isBroadcast();
         //}
 
         params.indirectTx = false;
@@ -313,7 +313,7 @@ void MessageHelper::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
 void MessageHelper::handleAssociationComplete(AssociationStatus::Association_Status status) {
     this->associationInProgress = false;
     if(status != AssociationStatus::SUCCESS) {
-        startAssociation(); 
+        startAssociation();
     }
     return;
 }

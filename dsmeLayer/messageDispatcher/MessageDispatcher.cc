@@ -216,6 +216,7 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
         }
     }
 
+    dsme.getQAgent().onCSMASent(status, numBackoffs, dsme.getPlatform().getSymbolCounter() - msg->getHeader().getCreationTime()); /* Signal result of every CSMA transmission to QAgent */
     if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
@@ -299,6 +300,8 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
     if(!this->dsme.getCapLayer().pushMessage(msg)) {
         LOG_INFO("CAP queue full!");
         return false;
+    } else {
+        dsme.getPlatform().signalQueueLevelCAP(dsme.getCapLayer().getQueueLevel());
     }
     if(msg->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
         numUpperPacketsForCAP++;

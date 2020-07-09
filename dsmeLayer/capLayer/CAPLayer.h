@@ -112,6 +112,7 @@ private:
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
+    uint32_t lastWaitTime = 0;
 };
 
 } /* namespace dsme */

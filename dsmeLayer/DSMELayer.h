@@ -171,6 +171,10 @@ public:
         return messageDispatcher;
     }
 
+    QAgent& getQAgent() {
+        return qAgent;
+    }
+
     void dispatchCCAResult(bool success) {
         this->capLayer.dispatchCCAResult(success);
     }
