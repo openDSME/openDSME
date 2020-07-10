@@ -350,11 +350,9 @@ private:
 
     void finalize();
 
-
-
 public:
-    IEQueue<2> ieQueue; //TODO private, dynamic size
-
+    IEQueue<3> ieQueue; //TODO private, dynamic size
+    uint8_t ieQueueLength = 0;
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
 
     inline bool hasSourceAddress() const {
@@ -453,7 +451,8 @@ public:
             size += this->sourceAddressLength(); // source address
 
             size += 0; // security
-            size += 2;//this->ieQueue.getSize(); // IEs //TODO size from Queue
+            size += 1; // ieQueueLength
+            size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
         }
 
         return size;

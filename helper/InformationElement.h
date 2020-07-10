@@ -13,7 +13,7 @@ namespace dsme {
         protected:
         uint8_t IEID;
         public:
-        virtual ~InformationElement() = default;
+        virtual ~InformationElement(){};
         virtual uint8_t parse() = 0;
         virtual uint8_t getIEID(){return 10;};
 

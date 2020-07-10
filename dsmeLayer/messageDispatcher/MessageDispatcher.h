@@ -64,6 +64,7 @@ public:
 private:
     DSMELayer& dsme;
     bool multiplePacketsPerGTS{false};
+    bool turnOff{false};
 
 public:
     /*! Queues a message for transmission during a GTS.
@@ -126,6 +127,9 @@ public:
      * AFTER a frame has already been transmitted.
      */
     bool handleIFSEvent(int32_t lateness);
+
+    //TODO JND
+    void handleAckTransmitted();
 
     /*! This shall be called when CSMA Message was sent down to the physical layer.
      *

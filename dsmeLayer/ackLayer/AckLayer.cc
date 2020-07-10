@@ -261,7 +261,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     return FSM_HANDLED;
                 }
 
-                IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader();
+                IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader(); //TODO remove IEQueue
                 ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
                 ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
 
@@ -383,11 +383,12 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
 
 fsmReturnStatus AckLayer::stateTxAck(AckEvent& event) {
     switch(event.signal) {
-        case AckEvent::SEND_DONE:
+        case AckEvent::SEND_DONE:{
+            dsme.getMessageDispatcher().handleAckTransmitted();
             dsme.getPlatform().releaseMessage(pendingMessage);
             pendingMessage = nullptr;
             return transition(&AckLayer::stateIdle);
-
+        }
         case AckEvent::RESET:
             return transition(&AckLayer::stateAbort);
 

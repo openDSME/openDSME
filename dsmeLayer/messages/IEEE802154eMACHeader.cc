@@ -182,7 +182,10 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
         buffer << srcAddr;
     }
 
+    *(buffer++) = ieQueue.getSize();
+
     if(getIEListPresent()){
+        //uint8_t ieQueueLength = ieQueue.getSize();
         uint8_t* value = ieQueue.parse();
         LOG_INFO("IE Queue size: " << ieQueue.getSize());
         for(int i = 0; i < ieQueue.getSize(); i++){
@@ -197,9 +200,6 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     if(payloadLength < 2) {
         return false;
     }
-
-    /* points to the beginning of the buffer*/
-    const uint8_t* pBuf = buffer;
 
     /* deserialize frame control */
     uint8_t fcLow = *(buffer++);
@@ -254,12 +254,14 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
     }
 
+    this->ieQueueLength = *(buffer++);
+
     /* unparse ieQueue if present */
     if(getIEListPresent()){
-        this->ieQueue.unparse(pBuf, buffer, payloadLength);
-        for(buffer; *buffer; ++buffer){// TODO size ändern //TODO: JND test
-            LOG_INFO("Information Element present: List: " <<  (int)*(buffer));
-        }
+        this->ieQueue.unparse(buffer, this->ieQueueLength);
+//        for(buffer; *buffer; ++buffer){// TODO size ändern //TODO: JND test
+//            LOG_INFO("Information Element present: List: " <<  (int)*(buffer));
+//        }
      }
 
     return true;

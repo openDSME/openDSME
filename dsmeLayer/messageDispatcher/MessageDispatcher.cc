@@ -143,19 +143,6 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
-    //Checks if message contains lastMessageIE,
-    bool turnOff = false;
-    InformationElement* iePointer = nullptr;
-    if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){
-            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
-                   turnOff = true;
-                   LOG_INFO("Last Message true");//TODO: remove
-           }
-        }
-        LOG_INFO("Information Element present");//TODO: remove
-    }
-
     neighborQueue.popFront(lastSendGTSNeighbor);
     this->preparedMsg = nullptr;
 
@@ -202,7 +189,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
 
 
-    if(turnOff || !this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {
+    if(!this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {
         /* '-> prepare next frame for transmission after one IFS */
         finalizeGTSTransmission();
     }
@@ -566,7 +553,30 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
         currentACTElement->resetIdleCounter();
     }
 
+
+    //Checks if message contains lastMessageIE,
+    InformationElement* iePointer = nullptr;
+    if(msg->getHeader().getIEListPresent() == true){
+        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){
+            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
+                   turnOff = true;
+                   LOG_INFO("Last Message true");//TODO: remove
+           }
+        }
+        LOG_INFO("Information Element present");//TODO: remove
+    }
+
+
     createDataIndication(msg);
+}
+
+void MessageDispatcher::handleAckTransmitted(){
+    LOG_INFO("handleAckTransmitted");
+    if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
+        if(turnOff) {
+            finalizeGTSTransmission(); //dsme.getMessageDispatcher().
+        }
+   }
 }
 
 
@@ -591,6 +601,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     }
 
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
+        preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
         lastMessageIE lmIE;
         lmIE.isLastMessage = true;

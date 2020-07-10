@@ -19,7 +19,7 @@ namespace dsme {
 
         ~ IEQueue(){
             for(int i = 0; i < MAX_SIZE; i++){
-                //delete queue[i]; //TODO: virtual destructor
+                delete queue[i]; //TODO: virtual destructor
             }
         }
 
@@ -70,14 +70,11 @@ namespace dsme {
         }
 
         uint8_t* parse(){
-            otherIE oIE;
-            oIE.someFlag = true;
-            this->push(oIE);
 
             uint8_t* buffer = new uint8_t[size];
             uint8_t* buf = buffer;
-
-            for(InformationElement* iePointer: queue){
+            InformationElement* iePointer = queue[0];
+            for(int i = 0; i < size; i++){
                 switch(iePointer->getIEID()){
                     case 16:{
                         lastMessageIE* lMIE = dynamic_cast<lastMessageIE*>(iePointer);
@@ -90,13 +87,14 @@ namespace dsme {
                         break;
                     }
                 }
+                iePointer = queue[i]; //TODO JND out of index
                 buf++;
             }
             return buffer;
         }
 
-        void unparse(const uint8_t* pBuf, const uint8_t* buffer, uint8_t payloadLength){
-            while(buffer-pBuf <= payloadLength){ //TODO dynamic size
+        void unparse(const uint8_t*& buffer, uint8_t ieQueueSize){
+            for(int i = 0; i < ieQueueSize; i++){ //TODO dynamic size
                 switch((*buffer)/10){
                     case 16:{
                         lastMessageIE lmIE;// wie lange existiert dieses Object

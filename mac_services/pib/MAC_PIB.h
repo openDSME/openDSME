@@ -427,6 +427,10 @@ public:
     /** Indicates whether DSME GTSs are allocated during the association procedure. This attribute is set to TRUE if a device requests assignment of a DSME GTS
      * during association. */
     bool macDsmeAssociation{true};
+
+    /* secret ceaser cipher key */
+    uint8_t preshared_secret{7};
+
 };
 
 } /* namespace dsme */
