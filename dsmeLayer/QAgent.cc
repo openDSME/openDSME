@@ -76,8 +76,8 @@ void QAgent::handleStartOfCFP(uint8_t NR, uint8_t NB, uint32_t lastWaitTime) {
     uint16_t queueLevel = dsme.getCapLayer().getQueueLevel();
 
     // REWARD CALUCLATION
-    reward_t reward = 100 * success - lastWaitTime; //- lastWaitTime/ 10; //(1<<minBE); // - minBE * (lastState.getRetransmissions() * dsme.getMAC_PIB().macMaxCSMABackoffs + (lastState.getBackoffs()+1)) - queueLevel;
-    if(NR >= (dsme.getMAC_PIB().macMaxFrameRetries-1)) reward = -10000;
+    reward_t reward = 100*success; // - lastWaitTime; //- lastWaitTime/ 10; //(1<<minBE); // - minBE * (lastState.getRetransmissions() * dsme.getMAC_PIB().macMaxCSMABackoffs + (lastState.getBackoffs()+1)) - queueLevel;
+    if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) reward = -10000;
     LOG_INFO("REWARD: " << (int)reward);
     dsme.getPlatform().signalReward(reward);
 
@@ -90,7 +90,6 @@ void QAgent::handleStartOfCFP(uint8_t NR, uint8_t NB, uint32_t lastWaitTime) {
     lastState.print();
 
     lastAction = selectAction(lastState);
-    lastAction = 0;
     LOG_INFO("ACT: " << (int)lastAction);
     dsme.getMAC_PIB().macMinBE = lastAction;
     dsme.getMAC_PIB().macMaxBE = lastAction;

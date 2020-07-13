@@ -57,7 +57,7 @@ private:
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.00, float eps_decay=0.999, float gamma=0.8, float lr=0.15);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.00, float eps_decay=1.0, float gamma=0.8, float lr=0.15);
 
     void handleStartOfCFP(uint8_t NR, uint8_t NB, uint32_t lastWaitTime);
 

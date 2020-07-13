@@ -282,8 +282,8 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
-    dsme.getQAgent().handleStartOfCFP(NR, NB, lastWaitTime);
-    backoffExp = dsme.getMAC_PIB().macMinBE;
+    //dsme.getQAgent().handleStartOfCFP(NR, NB, lastWaitTime);
+    //backoffExp = dsme.getMAC_PIB().macMinBE;
 
     const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
