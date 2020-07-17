@@ -135,6 +135,8 @@ public:
      */
     virtual void signalPacketsRXPerSlot(uint32_t packets) {
     }
+
+    virtual void delayedTurnTransceiverOff() = 0;
 };
 
 } /* namespace dsme */

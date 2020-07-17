@@ -19,7 +19,7 @@ namespace dsme {
 
         ~ IEQueue(){
             for(int i = 0; i < MAX_SIZE; i++){
-                delete queue[i]; //TODO: virtual destructor
+                //delete queue[i]; //TODO: virtual destructor, FIX
             }
         }
 

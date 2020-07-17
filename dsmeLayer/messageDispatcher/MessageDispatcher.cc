@@ -574,7 +574,10 @@ void MessageDispatcher::handleAckTransmitted(){
     LOG_INFO("handleAckTransmitted");
     if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
         if(turnOff) {
+            LOG_INFO("turnOFF");
+            turnOff = false;
             finalizeGTSTransmission(); //dsme.getMessageDispatcher().
+            dsme.getPlatform().delayedTurnTransceiverOff();
         }
    }
 }
