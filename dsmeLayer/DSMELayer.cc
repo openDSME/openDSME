@@ -183,6 +183,9 @@ void DSMELayer::preSlotEvent(void) {
 
     if(nextSlot == 0) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
+        if(nextSuperframe == 0) {
+            if(getMAC_PIB().macIsPANCoord) qAgent.printQTable();
+        }
     }
 
     messageDispatcher.handlePreSlotEvent(nextSlot, nextSuperframe, nextMultiSuperframe);
@@ -225,7 +228,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
             skippedSlots = 0;
         } else {
             // no (pre) slot events required during CAP
-            skippedSlots = 7;
+            skippedSlots = 0;
         }
     }
 

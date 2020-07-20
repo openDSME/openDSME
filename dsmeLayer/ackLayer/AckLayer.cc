@@ -119,9 +119,10 @@ void AckLayer::receive(IDSMEMessage* msg) {
     if(header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT) {
         LOG_DEBUG("ACK_RECEIVED with seq num " << (uint16_t)header.getSequenceNumber());
         uint8_t seqNum = header.getSequenceNumber();
+        uint8_t queue = header.getQueueLevel();
         dsme.getPlatform().releaseMessage(msg);
         DSME_ASSERT(!isDispatchBusy());
-        bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED, seqNum);
+        bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED, seqNum, queue);
         DSME_ASSERT(dispatchSuccessful);
         return;
     }
@@ -264,6 +265,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader();
                 ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
                 ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
+                ackHeader.setQueueLevel(dsme.getCapLayer().getQueueLevel());
 
                 ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
 
@@ -360,6 +362,7 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
             if(event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {
+                dsme.getQAgent().signalQueueLevelCAP(event.queue);
                 dsme.getEventDispatcher().stopACKTimer();
                 signalResult(ACK_SUCCESSFUL);
                 return transition(&AckLayer::stateIdle);

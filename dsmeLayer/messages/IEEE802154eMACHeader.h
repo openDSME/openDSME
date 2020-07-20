@@ -320,6 +320,14 @@ public:
         this->creationTime = symbols;
     }
 
+    uint8_t getQueueLevel() {
+        return this->queueLevel;
+    }
+
+    void setQueueLevel(uint8_t queueLevel) {
+        this->queueLevel = queueLevel;
+    }
+
 private:
     FrameControl frameControl;
 
@@ -340,6 +348,8 @@ private:
     bool finalized;
 
     uint32_t creationTime;  // STATISTICS
+
+    uint8_t queueLevel;
 
     void finalize();
 
@@ -443,6 +453,8 @@ public:
 
             size += 0; // security
             size += 0; // IEs
+        } else {
+            size += 1; //queueLevel
         }
 
         return size;

@@ -214,6 +214,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
+        ccaFailed = true;
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
         return transition(&CAPLayer::stateSending);
@@ -238,10 +239,12 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        txSuccess = true;
         actionPopMessage(DataStatus::SUCCESS);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
+        txFailed = true;
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
@@ -282,10 +285,18 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
-    //dsme.getQAgent().handleStartOfCFP(NR, NB, lastWaitTime);
-    //backoffExp = dsme.getMAC_PIB().macMinBE;
+    uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
 
-    const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
+    if(hasQAgent) {
+        dsme.getQAgent().update(ccaFailed, txFailed, txSuccess, NR, NB, lastWaitTime);
+        ccaFailed = true;
+        txFailed = true;
+        txSuccess = false;
+        backoffExp = dsme.getMAC_PIB().macMinBE;
+
+        //unitBackoffPeriods = (this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp)) + (1<<(uint16_t)backoffExp);
+        unitBackoffPeriods = (1 << (uint16_t)backoffExp);
+    }
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
@@ -343,6 +354,9 @@ void CAPLayer::actionStartBackoffTimer() {
 
         this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
     }
+
+    dsme.getMAC_PIB().macMinBE = 3; // RL: reset min/max be to avoid problems with beacon transmission
+    dsme.getMAC_PIB().macMaxBE = 5;
 }
 
 bool CAPLayer::enoughTimeLeft() {

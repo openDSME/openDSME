@@ -177,6 +177,10 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
     } else if(sourceAddressLength() == 8) {
         buffer << srcAddr;
     }
+
+    if(frameControl.frameType == ACKNOWLEDGEMENT) {
+        *(buffer++) = queueLevel;
+    }
 }
 
 bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
@@ -235,6 +239,11 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
         buffer >> this->srcAddr;
     } else {
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    if(frameControl.frameType == ACKNOWLEDGEMENT) {
+        queueLevel = *buffer;
+        buffer += 1;
     }
 
     return true;

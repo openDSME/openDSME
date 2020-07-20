@@ -148,13 +148,11 @@ public:
     virtual void signalCSMAResult(uint8_t successful, uint8_t retransmissions, uint8_t backoffs) {
     }
 
-    /*
-     * Signal the current reward of the QAgent
-     */
-    virtual void signalReward(int32_t reward) {
-    }
 
+    virtual void signalReward(int32_t reward) {}
     virtual void signalQ(int32_t q) {}
+    virtual void signalBE(uint8_t be) {}
+    virtual void signalEPS(float eps) {}
 };
 
 } /* namespace dsme */

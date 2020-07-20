@@ -67,6 +67,12 @@ public:
         this->seqNum = seqNum;
     }
 
+    void fill(uint16_t signal, uint8_t seqNum, uint8_t queue) {
+        this->signal = signal;
+        this->seqNum = seqNum;
+        this->queue = queue;
+    }
+
     enum : uint8_t {
         PREPARE_SEND_REQUEST = USER_SIGNAL_START,
         START_TRANSMISSION,
@@ -80,6 +86,7 @@ public:
 
     bool success;   // only valid for SEND_DONE
     uint8_t seqNum; // only valid for ACK_RECEIVED
+    uint8_t queue;
 };
 
 class AckLayer : private DSMEBufferedFSM<AckLayer, AckEvent, 2> {
