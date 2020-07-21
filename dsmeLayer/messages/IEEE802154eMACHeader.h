@@ -346,6 +346,8 @@ private:
 
     bool finalized;
 
+    // JND: bool gack
+
     uint32_t creationTime;  // STATISTICS
 
     void finalize();

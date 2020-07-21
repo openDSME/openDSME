@@ -143,6 +143,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
+    //JND: retransmissionQueue.push_back(neighborQueue.popFront(lastSendGTSNeighbor));
+
     neighborQueue.popFront(lastSendGTSNeighbor);
     this->preparedMsg = nullptr;
 
@@ -523,6 +525,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             }
 
             bool success = prepareNextMessageIfAny();
+            // JND: preparedMsg->getHeader().setAckRequest(true);
+            // JND: preparedMsg->getHeader().setGroupAckRequest(true);
             LOG_DEBUG(success);
             if(success) {
                 /* '-> a message is queued for transmission */
@@ -604,12 +608,12 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     }
 
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
-        preparedMsg->getHeader().setIEListPresent(true);
+        //preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
         lastMessageIE lmIE;
         lmIE.isLastMessage = true;
-        preparedMsg->getHeader().ieQueue.push(lmIE);
-        LOG_INFO("lastMessageIE added to queue");
+        //preparedMsg->getHeader().ieQueue.push(lmIE);
+        //LOG_INFO("lastMessageIE added to queue");
     }
 
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked

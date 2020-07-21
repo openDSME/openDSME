@@ -247,6 +247,11 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
             // be set 5.3.11.5.2)
+            // 1. possiblity: pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA
+            // if groupack
+            // fill bitmap
+            // print bitmap
+
             if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
                 LOG_DEBUG("sending ACK");
 
