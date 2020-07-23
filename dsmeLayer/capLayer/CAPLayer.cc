@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
 }
 
 void CAPLayer::reset() {
@@ -309,7 +309,16 @@ uint16_t CAPLayer::symbolsRequired() {
 void CAPLayer::actionStartBackoffTimer() {
     totalNBs++;
 
-    uint8_t backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
+    uint8_t backoffExp;
+    if(batteryLifeExt)
+    {
+        backoffExp = std::min((int)this->dsme.getMAC_PIB().macMinBE, 2) + NB;
+    }
+    else
+    {
+        backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
+    }
+    
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 

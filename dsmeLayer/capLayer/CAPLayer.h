@@ -110,6 +110,7 @@ private:
     uint8_t NR;
     uint8_t CW;
     static const uint8_t CW0 = 3;
+    bool batteryLifeExt;
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
