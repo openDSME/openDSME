@@ -66,27 +66,24 @@ enum class QAction : action_t {
     NUM_ACTIONS
 };
 
+
 class QAgent {
 public:
     QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.999, float gamma=0.8, float lr=0.15);
 
-    /* Calculates reward for last action and executes next action
-     *  based on the given parameters
-     */
-    action_t update(bool ccaSuccess, bool txFailed, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t lastWaitTime);
+    action_t selectAction(bool deterministic=false);
+    void update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t dwellTime);
 
-    action_t selectAction(QState const &state, bool deterministic=false);
-
-    void updateQTable(QState const &state, QState const &nextState, action_t const &action, reward_t reward);
 
     void printQTable() const;
 
+    /* Notifies about parent's queue level */
     void signalQueueLevelCAP(uint8_t queueLevel);
 
 private:
     float maxQ(QState const &state) const;
-
     action_t maxAction(QState const &state) const;
+    void updateQTable(QState const &state, QState const &nextState, action_t const &action, reward_t reward);
 
 private:
     DSMELayer &dsme;

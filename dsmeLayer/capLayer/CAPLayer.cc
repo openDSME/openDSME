@@ -186,6 +186,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        dsme.getQAgent().update(ccaSuccess, txSuccess, queue.full(), NR, NB, 0);
         return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -225,7 +226,6 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
-    LOG_INFO("stateSending");
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         //if(enoughTimeLeft()) {
             if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
@@ -240,11 +240,11 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
-        txSuccess = true;
+        dsme.getQAgent().update(true, true, queue.full(), NR, NB, 0);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
-        txFailed = true;
+        dsme.getQAgent().update(true, false, queue.full(), NR, NB, 0);
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
@@ -267,11 +267,10 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        QAction action = (QAction)dsme.getQAgent().update(false, txFailed, txSuccess, queue.full(), NR, NB, 0);
+        QAction action = (QAction)dsme.getQAgent().selectAction();
         txSuccess = false;
         txFailed = false;
-        //if(dsme.getPlatform().getSymbolCounter() <= 1875000) return transition(&CAPLayer::stateBackoff);
-        //else LOG_INFO("TRAINING");
+        ccaSuccess = false;
 
         switch(action) {
             case QAction::BACKOFF:
