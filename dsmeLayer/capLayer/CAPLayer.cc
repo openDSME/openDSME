@@ -1,4 +1,4 @@
-/*
+ /*
  * openDSME
  *
  * Implementation of the Deterministic & Synchronous Multi-channel Extension (DSME)
@@ -135,12 +135,12 @@ uint16_t CAPLayer::getQueueLevel() const {
  * Choices
  *****************************/
 fsmReturnStatus CAPLayer::choiceRebackoff() {
-    NB++;
+    //NB++;
     if(NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
         actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
         return transition(&CAPLayer::stateIdle);
     } else {
-        return transition(&CAPLayer::stateBackoff);
+        return transition(&CAPLayer::stateQAgentDecision);
     }
 }
 
@@ -154,14 +154,14 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         totalNBs = 0;
 
         if(!queue.empty()) {
-            return transition(&CAPLayer::stateBackoff);
+            return transition(&CAPLayer::stateQAgentDecision);
         } else {
             return FSM_HANDLED;
         }
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         LOG_INFO("A CSMA message was pushed.");
         DSME_ASSERT(!queue.empty());
-        return transition(&CAPLayer::stateBackoff);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::CCA_SUCCESS || event.signal == CSMAEvent::CCA_FAILURE) {
         /* '-> only possible after reset */
         return FSM_IGNORED;
@@ -186,15 +186,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        if(enoughTimeLeft()) {
-            return transition(&CAPLayer::stateCCA);
-        } else {
-            // This only happens in rare cases (e.g. resync).
-            // Normally the backoff is chosen large enough beforehand.
-            // It also can occur in simulation when sending Beacon Requests
-            // and a beacon is heared before the message is sent.
-            return transition(&CAPLayer::stateBackoff);
-        }
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -206,18 +198,23 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(!dsme.getPlatform().startCCA()) {
+        if(!enoughTimeLeft() || !dsme.getPlatform().startCCA()) {
             return choiceRebackoff();
         } else {
             return FSM_HANDLED;
         }
+        /*if(enoughTimeLeft()) {
+            dsme.getPlatform().startCCA();
+            return FSM_HANDLED;
+        } else {
+            return choiceRebackoff();
+        }*/
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
-        ccaFailed = true;
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
-        return transition(&CAPLayer::stateSending);
+        return transition(&CAPLayer::stateSending); // DOES CCA WITHOUT SENDING MAKE SENSE? -> it does to check if the channel is busy at time t
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -228,19 +225,22 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
+    LOG_INFO("stateSending");
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
-            // currently receiving external interference
-            return choiceRebackoff();
-        }
-        dsme.getAckLayer().sendNowIfPending();
+        //if(enoughTimeLeft()) {
+            if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
+                // currently receiving external interference
+                return choiceRebackoff();
+            }
 
+            dsme.getAckLayer().sendNowIfPending();
+        //}
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
-        txSuccess = true;
         actionPopMessage(DataStatus::SUCCESS);
+        txSuccess = true;
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
@@ -251,11 +251,40 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         } else {
             NB = 0;
             NR++;
-            return transition(&CAPLayer::stateBackoff);
+            return transition(&CAPLayer::stateQAgentDecision);
         }
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
         actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
         return transition(&CAPLayer::stateIdle);
+    } else {
+        if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_INFO((uint16_t)event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
+    if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        QAction action = (QAction)dsme.getQAgent().update(false, txFailed, txSuccess, queue.full(), NR, NB, 0);
+        txSuccess = false;
+        txFailed = false;
+        //if(dsme.getPlatform().getSymbolCounter() <= 1875000) return transition(&CAPLayer::stateBackoff);
+        //else LOG_INFO("TRAINING");
+
+        switch(action) {
+            case QAction::BACKOFF:
+                return transition(&CAPLayer::stateBackoff);
+            case QAction::CCA:
+                return transition(&CAPLayer::stateCCA);
+            /*case QAction::SEND:
+                return transition(&CAPLayer::stateSending);*/
+            default:
+                DSME_ASSERT(false);
+        }
+    } else if(event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -285,18 +314,8 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
-    uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-
-    if(hasQAgent) {
-        dsme.getQAgent().update(ccaFailed, txFailed, txSuccess, NR, NB, lastWaitTime);
-        ccaFailed = true;
-        txFailed = true;
-        txSuccess = false;
-        backoffExp = dsme.getMAC_PIB().macMinBE;
-
-        //unitBackoffPeriods = (this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp)) + (1<<(uint16_t)backoffExp);
-        unitBackoffPeriods = (1 << (uint16_t)backoffExp);
-    }
+    //uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
+    uint16_t unitBackoffPeriods = 1;
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
@@ -354,9 +373,6 @@ void CAPLayer::actionStartBackoffTimer() {
 
         this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
     }
-
-    dsme.getMAC_PIB().macMinBE = 3; // RL: reset min/max be to avoid problems with beacon transmission
-    dsme.getMAC_PIB().macMaxBE = 5;
 }
 
 bool CAPLayer::enoughTimeLeft() {
@@ -368,6 +384,10 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     queue.pop();
 
     uint8_t transmissionAttempts = NR + 1;
+
+    if(status != DataStatus::SUCCESS) {
+        LOG_INFO("FAILED TX");
+    }
 
     LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " "
                        << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);

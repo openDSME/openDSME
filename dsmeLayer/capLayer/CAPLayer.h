@@ -87,6 +87,7 @@ private:
     fsmReturnStatus stateBackoff(CSMAEvent& vent);
     fsmReturnStatus stateCCA(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
+    fsmReturnStatus stateQAgentDecision(CSMAEvent& event);
 
     /*
      * External interfaces for use through callbacks
@@ -116,7 +117,7 @@ private:
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
     uint32_t lastWaitTime = 0;
-    bool ccaFailed{false};
+    bool ccaSuccess{false};
     bool txFailed{false};
     bool txSuccess{false};
     bool hasQAgent{false};
