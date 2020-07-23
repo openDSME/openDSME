@@ -236,7 +236,7 @@ public:
         this->panIDCompressionOverridden = true;
         this->frameControl.panIDCompression = compression;
     }
-
+    //JND:
     void setIEListPresent(bool present) {
         finalized = false;
         this->frameControl.ieListPresent = present;
@@ -244,7 +244,15 @@ public:
 
     bool getIEListPresent() {
             return this->frameControl.ieListPresent;
-        }
+    }
+
+    void setgAck(bool present) {
+            gAck = present;
+    }
+
+    bool getgAck() const {
+        return gAck;
+    }
 
     void setSeqNumSuppression(bool suppression) {
         finalized = false;
@@ -347,6 +355,7 @@ private:
     bool finalized;
 
     // JND: bool gack
+    bool gAck{true};
 
     uint32_t creationTime;  // STATISTICS
 
@@ -454,6 +463,7 @@ public:
 
             size += 0; // security
             size += 1; // ieQueueLength
+            size += 1; // gAck TODO JND: move to frame control?
             size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
         }
 

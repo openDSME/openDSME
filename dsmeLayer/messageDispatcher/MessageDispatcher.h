@@ -156,14 +156,16 @@ public:
 
 /* Event handlers (END) ------------------------------------------------------*/
 
-protected:
+//JND: protected to public
     DSMEAllocationCounterTable::iterator currentACTElement;
-
+protected:
     AckLayer::done_callback_t doneGTS;
 
     IDSMEMessage* dsmeAckFrame;
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
+    //JND:
+    NeighborQueue<MAX_NEIGHBORS> retransmissionQueue;
 
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 

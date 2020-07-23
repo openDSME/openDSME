@@ -45,7 +45,7 @@
 
 #include "../../helper/DSMEBufferedFSM.h"
 #include "../../helper/DSMEDelegate.h"
-
+#include "../../mac_services/dataStructures/DSMEBitVector.h"
 namespace dsme {
 
 class IDSMEMessage;
@@ -128,6 +128,12 @@ private:
     const Delegate<void(bool)> internalDoneCallback;
 
     void signalResult(enum AckLayerResponse response);
+
+    //JND:
+    BitVector<7*10> gAckMap;
+    int lastSeqNum{0};
+    int lastSfId{0};
+    int lastGTSId{0};
 };
 } /* namespace dsme */
 

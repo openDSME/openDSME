@@ -184,6 +184,8 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
 
     *(buffer++) = ieQueue.getSize();
 
+    *(buffer++) = getgAck();
+
     if(getIEListPresent()){
         //uint8_t ieQueueLength = ieQueue.getSize();
         uint8_t* value = ieQueue.parse();
@@ -255,6 +257,8 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     }
 
     this->ieQueueLength = *(buffer++);
+
+    this->gAck = *(buffer++);
 
     /* unparse ieQueue if present */
     if(getIEListPresent()){

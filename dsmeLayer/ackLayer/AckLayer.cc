@@ -247,7 +247,16 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
             // be set 5.3.11.5.2)
-            // 1. possiblity: pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA
+
+            //command
+            if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getgAck() == true){
+                uint16_t a = dsme.getCurrentSuperframe();
+                LOG_INFO(a);
+                auto b = dsme.getMessageDispatcher().currentACTElement; //->getSuperframeID();
+                uint8_t c = pendingMessage->getHeader().getSequenceNumber();
+                DSMEAllocationCounterTable::iterator d = dsme.getMAC_PIB().macDSMEACT.begin();
+                uint8_t e = dsme.getCurrentSlot();
+            }
             // if groupack
             // fill bitmap
             // print bitmap

@@ -143,7 +143,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
-    //JND: retransmissionQueue.push_back(neighborQueue.popFront(lastSendGTSNeighbor));
+    //JND:
+    //retransmissionQueue.pushBack(neighborQueue.popFront(lastSendGTSNeighbor));
 
     neighborQueue.popFront(lastSendGTSNeighbor);
     this->preparedMsg = nullptr;
