@@ -227,7 +227,6 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event)
 {
-    
     if(event.signal == CSMAEvent::ENTRY_SIGNAL)
     {
         if(CW > 0)
@@ -239,7 +238,6 @@ fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event)
         {
             return transition(&CAPLayer::stateSending);
         }
-
     }
     else if(event.signal == CSMAEvent::MSG_PUSHED)
     {
@@ -254,7 +252,6 @@ fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event)
         }
         return FSM_IGNORED;
     }
-    
 }
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
@@ -350,6 +347,14 @@ void CAPLayer::actionStartBackoffTimer() {
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
 
+        LOG_DEBUG("Initial wait time: " << backoffFromCAPStart);
+        if(backoffFromCAPStart % aUnitBackoffPeriod != 0)
+        {
+            backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
+            backoffFromCAPStart += aUnitBackoffPeriod;
+        }
+        LOG_DEBUG("Final wait time: " << backoffFromCAPStart);
+
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
@@ -376,7 +381,6 @@ void CAPLayer::actionStartBackoffTimer() {
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
             DSME_ASSERT(false);
         }
-
         this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
     }
 }
