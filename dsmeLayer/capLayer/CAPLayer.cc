@@ -57,7 +57,9 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+        if(!slottedCSMA)
+            batteryLifeExt = false;
 }
 
 void CAPLayer::reset() {
@@ -215,7 +217,10 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
-        return transition(&CAPLayer::stateContention);
+        if(slottedCSMA)
+            return transition(&CAPLayer::stateContention);
+        else
+            return transition(&CAPLayer::stateSending);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -297,6 +302,8 @@ uint16_t CAPLayer::symbolsRequired() {
     IDSMEMessage* msg = queue.front();
     uint16_t symbols = 0;
     symbols += 8; // CCA
+    if(slottedCSMA)
+        symbols += 16; // Contention Window -> 2x CCA
     symbols += msg->getTotalSymbols();
     symbols += dsme.getMAC_PIB().helper.getAckWaitDuration(); // ACK
     symbols += 10;                                            // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
@@ -347,14 +354,12 @@ void CAPLayer::actionStartBackoffTimer() {
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
 
-        LOG_DEBUG("Initial wait time: " << backoffFromCAPStart);
-        if(backoffFromCAPStart % aUnitBackoffPeriod != 0)
+        if(slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
         {
             backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
-            backoffFromCAPStart += aUnitBackoffPeriod;
+            backoffFromCAPStart += aUnitBackoffPeriod; // wait until next full backoff period
         }
-        LOG_DEBUG("Final wait time: " << backoffFromCAPStart);
-
+        
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
