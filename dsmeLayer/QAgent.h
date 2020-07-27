@@ -20,7 +20,7 @@ public:
     uint16_t getId() const {
         //return be * NR_STATES * NB_STATES * TS_STATES * QUEUE_STATES * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES + nr * NB_STATES * TS_STATES * QUEUE_STATES * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES + nb * TS_STATES * QUEUE_STATES * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES + ts * QUEUE_STATES * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES + queue  * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES + txFailed * CCA_STATES * OTHER_QUEUE_STATES + ccaFailed * OTHER_QUEUE_STATES + otherQueue;
         //return nr * NB_STATES * QUEUE_STATES * OTHER_QUEUE_STATES * TS_STATES + nb * QUEUE_STATES * OTHER_QUEUE_STATES * TS_STATES + queue * OTHER_QUEUE_STATES * TS_STATES + otherQueue * TS_STATES + ts; //+ ccaSuccess;
-        return ts * QUEUE_STATES * OTHER_QUEUE_STATES + queue * OTHER_QUEUE_STATES + otherQueue;
+        return ts * QUEUE_STATES + queue;
     }
 
     void print() const {
@@ -30,7 +30,7 @@ public:
     static constexpr int getMaxId() {
         //return BE_STATES * NR_STATES * NB_STATES * TS_STATES * QUEUE_STATES * TX_STATES * CCA_STATES * OTHER_QUEUE_STATES;
         //return NR_STATES * NB_STATES * QUEUE_STATES * OTHER_QUEUE_STATES * TS_STATES;
-        return TS_STATES * QUEUE_STATES * OTHER_QUEUE_STATES;
+        return TS_STATES * QUEUE_STATES;
     }
 
     uint8_t getRetransmissions() const {

@@ -186,7 +186,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        dsme.getQAgent().update(ccaSuccess, txSuccess, queue.full(), NR, NB, 0);
+        dsme.getQAgent().update(ccaSuccess, txSuccess, queue.full(), NR, NB, lastWaitTime);
         return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -240,11 +240,11 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
-        dsme.getQAgent().update(true, true, queue.full(), NR, NB, 0);
+        dsme.getQAgent().update(true, true, queue.full(), NR, NB, lastWaitTime);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
-        dsme.getQAgent().update(true, false, queue.full(), NR, NB, 0);
+        dsme.getQAgent().update(true, false, queue.full(), NR, NB, lastWaitTime);
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
@@ -271,6 +271,7 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
         txSuccess = false;
         txFailed = false;
         ccaSuccess = false;
+        lastWaitTime = 0;
 
         switch(action) {
             case QAction::BACKOFF:
@@ -314,7 +315,7 @@ void CAPLayer::actionStartBackoffTimer() {
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
     //uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-    uint16_t unitBackoffPeriods = 1;
+    uint16_t unitBackoffPeriods = 0;
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
@@ -359,7 +360,7 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint16_t superframesToWait = superframeIterator - startingSuperframe;
         const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
         const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
-        lastWaitTime = totalWaitTime;
+        lastWaitTime += totalWaitTime;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
 

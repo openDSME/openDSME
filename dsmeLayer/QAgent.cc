@@ -29,9 +29,9 @@ void QAgent::printQTable() const {
         LOG_INFO("Q-TABLE:");
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-                        LOG_INFO(qTable[i][action]);
+                        LOG_INFO_PURE(qTable[i][action]);
                 }
-                LOG_INFO("ROW");
+                LOG_INFO_PURE(std::endl);
         }
 }
 
@@ -77,6 +77,7 @@ action_t QAgent::selectAction(bool deterministic) {
         } else {
                 lastAction =  maxAction(currentState);
         }
+        LOG_INFO("ACTION: " << (int)lastAction);
         return lastAction;
 }
 
@@ -92,7 +93,8 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
                 reward -= queueFull;
                 break;
             case QAction::CCA:
-                reward -= (!txSuccess + (queueLevel < otherQueue) + queueFull);
+                reward -= !txSuccess;
+                //reward -= dwellTime;
                 break;
             default:
                 DSME_ASSERT(false);
@@ -102,6 +104,7 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
         // Q-TABLE UPDATE
         QState state = QState(NR, NB, currentSlot, queueLevel, txSuccess, ccaSuccess, otherQueue);
         updateQTable(lastState, state, lastAction, reward);
+        printQTable();
 }
 
 }; /* DSME */
