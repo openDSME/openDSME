@@ -59,6 +59,7 @@ namespace dsme {
 
 AckLayer::AckLayer(DSMELayer& dsme)
     : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
+    gAckMap.initialize(7*10, false);
 }
 
 void AckLayer::reset() {
@@ -249,20 +250,50 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             // be set 5.3.11.5.2)
 
             //command
-            if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getgAck() == true){
-                uint16_t a = dsme.getCurrentSuperframe();
-                LOG_INFO(a);
-                auto b = dsme.getMessageDispatcher().currentACTElement; //->getSuperframeID();
-                uint8_t c = pendingMessage->getHeader().getSequenceNumber();
-                DSMEAllocationCounterTable::iterator d = dsme.getMAC_PIB().macDSMEACT.begin();
-                uint8_t e = dsme.getCurrentSlot();
-            }
             // if groupack
             // fill bitmap
             // print bitmap
 
             if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
                 LOG_DEBUG("sending ACK");
+
+                if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getgAck() == true){ // check in GTS
+                    if(newSuperframe == true){
+                        newSuperframe = false;
+                        lastSeqNum = pendingMessage->getHeader().getSequenceNumber() - 1;
+                        gAckMapIterator = 0;
+                        lastGTSID = 0;
+                        gAckMap.initialize(7*10, false);
+                    }
+
+                    if(lastGTSID < dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID()){
+                        lastGTSID = dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID();
+                        gAckMapIterator = 0;
+                    }
+
+                    if(lastSeqNum + 1 == pendingMessage->getHeader().getSequenceNumber()){
+                        gAckMap.set(lastGTSID*10+gAckMapIterator, true);
+
+                        gAckMapIterator++;
+                    } else if(lastSeqNum + 1 < pendingMessage->getHeader().getSequenceNumber()){
+                        for(int i = lastSeqNum + 1; i < pendingMessage->getHeader().getSequenceNumber(); i++){
+                            gAckMap.set(lastGTSID*10+gAckMapIterator, false);
+                            gAckMapIterator++;
+                        }
+                        gAckMap.set(lastGTSID*10+gAckMapIterator, true);
+                    }
+                    lastSeqNum = pendingMessage->getHeader().getSequenceNumber();
+                }
+                if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getgAck() == true){
+                    uint16_t a = dsme.getCurrentSuperframe();
+                    LOG_INFO(a);
+                    auto b = dsme.getMessageDispatcher().currentACTElement; //->getSuperframeID();
+                    LOG_INFO(b-> getSuperframeID());
+                    uint8_t c = pendingMessage->getHeader().getSequenceNumber();
+                    DSMEAllocationCounterTable::iterator d = dsme.getMAC_PIB().macDSMEACT.begin();
+                    uint8_t e = dsme.getCurrentSlot();
+                    LOG_INFO(e);
+                }
 
                 // keep the received message and set up the acknowledgement as new pending message
                 IDSMEMessage* receivedMessage = pendingMessage;
@@ -430,6 +461,14 @@ void AckLayer::signalResult(enum AckLayerResponse response) {
     auto addr = pendingMessage->getHeader().getDestAddr();
     externalDoneCallback(response, pendingMessage);
     pendingMessage = nullptr; // owned by upper layer now
+}
+
+//JND:
+void AckLayer::handleStartofCFP(){
+    lastSeqNum = 0;
+    lastSfID = 0;
+    lastGTSID = 0;
+    newSuperframe = true;
 }
 
 } /* namespace dsme */

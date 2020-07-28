@@ -253,6 +253,16 @@ void DSMELayer::handleStartOfCFP() {
         this->startOfCFPDelegate();
     }
 
+    LOG_INFO("GACK MAP: ");
+    for(int i = 0; i < 70; i++){
+        LOG_INFO(i);
+        LOG_INFO(this->ackLayer.gAckMap.get(i));
+    }
+    this->ackLayer.handleStartofCFP();
+
+    //LOG_INFO("GACK MAP: " + this->ackLayer.gAckMap);
+
+
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);

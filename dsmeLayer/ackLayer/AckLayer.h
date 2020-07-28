@@ -80,6 +80,7 @@ public:
 
     bool success;   // only valid for SEND_DONE
     uint8_t seqNum; // only valid for ACK_RECEIVED
+
 };
 
 class AckLayer : private DSMEBufferedFSM<AckLayer, AckEvent, 2> {
@@ -102,7 +103,15 @@ public:
     void receive(IDSMEMessage* msg);
     void dispatchTimer();
     bool ifMsgPending();
+    void handleStartofCFP();
 
+    //JND: private
+    BitVector<7*10> gAckMap;
+    int lastSeqNum{0};
+    int lastSfID{0};
+    int lastGTSID{0};
+    bool newSuperframe{true};
+    uint8_t gAckMapIterator;
 private:
     void sendDone(bool success);
     fsmReturnStatus stateIdle(AckEvent& event);
@@ -129,11 +138,7 @@ private:
 
     void signalResult(enum AckLayerResponse response);
 
-    //JND:
-    BitVector<7*10> gAckMap;
-    int lastSeqNum{0};
-    int lastSfId{0};
-    int lastGTSId{0};
+
 };
 } /* namespace dsme */
 
