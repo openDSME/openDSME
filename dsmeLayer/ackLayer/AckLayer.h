@@ -45,7 +45,7 @@
 
 #include "../../helper/DSMEBufferedFSM.h"
 #include "../../helper/DSMEDelegate.h"
-#include "../../mac_services/dataStructures/DSMEBitVector.h"
+#include "../../mac_services/dataStructures/DSMEMessageElement.h"
 namespace dsme {
 
 class IDSMEMessage;

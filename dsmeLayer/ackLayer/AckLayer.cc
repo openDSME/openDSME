@@ -298,6 +298,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 // keep the received message and set up the acknowledgement as new pending message
                 IDSMEMessage* receivedMessage = pendingMessage;
                 pendingMessage = dsme.getPlatform().getEmptyMessage();
+                //pendingMessage.prependFrom(BitmapMessageElement)
                 if(pendingMessage == nullptr) {
                     DSME_ASSERT(false);
                     DSME_ATOMIC_BLOCK {
