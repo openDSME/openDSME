@@ -2,13 +2,19 @@
 #include "./DSMELayer.h"
 #include "../interfaces/IDSMEPlatform.h"
 #include "../mac_services/pib/MAC_PIB.h"
+#include "../mac_services/pib/dsme_mac_constants.h"
 
 namespace dsme {
 
 QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastState{0,0,0,0,false,false,0}, lastAction{0}, otherQueue{0} {
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-                        qTable[i][action] = 0;
+                        if(action == 0) {
+                            qTable[i][action] = -0.5;
+                        } else {
+                            qTable[i][action] = 0;
+                        }
+
                 }
         }
 }
@@ -63,7 +69,8 @@ void QAgent::signalQueueLevelCAP(uint8_t queueLevel) {
 
 action_t QAgent::selectAction(bool deterministic) {
         // calculate current state (ts, queue, otherQueue) and save it for q update
-        QState currentState = QState(0, 0, dsme.getCurrentSlot(), dsme.getCapLayer().getQueueLevel(), false, false, otherQueue);
+        uint32_t time = 10 * dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
+        QState currentState = QState(0, 0, time, dsme.getCapLayer().getQueueLevel(), false, false, otherQueue);
         lastState = currentState;
 
         // update and signal eps
@@ -84,17 +91,19 @@ action_t QAgent::selectAction(bool deterministic) {
 void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t dwellTime) {
         // GET ADDITIONAL INFORMATION
         uint16_t queueLevel = dsme.getCapLayer().getQueueLevel();
-        uint16_t currentSlot = dsme.getCurrentSlot();
+        uint32_t time = 10 * dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
+    
 
         // REWARD CALUCLATION
         reward_t reward = 0;
+        //reward -= (queueLevel > otherQueue+1) || (queueLevel < otherQueue-1);
+        //if(NR == 0 && NB == 0 && !txSuccess) reward -= 10;
         switch((QAction)lastAction) {
             case QAction::BACKOFF:
                 reward -= queueFull;
                 break;
             case QAction::CCA:
                 reward -= !txSuccess;
-                //reward -= dwellTime;
                 break;
             default:
                 DSME_ASSERT(false);
@@ -102,7 +111,8 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
         dsme.getPlatform().signalReward(reward);
 
         // Q-TABLE UPDATE
-        QState state = QState(NR, NB, currentSlot, queueLevel, txSuccess, ccaSuccess, otherQueue);
+        QState state = QState(NR, NB, time, queueLevel, txSuccess, ccaSuccess, otherQueue);
+        state.print();
         updateQTable(lastState, state, lastAction, reward);
         printQTable();
 }
