@@ -92,7 +92,7 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
         // GET ADDITIONAL INFORMATION
         uint16_t queueLevel = dsme.getCapLayer().getQueueLevel();
         uint32_t time = 10 * dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
-    
+
 
         // REWARD CALUCLATION
         reward_t reward = 0;
@@ -103,7 +103,7 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
                 reward -= queueFull;
                 break;
             case QAction::CCA:
-                reward -= !txSuccess;
+                reward = reward - !txSuccess - (otherQueue > 5);
                 break;
             default:
                 DSME_ASSERT(false);
