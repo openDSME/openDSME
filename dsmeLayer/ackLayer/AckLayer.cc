@@ -54,12 +54,13 @@
 #include "../DSMEEventDispatcher.h"
 #include "../DSMELayer.h"
 #include "../messages/IEEE802154eMACHeader.h"
+#include "../messages/GackCmd.h"
 
 namespace dsme {
 
 AckLayer::AckLayer(DSMELayer& dsme)
     : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
-    gAckMap.initialize(7*10, false);
+    gAckMap.initialize(7*50, false);
 }
 
 void AckLayer::reset() {
@@ -106,6 +107,11 @@ void AckLayer::abortPreparedTransmission() {
 void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
+    if(header.getSequenceNumber() == 255 && header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT){
+        LOG_INFO("GACK message received");
+        GackCmd gack;
+        gack.decapsulateFrom(msg);
+    }
     /*
      * TODO
      * GTS allocations should also be heard before the association
@@ -258,12 +264,13 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 LOG_DEBUG("sending ACK");
 
                 if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getgAck() == true){ // check in GTS
+                    gAckUsed = true;
                     if(newSuperframe == true){
                         newSuperframe = false;
                         lastSeqNum = pendingMessage->getHeader().getSequenceNumber() - 1;
                         gAckMapIterator = 0;
                         lastGTSID = 0;
-                        gAckMap.initialize(7*10, false);
+                        gAckMap.initialize(7*50, false);
                     }
 
                     if(lastGTSID < dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID()){
@@ -292,7 +299,6 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     uint8_t c = pendingMessage->getHeader().getSequenceNumber();
                     DSMEAllocationCounterTable::iterator d = dsme.getMAC_PIB().macDSMEACT.begin();
                     uint8_t e = dsme.getCurrentSlot();
-                    LOG_INFO(e);
                 }
 
                 // keep the received message and set up the acknowledgement as new pending message
@@ -310,6 +316,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader(); //TODO remove IEQueue
                 ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
                 ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
+                ackHeader.setgAck(false);
 
                 ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
 
@@ -466,10 +473,28 @@ void AckLayer::signalResult(enum AckLayerResponse response) {
 
 //JND:
 void AckLayer::handleStartofCFP(){
+    //CAP
+    if(gAckUsed == true){
+        GackCmd gAckMessageElement(gAckMap);
+
+        IDSMEMessage* gAckMessage = dsme.getPlatform().getEmptyMessage();
+        gAckMessageElement.prependTo(gAckMessage);
+
+        IEEE802154eMACHeader& ackHeader = gAckMessage->getHeader(); //TODO remove IEQueue
+        ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
+        ackHeader.setSequenceNumber(255);
+
+        ackHeader.setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
+        ackHeader.setSrcAddrMode(SHORT_ADDRESS);
+        ackHeader.setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
+
+        dsme.getMessageDispatcher().sendInCAP(gAckMessage);
+    }
     lastSeqNum = 0;
     lastSfID = 0;
     lastGTSID = 0;
     newSuperframe = true;
+    gAckUsed = false;
 }
 
 } /* namespace dsme */

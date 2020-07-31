@@ -106,12 +106,13 @@ public:
     void handleStartofCFP();
 
     //JND: private
-    BitVector<7*10> gAckMap;
+    BitVector<7*50> gAckMap;
     int lastSeqNum{0};
     int lastSfID{0};
     int lastGTSID{0};
     bool newSuperframe{true};
     uint8_t gAckMapIterator;
+    bool gAckUsed{false};
 private:
     void sendDone(bool success);
     fsmReturnStatus stateIdle(AckEvent& event);
