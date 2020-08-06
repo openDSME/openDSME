@@ -608,6 +608,12 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
     }
 
+    if(this->preparedMsg != nullptr){
+        if(this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
+            this->preparedMsg->getHeader().setGack(true);
+        }
+    }
+
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
         //preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");

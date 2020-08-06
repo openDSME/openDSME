@@ -113,6 +113,8 @@ public:
         hasSrcPAN = false;
 
         finalized = false;
+
+        Gack = false;
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
@@ -246,12 +248,12 @@ public:
             return this->frameControl.ieListPresent;
     }
 
-    void setgAck(bool present) {
-            gAck = present;
+    void setGack(bool present) {
+            Gack = present;
     }
 
-    bool getgAck() const {
-        return gAck;
+    bool getGack() const {
+        return Gack;
     }
 
     void setSeqNumSuppression(bool suppression) {
@@ -355,7 +357,7 @@ private:
     bool finalized;
 
     // JND: bool gack
-    bool gAck{true};
+    bool Gack;
 
     uint32_t creationTime;  // STATISTICS
 
@@ -463,7 +465,7 @@ public:
 
             size += 0; // security
             size += 1; // ieQueueLength
-            size += 1; // gAck TODO JND: move to frame control?
+            size += 1; // Gack TODO JND: move to frame control?
             size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
         }
 

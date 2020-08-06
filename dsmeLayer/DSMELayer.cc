@@ -255,8 +255,8 @@ void DSMELayer::handleStartOfCFP() {
     }
 
     LOG_INFO("GACK MAP: ");
-    for(int i = 0; i < 70; i++){
-        LOG_INFO_PURE("slotID: " << i << " status: " << this->ackLayer.gAckMap.get(i));
+    for(int i = 0; i < this->mac_pib->sizeGackMap; i++){
+        LOG_INFO("slotID: " << i << " status: " << this->ackLayer.GackMap.get(i));
     }
     this->ackLayer.handleStartofCFP();
 

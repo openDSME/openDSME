@@ -431,6 +431,8 @@ public:
     /* secret ceaser cipher key */
     uint8_t preshared_secret{7};
 
+    /* GackMap Size */
+    const uint8_t sizeGackMap{7*20};
 };
 
 } /* namespace dsme */
