@@ -201,7 +201,9 @@ public:
         return currentSlot;
     }
 
+    void handleStartOfCAP();
     void handleStartOfCFP();
+
 
     void startTrackingBeacons();
     void stopTrackingBeacons();

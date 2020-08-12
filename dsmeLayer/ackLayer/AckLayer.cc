@@ -478,7 +478,14 @@ void AckLayer::signalResult(enum AckLayerResponse response) {
 
 //JND:
 void AckLayer::handleStartofCFP(){
-    //CAP
+    lastSeqNum = 0;
+    lastSfID = 0;
+    lastGTSID = 0;
+    newSuperframe = true;
+    GackUsed = false;
+}
+
+void AckLayer::handleStartofCAP(){
     if(GackUsed == true){
         GackCmd GackMessageElement(GackMap);
 
@@ -496,11 +503,5 @@ void AckLayer::handleStartofCFP(){
 
         dsme.getMessageDispatcher().sendInCAP(GackMessage);
     }
-    lastSeqNum = 0;
-    lastSfID = 0;
-    lastGTSID = 0;
-    newSuperframe = true;
-    GackUsed = false;
 }
-
 } /* namespace dsme */

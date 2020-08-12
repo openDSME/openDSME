@@ -104,6 +104,7 @@ public:
     void dispatchTimer();
     bool ifMsgPending();
     void handleStartofCFP();
+    void handleStartofCAP();
 
     //JND: private
     BitVector<140> GackMap;

@@ -243,6 +243,10 @@ void DSMELayer::slotEvent(int32_t lateness) {
     }
 }
 
+void DSMELayer::handleStartOfCAP() {
+    this->ackLayer.handleStartofCAP();
+}
+
 void DSMELayer::handleStartOfCFP() {
 #ifdef STATISTICS_MONITOR_LATENESS
     if(latenessStatisticsCount++ % 10 == 0) {
