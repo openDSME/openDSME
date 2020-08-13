@@ -107,6 +107,10 @@ void AckLayer::abortPreparedTransmission() {
 void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
+    if(msg->getTotalSymbols() == 144){//header.getGack() == true){
+        LOG_INFO("GACK true");
+    }
+
     if(header.getGack() == true && header.getSequenceNumber() == 255 && header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT){
         LOG_INFO("GACK message received");
         GackCmd Gack;
@@ -504,4 +508,5 @@ void AckLayer::handleStartofCAP(){
         dsme.getMessageDispatcher().sendInCAP(GackMessage);
     }
 }
+
 } /* namespace dsme */

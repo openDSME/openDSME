@@ -224,6 +224,12 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        // TODO: remove
+        if(queue.front()->getHeader().getSequenceNumber() == 255){
+            auto a = queue.front();
+            LOG_INFO(a->getHeader().getSequenceNumber());
+            LOG_INFO("test gack");
+        }
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             // currently receiving external interference
             return choiceRebackoff();
