@@ -605,6 +605,9 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         result = false;
     } else { // if there is a message to send retrieve a copy of it from the queue and set the flag to check if possible to send the message
         checkTimeToSendMessage = true;
+        // JND if(!retransmissionQueue.empty())  {
+        //      this->preparedMsg = retransmissionQueue.front(this->lastSendGTSNeighbor);
+        //      } else  {
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
     }
 
@@ -615,12 +618,12 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     }
 
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
-        //preparedMsg->getHeader().setIEListPresent(true);
+        preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
         lastMessageIE lmIE;
         lmIE.isLastMessage = true;
-        //preparedMsg->getHeader().ieQueue.push(lmIE);
-        //LOG_INFO("lastMessageIE added to queue");
+        preparedMsg->getHeader().ieQueue.push(lmIE);
+        LOG_INFO("lastMessageIE added to queue");
     }
 
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked

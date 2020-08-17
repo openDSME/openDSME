@@ -18,8 +18,10 @@ class GackCmd : public DSMEMessageElement {
         static const uint8_t GackMapSize = 7*20;
         BitVector<GackMapSize> GackMap;
     public:
-        GackCmd(){}
-        GackCmd(BitVector<GackMapSize> BitVector):GackMap(BitVector){
+        GackCmd(){
+            GackMap.setLength(GackMapSize);
+        }
+        GackCmd(BitVector<GackMapSize> BitVector) : GackMap(BitVector){
         }
 
         virtual uint8_t getSerializationLength(){

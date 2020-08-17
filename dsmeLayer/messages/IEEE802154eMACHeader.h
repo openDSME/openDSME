@@ -464,8 +464,8 @@ public:
             size += this->sourceAddressLength(); // source address
 
             size += 0; // security
-            size += 1; // ieQueueLength
             size += 1; // Gack TODO JND: move to frame control?
+            size += 1; // ieQueueLength
             size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
         }
 

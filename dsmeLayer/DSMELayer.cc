@@ -259,14 +259,10 @@ void DSMELayer::handleStartOfCFP() {
         this->startOfCFPDelegate();
     }
 
-    LOG_INFO("GACK MAP: ");
     for(int i = 0; i < this->mac_pib->sizeGackMap; i++){
         LOG_INFO("slotID: " << i << " status: " << this->ackLayer.GackMap.get(i));
     }
     this->ackLayer.handleStartofCFP();
-
-    //LOG_INFO("GACK MAP: " + this->ackLayer.gAckMap);
-
 
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);

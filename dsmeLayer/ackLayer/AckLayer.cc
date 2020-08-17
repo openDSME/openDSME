@@ -107,7 +107,7 @@ void AckLayer::abortPreparedTransmission() {
 void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
-    if(msg->getTotalSymbols() == 144){//header.getGack() == true){
+    if(header.getGack() == true && header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT){
         LOG_INFO("GACK true");
     }
 
@@ -117,9 +117,14 @@ void AckLayer::receive(IDSMEMessage* msg) {
         Gack.decapsulateFrom(msg);
 
         LOG_INFO("GACK MAP RECEIVED: ");
+            int count = 0;
             for(int i = 0; i < dsme.getMAC_PIB().sizeGackMap; i++){
                 LOG_INFO("slotID: " << i << " status: " << Gack.getGackMap().get(i));
+                if(Gack.getGackMap().get(i) == true){
+                    count++;
+                }
             }
+            LOG_INFO("Number one: " << count);
     }
     /*
      * TODO
@@ -233,7 +238,9 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
         case AckEvent::PREPARE_SEND_REQUEST: {
             if(pendingMessage->getHeader().hasSequenceNumber()) {
                 if(pendingMessage->getRetryCounter() == 0) {
-                    pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
+                    if(pendingMessage->getHeader().getFrameType() != IEEE802154eMACHeader::ACKNOWLEDGEMENT){
+                        pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
+                    }
                 } else {
                     /* message is a retransmit, keeps sequence number from previous try */
                 }
