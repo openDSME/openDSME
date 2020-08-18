@@ -48,6 +48,7 @@
 #include "../../helper/Integers.h"
 #include "./MessageQueueEntry.h"
 #include "./NeighborListEntry.h"
+#include "../../mac_services/dataStructures/DSMEBitVector.h"
 
 namespace dsme {
 
@@ -96,12 +97,22 @@ public:
      */
     void push_back(NeighborListEntry<T>& neighbor, T* msg);
 
+    void push_front(NeighborListEntry<T>& neighbor, T* msg);
+
     /**
      * Gets and removes the first (oldest) element of the queue of a neighbor, nullptr if not existent
      * -> time: O(1)
      * @param neighbor the neighbor the message belongs to
      */
     T* pop_front(NeighborListEntry<T>& neighbor);
+
+    /**
+     *  Removes elements of the queue of a neighbor as indicated by the bitmap
+     *  -> time: O(1)
+     *  @param bitmap the bitmap to indicated which elements should be remove (1) or left untouched (0)
+     */
+     template<bit_vector_size_t B>
+     void pop_from_bitmap(NeighborListEntry<T>& neighbor, BitVector<B>& bitmap);
 
     /**
      * Gets the first (oldest) element of the queue of a neighbor, nullptr if not existent
@@ -182,6 +193,41 @@ void MultiMessageQueue<T, S>::push_back(NeighborListEntry<T>& neighbor, T* msg) 
 }
 
 template <typename T, uint8_t S>
+void MultiMessageQueue<T, S>::push_front(NeighborListEntry<T>& neighbor, T* msg) {
+    if(this->full) {
+        /* '-> all slots are used */
+        DSME_ASSERT(false);
+        return;
+    }
+
+    MessageQueueEntry<T>* entry = this->freeFront;
+
+    if(this->freeFront == this->freeBack) {
+        /* '-> this was the last free spot */
+        this->freeFront = nullptr;
+        this->freeBack = nullptr;
+        this->full = true;
+    } else {
+        /* '-> still multiple empty spots left */
+        this->freeFront = this->freeFront->next;
+    }
+
+    entry->value = msg;
+    entry->next = nullptr;
+
+    if(neighbor.messageFront != nullptr) {
+        entry->next = neighbor.messageFront->next;
+    }
+    neighbor.messageFront = entry;
+
+    if(neighbor.messageBack == nullptr) {
+        neighbor.messageBack = neighbor.messageFront;
+    }
+
+    neighbor.queueSize++;
+}
+
+template <typename T, uint8_t S>
 T* MultiMessageQueue<T, S>::pop_front(NeighborListEntry<T>& neighbor) {
     if(neighbor.queueSize > 0) {
         /* '-> queue contains messages for this neighbor */
@@ -203,6 +249,47 @@ T* MultiMessageQueue<T, S>::pop_front(NeighborListEntry<T>& neighbor) {
     } else {
         /* '-> no messages pending for this neighbor */
         return nullptr;
+    }
+}
+
+template<typename T, uint8_t S>
+template<bit_vector_size_t B>
+void MultiMessageQueue<T, S>::pop_from_bitmap(NeighborListEntry<T>& neighbor, BitVector<B>& bitmap) {
+    if(bitmap.count(true) <= neighbor.queueSize) {
+        /* '-> queue contains as many messages as indicated in the bitmap */
+
+        MessageQueueEntry<T>* front = neighbor.messageFront;
+        neighbor.messageFront = nullptr;
+
+        for(bit_vector_size_t i=0; i<bitmap.length(); i++) {
+            if(bitmap.get(i)) {
+                /* '-> the packet was transmitted successfully */
+                MessageQueueEntry<T>* next = front->next;
+                this->addToFree(front);
+                front = next;
+            } else {
+                /* '-> the packet needs to be retransmitted and remain in the queue */
+                if(neighbor.messageFront == nullptr) {
+                    neighbor.messageFront = front;
+                }
+                front = front->next;
+            }
+
+            if(front == nullptr) {
+                break;
+            }
+        }
+
+        if(neighbor.messageFront == nullptr) {
+            if(front == nullptr) {
+                neighbor.messageBack = nullptr;
+            } else {
+                neighbor.messageFront = front;
+            }
+        }
+    } else {
+        /* '-> there are not enough packets in the queue */
+        DSME_ASSERT(false);
     }
 }
 

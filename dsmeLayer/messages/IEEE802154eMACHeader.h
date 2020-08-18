@@ -467,6 +467,12 @@ public:
             size += 1; // Gack TODO JND: move to frame control?
             size += 1; // ieQueueLength
             size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
+        } else if(this->Gack) {
+            if(hasSrcPAN) {
+                size += 2;
+            }
+            size += sourceAddressLength();
+            size += 1; //GACK
         }
 
         return size;

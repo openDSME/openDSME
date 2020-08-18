@@ -121,7 +121,10 @@ void AckLayer::receive(IDSMEMessage* msg) {
                 }
             }
             LOG_INFO("Number one: " << count);
+
+        dsme.getMessageDispatcher().handleGACK(header, Gack);
     }
+
     /*
      * TODO
      * GTS allocations should also be heard before the association
@@ -494,7 +497,8 @@ void AckLayer::handleStartofCAP(){
         ackHeader.setSequenceNumber(255);
         ackHeader.setGack(true);
 
-        ackHeader.setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
+        //ackHeader.setDstAddrMode(SHORT_ADDRESS);
+        //ackHeader.setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
         ackHeader.setSrcAddrMode(SHORT_ADDRESS);
         ackHeader.setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
 

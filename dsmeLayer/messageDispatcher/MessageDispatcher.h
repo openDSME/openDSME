@@ -48,6 +48,7 @@
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../ackLayer/AckLayer.h"
 #include "../neighbors/NeighborQueue.h"
+#include "../messages/GackCmd.h"
 
 namespace dsme {
 
@@ -90,6 +91,7 @@ public:
     inline void addNeighbor(const IEEE802154MacAddress& address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
+        retransmissionQueue.addNeighbor(n);
     }
 
     inline bool neighborExists(const IEEE802154MacAddress& address) {
@@ -130,6 +132,8 @@ public:
 
     //TODO JND
     void handleAckTransmitted();
+
+    void handleGACK(IEEE802154eMACHeader& header, GackCmd& gack);
 
     /*! This shall be called when CSMA Message was sent down to the physical layer.
      *

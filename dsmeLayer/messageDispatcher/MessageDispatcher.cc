@@ -84,6 +84,12 @@ MessageDispatcher::~MessageDispatcher() {
             this->dsme.getPlatform().releaseMessage(msg);
         }
     }
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        while(!this->retransmissionQueue.isQueueEmpty(it)) {
+            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            this->dsme.getPlatform().releaseMessage(msg);
+        }
+    }
 }
 
 void MessageDispatcher::initialize(void) {
@@ -107,9 +113,24 @@ void MessageDispatcher::reset(void) {
             this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
         }
     }
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        while(!this->retransmissionQueue.isQueueEmpty(it)) {
+            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            mcps_sap::DATA_confirm_parameters params;
+            params.msduHandle = msg;
+            params.timestamp = 0;
+            params.rangingReceived = false;
+            params.gtsTX = true;
+            params.status = DataStatus::TRANSACTION_EXPIRED;
+            params.numBackoffs = 0;
+            this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+        }
+    }
     while(this->neighborQueue.getNumNeighbors() > 0) {
         NeighborQueue<MAX_NEIGHBORS>::iterator it = this->neighborQueue.begin();
         this->neighborQueue.eraseNeighbor(it);
+        it = this->retransmissionQueue.begin();
+        this->retransmissionQueue.eraseNeighbor(it);
     }
 
     return;
@@ -143,10 +164,11 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
-    //JND:
-    //retransmissionQueue.pushBack(neighborQueue.popFront(lastSendGTSNeighbor));
-
-    neighborQueue.popFront(lastSendGTSNeighbor);
+    if(!retransmissionQueue.isQueueFull()) {
+        retransmissionQueue.pushBack(lastSendGTSNeighbor, neighborQueue.popFront(lastSendGTSNeighbor)); // JND
+    } else {
+        neighborQueue.popFront(lastSendGTSNeighbor);
+    }
     this->preparedMsg = nullptr;
 
     /* STATISTICS */
@@ -189,8 +211,9 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     params.numBackoffs = 0;
-    this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
-
+    if(!msg->getHeader().getGack()) {
+        this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+    }
 
     if(!this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {
         /* '-> prepare next frame for transmission after one IFS */
@@ -585,6 +608,62 @@ void MessageDispatcher::handleAckTransmitted(){
             dsme.getPlatform().delayedTurnTransceiverOff();
         }
    }
+}
+
+void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) {
+    DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
+    uint16_t currentSuperframe = dsme.getCurrentSuperframe();
+    uint16_t cfpSlotsPerMsf = dsme.getMAC_PIB().helper.getNumGTSlots(currentSuperframe);
+    DSME_ASSERT(gack.getGackMap().length() % cfpSlotsPerMsf == 0);
+    uint8_t packetsPerGTS = gack.getGackMap().length() / cfpSlotsPerMsf;
+
+    for(uint8_t gtsId=0; gtsId<cfpSlotsPerMsf; gtsId++) {
+        if(act.isAllocated(currentSuperframe, gtsId)) {
+            IEEE802154MacAddress addr = IEEE802154MacAddress(act.find(currentSuperframe, gtsId)->getAddress());
+            if(addr == header.getSrcAddr()) {
+
+            /* '-> we transmitted in this gts to the device that sent the gack */
+            const IEEE802154MacAddress &addr = header.getSrcAddr();
+            NeighborQueue<MAX_NEIGHBORS>::iterator neighbor = neighborQueue.findByAddress(addr);
+            DSME_ASSERT(neighbor != neighborQueue.end());
+
+            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId+1); i++) {
+                /* '-> check for all bits of the bitmap */
+
+                if(retransmissionQueue.isQueueEmpty(neighbor)) {
+                    break;
+                }
+
+                IDSMEMessage* msg = retransmissionQueue.popFront(neighbor);
+                mcps_sap::DATA_confirm_parameters params;
+                params.msduHandle = msg;
+                params.timestamp = 0; // TODO
+                params.rangingReceived = false;
+                params.gtsTX = true;
+
+                if(gack.getGackMap().get(i) == true) {
+                    /* '-> successful transmission */
+                    params.status = DataStatus::SUCCESS;
+
+                } else {
+                    /* '-> failed transmission */
+                    if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
+                        msg->increaseRetryCounter();
+                        LOG_DEBUG("handleGACK - retry");
+                        if(!neighborQueue.isQueueFull()) {
+                            neighborQueue.pushFront(neighbor, msg);
+                        }
+                        preparedMsg = nullptr;
+                        continue;
+                    } else {
+                        params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
+                    }
+                }
+
+                this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+            }}
+        }
+    }
 }
 
 

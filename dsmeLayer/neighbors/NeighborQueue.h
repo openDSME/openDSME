@@ -101,7 +101,12 @@ public:
 
     IDSMEMessage* popFront(iterator& neighbor);
 
+    template<bit_vector_size_t B>
+    void popFromBitmap(iterator& neighbor, BitVector<B>& bitmap);
+
     void pushBack(iterator& neighbor, IDSMEMessage* msg);
+
+    void pushFront(iterator& neighbor, IDSMEMessage* msg);
 
     void flushQueues(bool keepFront);
 
@@ -180,8 +185,21 @@ IDSMEMessage* NeighborQueue<N>::popFront(iterator& neighbor) {
 }
 
 template <uint8_t N>
+template <bit_vector_size_t B>
+void NeighborQueue<N>::popFromBitmap(iterator& neighbor, BitVector<B>& bitmap) {
+    queue.pop_from_bitmap(*neighbor, bitmap);
+}
+
+
+template <uint8_t N>
 void NeighborQueue<N>::pushBack(iterator& neighbor, IDSMEMessage* msg) {
     queue.push_back(*neighbor, msg);
+    return;
+}
+
+template <uint8_t N>
+void NeighborQueue<N>::pushFront(iterator& neighbor, IDSMEMessage* msg) {
+    queue.push_front(*neighbor, msg);
     return;
 }
 
