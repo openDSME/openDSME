@@ -614,16 +614,17 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     if(this->preparedMsg != nullptr){
         if(this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
             this->preparedMsg->getHeader().setGack(true);
+            this->preparedMsg->getHeader().setAckRequest(false);
         }
     }
 
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
-        preparedMsg->getHeader().setIEListPresent(true);
+        //preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
-        lastMessageIE lmIE;
-        lmIE.isLastMessage = true;
-        preparedMsg->getHeader().ieQueue.push(lmIE);
-        LOG_INFO("lastMessageIE added to queue");
+        //lastMessageIE lmIE;
+        //lmIE.isLastMessage = true;
+        //preparedMsg->getHeader().ieQueue.push(lmIE);
+        //LOG_INFO("lastMessageIE added to queue");
     }
 
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked
