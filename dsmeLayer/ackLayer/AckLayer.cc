@@ -236,13 +236,13 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
         case AckEvent::PREPARE_SEND_REQUEST: {
             if(pendingMessage->getHeader().hasSequenceNumber()) {
-                if(pendingMessage->getRetryCounter() == 0) {
+                //if(pendingMessage->getRetryCounter() == 0) {
                     if(pendingMessage->getHeader().getFrameType() != IEEE802154eMACHeader::ACKNOWLEDGEMENT){
                         pendingMessage->getHeader().setSequenceNumber(this->dsme.getMAC_PIB().macDsn++);
                     }
-                } else {
+                //} else {
                     /* message is a retransmit, keeps sequence number from previous try */
-                }
+                //}
             }
 
             if(dsme.getPlatform().prepareSendingCopy(pendingMessage, internalDoneCallback)) {
@@ -295,7 +295,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     GackMapIterator++;
                 } else if(lastSeqNum + 1 < pendingMessage->getHeader().getSequenceNumber()){
                     for(int i = lastSeqNum + 1; i < pendingMessage->getHeader().getSequenceNumber(); i++){
-                        GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/7)+GackMapIterator, false);
+                        GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/7)+GackMapIterator, false); //TODO dont use 7
                         GackMapIterator++;
                     }
                     GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/7)+GackMapIterator, true);

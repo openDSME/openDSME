@@ -164,12 +164,15 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
+    bool signalUpperLayer = false;
     if(!retransmissionQueue.isQueueFull()) {
         IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
-        DSME_ASSERT(msg != nullptr);
-        retransmissionQueue.pushBack(lastSendGTSNeighbor, msg); // JND
+        const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
+        NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
+        retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg); // JND
     } else {
         neighborQueue.popFront(lastSendGTSNeighbor);
+        signalUpperLayer = true;
     }
     this->preparedMsg = nullptr;
 
@@ -213,7 +216,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     params.numBackoffs = 0;
-    if(!msg->getHeader().getGack()) {
+    if(signalUpperLayer || !msg->getHeader().getGack()) {
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     }
 
@@ -626,17 +629,18 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
 
             /* '-> we transmitted in this gts to the device that sent the gack */
             const IEEE802154MacAddress &addr = header.getSrcAddr();
-            NeighborQueue<MAX_NEIGHBORS>::iterator neighbor = neighborQueue.findByAddress(addr);
-            DSME_ASSERT(neighbor != neighborQueue.end());
+            NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(addr);
+            NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
+            DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
 
-            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId/*+1*/) + 5; i++) {
+            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + 5; i++) {
                 /* '-> check for all bits of the bitmap */
 
-                if(retransmissionQueue.isQueueEmpty(neighbor)) {
+                if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
                     break;
                 }
 
-                IDSMEMessage* msg = retransmissionQueue.popFront(neighbor);
+                IDSMEMessage* msg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
                 mcps_sap::DATA_confirm_parameters params;
                 params.msduHandle = msg;
                 params.timestamp = 0; // TODO
@@ -653,7 +657,8 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
                         msg->increaseRetryCounter();
                         LOG_DEBUG("handleGACK - retry");
                         if(!neighborQueue.isQueueFull()) {
-                            neighborQueue.pushFront(neighbor, msg);
+                            DSME_ASSERT(msg != nullptr);
+                            neighborQueue.pushBack(neighborQueueNeighbor, msg);
                         }
                         preparedMsg = nullptr;
                         continue;
