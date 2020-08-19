@@ -43,6 +43,7 @@
 #ifndef ACKLAYER_H_
 #define ACKLAYER_H_
 
+#include "../../../dsme_settings.h"
 #include "../../helper/DSMEBufferedFSM.h"
 #include "../../helper/DSMEDelegate.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
@@ -107,7 +108,7 @@ public:
     void handleStartofCAP();
 
     //JND: private
-    BitVector<140> GackMap;
+    BitVector<GACK_SIZE> GackMap;
     int lastSeqNum{0};
     int lastSfID{0};
     int lastGTSID{0};

@@ -270,7 +270,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
             // be set 5.3.11.5.2)
 
-            //command
+            //command!!!
             // if groupack
             // fill bitmap
             // print bitmap
@@ -502,7 +502,15 @@ void AckLayer::handleStartofCAP(){
         ackHeader.setSrcAddrMode(SHORT_ADDRESS);
         ackHeader.setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
 
-        dsme.getMessageDispatcher().sendInCAP(GackMessage);
+        LOG_INFO("trying to send gack map:");
+        for(int i = 0; i < GackMap.length(); i++){
+                LOG_INFO("slotID: " << i << " status: " << GackMap.get(i));
+        }
+        if(!dsme.getMessageDispatcher().sendInCAP(GackMessage)){
+            LOG_INFO("Gack could not be sent");
+        }
+
+
     }
 }
 

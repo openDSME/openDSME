@@ -159,11 +159,13 @@ MultiMessageQueue<T, S>::~MultiMessageQueue() {
 
 template <typename T, uint8_t S>
 void MultiMessageQueue<T, S>::push_back(NeighborListEntry<T>& neighbor, T* msg) {
+    DSME_ASSERT(neighbor.queueSize <= S);
     if(this->full) {
         /* '-> all slots are used */
         DSME_ASSERT(false);
         return;
     }
+
 
     MessageQueueEntry<T>* entry = this->freeFront;
 
@@ -231,6 +233,7 @@ template <typename T, uint8_t S>
 T* MultiMessageQueue<T, S>::pop_front(NeighborListEntry<T>& neighbor) {
     if(neighbor.queueSize > 0) {
         /* '-> queue contains messages for this neighbor */
+        DSME_ASSERT(neighbor.messageFront != nullptr);
 
         MessageQueueEntry<T>* entry = neighbor.messageFront;
         T* msg = entry->value;

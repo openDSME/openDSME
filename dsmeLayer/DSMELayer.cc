@@ -259,9 +259,6 @@ void DSMELayer::handleStartOfCFP() {
         this->startOfCFPDelegate();
     }
 
-    for(int i = 0; i < this->mac_pib->sizeGackMap; i++){
-        LOG_INFO("slotID: " << i << " status: " << this->ackLayer.GackMap.get(i));
-    }
     this->ackLayer.handleStartofCFP();
 
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);

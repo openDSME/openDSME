@@ -165,7 +165,9 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     if(!retransmissionQueue.isQueueFull()) {
-        retransmissionQueue.pushBack(lastSendGTSNeighbor, neighborQueue.popFront(lastSendGTSNeighbor)); // JND
+        IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
+        DSME_ASSERT(msg != nullptr);
+        retransmissionQueue.pushBack(lastSendGTSNeighbor, msg); // JND
     } else {
         neighborQueue.popFront(lastSendGTSNeighbor);
     }
@@ -612,8 +614,8 @@ void MessageDispatcher::handleAckTransmitted(){
 
 void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) {
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
-    uint16_t currentSuperframe = dsme.getCurrentSuperframe();
-    uint16_t cfpSlotsPerMsf = dsme.getMAC_PIB().helper.getNumGTSlots(currentSuperframe);
+    uint16_t currentSuperframe = ((dsme.getCurrentSuperframe()-1) + dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe()) % dsme.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint16_t cfpSlotsPerMsf = dsme.getMAC_PIB().helper.getNumGTSlots(currentSuperframe); // Sf
     DSME_ASSERT(gack.getGackMap().length() % cfpSlotsPerMsf == 0);
     uint8_t packetsPerGTS = gack.getGackMap().length() / cfpSlotsPerMsf;
 
@@ -627,7 +629,7 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             NeighborQueue<MAX_NEIGHBORS>::iterator neighbor = neighborQueue.findByAddress(addr);
             DSME_ASSERT(neighbor != neighborQueue.end());
 
-            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId+1); i++) {
+            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId/*+1*/) + 5; i++) {
                 /* '-> check for all bits of the bitmap */
 
                 if(retransmissionQueue.isQueueEmpty(neighbor)) {
@@ -656,12 +658,14 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
                         preparedMsg = nullptr;
                         continue;
                     } else {
+                        // should not happen MessageHelper.cc 269
                         params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
                     }
                 }
 
                 this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
-            }}
+            }
+            }
         }
     }
 }
