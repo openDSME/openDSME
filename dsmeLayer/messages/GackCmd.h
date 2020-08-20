@@ -10,32 +10,32 @@
 
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/DSMEBitVector.h"
-#include "../../mac_services/pib/MAC_PIB.h"
 
 namespace dsme {
 class GackCmd : public DSMEMessageElement {
     private:
-        static const uint8_t GackMapSize = 7*20;
-        BitVector<GACK_MAX_SIZE> GackMap;
+        uint8_t gackMapSize;
+        BitVector<GACK_MAX_SIZE> gackMap;
     public:
-        GackCmd(){
-            GackMap.setLength(GackMapSize);
+        GackCmd(uint8_t size){
+            gackMap.setLength(size);
+            gackMapSize = size;
         }
-        GackCmd(BitVector<GACK_MAX_SIZE> BitVector) : GackMap(BitVector){
+        GackCmd(BitVector<GACK_MAX_SIZE> BitVector) : gackMap(BitVector){
         }
 
         virtual uint8_t getSerializationLength(){
             uint8_t size = 0;
-            size += GackMap.getSerializationLength();
+            size += gackMap.getSerializationLength();
             return size;
         }
 
         virtual void serialize(Serializer& serializer){
-            serializer << GackMap;
+            serializer << gackMap;
         }
 
         BitVector<GACK_MAX_SIZE> getGackMap(){
-            return GackMap;
+            return gackMap;
         }
     };
 }

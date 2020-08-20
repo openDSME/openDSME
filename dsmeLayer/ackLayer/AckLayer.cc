@@ -60,7 +60,6 @@ namespace dsme {
 
 AckLayer::AckLayer(DSMELayer& dsme)
     : DSMEBufferedFSM<AckLayer, AckEvent, 2>(&AckLayer::stateIdle), dsme(dsme), internalDoneCallback(DELEGATE(&AckLayer::sendDone, *this)) {
-    GackMap.initialize(7*20, false); //dsme.getMAC_PIB().sizeGackMap
 }
 
 void AckLayer::reset() {
@@ -109,7 +108,7 @@ void AckLayer::receive(IDSMEMessage* msg) {
 
     if(header.getGack() == true && header.getSequenceNumber() == 255 && header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT){
         LOG_INFO("GACK message received");
-        GackCmd Gack;
+        GackCmd Gack(dsme.getMessageDispatcher().gackHelper.getGackMapSize());
         Gack.decapsulateFrom(msg);
 
         LOG_INFO("GACK MAP RECEIVED: ");
@@ -271,31 +270,36 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             // be set 5.3.11.5.2)
 
             if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getGack() == true){ // check in GTS
-                GackUsed = true;
+                gackUsed = true;
                 uint8_t SlotsCFP = 7;
+
+                if(gackMap.length() != dsme.getMessageDispatcher().gackHelper.getGackMapSize()){
+                    gackMap.initialize(dsme.getMAC_PIB().sizeGackMap, false);
+                }
+
                 if(newSuperframe == true){
                     newSuperframe = false;
                     lastSeqNum = pendingMessage->getHeader().getSequenceNumber() - 1;
-                    GackMapIterator = 0;
+                    gackMapIterator = 0;
                     lastGTSID = 0;
-                    GackMap.initialize(dsme.getMAC_PIB().sizeGackMap, false);
+                    gackMap.initialize(dsme.getMAC_PIB().sizeGackMap, false);
                 }
 
                 if(lastGTSID < dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID()){
                     lastGTSID = dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID();
-                    GackMapIterator = 0;
+                    gackMapIterator = 0;
                     lastSeqNum = pendingMessage->getHeader().getSequenceNumber() - 1;
                 }
 
                 if(lastSeqNum + 1 == pendingMessage->getHeader().getSequenceNumber()){
-                    GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+GackMapIterator, true);
-                    GackMapIterator++;
+                    gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, true);
+                    gackMapIterator++;
                 } else if(lastSeqNum + 1 < pendingMessage->getHeader().getSequenceNumber()){
                     for(int i = lastSeqNum + 1; i < pendingMessage->getHeader().getSequenceNumber(); i++){
-                        GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+GackMapIterator, false);
-                        GackMapIterator++;
+                        gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, false);
+                        gackMapIterator++;
                     }
-                    GackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+GackMapIterator, true);
+                    gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, true);
                 }
                 lastSeqNum = pendingMessage->getHeader().getSequenceNumber();
             }
@@ -479,36 +483,42 @@ void AckLayer::handleStartofCFP(){
     lastSfID = 0;
     lastGTSID = 0;
     newSuperframe = true;
-    GackUsed = false;
-    this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
+    gackUsed = false;
+    //this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
 }
 
 void AckLayer::handleStartofCAP(){
-    if(GackUsed == true){
-        GackCmd GackMessageElement(GackMap);
-
-        IDSMEMessage* GackMessage = dsme.getPlatform().getEmptyMessage();
-        GackMessageElement.prependTo(GackMessage);
-
-        IEEE802154eMACHeader& ackHeader = GackMessage->getHeader(); //TODO remove IEQueue
-        ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
-        ackHeader.setSequenceNumber(255);
-        ackHeader.setGack(true);
-
-        //ackHeader.setDstAddrMode(SHORT_ADDRESS);
-        //ackHeader.setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
-        ackHeader.setSrcAddrMode(SHORT_ADDRESS);
-        ackHeader.setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
-
-        LOG_INFO("trying to send gack map:");
-        for(int i = 0; i < GackMap.length(); i++){
-                LOG_INFO("slotID: " << i << " status: " << GackMap.get(i));
+    if(gackUsed == true){
+        bool a = false;
+        for(int i = 0; i < gackMap.length(); i++){
+            if(gackMap.get(i)){
+                a=true;
+            }
         }
-        if(!dsme.getMessageDispatcher().sendInCAP(GackMessage)){
-            LOG_INFO("Gack could not be sent");
+        if(a){
+            GackCmd GackMessageElement(gackMap);
+
+            IDSMEMessage* GackMessage = dsme.getPlatform().getEmptyMessage();
+            GackMessageElement.prependTo(GackMessage);
+
+            IEEE802154eMACHeader& ackHeader = GackMessage->getHeader(); //TODO remove IEQueue
+            ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
+            ackHeader.setSequenceNumber(255);
+            ackHeader.setGack(true);
+
+            //ackHeader.setDstAddrMode(SHORT_ADDRESS);
+            //ackHeader.setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
+            ackHeader.setSrcAddrMode(SHORT_ADDRESS);
+            ackHeader.setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
+
+            LOG_INFO("trying to send gack map:");
+            for(int i = 0; i < gackMap.length(); i++){
+                    LOG_INFO("slotID: " << i << " status: " << gackMap.get(i));
+            }
+            if(!dsme.getMessageDispatcher().sendInCAP(GackMessage)){
+                LOG_INFO("Gack could not be sent");
+            }
         }
-
-
     }
 }
 

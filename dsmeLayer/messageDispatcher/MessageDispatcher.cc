@@ -173,8 +173,10 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
         const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
 
-        /* Keep track of how many packets have been send in each GTS ths SF*/
-        this->gackHelper.transmittedPacketsGTS[currentACTElement.node()->content.getGTSlotID()]++;
+        /* Keep track of how many packets have been send in each GTS this SF*/
+        int a = currentACTElement.node()->content.getGTSlotID();
+        LOG_INFO(a);
+        this->gackHelper.packetTransmitted(currentACTElement.node()->content.getGTSlotID());
 
         NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
         retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg); // JND
@@ -640,8 +642,9 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(addr);
             NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
             DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
-
-            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + gackHelper.transmittedPacketsGTS[gtsId]; i++) {
+            int a = gackHelper.transmittedPacketsGTS[gtsId];
+            LOG_INFO(a);
+            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + 5 /*11*/ /*gackHelper.transmittedPacketsGTS[gtsId]*/; i++) {
                 /* '-> check for all bits of the bitmap */
 
                 if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
@@ -681,6 +684,7 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             }
         }
     }
+    this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
 }
 
 

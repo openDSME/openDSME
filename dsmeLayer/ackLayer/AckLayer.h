@@ -108,13 +108,13 @@ public:
     void handleStartofCAP();
 
     //JND: private
-    BitVector<GACK_MAX_SIZE> GackMap;
+    BitVector<GACK_MAX_SIZE> gackMap;
     int lastSeqNum{0};
     int lastSfID{0};
     int lastGTSID{0};
     bool newSuperframe{true};
-    uint8_t GackMapIterator;
-    bool GackUsed{false};
+    uint8_t gackMapIterator;
+    bool gackUsed{false};
 private:
     void sendDone(bool success);
     fsmReturnStatus stateIdle(AckEvent& event);

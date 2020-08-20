@@ -21,14 +21,17 @@ namespace dsme {
 
         uint8_t superFrameOrder;
 
-//        GackHelper(int a){
-//            SuperframeOrder = (unit8_t)a;
-//        }
         void init(uint8_t sFOrder){
             superFrameOrder = sFOrder;
          }
         uint16_t getGackMapSize(){
             return slotsCFP * getMaxPacketsGTS();
+        }
+
+        void packetTransmitted(uint8_t GTS){
+            if(transmittedPacketsGTS[GTS] < getMaxPacketsGTS()){
+                transmittedPacketsGTS[GTS]++;
+            }
         }
 
         uint8_t getMaxPacketsGTS(){
