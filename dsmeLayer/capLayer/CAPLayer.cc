@@ -343,22 +343,40 @@ void CAPLayer::actionStartBackoffTimer() {
         uint32_t backoffFromCAPStart;
         if(symbolsSinceCapFrameStart < symbolsPerSlot) {
             /* '-> currently in beacon slot before CAP */
+            LOG_DEBUG("1");
             backoffFromCAPStart = backoff;
 
         } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
             /* '-> currently inside CAP */
+            LOG_DEBUG("2");
             backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
 
         } else {
             /* '-> after CAP */
+            LOG_DEBUG("3");
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
-
-        if(slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
+        if (slottedCSMA)
         {
-            backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
-            backoffFromCAPStart += aUnitBackoffPeriod; // wait until next full backoff period
+            LOG_DEBUG("Symbols since CAP Start " << symbolsSinceCapFrameStart);
+            LOG_DEBUG("backoff: " << backoffFromCAPStart);
+            backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
+            if (backoffFromCAPStart % aUnitBackoffPeriod != 0)
+            {
+                backoffFromCAPStart += aUnitBackoffPeriod;
+            }
+            LOG_DEBUG("Final backoff " << backoffFromCAPStart);
+            LOG_DEBUG("CAP Start " << CAPStart);
+            LOG_DEBUG("SPS: " << symbolsPerSlot);
         }
+        
+        
+
+        // if(slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
+        // {
+        //     backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
+        //     backoffFromCAPStart += aUnitBackoffPeriod; // wait until next full backoff period
+        // }
         
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
