@@ -44,6 +44,7 @@
 #define MESSAGEDISPATCHER_H_
 
 #include "../../../dsme_platform.h"
+#include "../../helper/GackHelper.h"
 #include "../../helper/Integers.h"
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../ackLayer/AckLayer.h"
@@ -62,6 +63,7 @@ public:
     void initialize(void);
     void reset(void);
 
+    GackHelper gackHelper;
 private:
     DSMELayer& dsme;
     bool multiplePacketsPerGTS{false};
@@ -159,9 +161,9 @@ public:
     void receive(IDSMEMessage* msg);
 
 /* Event handlers (END) ------------------------------------------------------*/
-
-//JND: protected to public
+    // JND: protected to public
     DSMEAllocationCounterTable::iterator currentACTElement;
+
 protected:
     AckLayer::done_callback_t doneGTS;
 
@@ -215,8 +217,6 @@ protected:
     /*! Returns the next channel in the hopping sequence.
      */
     uint8_t nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
-
-
 
 
 /* Statistics (START) ------------------------------------------------------- */

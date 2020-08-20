@@ -16,12 +16,12 @@ namespace dsme {
 class GackCmd : public DSMEMessageElement {
     private:
         static const uint8_t GackMapSize = 7*20;
-        BitVector<GackMapSize> GackMap;
+        BitVector<GACK_MAX_SIZE> GackMap;
     public:
         GackCmd(){
             GackMap.setLength(GackMapSize);
         }
-        GackCmd(BitVector<GackMapSize> BitVector) : GackMap(BitVector){
+        GackCmd(BitVector<GACK_MAX_SIZE> BitVector) : GackMap(BitVector){
         }
 
         virtual uint8_t getSerializationLength(){
@@ -34,7 +34,7 @@ class GackCmd : public DSMEMessageElement {
             serializer << GackMap;
         }
 
-        BitVector<GackMapSize> getGackMap(){
+        BitVector<GACK_MAX_SIZE> getGackMap(){
             return GackMap;
         }
     };

@@ -108,7 +108,7 @@ public:
     void handleStartofCAP();
 
     //JND: private
-    BitVector<GACK_SIZE> GackMap;
+    BitVector<GACK_MAX_SIZE> GackMap;
     int lastSeqNum{0};
     int lastSfID{0};
     int lastGTSID{0};
