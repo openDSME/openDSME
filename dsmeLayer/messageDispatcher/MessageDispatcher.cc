@@ -644,7 +644,7 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
             int a = gackHelper.transmittedPacketsGTS[gtsId];
             LOG_INFO(a);
-            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + 5 /*11*/ /*gackHelper.transmittedPacketsGTS[gtsId]*/; i++) {
+            for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + gackHelper.transmittedPacketsGTS[gtsId]; i++) {
                 /* '-> check for all bits of the bitmap */
 
                 if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {

@@ -40,7 +40,7 @@ namespace dsme {
 
         maxPacketsGTS getIndex(uint8_t superframeOrder)
         {
-            if(superframeOrder >= 3 &&  superframeOrder <= 9) return maxPacketsGTS::undefined;
+            if(superframeOrder <= 3 || superframeOrder >= 9) return maxPacketsGTS::undefined;
 
             switch(superframeOrder)
            {
