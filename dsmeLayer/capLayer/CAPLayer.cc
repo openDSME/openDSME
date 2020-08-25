@@ -315,7 +315,7 @@ void CAPLayer::actionStartBackoffTimer() {
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
     //uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-    uint16_t unitBackoffPeriods = 0;
+    uint16_t unitBackoffPeriods = aBaseSlotDuration * (2<<dsme.getMAC_PIB().macMultiSuperframeOrder) / aUnitBackoffPeriod;
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();

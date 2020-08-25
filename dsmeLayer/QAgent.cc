@@ -10,7 +10,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
                         if(action == 0) {
-                            qTable[i][action] = -0.5;
+                            qTable[i][action] = 0;
                         } else {
                             qTable[i][action] = 0;
                         }
@@ -69,7 +69,7 @@ void QAgent::signalQueueLevelCAP(uint8_t queueLevel) {
 
 action_t QAgent::selectAction(bool deterministic) {
         // calculate current state (ts, queue, otherQueue) and save it for q update
-        uint32_t time = 10 * dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
+        uint32_t time = dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
         QState currentState = QState(0, 0, time, dsme.getCapLayer().getQueueLevel(), false, false, otherQueue);
         lastState = currentState;
 
@@ -91,11 +91,11 @@ action_t QAgent::selectAction(bool deterministic) {
 void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t dwellTime) {
         // GET ADDITIONAL INFORMATION
         uint16_t queueLevel = dsme.getCapLayer().getQueueLevel();
-        uint32_t time = 10 * dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
+        uint32_t time = dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * 2<<dsme.getMAC_PIB().macSuperframeOrder);
 
 
         // REWARD CALUCLATION
-        reward_t reward = 0;
+        reward_t reward = -1;
         //reward -= (queueLevel > otherQueue+1) || (queueLevel < otherQueue-1);
         //if(NR == 0 && NB == 0 && !txSuccess) reward -= 10;
         switch((QAction)lastAction) {
@@ -111,7 +111,7 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
         dsme.getPlatform().signalReward(reward);
 
         // Q-TABLE UPDATE
-        QState state = QState(NR, NB, time, queueLevel, txSuccess, ccaSuccess, otherQueue);
+        QState state = QState(NR, NB, lastState.getTime()+1, queueLevel, txSuccess, ccaSuccess, otherQueue);
         state.print();
         updateQTable(lastState, state, lastAction, reward);
         printQTable();
