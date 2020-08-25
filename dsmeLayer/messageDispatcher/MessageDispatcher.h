@@ -104,6 +104,7 @@ public:
         this->multiplePacketsPerGTS = multiplePacketsPerGTS;
     }
 
+    void flushRetransmissionQueue();
 
 /* Event handlers (START) ----------------------------------------------------*/
     /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
@@ -217,6 +218,7 @@ protected:
     /*! Returns the next channel in the hopping sequence.
      */
     uint8_t nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t nextSuperframe, uint8_t nextMultiSuperframe);
+
 
 
 /* Statistics (START) ------------------------------------------------------- */

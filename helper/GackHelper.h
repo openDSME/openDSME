@@ -38,6 +38,14 @@ namespace dsme {
             return getIndex(superFrameOrder);
         }
 
+        uint8_t count(){
+            int sum = 0;
+            for(int i = 0; i < 7; i++){
+                sum += transmittedPacketsGTS[i];
+            }
+            return sum;
+        }
+
         maxPacketsGTS getIndex(uint8_t superframeOrder)
         {
             if(superframeOrder <= 3 || superframeOrder >= 9) return maxPacketsGTS::undefined;
@@ -63,7 +71,7 @@ namespace dsme {
            }
         }
         void resetTransmittedPacketsGTS(){
-            for(int i = 0; i < 7; i++){
+            for(int i = 0; i < 7; i++){ //packetSF
                 transmittedPacketsGTS[i] = 0;
             }
         }

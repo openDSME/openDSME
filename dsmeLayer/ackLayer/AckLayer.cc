@@ -117,13 +117,15 @@ void AckLayer::receive(IDSMEMessage* msg) {
 
         LOG_INFO("GACK MAP RECEIVED: ");
             int count = 0;
-            for(int i = 0; i < dsme.getMAC_PIB().sizeGackMap; i++){
+            for(int i = 0; i < dsme.getMessageDispatcher().gackHelper.getGackMapSize(); i++){
                 LOG_INFO("slotID: " << i << " status: " << Gack.getGackMap().get(i));
                 if(Gack.getGackMap().get(i) == true){
                     count++;
                 }
             }
-            LOG_INFO("Number one: " << count);
+            LOG_INFO("Number one received: " << count);
+            int count2 = dsme.getMessageDispatcher().gackHelper.count();
+            LOG_INFO("Number one transmitted: " << count2);
 
         dsme.getMessageDispatcher().handleGACK(header, Gack);
     }
@@ -276,9 +278,10 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
             if(pendingMessage->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA && pendingMessage->getHeader().getGack() == true){ // check in GTS
                 gackUsed = true;
                 uint8_t SlotsCFP = 7;
+                uint8_t gackMapSize = dsme.getMessageDispatcher().gackHelper.getGackMapSize();
 
-                if(gackMap.length() != dsme.getMessageDispatcher().gackHelper.getGackMapSize()){
-                    gackMap.initialize(dsme.getMAC_PIB().sizeGackMap, false);
+                if(gackMap.length() != gackMapSize){
+                    gackMap.initialize(gackMapSize, false);
                 }
 
                 if(newSuperframe == true){
@@ -286,7 +289,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     lastSeqNum = pendingMessage->getHeader().getSequenceNumber() - 1;
                     gackMapIterator = 0;
                     lastGTSID = 0;
-                    gackMap.initialize(dsme.getMAC_PIB().sizeGackMap, false);
+                    gackMap.initialize(gackMapSize, false);
                 }
 
                 if(lastGTSID < dsme.getMessageDispatcher().currentACTElement.node()->content.getGTSlotID()){
@@ -296,14 +299,14 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 }
 
                 if(lastSeqNum + 1 == pendingMessage->getHeader().getSequenceNumber()){
-                    gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, true);
+                    gackMap.set(lastGTSID*(gackMapSize/SlotsCFP)+gackMapIterator, true);
                     gackMapIterator++;
                 } else if(lastSeqNum + 1 < pendingMessage->getHeader().getSequenceNumber()){
                     for(int i = lastSeqNum + 1; i < pendingMessage->getHeader().getSequenceNumber(); i++){
-                        gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, false);
+                        gackMap.set(lastGTSID*(gackMapSize/SlotsCFP)+gackMapIterator, false);
                         gackMapIterator++;
                     }
-                    gackMap.set(lastGTSID*(dsme.getMAC_PIB().sizeGackMap/SlotsCFP)+gackMapIterator, true);
+                    gackMap.set(lastGTSID*(gackMapSize/SlotsCFP)+gackMapIterator, true);
                 }
                 lastSeqNum = pendingMessage->getHeader().getSequenceNumber();
             }
@@ -488,7 +491,8 @@ void AckLayer::handleStartofCFP(){
     lastGTSID = 0;
     newSuperframe = true;
     gackUsed = false;
-    //this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
+    this->dsme.getMessageDispatcher().flushRetransmissionQueue();
+    this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
 }
 
 void AckLayer::handleStartofCAP(){

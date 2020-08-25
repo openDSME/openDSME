@@ -303,6 +303,27 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
     }
 }
 
+void MessageDispatcher::flushRetransmissionQueue() {
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        while(!this->retransmissionQueue.isQueueEmpty(it)) {
+            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            if(!neighborQueue.isQueueFull()) {
+                NeighborQueue<MAX_NEIGHBORS>::iterator nit = neighborQueue.findByAddress(it->address);
+                neighborQueue.pushBack(nit, msg);
+            } else {
+                mcps_sap::DATA_confirm_parameters params;
+                params.msduHandle = msg;
+                params.timestamp = 0;
+                params.rangingReceived = false;
+                params.gtsTX = true;
+                params.status = DataStatus::TRANSACTION_EXPIRED;
+                params.numBackoffs = 0;
+                this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+            }
+        }
+    }
+}
+
 bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS>::iterator destIt) {
     DSME_ASSERT(!msg->getHeader().getDestAddr().isBroadcast());
     DSME_ASSERT(this->dsme.getMAC_PIB().macAssociatedPANCoord);
@@ -684,7 +705,7 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             }
         }
     }
-    this->dsme.getMessageDispatcher().gackHelper.resetTransmittedPacketsGTS();
+    //this->gackHelper.resetTransmittedPacketsGTS();
 }
 
 

@@ -429,7 +429,7 @@ public:
     bool macDsmeAssociation{true};
 
     /* GackMap Size */
-    const uint8_t sizeGackMap{7*20};
+    //const uint8_t sizeGackMap{7*20};
 };
 
 } /* namespace dsme */
