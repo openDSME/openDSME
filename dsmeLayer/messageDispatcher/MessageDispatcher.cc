@@ -734,8 +734,8 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
 
     if(this->preparedMsg != nullptr){
         if(this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
-            this->preparedMsg->getHeader().setGack(true);
-            this->preparedMsg->getHeader().setAckRequest(false);
+//            this->preparedMsg->getHeader().setGack(true);
+//            this->preparedMsg->getHeader().setAckRequest(false);
         }
     }
 
