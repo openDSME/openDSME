@@ -619,16 +619,16 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
 
     //Checks if message contains lastMessageIE,
-    InformationElement* iePointer = nullptr;
-    if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){
-            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
-                   turnOff = true;
-                   LOG_INFO("Last Message true");//TODO: remove
-           }
-        }
-        LOG_INFO("Information Element present");//TODO: remove
-    }
+//    InformationElement* iePointer = nullptr;
+//    if(msg->getHeader().getIEListPresent() == true){
+//        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){
+//            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
+//                   turnOff = true;
+//                   LOG_INFO("Last Message true");//TODO: remove
+//           }
+//        }
+//        LOG_INFO("Information Element present");//TODO: remove
+//    }
 
 
     createDataIndication(msg);

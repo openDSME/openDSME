@@ -14,7 +14,8 @@ namespace dsme {
 
     class GackHelper {
     private:
-        enum maxPacketsGTS {undefined = 0, SO3 = 1, SO4 = 2, SO5 = 5, SO6 = 11, SO7 = 23, SO8 = 46, SO9 = 93};
+        // for max packet size when GACK is used
+        enum maxPacketsGTS {undefined = 0, SO3 = 1, SO4 = 3, SO5 = 6, SO6 = 12, SO7 = 26, SO8 = 52, SO9 = 105};
         uint8_t slotsCFP{7};
     public:
         uint8_t transmittedPacketsGTS[7] = {0};
@@ -29,7 +30,7 @@ namespace dsme {
         }
 
         void packetTransmitted(uint8_t GTS){
-            if(transmittedPacketsGTS[GTS] < getMaxPacketsGTS()){
+            if(transmittedPacketsGTS[GTS] < getMaxPacketsGTS()){ //gilt nur für max packet size
                 transmittedPacketsGTS[GTS]++;
             }
         }

@@ -114,7 +114,7 @@ public:
 
         finalized = false;
 
-        Gack = false;
+        gack = false;
     }
 
     void setSrcAddrMode(const AddrMode& srcAddrMode) {
@@ -249,11 +249,11 @@ public:
     }
 
     void setGack(bool present) {
-            Gack = present;
+            gack = present;
     }
 
     bool getGack() const {
-        return Gack;
+        return gack;
     }
 
     void setSeqNumSuppression(bool suppression) {
@@ -357,15 +357,15 @@ private:
     bool finalized;
 
     // JND: bool gack
-    bool Gack;
+    bool gack;
 
     uint32_t creationTime;  // STATISTICS
 
     void finalize();
 
 public:
-    IEQueue<1> ieQueue; //TODO private, dynamic size
-    uint8_t ieQueueLength = 0;
+    //<IEQueue<1> ieQueue; //TODO private, dynamic size
+    //uint8_t ieQueueLength = 0;
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
 
     inline bool hasSourceAddress() const {
@@ -452,7 +452,7 @@ public:
             size += 1; // sequence number
         }
 
-        if(this->frameControl.frameType != ACKNOWLEDGEMENT) {
+        if(this->frameControl.frameType != ACKNOWLEDGEMENT || this->gack == false) {
             if(hasDstPAN) {
                 size += 2;
             }
@@ -465,9 +465,9 @@ public:
 
             size += 0; // security
             size += 1; // Gack TODO JND: move to frame control?
-            size += 1; // ieQueueLength
-            size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
-        } else if(this->Gack) {
+            //size += 1; // ieQueueLength
+            //size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
+        } else if(this->gack) {
             if(hasSrcPAN) {
                 size += 2;
             }
