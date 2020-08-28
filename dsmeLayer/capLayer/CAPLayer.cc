@@ -334,6 +334,7 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
     const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
+    
 
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
@@ -358,14 +359,19 @@ void CAPLayer::actionStartBackoffTimer() {
         }
         if (slottedCSMA)
         {
+            LOG_DEBUG("SO: " << (int) this->dsme.getMAC_PIB().macSuperframeOrder);
             LOG_DEBUG("Symbols since CAP Start " << symbolsSinceCapFrameStart);
             LOG_DEBUG("backoff: " << backoffFromCAPStart);
-            backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
+                
             if (backoffFromCAPStart % aUnitBackoffPeriod != 0)
             {
+                LOG_DEBUG("Subtraction: " << (int)(this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod));
+                LOG_DEBUG("Sanity check: " << this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart));
+                backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
                 backoffFromCAPStart += aUnitBackoffPeriod;
             }
             LOG_DEBUG("Final backoff " << backoffFromCAPStart);
+            LOG_DEBUG("period: " << (int)aUnitBackoffPeriod);
             LOG_DEBUG("CAP Start " << CAPStart);
             LOG_DEBUG("SPS: " << symbolsPerSlot);
         }
@@ -397,8 +403,7 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
-
-        DSME_ASSERT(timerEndTime >= now + backoff);
+        //DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
             LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
