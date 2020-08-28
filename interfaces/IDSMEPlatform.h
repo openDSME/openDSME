@@ -135,6 +135,12 @@ public:
      */
     virtual void signalPacketsRXPerSlot(uint32_t packets) {
     }
+
+    /*
+     * Signals received per CAP
+     */
+    virtual void signalPacketsPerCAP(uint32_t packets) {
+    }
 };
 
 } /* namespace dsme */

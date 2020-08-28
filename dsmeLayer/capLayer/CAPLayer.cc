@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
         if(!slottedCSMA)
             batteryLifeExt = false;
 }
@@ -272,6 +272,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
+        sentPackets++;
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
@@ -308,6 +309,17 @@ uint16_t CAPLayer::symbolsRequired() {
     symbols += dsme.getMAC_PIB().helper.getAckWaitDuration(); // ACK
     symbols += 10;                                            // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
     return symbols;
+}
+
+void CAPLayer::handleStartOfCFP()
+{
+    this->dsme.getPlatform().signalPacketsPerCAP(sentPackets);
+    sentPackets = 0;
+}
+
+void CAPLayer::setSlottedCSMA(bool slotted)
+{
+    slottedCSMA = slotted;
 }
 
 void CAPLayer::actionStartBackoffTimer() {
@@ -357,32 +369,12 @@ void CAPLayer::actionStartBackoffTimer() {
             LOG_DEBUG("3");
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
-        if (slottedCSMA)
+        
+        if (slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
         {
-            LOG_DEBUG("SO: " << (int) this->dsme.getMAC_PIB().macSuperframeOrder);
-            LOG_DEBUG("Symbols since CAP Start " << symbolsSinceCapFrameStart);
-            LOG_DEBUG("backoff: " << backoffFromCAPStart);
-                
-            if (backoffFromCAPStart % aUnitBackoffPeriod != 0)
-            {
-                LOG_DEBUG("Subtraction: " << (int)(this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod));
-                LOG_DEBUG("Sanity check: " << this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart));
-                backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
-                backoffFromCAPStart += aUnitBackoffPeriod;
-            }
-            LOG_DEBUG("Final backoff " << backoffFromCAPStart);
-            LOG_DEBUG("period: " << (int)aUnitBackoffPeriod);
-            LOG_DEBUG("CAP Start " << CAPStart);
-            LOG_DEBUG("SPS: " << symbolsPerSlot);
+            backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
+            backoffFromCAPStart += aUnitBackoffPeriod;
         }
-        
-        
-
-        // if(slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
-        // {
-        //     backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
-        //     backoffFromCAPStart += aUnitBackoffPeriod; // wait until next full backoff period
-        // }
         
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
@@ -403,7 +395,7 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
-        //DSME_ASSERT(timerEndTime >= now + backoff);
+        DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
             LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());

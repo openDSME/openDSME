@@ -73,6 +73,8 @@ public:
     bool pushMessage(IDSMEMessage* msg);
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
+    void handleStartOfCFP();
+    void setSlottedCSMA(bool slotted);
 
 private:
     /**
@@ -111,10 +113,11 @@ private:
     uint8_t CW;
     static const uint8_t CW0 = 2;
     bool batteryLifeExt;
-    const bool slottedCSMA;
+    bool slottedCSMA;
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
+    uint32_t sentPackets;
 };
 
 } /* namespace dsme */
