@@ -48,7 +48,7 @@ public:
 private:
     static uint8_t const NR_STATES = 5;
     static uint8_t const NB_STATES = 5;
-    static uint32_t const TS_STATES = 9;
+    static uint32_t const TS_STATES = 80;
     static uint8_t const QUEUE_STATES = 9;
     static uint8_t const TX_STATES = 2;
     static uint8_t const CCA_STATES = 2;
@@ -73,16 +73,17 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.999, float gamma=0.9, float lr=0.15);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.999, float gamma=0.9, float lr=0.1);
 
     action_t selectAction(bool deterministic=false);
     void update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t dwellTime);
-
 
     void printQTable() const;
 
     /* Notifies about parent's queue level */
     void signalQueueLevelCAP(uint8_t queueLevel);
+
+    void printTxTimes() const;
 
 private:
     float maxQ(QState const &state) const;
