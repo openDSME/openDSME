@@ -118,6 +118,7 @@ private:
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
     uint32_t sentPackets;
+    uint32_t failedCCAs;
 };
 
 } /* namespace dsme */

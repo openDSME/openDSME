@@ -141,6 +141,12 @@ public:
      */
     virtual void signalPacketsPerCAP(uint32_t packets) {
     }
+
+    /*
+    * Failed CCA attempts per CAP
+    */
+   virtual void signalFailedCCAs(uint32_t failedAttempts){
+   }
 };
 
 } /* namespace dsme */

@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
         if(!slottedCSMA)
             batteryLifeExt = false;
 }
@@ -215,6 +215,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
+        failedCCAs++;
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
         if(slottedCSMA)
@@ -315,6 +316,8 @@ void CAPLayer::handleStartOfCFP()
 {
     this->dsme.getPlatform().signalPacketsPerCAP(sentPackets);
     sentPackets = 0;
+    this->dsme.getPlatform().signalFailedCCAs(failedCCAs);
+    failedCCAs = 0;
 }
 
 void CAPLayer::setSlottedCSMA(bool slotted)
