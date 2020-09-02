@@ -75,9 +75,6 @@ public:
     uint16_t getQueueLevel() const;
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
-    void setQAgent(bool hasQAgent) {
-        this->hasQAgent = hasQAgent;
-    }
 
 private:
     /**
@@ -116,11 +113,6 @@ private:
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
-    uint32_t lastWaitTime = 0;
-    bool ccaSuccess{false};
-    bool txFailed{false};
-    bool txSuccess{false};
-    bool hasQAgent{false};
 };
 
 } /* namespace dsme */

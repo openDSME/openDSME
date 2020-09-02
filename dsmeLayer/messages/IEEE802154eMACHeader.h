@@ -453,9 +453,9 @@ public:
 
             size += 0; // security
             size += 0; // IEs
-        } else {
-            size += 1; //queueLevel
         }
+
+        size += 1; //queueLevel
 
         return size;
     }

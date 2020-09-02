@@ -6,11 +6,11 @@
 
 namespace dsme {
 
-QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastState{0,0,0,0,false,false,0}, lastAction{0}, otherQueue{0} {
+QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastState{0,0,0,0,false,false,0,0}, lastAction{0}, otherQueue{0}, parentQueue{0} {
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-                        if(action == 0) {
-                            qTable[i][action] = 0;
+                        if(action == (action_t)QAction::SEND) {
+                            qTable[i][action] = 0.1;
                         } else {
                             qTable[i][action] = 0;
                         }
@@ -55,7 +55,7 @@ action_t QAgent::maxAction(QState const &state) const {
         auto maxQ = qTable[state.getId()][0];
         action_t a = 0;
         for(uint8_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-                if(qTable[state.getId()][action] > maxQ) {
+                if(qTable[state.getId()][action] >= maxQ) {
                         maxQ = qTable[state.getId()][action];
                         a = action;
                 }
@@ -63,15 +63,20 @@ action_t QAgent::maxAction(QState const &state) const {
         return a;
 }
 
-void QAgent::signalQueueLevelCAP(uint8_t queueLevel) {
-        otherQueue = queueLevel;
+void QAgent::signalQueueLevelCAP(uint8_t queueLevel, bool parent) {
+    if(parent) {
+        parentQueue = queueLevel;
+    } else {
+        constexpr uint8_t N = 5;
+        otherQueue = (otherQueue * (N-1) + queueLevel) / N;
+    }
 }
 
 action_t QAgent::selectAction(bool deterministic) {
         // calculate current state (ts, queue, otherQueue) and save it for q update
         //uint32_t time = 10*dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder));
-        uint32_t time = 10*dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder));
-        QState currentState = QState(0, 0, time, dsme.getCapLayer().getQueueLevel(), false, false, otherQueue);
+        uint32_t time = 20*dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder));
+        QState currentState = QState(0, 0, time, dsme.getCapLayer().getQueueLevel() < 5, false, false, otherQueue, parentQueue);
         lastState = currentState;
 
         // update and signal eps
@@ -87,30 +92,39 @@ action_t QAgent::selectAction(bool deterministic) {
                 lastAction =  maxAction(currentState);
         }
         LOG_INFO("ACTION: " << (int)lastAction);
+
+        return (action_t)QAction::SEND;
+
         return lastAction;
 }
 
 void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR, uint8_t NB, uint32_t dwellTime) {
         // GET ADDITIONAL INFORMATION
         uint16_t queueLevel = dsme.getCapLayer().getQueueLevel();
-        uint32_t time = 10*dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder));
+        uint32_t time = 20*dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter()) / (aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder));
 
         // REWARD CALUCLATION
         reward_t reward = 0;
         switch((QAction)lastAction) {
             case QAction::BACKOFF:
-                reward = -1*queueFull;
+                reward = -1 * queueFull;
                 break;
             case QAction::CCA:
-                reward = txSuccess ? 1 : -1;
+            case QAction::SEND:
+                reward = (txSuccess ? 1 : -1);
+                //reward -= parentQueue > 6 ? 1 : 0;
+                //reward -= otherQueue > queueLevel;
                 break;
             default:
                 DSME_ASSERT(false);
         }
         dsme.getPlatform().signalReward(reward);
 
+        LOG_INFO("OQ: " << (int)otherQueue);
+        LOG_INFO("PQ: " << (int)parentQueue);
+
         // Q-TABLE UPDATE
-        QState state = QState(NR, NB, time, queueLevel, txSuccess, ccaSuccess, otherQueue);
+        QState state = QState(NR, NB, time, queueLevel < 5, txSuccess, ccaSuccess, otherQueue, parentQueue);
         state.print();
         updateQTable(lastState, state, lastAction, reward);
         printQTable();
@@ -119,7 +133,7 @@ void QAgent::update(bool ccaSuccess, bool txSuccess, bool queueFull, uint8_t NR,
 void QAgent::printTxTimes() const {
     LOG_INFO_PREFIX;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
-        if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA]) {
+        if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
             LOG_INFO_PURE(" " << id);
         }
     }
