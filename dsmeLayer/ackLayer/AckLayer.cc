@@ -225,7 +225,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     /* message is a retransmit, keeps sequence number from previous try */
                 }
             }
-            
+
             pendingMessage->getHeader().setQueueLevel(dsme.getCapLayer().getQueueLevel());
 
             if(dsme.getPlatform().prepareSendingCopy(pendingMessage, internalDoneCallback)) {
@@ -250,7 +250,7 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                 return FSM_HANDLED;
             }
 
-            dsme.getQAgent().signalQueueLevelCAP(event.queue, false);
+            dsme.getQAgent().getFeatureManager().getState().getFeature<OtherQueueFullFeature>().update(event.queue);
 
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
             // be set 5.3.11.5.2)
@@ -368,7 +368,7 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
             if(event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {
-                dsme.getQAgent().signalQueueLevelCAP(event.queue, true);
+                //dsme.getQAgent().signalQueueLevelCAP(event.queue, true);
                 dsme.getEventDispatcher().stopACKTimer();
                 signalResult(ACK_SUCCESSFUL);
                 return transition(&AckLayer::stateIdle);

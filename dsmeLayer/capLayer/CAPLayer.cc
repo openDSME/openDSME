@@ -127,7 +127,7 @@ bool CAPLayer::pushMessage(IDSMEMessage* msg) {
     return pushed;
 }
 
-uint16_t CAPLayer::getQueueLevel() const {
+uint16_t CAPLayer::getQueueLevel() {
     return queue.getSize();
 }
 
@@ -181,11 +181,13 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        actionStartBackoffTimer((aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder)) / (20*aUnitBackoffPeriod));
+        actionStartBackoffTimer((aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder)) / (9*aUnitBackoffPeriod));
+        //actionStartBackoffTimer(1);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        dsme.getQAgent().update();
         return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -244,9 +246,13 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(true);
+        dsme.getQAgent().update();
         actionPopMessage(DataStatus::SUCCESS);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
+        dsme.getQAgent().update();
         /* check if a sending should by retries */
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
@@ -257,6 +263,8 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
             return transition(&CAPLayer::stateQAgentDecision);
         }
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
+        //dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
+        //dsme.getQAgent().update();
         actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
