@@ -662,7 +662,9 @@ void MessageDispatcher::handleGACK(IEEE802154eMACHeader& header, GackCmd& gack) 
             const IEEE802154MacAddress &addr = header.getSrcAddr();
             NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(addr);
             NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
-            DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
+            if(neighborQueueNeighbor == neighborQueue.end() || retransmissionQueueNeighbor == retransmissionQueue.end()){
+                continue;
+            }// TODO: should this be an assert?
             int a = gackHelper.transmittedPacketsGTS[gtsId];
             LOG_INFO(a);
             for(bit_vector_size_t i = packetsPerGTS * gtsId; i<packetsPerGTS * (gtsId) + gackHelper.transmittedPacketsGTS[gtsId]; i++) {
