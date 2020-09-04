@@ -65,6 +65,13 @@ public: /* MEMBER */
         State<TS...>::update(rule);
     }
 
+    auto reset(UPDATE_RULE const& rule) {
+        if(T::getResetRule() == rule) {
+            feature.reset();
+        }
+        State<TS...>::reset(rule);
+    }
+
 private:
     T feature;
 };
@@ -103,6 +110,13 @@ public: /* MEMBER */
             feature.update();
         }
         LOG_INFO("FM: All features updated with rule " << (int)rule);
+    }
+
+    auto reset(UPDATE_RULE const& rule) {
+        if(T::getResetRule() == rule) {
+            feature.reset();
+        }
+        LOG_INFO("FM: All features reset with rule " << (int)rule);
     }
 
 private:

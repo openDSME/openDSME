@@ -105,6 +105,8 @@ void AckLayer::abortPreparedTransmission() {
 void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
+    dsme.getQAgent().getFeatureManager().getState().getFeature<OverheardPacketsFeature>().update(1);
+
     /*
      * TODO
      * GTS allocations should also be heard before the association

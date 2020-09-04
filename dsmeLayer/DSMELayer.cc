@@ -240,6 +240,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);
+    qAgent.getFeatureManager().handleSlotEvent(currentSlot, currentSuperframe);
 
     if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1) {
         platform->scheduleStartOfCFP();

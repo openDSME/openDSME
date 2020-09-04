@@ -241,6 +241,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
             return FSM_HANDLED;
         }
 
+        dsme.getQAgent().getFeatureManager().getState().getFeature<SentPacketsFeature>().update(1);
         dsme.getAckLayer().sendNowIfPending();
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {

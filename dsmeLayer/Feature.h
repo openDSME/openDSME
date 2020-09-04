@@ -14,7 +14,22 @@ enum class UPDATE_RULE {
     ON_STATE_COLLECTION
 };
 
-template<typename T, T MIN_VALUE, T MAX_VALUE, UPDATE_RULE UPDATE, bool ACTIVE=false, T DESIRED_VALUES = 0>      /* TODO: use min, max value correctly */
+
+template<typename T>
+struct ACCUMULATE {
+    static auto call(T &value, T &newValue) -> void {
+        value = newValue;
+    }
+};
+
+template<typename T>
+struct REPLACE {
+    static auto call(T &value, T &newValue) -> void {
+        value = newValue;
+    }
+};
+
+template<typename T, T MIN_VALUE, T MAX_VALUE, template<typename> typename FUNC=REPLACE, UPDATE_RULE UPDATE=UPDATE_RULE::ON_USER_EVENT,  bool ACTIVE=false, T DESIRED_VALUES = 0, UPDATE_RULE RESET=UPDATE_RULE::ON_USER_EVENT, T DEFAULT_VALUE=0>      /* TODO: use min, max value correctly */
 class Feature {
 public: /* STATIC */
     constexpr static auto isActive() -> bool {
@@ -23,6 +38,10 @@ public: /* STATIC */
 
     constexpr static auto getUpdateRule() -> UPDATE_RULE const {
         return UPDATE;
+    }
+
+    constexpr static auto getResetRule() -> UPDATE_RULE const {
+        return RESET;
     }
 
     constexpr static auto getNumValues() -> T const {
@@ -48,9 +67,11 @@ public: /* MEMBER */
     auto update() -> void {
         if(updateFunc) {
             if(getNumValues() == DESIRED_VALUES) {
-                value = updateFunc() * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+                T tmp = updateFunc() * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+                FUNC<T>::call(value, tmp);
             } else {
-                value = updateFunc();
+                T tmp = updateFunc();
+                FUNC<T>::call(value, tmp);
             }
             LOG_INFO("FM: Feature updated with rule " << (int)UPDATE << " -> value = " << value);
         }
@@ -63,6 +84,10 @@ public: /* MEMBER */
             value = val;
         }
         LOG_INFO("FM: Feature updated manually -> value = " << value);
+    }
+
+    auto reset() -> void {
+        value = DEFAULT_VALUE;
     }
 
 private:
