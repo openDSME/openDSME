@@ -13,8 +13,8 @@ class DSMELayer;
 
 /* FEATURES (TABLE) */
 using TimeFeature = Feature<uint32_t, 0, 60*8*(2<<6), UPDATE_RULE::ON_STATE_COLLECTION, true, 80>;
-using OtherQueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, UPDATE_RULE::ON_USER_EVENT, true>;
-using QueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, UPDATE_RULE::ON_STATE_COLLECTION, true>;
+using OtherQueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, UPDATE_RULE::ON_USER_EVENT>;
+using QueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, UPDATE_RULE::ON_STATE_COLLECTION>;
 /* FEATURES (REWARD) */
 using QueueFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, UPDATE_RULE::ON_STATE_COLLECTION>;
 using SuccessFeature = Feature<bool, false, true, UPDATE_RULE::ON_USER_EVENT>;

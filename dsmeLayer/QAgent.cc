@@ -92,12 +92,12 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = -1 * (currentState.getFeature<QueueFullFeature>().getValue() >= 7);
+                reward = -2 * (currentState.getFeature<QueueFullFeature>().getValue() >= 7);
                 break;
             case QAction::CCA:
             case QAction::SEND:
                 reward = currentState.getFeature<SuccessFeature>().getValue() ? 1 : -1;
-                //reward -= (currentState.getFeature<OtherQueueFullFeature>().getValue() >= 7);
+                reward -= (currentState.getFeature<OtherQueueFullFeature>().getValue() >= 7);
                 break;
             default:
                 DSME_ASSERT(false);
