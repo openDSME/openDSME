@@ -189,7 +189,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         dsme.getQAgent().update();
-        return transition(&CAPLayer::stateQAgentDecision);
+        return transition(&CAPLayer::stateCCA);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -217,7 +217,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
-        return transition(&CAPLayer::stateQAgentDecision); // DOES CCA WITHOUT SENDING MAKE SENSE? -> it does to check if the channel is busy at time t
+        return transition(&CAPLayer::stateSending); // DOES CCA WITHOUT SENDING MAKE SENSE? -> it does to check if the channel is busy at time t
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -229,11 +229,11 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(!enoughTimeLeft()) {
+        /*if(!enoughTimeLeft()) {
             LOG_INFO("CANNOT SEND - OUT OF TIME");
             actionStartBackoffTimer(1);
             return FSM_HANDLED;
-        }
+        }*/
 
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             // currently receiving external interference
@@ -284,9 +284,9 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        QAction action = (QAction)dsme.getQAgent().selectAction();
-
-        switch(action) {
+        //QAction action = (QAction)dsme.getQAgent().selectAction();
+        return transition(&CAPLayer::stateBackoff);
+        /*switch(action) {
             case QAction::BACKOFF:
                 return transition(&CAPLayer::stateBackoff);
             case QAction::CCA:
@@ -295,7 +295,7 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
                 return transition(&CAPLayer::stateSending);
             default:
                 DSME_ASSERT(false);
-        }
+        }*/
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else {
@@ -329,7 +329,10 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
     //uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-    //uint16_t unitBackoffPeriods = aBaseSlotDuration * (2<<dsme.getMAC_PIB().macMultiSuperframeOrder) / aUnitBackoffPeriod;
+    backoffExp = 8 - getQueueLevel();
+    //unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
+    unitBackoffPeriods = unitBackoffPeriods % ((1 << (uint16_t)backoffExp) -  (1 << ((uint16_t)backoffExp-1)));
+    unitBackoffPeriods += (1 << ((uint16_t)backoffExp-1));
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
