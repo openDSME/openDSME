@@ -181,8 +181,9 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        actionStartBackoffTimer((aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder)) / (9*aUnitBackoffPeriod));
-        //actionStartBackoffTimer(1);
+        //actionStartBackoffTimer((aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder)) / (10*aUnitBackoffPeriod));
+        //actionStartBackoffTimer(3 * (2<<dsme.getMAC_PIB().macSuperframeOrder));
+        actionStartBackoffTimer(1);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
@@ -247,11 +248,13 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<TxSuccessFeature>().update(1);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(true);
         dsme.getQAgent().update();
         actionPopMessage(DataStatus::SUCCESS);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().update();
         /* check if a sending should by retries */

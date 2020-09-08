@@ -148,6 +148,15 @@ public:
     virtual void signalCSMAResult(uint8_t successful, uint8_t retransmissions, uint8_t backoffs) {
     }
 
+    virtual void signalCAPSucc(uint8_t succ) {
+    }
+
+    virtual void signalCAPFailed(uint8_t failed) {
+    }
+
+    virtual void signalOverheardMsg(uint8_t overheard) {
+    }
+
 
     virtual void signalReward(int32_t reward) {}
     virtual void signalQ(int32_t q) {}

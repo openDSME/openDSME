@@ -9,7 +9,6 @@ namespace dsme {
 
 QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::NUM_ACTIONS} {
         /* INIT FEATURES */
-        featureManager.getState().getFeature<QueueFeature>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<QueueFullFeature>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<TimeFeature>().setUpdateFunc(DELEGATE(&QAgent::timeFeatureUpdateFunc, *this));
 
@@ -17,11 +16,10 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
                         if(action == (action_t)QAction::SEND) {
-                            qTable[i][action] = 0.1;
+                            qTable[i][action] = -0.1;
                         } else {
                             qTable[i][action] = 0;
                         }
-
                 }
         }
 }
@@ -92,12 +90,13 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = -1 * (currentState.getFeature<QueueFeature>().getValue() >= 7);
+                reward =  currentState.getFeature<QueueFullFeature>().getValue() >= 7 ? -1 : 0;
                 break;
             case QAction::CCA:
             case QAction::SEND:
                 reward = currentState.getFeature<SuccessFeature>().getValue() ? 1 : -1;
-                reward -= (currentState.getFeature<OverheardPacketsFeature>().getValue() <= currentState.getFeature<SentPacketsFeature>().getValue());
+                //reward = currentState.getFeature<SuccessFeature>().getValue() ? 1 : -1;
+                //reward -= (currentState.getFeature<OverheardPacketsFeature>().getValue() <= currentState.getFeature<SentPacketsFeature>().getValue());
                 break;
             default:
                 DSME_ASSERT(false);

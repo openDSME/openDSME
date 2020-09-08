@@ -5,6 +5,8 @@
 
 namespace dsme {
 
+class DSMELayer;
+
 template<typename ...TS>
 class FeatureManager {
 public: /* MEMBER */

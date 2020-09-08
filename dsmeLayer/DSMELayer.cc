@@ -237,6 +237,11 @@ void DSMELayer::slotEvent(int32_t lateness) {
     /* handle slot */
     if(currentSlot == 0) {
         beaconManager.superframeEvent(lateness, currentSlotTime);
+
+        /* STATISTICS */
+        platform->signalOverheardMsg(qAgent.getFeatureManager().getState().getFeature<OverheardPacketsFeature>().getValue());
+        platform->signalCAPSucc(qAgent.getFeatureManager().getState().getFeature<TxSuccessFeature>().getValue());
+        platform->signalCAPFailed(qAgent.getFeatureManager().getState().getFeature<TxFailedFeature>().getValue());
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);

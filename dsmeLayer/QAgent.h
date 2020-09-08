@@ -12,17 +12,19 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 0, 60*8*(2<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 80>;
+using TimeFeature = Feature<uint32_t, 0, 60*8*(2<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, 1563>;
+using QueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true>;
 using OtherQueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_USER_EVENT>;
-using QueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION>;
-using OverheardPacketsFeature = Feature<uint8_t, 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, true, 10, UPDATE_RULE::ON_MSF_EVENT>;
+using OverheardPacketsFeature = Feature<uint8_t, 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 /* FEATURES (REWARD) */
-using QueueFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION>;
 using SuccessFeature = Feature<bool, false, true, REPLACE, UPDATE_RULE::ON_USER_EVENT>;
-using SentPacketsFeature = Feature<uint8_t, 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using SentPacketsFeature = Feature<uint16_t, 0, 254, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 
-using QState = State<QueueFeature, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature>;
-using QFeatureManager = FeatureManager<QueueFeature, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature>;
+using TxSuccessFeature = Feature<uint8_t, 0, 253, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using TxFailedFeature = Feature<uint8_t, 0, 252, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+
+using QState = State<TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
+using QFeatureManager = FeatureManager<TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
 
 using action_t = uint8_t;
 using reward_t = float;

@@ -18,7 +18,7 @@ enum class UPDATE_RULE {
 template<typename T>
 struct ACCUMULATE {
     static auto call(T &value, T &newValue) -> void {
-        value = newValue;
+        value += newValue;
     }
 };
 
@@ -79,14 +79,17 @@ public: /* MEMBER */
 
     auto update(T const& val) -> void {
         if(getNumValues() == DESIRED_VALUES) {
-            value = val * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+            T tmp = val * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+            FUNC<T>::call(value, tmp);
         } else {
-            value = val;
+            T tmp = val;
+            FUNC<T>::call(value, tmp);
         }
         LOG_INFO("FM: Feature updated manually -> value = " << value);
     }
 
     auto reset() -> void {
+        LOG_INFO("FM: Feature reset with rule " << (int)RESET << " -> old value = " << value);
         value = DEFAULT_VALUE;
     }
 
