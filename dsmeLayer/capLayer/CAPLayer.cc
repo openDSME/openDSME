@@ -363,23 +363,20 @@ void CAPLayer::actionStartBackoffTimer() {
         uint32_t backoffFromCAPStart;
         if(symbolsSinceCapFrameStart < symbolsPerSlot) {
             /* '-> currently in beacon slot before CAP */
-            LOG_DEBUG("1");
             backoffFromCAPStart = backoff;
 
         } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
             /* '-> currently inside CAP */
-            LOG_DEBUG("2");
             backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
 
         } else {
             /* '-> after CAP */
-            LOG_DEBUG("3");
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
         
         if (slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
         {
-            backoffFromCAPStart -= this->dsme.getSymbolsSinceCapFrameStart(backoffFromCAPStart) % aUnitBackoffPeriod;
+            backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
             backoffFromCAPStart += aUnitBackoffPeriod;
         }
         
