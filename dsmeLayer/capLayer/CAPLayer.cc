@@ -235,14 +235,26 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 }
 
 fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event) {
+    uint32_t now = this->dsme.getPlatform().getSymbolCounter();
+    uint32_t symbolsSinceCapFrameStart = this->dsme.getSymbolsSinceCapFrameStart(now);
+    uint32_t timerEndTime = now;
+
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(CW > 0) {
-            CW--;
-            return transition(&CAPLayer::stateCCA);
+            timerEndTime -= symbolsSinceCapFrameStart % aUnitBackoffPeriod;
+            timerEndTime += aUnitBackoffPeriod;
+            this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
+            return FSM_HANDLED;
+            // CW--;
+            // return transition(&CAPLayer::stateCCA);
         }
         else {
             return transition(&CAPLayer::stateSending);
         }
+    }
+    else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        CW--;
+        return transition(&CAPLayer::stateCCA);
     }
     else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
@@ -302,7 +314,7 @@ uint16_t CAPLayer::symbolsRequired() {
     uint16_t symbols = 0;
     symbols += 8; // CCA
     if(slottedCSMA)
-        symbols += 16; // Contention Window -> 2x CCA
+        symbols += 40; // Contention Window
     symbols += msg->getTotalSymbols();
     symbols += dsme.getMAC_PIB().helper.getAckWaitDuration(); // ACK
     symbols += 10;                                            // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
@@ -352,41 +364,55 @@ void CAPLayer::actionStartBackoffTimer() {
         if(symbolsSinceCapFrameStart < symbolsPerSlot) {
             /* '-> currently in beacon slot before CAP */
             backoffFromCAPStart = backoff;
-
         } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
             /* '-> currently inside CAP */
             backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
-
         } else {
             /* '-> after CAP */
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
         
-        //Backoff period synchronisation
-        if (slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0) {
-            backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
-            backoffFromCAPStart += aUnitBackoffPeriod; // To avoid scheduling earlier than initial backoff
-        }
-        
-        uint32_t backOfTimeLeft = backoffFromCAPStart;
+        uint32_t backOffTimeLeft = backoffFromCAPStart;
 
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
 
         const uint16_t startingSuperframe = 1;
         uint16_t superframeIterator = startingSuperframe;
-        while(backOfTimeLeft > usableCapPhaseLength) {
+        while(backOffTimeLeft > usableCapPhaseLength) {
             if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
                 /* '-> this superframe contains a CAP phase */
-                backOfTimeLeft -= usableCapPhaseLength;
+                backOffTimeLeft -= usableCapPhaseLength;
+            }
+            superframeIterator++;
+        }
+        
+        // Backoff period synchronisation
+        if(slottedCSMA && backOffTimeLeft % aUnitBackoffPeriod != 0) {
+            backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
+            backOffTimeLeft += aUnitBackoffPeriod; // To avoid scheduling earlier than initial backoff
+        }
+
+        if(backOffTimeLeft > usableCapPhaseLength) {
+            /* '-> backoff period synced outside of CAP */
+            if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
+                /* '-> this superframe contains a CAP phase */
+                backOffTimeLeft -= usableCapPhaseLength;
+                
+                /* Resync to backoff period */
+                backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
+                backOffTimeLeft += aUnitBackoffPeriod;
             }
             superframeIterator++;
         }
 
         const uint16_t superframesToWait = superframeIterator - startingSuperframe;
         const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
-        const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
+        const uint32_t totalWaitTime = backOffTimeLeft + superFrameDuration * superframesToWait;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
+        if(slottedCSMA) {
+            DSME_ASSERT(timerEndTime % aUnitBackoffPeriod == 0);
+        }
         DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
             LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
