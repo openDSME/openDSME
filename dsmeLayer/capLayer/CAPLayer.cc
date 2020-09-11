@@ -58,8 +58,9 @@ namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
     : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), failedPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
-        if(!slottedCSMA)
+        if(!slottedCSMA) {
             batteryLifeExt = false;
+        }
 }
 
 void CAPLayer::reset() {
@@ -218,10 +219,12 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
         failedCCAs++;
         return choiceRebackoff();
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
-        if(slottedCSMA)
+        if(slottedCSMA) {
             return transition(&CAPLayer::stateContention);
-        else
+        }
+        else {
             return transition(&CAPLayer::stateSending);
+        }
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -231,28 +234,21 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     }
 }
 
-fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event)
-{
-    if(event.signal == CSMAEvent::ENTRY_SIGNAL)
-    {
-        if(CW > 0)
-        {
+fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event) {
+    if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        if(CW > 0) {
             CW--;
             return transition(&CAPLayer::stateCCA);
         }
-        else
-        {
+        else {
             return transition(&CAPLayer::stateSending);
         }
     }
-    else if(event.signal == CSMAEvent::MSG_PUSHED)
-    {
+    else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     }
-    else
-    {
-        if(event.signal >= CSMAEvent::USER_SIGNAL_START)
-        {
+    else {
+        if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
@@ -313,8 +309,7 @@ uint16_t CAPLayer::symbolsRequired() {
     return symbols;
 }
 
-void CAPLayer::handleStartOfCFP()
-{
+void CAPLayer::handleStartOfCFP() {
     this->dsme.getPlatform().signalPRRCAP(((double)(sentPackets - failedPackets) / sentPackets));
     this->dsme.getPlatform().signalFailedPacketsPerCAP(failedPackets);
     failedPackets = 0;
@@ -324,8 +319,7 @@ void CAPLayer::handleStartOfCFP()
     failedCCAs = 0;
 }
 
-void CAPLayer::setSlottedCSMA(bool slotted)
-{
+void CAPLayer::setSlottedCSMA(bool slotted) {
     slottedCSMA = slotted;
 }
 
@@ -333,14 +327,8 @@ void CAPLayer::actionStartBackoffTimer() {
     totalNBs++;
 
     uint8_t backoffExp;
-    if(batteryLifeExt)
-    {
-        backoffExp = std::min((int)this->dsme.getMAC_PIB().macMinBE, 2) + NB;
-    }
-    else
-    {
-        backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
-    }
+
+    backoffExp = batteryLifeExt ? std::min((int)this->dsme.getMAC_PIB().macMinBE, 2) + NB : this->dsme.getMAC_PIB().macMinBE + NB;
     
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
@@ -374,10 +362,10 @@ void CAPLayer::actionStartBackoffTimer() {
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
         
-        if (slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0)
-        {
+        //Backoff period synchronisation
+        if (slottedCSMA && backoffFromCAPStart % aUnitBackoffPeriod != 0) {
             backoffFromCAPStart -= backoffFromCAPStart % aUnitBackoffPeriod;
-            backoffFromCAPStart += aUnitBackoffPeriod;
+            backoffFromCAPStart += aUnitBackoffPeriod; // To avoid scheduling earlier than initial backoff
         }
         
         uint32_t backOfTimeLeft = backoffFromCAPStart;

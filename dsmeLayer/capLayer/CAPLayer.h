@@ -86,7 +86,7 @@ private:
     fsmReturnStatus stateContention(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
 
-    /*
+    /**
      * External interfaces for use through callbacks
      */
     void sendDone(AckLayerResponse response, IDSMEMessage* msg);
@@ -104,7 +104,7 @@ private:
     bool enoughTimeLeft();
     uint16_t symbolsRequired();
 
-    /*
+    /**
      * Attributes
      */
     DSMELayer& dsme;
@@ -117,6 +117,10 @@ private:
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
+
+    /**
+     * Counters for statistics
+     */
     uint32_t sentPackets;
     uint32_t failedPackets;
     uint32_t failedCCAs;

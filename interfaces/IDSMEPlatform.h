@@ -145,19 +145,19 @@ public:
     /*
      * Number of failed packets per CAP
      */
-    virtual void signalFailedPacketsPerCAP(uint32_t packets){
+    virtual void signalFailedPacketsPerCAP(uint32_t packets) {
     }
 
     /*
     * Failed CCA attempts per CAP
     */
-   virtual void signalFailedCCAs(uint32_t failedAttempts){
+   virtual void signalFailedCCAs(uint32_t failedAttempts) {
    }
 
    /*
     * Packet reception rate per CAP
     */
-   virtual void signalPRRCAP(double prr){
+   virtual void signalPRRCAP(double prr) {
    }
 };
 
