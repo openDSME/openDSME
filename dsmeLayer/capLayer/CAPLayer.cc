@@ -400,9 +400,6 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint32_t totalWaitTime = backOffTimeLeft + superFrameDuration * superframesToWait;
 
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
-        if(slottedCSMA) {
-            DSME_ASSERT(timerEndTime % aUnitBackoffPeriod == 0);
-        }
         DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
             LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
