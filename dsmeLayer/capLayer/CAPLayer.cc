@@ -372,6 +372,12 @@ void CAPLayer::actionStartBackoffTimer() {
         
         uint32_t backOffTimeLeft = backoffFromCAPStart;
 
+        // Backoff period synchronisation
+        if(slottedCSMA && backOffTimeLeft % aUnitBackoffPeriod != 0) {
+            backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
+            backOffTimeLeft += aUnitBackoffPeriod; // To avoid scheduling earlier than initial backoff
+        }
+
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
 
         const uint16_t startingSuperframe = 1;
@@ -380,24 +386,11 @@ void CAPLayer::actionStartBackoffTimer() {
             if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
                 /* '-> this superframe contains a CAP phase */
                 backOffTimeLeft -= usableCapPhaseLength;
-            }
-            superframeIterator++;
-        }
-        
-        // Backoff period synchronisation
-        if(slottedCSMA && backOffTimeLeft % aUnitBackoffPeriod != 0) {
-            backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
-            backOffTimeLeft += aUnitBackoffPeriod; // To avoid scheduling earlier than initial backoff
-        }
-
-        if(backOffTimeLeft > usableCapPhaseLength) {
-            /* '-> backoff period synced outside of CAP */
-            if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
-                /* '-> this superframe contains a CAP phase */
-                backOffTimeLeft -= usableCapPhaseLength;
-                /* Resync to backoff period */
-                backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
-                backOffTimeLeft += aUnitBackoffPeriod;
+                if(slottedCSMA) {
+                    /* Resync to backoff period */
+                    backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
+                    backOffTimeLeft += aUnitBackoffPeriod;
+                }
             }
             superframeIterator++;
         }
