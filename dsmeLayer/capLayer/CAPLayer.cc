@@ -245,8 +245,6 @@ fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event) {
             timerEndTime += aUnitBackoffPeriod;
             this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
             return FSM_HANDLED;
-            // CW--;
-            // return transition(&CAPLayer::stateCCA);
         }
         else {
             return transition(&CAPLayer::stateSending);
@@ -314,7 +312,7 @@ uint16_t CAPLayer::symbolsRequired() {
     uint16_t symbols = 0;
     symbols += 8; // CCA
     if(slottedCSMA)
-        symbols += 40; // Contention Window
+        symbols += CW0 * aUnitBackoffPeriod; // Contention Window
     symbols += msg->getTotalSymbols();
     symbols += dsme.getMAC_PIB().helper.getAckWaitDuration(); // ACK
     symbols += 10;                                            // processing (arbitrary) TODO ! verify that the callback is always called before slots begin
@@ -397,7 +395,6 @@ void CAPLayer::actionStartBackoffTimer() {
             if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
                 /* '-> this superframe contains a CAP phase */
                 backOffTimeLeft -= usableCapPhaseLength;
-                
                 /* Resync to backoff period */
                 backOffTimeLeft -= backOffTimeLeft % aUnitBackoffPeriod;
                 backOffTimeLeft += aUnitBackoffPeriod;
