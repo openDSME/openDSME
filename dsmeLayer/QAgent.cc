@@ -18,7 +18,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
                         if(action == (action_t)QAction::SEND) {
-                            qTable[i][action] = 0;
+                            qTable[i][action] = 0.1;
                         } else {
                             qTable[i][action] = 0;
                         }
@@ -27,7 +27,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
 }
 
 void QAgent::updateQTable(uint8_t const id, uint8_t const nextId, QAction const &action, reward_t reward) {
-        std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
+//        std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
         float q = qTable[id][(int)action] + lr * (reward + gamma * maxQ(nextId) - qTable[id][(int)action]);
         dsme.getPlatform().signalQ(q);
         qTable[id][(int)action] = q;

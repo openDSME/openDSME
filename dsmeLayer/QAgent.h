@@ -12,7 +12,7 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 48>;
+using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 96>;
 using QueueFullFeature = Feature<uint16_t, 'Q', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 2>;
 using OtherQueueFullFeature = Feature<uint16_t, 'O', 0, CAP_QUEUE_SIZE, MAXIMUM, UPDATE_RULE::ON_USER_EVENT, true, 2, UPDATE_RULE::ON_MSF_EVENT>;
 using OverheardPacketsFeature = Feature<uint8_t, 'P', 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
@@ -40,7 +40,7 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.99999, float gamma=0.9, float lr=0.1);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.9999, float gamma=0.9, float lr=0.1);
 
     auto getFeatureManager() -> QFeatureManager& {
         return featureManager;

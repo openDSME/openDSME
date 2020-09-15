@@ -96,6 +96,7 @@ private:
      * Actions
      */
     void actionStartBackoffTimer(uint16_t unitBackoffPeriods);
+    void actionStartBackoffTimerRandom();
     void actionPopMessage(DataStatus::Data_Status);
 
     /**

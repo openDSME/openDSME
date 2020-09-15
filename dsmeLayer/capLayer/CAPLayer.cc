@@ -132,34 +132,10 @@ uint16_t CAPLayer::getQueueLevel() {
 }
 
 /*****************************
- * Choices
- *****************************/
-fsmReturnStatus CAPLayer::choiceRebackoff() { // CHOICES ARE BAD DESIGN
-    NB++;
-    if(NB > dsme.getMAC_PIB().macMaxCSMABackoffs) {
-        actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
-        return transition(&CAPLayer::stateIdle);
-    } else {
-        return transition(&CAPLayer::stateQAgentDecision);
-    }
-}
-
-/*****************************
  * States
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        /*bool txSuccess = dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().getValue();
-        bool ccaSuccess = dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().getValue();
-
-        if(ccaSuccess && !txSuccess) {
-            NR++;
-        }
-        if(!ccaSuccess && !txSuccess) {
-            NB++;
-            totalNBs++;
-        }*/
-
         if(NB >= dsme.getMAC_PIB().macMaxCSMABackoffs) {
             actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
         }
@@ -167,15 +143,27 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
             actionPopMessage(DataStatus::NO_ACK);
         }
 
+        if(!queue.empty() && queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+            actionStartBackoffTimerRandom();
+        }
+
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
+        if(queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+            actionStartBackoffTimerRandom();
+        }
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        if(!queue.empty() && queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+            return transition(&CAPLayer::stateCCA);
+        }
         return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
-        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 32 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
-            LOG_INFO("CL: Starting timer");
-            actionStartBackoffTimer(32);
+        if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
+            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 16 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+                LOG_INFO("CL: Starting timer");
+                //actionStartBackoffTimer(16);
+            }
         }
         return FSM_HANDLED;
     } else {
@@ -212,9 +200,9 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     }
 }
 
-fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {  //enoughTimeLeft?
+fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(queue.empty() || !dsme.getPlatform().startCCA()) {
+        if(queue.empty() || !enoughTimeLeft() || !dsme.getPlatform().startCCA()) {
             return transition(&CAPLayer::stateQAgentEvaluation);
         }
         return FSM_HANDLED;
@@ -228,8 +216,9 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {  //enoughTimeLeft?
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        LOG_ERROR("CL: CCA did not finish with subslot");
-        DSME_ASSERT(false);
+        LOG_ERROR("CL: CCA did not finish within subslot");
+        //DSME_ASSERT(false);
+        return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -319,6 +308,71 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
     }
 }
 
+void CAPLayer::actionStartBackoffTimerRandom() {
+    totalNBs++;
+
+    uint8_t backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
+    const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
+    backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
+
+    const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
+
+    const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
+    const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    const uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
+    const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
+    const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
+    const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
+
+    DSME_ATOMIC_BLOCK {
+        const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
+        const uint32_t symbolsSinceCapFrameStart = this->dsme.getSymbolsSinceCapFrameStart(now);
+        const uint32_t CAPStart = now + symbolsPerSlot - symbolsSinceCapFrameStart;
+
+        uint32_t backoffFromCAPStart;
+        if(symbolsSinceCapFrameStart < symbolsPerSlot) {
+            /* '-> currently in beacon slot before CAP */
+            backoffFromCAPStart = backoff;
+
+        } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
+            /* '-> currently inside CAP */
+            backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
+
+        } else {
+            /* '-> after CAP */
+            backoffFromCAPStart = backoff + usableCapPhaseLength;
+        }
+
+        uint32_t backOfTimeLeft = backoffFromCAPStart;
+
+        const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
+
+        const uint16_t startingSuperframe = 1;
+        uint16_t superframeIterator = startingSuperframe;
+        while(backOfTimeLeft > usableCapPhaseLength) {
+            if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
+                /* '-> this superframe contains a CAP phase */
+                backOfTimeLeft -= usableCapPhaseLength;
+            }
+            superframeIterator++;
+        }
+
+        const uint16_t superframesToWait = superframeIterator - startingSuperframe;
+        const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
+        const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
+
+        const uint32_t timerEndTime = CAPStart + totalWaitTime;
+
+        DSME_ASSERT(timerEndTime >= now + backoff);
+        if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
+            LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
+            LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
+            DSME_ASSERT(false);
+        }
+
+        this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
+    }
+}
 
 bool CAPLayer::enoughTimeLeft() {
     return dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), symbolsRequired());
