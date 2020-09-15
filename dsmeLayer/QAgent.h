@@ -12,16 +12,16 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 0, 60*8*(2<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, 1563>;
-using QueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true>;
-using OtherQueueFullFeature = Feature<uint16_t, 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_USER_EVENT>;
-using OverheardPacketsFeature = Feature<uint8_t, 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 96>;
+using QueueFullFeature = Feature<uint16_t, 'Q', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 2>;
+using OtherQueueFullFeature = Feature<uint16_t, 'O', 0, CAP_QUEUE_SIZE, MAXIMUM, UPDATE_RULE::ON_USER_EVENT, true, 2, UPDATE_RULE::ON_MSF_EVENT>;
+using OverheardPacketsFeature = Feature<uint8_t, 'P', 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 /* FEATURES (REWARD) */
-using SuccessFeature = Feature<bool, false, true, REPLACE, UPDATE_RULE::ON_USER_EVENT>;
-using SentPacketsFeature = Feature<uint16_t, 0, 254, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using SuccessFeature = Feature<bool, 'S', false, true, REPLACE, UPDATE_RULE::ON_USER_EVENT>;
+using SentPacketsFeature = Feature<uint16_t, 'R', 0, 254, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 
-using TxSuccessFeature = Feature<uint8_t, 0, 253, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
-using TxFailedFeature = Feature<uint8_t, 0, 252, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using TxSuccessFeature = Feature<uint8_t, 'E', 0, 253, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using TxFailedFeature = Feature<uint8_t, 'F', 0, 252, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 
 using QState = State<TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
 using QFeatureManager = FeatureManager<TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
@@ -32,14 +32,15 @@ using reward_t = float;
 
 enum class QAction : action_t {
     BACKOFF,
-    CCA,
+    //BACKOFF12,
+    //CCA,
     SEND,
     NUM_ACTIONS
 };
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.00, float eps_decay=0.999, float gamma=0.9, float lr=0.1);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.999, float gamma=0.9, float lr=0.1);
 
     auto getFeatureManager() -> QFeatureManager& {
         return featureManager;
@@ -48,6 +49,8 @@ public:
     auto selectAction(bool deterministic=false) -> QAction;
 
     auto update() -> void;
+
+    auto resetTx() -> void;
 
     auto printQTable() const -> void;
 
@@ -59,7 +62,7 @@ public:
 private:
     auto maxQ(uint8_t const id) const -> float;
 
-    auto maxAction(uint8_t const id) const -> action_t;
+    auto maxAction(uint8_t const id) -> action_t;
 
     auto updateQTable(uint8_t const id, uint8_t const nextId, QAction const &action, reward_t reward) -> void;
 

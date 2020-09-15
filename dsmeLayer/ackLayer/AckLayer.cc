@@ -129,6 +129,9 @@ void AckLayer::receive(IDSMEMessage* msg) {
         return;
     }
 
+    /* Someone else is sending in this slot and its not an ACK so I should not do it */
+    dsme.getQAgent().resetTx();
+
     /* filter messages not for this device */
     bool throwawayMessage = false;
     if(this->dsme.getMAC_PIB().macAssociatedPANCoord && header.hasDestinationPANId() && header.getDstPANId() != this->dsme.getMAC_PIB().macPANId &&
@@ -369,8 +372,8 @@ fsmReturnStatus AckLayer::stateWaitForAck(AckEvent& event) {
             this->dsme.getEventDispatcher().setupACKTimer();
             return FSM_HANDLED;
         case AckEvent::ACK_RECEIVED:
+            dsme.getQAgent().getFeatureManager().getState().getFeature<OtherQueueFullFeature>().update(event.queue);
             if(event.seqNum == pendingMessage->getHeader().getSequenceNumber()) {
-                //dsme.getQAgent().signalQueueLevelCAP(event.queue, true);
                 dsme.getEventDispatcher().stopACKTimer();
                 signalResult(ACK_SUCCESSFUL);
                 return transition(&AckLayer::stateIdle);

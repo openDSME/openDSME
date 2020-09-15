@@ -29,7 +29,14 @@ struct REPLACE {
     }
 };
 
-template<typename T, T MIN_VALUE, T MAX_VALUE, template<typename> typename FUNC=REPLACE, UPDATE_RULE UPDATE=UPDATE_RULE::ON_USER_EVENT,  bool ACTIVE=false, T DESIRED_VALUES = 0, UPDATE_RULE RESET=UPDATE_RULE::ON_USER_EVENT, T DEFAULT_VALUE=0>      /* TODO: use min, max value correctly */
+template<typename T>
+struct MAXIMUM {
+    static auto call(T &value, T &newValue) -> void {
+        value = value > newValue ? value : newValue;
+    }
+};
+
+template<typename T, uint8_t FID, T MIN_VALUE, T MAX_VALUE, template<typename> typename FUNC=REPLACE, UPDATE_RULE UPDATE=UPDATE_RULE::ON_USER_EVENT,  bool ACTIVE=false, T DESIRED_VALUES = 0, UPDATE_RULE RESET=UPDATE_RULE::ON_USER_EVENT, T DEFAULT_VALUE=0>      /* TODO: use min, max value correctly */
 class Feature {
 public: /* STATIC */
     constexpr static auto isActive() -> bool {
@@ -67,29 +74,40 @@ public: /* MEMBER */
     auto update() -> void {
         if(updateFunc) {
             if(getNumValues() == DESIRED_VALUES) {
-                T tmp = updateFunc() * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+                T tmp = updateFunc();
+                if(tmp > MAX_VALUE) {
+                    tmp = MAX_VALUE;
+                }
+                tmp = tmp * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
                 FUNC<T>::call(value, tmp);
             } else {
                 T tmp = updateFunc();
+                if(tmp > MAX_VALUE) {
+                    tmp = MAX_VALUE;
+                }
                 FUNC<T>::call(value, tmp);
             }
-            LOG_INFO("FM: Feature updated with rule " << (int)UPDATE << " -> value = " << value);
+            LOG_INFO("FM: Feature " << FID << " updated with rule " << (int)UPDATE << " -> value = " << value);
         }
     }
 
     auto update(T const& val) -> void {
+        T tp = val;
+        if(tp > MAX_VALUE) {
+            tp = MAX_VALUE;
+        }
         if(getNumValues() == DESIRED_VALUES) {
-            T tmp = val * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
+            T tmp = tp * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
             FUNC<T>::call(value, tmp);
         } else {
-            T tmp = val;
+            T tmp = tp;
             FUNC<T>::call(value, tmp);
         }
-        LOG_INFO("FM: Feature updated manually -> value = " << value);
+        LOG_INFO("FM: Feature " << FID << " updated manually -> value = " << value);
     }
 
     auto reset() -> void {
-        LOG_INFO("FM: Feature reset with rule " << (int)RESET << " -> old value = " << value);
+        LOG_INFO("FM: Feature " << FID << " reset with rule " << (int)RESET << " -> old value = " << value);
         value = DEFAULT_VALUE;
     }
 

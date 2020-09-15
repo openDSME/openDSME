@@ -81,10 +81,12 @@ private:
      * States
      */
     fsmReturnStatus stateIdle(CSMAEvent& event);
-    fsmReturnStatus stateBackoff(CSMAEvent& vent);
+    fsmReturnStatus stateBackoff(CSMAEvent& event);
+    fsmReturnStatus stateBackoff12(CSMAEvent& event);
     fsmReturnStatus stateCCA(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
     fsmReturnStatus stateQAgentDecision(CSMAEvent& event);
+    fsmReturnStatus stateSynchronize(CSMAEvent & event);
 
     /*
      * External interfaces for use through callbacks
@@ -96,6 +98,7 @@ private:
      */
     void actionStartBackoffTimer(uint16_t unitBackoffPeriods);
     void actionPopMessage(DataStatus::Data_Status);
+    void actionSynchronizeToSlotBoundary();
 
     /**
      * Internal helper

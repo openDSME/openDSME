@@ -181,15 +181,33 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        //actionStartBackoffTimer((aBaseSlotDuration * (2<<dsme.getMAC_PIB().macSuperframeOrder)) / (10*aUnitBackoffPeriod));
-        //actionStartBackoffTimer(3 * (2<<dsme.getMAC_PIB().macSuperframeOrder));
-        actionStartBackoffTimer(1);
+        actionStartBackoffTimer(3 * (1<<dsme.getMAC_PIB().macSuperframeOrder) / 12);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        LOG_INFO("CL: WAKEUP");
         dsme.getQAgent().update();
-        return transition(&CAPLayer::stateCCA);
+        return transition(&CAPLayer::stateQAgentDecision);
+    } else {
+        if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_INFO((uint16_t)event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateBackoff12(CSMAEvent& event) {
+    if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        actionStartBackoffTimer(3 * (1<<dsme.getMAC_PIB().macSuperframeOrder));
+        return FSM_HANDLED;
+    } else if(event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        LOG_INFO("CL: WAKEUP");
+        dsme.getQAgent().update();
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -229,11 +247,10 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        /*if(!enoughTimeLeft()) {
+        if(!enoughTimeLeft()) {
             LOG_INFO("CANNOT SEND - OUT OF TIME");
-            actionStartBackoffTimer(1);
-            return FSM_HANDLED;
-        }*/
+            return transition(&CAPLayer::stateQAgentDecision);
+        }
 
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             // currently receiving external interference
@@ -250,29 +267,31 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxSuccessFeature>().update(1);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(true);
-        dsme.getQAgent().update();
         actionPopMessage(DataStatus::SUCCESS);
-        return transition(&CAPLayer::stateIdle);
+        dsme.getQAgent().update();
+        return transition(&CAPLayer::stateSynchronize);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
-        dsme.getQAgent().update();
+
         /* check if a sending should by retries */
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
-            return transition(&CAPLayer::stateIdle);
+            dsme.getQAgent().update();
+            return transition(&CAPLayer::stateSynchronize);
         } else {
             NB = 0;
             NR++;
+            dsme.getQAgent().update();
             return transition(&CAPLayer::stateQAgentDecision);
         }
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
         //dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         //dsme.getQAgent().update();
         actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
-        return transition(&CAPLayer::stateIdle);
+        return transition(&CAPLayer::stateSynchronize);
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        return transition(&CAPLayer::stateSending);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -284,23 +303,38 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        //QAction action = (QAction)dsme.getQAgent().selectAction();
-        return transition(&CAPLayer::stateBackoff);
-        /*switch(action) {
+        QAction action = (QAction)dsme.getQAgent().selectAction();
+
+        switch(action) {
             case QAction::BACKOFF:
                 return transition(&CAPLayer::stateBackoff);
-            case QAction::CCA:
-                return transition(&CAPLayer::stateSending);
             case QAction::SEND:
                 return transition(&CAPLayer::stateSending);
             default:
                 DSME_ASSERT(false);
-        }*/
+        }
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
+            DSME_ASSERT(false);
+        }
+        return FSM_IGNORED;
+    }
+}
+
+fsmReturnStatus CAPLayer::stateSynchronize(CSMAEvent& event) {
+    if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        actionSynchronizeToSlotBoundary();
+        return FSM_HANDLED;
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        return transition(&CAPLayer::stateIdle);
+    } else if(event.signal == CSMAEvent::MSG_PUSHED) {
+        return FSM_IGNORED;
+    } else {
+        if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
+            LOG_ERROR((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -329,10 +363,6 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
     //uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-    backoffExp = 8 - getQueueLevel();
-    //unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-    unitBackoffPeriods = unitBackoffPeriods % ((1 << (uint16_t)backoffExp) -  (1 << ((uint16_t)backoffExp-1)));
-    unitBackoffPeriods += (1 << ((uint16_t)backoffExp-1));
 
     const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
     const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
@@ -360,6 +390,11 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
 
+        /*if((backoffFromCAPStart % (16*aUnitBackoffPeriod)) != 0) {   // slotted
+            backoffFromCAPStart -= backoffFromCAPStart % (16*aUnitBackoffPeriod);
+            backoffFromCAPStart += 16*aUnitBackoffPeriod;
+        }*/
+
         uint32_t backOfTimeLeft = backoffFromCAPStart;
 
         const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
@@ -381,6 +416,67 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
 
         DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
+            LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
+            LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
+            DSME_ASSERT(false);
+        }
+
+        this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
+    }
+}
+
+void CAPLayer::actionSynchronizeToSlotBoundary() {
+    const uint16_t backoff = 0;
+    const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
+    const uint16_t blockedEnd = PRE_EVENT_SHIFT;
+    const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
+    const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
+    const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
+
+    DSME_ATOMIC_BLOCK {
+        const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
+        const uint32_t symbolsSinceCapFrameStart = this->dsme.getSymbolsSinceCapFrameStart(now);
+        const uint32_t CAPStart = now + symbolsPerSlot - symbolsSinceCapFrameStart;
+
+        uint32_t backoffFromCAPStart;
+        if(symbolsSinceCapFrameStart < symbolsPerSlot) {
+            /* '-> currently in beacon slot before CAP */
+            backoffFromCAPStart = backoff;
+
+        } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
+            /* '-> currently inside CAP */
+            backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
+
+        } else {
+            /* '-> after CAP */
+            backoffFromCAPStart = backoff + usableCapPhaseLength;
+        }
+
+        backoffFromCAPStart += 16*aUnitBackoffPeriod;
+        backoffFromCAPStart -= backoffFromCAPStart % (16*aUnitBackoffPeriod);
+
+
+        uint32_t backOfTimeLeft = backoffFromCAPStart;
+
+        const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
+
+        const uint16_t startingSuperframe = 1;
+        uint16_t superframeIterator = startingSuperframe;
+        while(backOfTimeLeft > usableCapPhaseLength) {
+            if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
+                /* '-> this superframe contains a CAP phase */
+                backOfTimeLeft -= usableCapPhaseLength;
+            }
+            superframeIterator++;
+        }
+
+        const uint16_t superframesToWait = superframeIterator - startingSuperframe;
+        const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
+        const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
+        const uint32_t timerEndTime = CAPStart + totalWaitTime;
+
+        DSME_ASSERT(timerEndTime >= now + backoff);
+        if(!this->dsme.isWithinCAP(timerEndTime, 0)) {
             LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
             LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
             DSME_ASSERT(false);

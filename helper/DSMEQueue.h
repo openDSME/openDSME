@@ -74,6 +74,7 @@ public:
 
     // assumes queue is not empty
     C& front() {
+        ASSERT(size > 0);
         DSME_ASSERT(size > 0);
         return queue[(next_back + size) % MAX_SIZE];
     }
