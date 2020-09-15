@@ -136,35 +136,24 @@ uint16_t CAPLayer::getQueueLevel() {
  *****************************/
 fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(NB >= dsme.getMAC_PIB().macMaxCSMABackoffs) {
-            actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
-        }
-        if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
-            actionPopMessage(DataStatus::NO_ACK);
-        }
-
-        if(!queue.empty() && queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
-            actionStartBackoffTimerRandom();
-        }
-
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
-        if(queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+        /*if(queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
             actionStartBackoffTimerRandom();
-        }
+        }*/
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        if(!queue.empty() && queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
+        /*if(!queue.empty() && queue.front()->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
             return transition(&CAPLayer::stateCCA);
-        }
+        }*/
         return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
-        if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
-            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 16 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+        //if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
+            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 32 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
                 LOG_INFO("CL: Starting timer");
-                //actionStartBackoffTimer(16);
+                actionStartBackoffTimer(32);
             }
-        }
+        //}
         return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -210,14 +199,16 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(true);
         return transition(&CAPLayer::stateSending);
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
-        NB++;
+        if(++NB >= dsme.getMAC_PIB().macMaxCSMABackoffs) {
+            actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
+        }
         dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(false);
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: CCA did not finish within subslot");
-        //DSME_ASSERT(false);
+        DSME_ASSERT(false);
         return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -229,7 +220,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(queue.empty() || !dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
+        if(queue.empty() || !enoughTimeLeft() || !dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             LOG_DEBUG("CL: Failed to prepare sending copy");
             return transition(&CAPLayer::stateQAgentEvaluation);
         }
@@ -237,27 +228,34 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<SentPacketsFeature>().update(1);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        actionPopMessage(DataStatus::SUCCESS);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(true);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxSuccessFeature>().update(1);
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
-        NR++;
-        NB=0;
+        if(++NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
+            NB = 0;
+            actionPopMessage(DataStatus::NO_ACK);
+        }
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
-        NR++;
-        NB=0;
+        if(++NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
+            NB = 0;
+            actionPopMessage(DataStatus::NO_ACK);
+        }
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        /* TODO: when does this happen? */
         LOG_ERROR("CL: Transmission did not finish within subslot");
+        actionStartBackoffTimer(32);
+        //DSME_ASSERT(false);
         return FSM_HANDLED;
-        DSME_ASSERT(false);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -275,6 +273,10 @@ fsmReturnStatus CAPLayer::stateQAgentEvaluation(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: Evaluating action and updating QAgent did not finish within subslot");
         DSME_ASSERT(false);
+    } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
+        dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(false);
+        return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -304,72 +306,6 @@ void CAPLayer::actionStartBackoffTimer(uint16_t unitBackoffPeriods) {
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
         const uint32_t timerEndTime = now + backoff;
-        this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
-    }
-}
-
-void CAPLayer::actionStartBackoffTimerRandom() {
-    totalNBs++;
-
-    uint8_t backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
-    const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
-    backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
-
-    const uint16_t unitBackoffPeriods = this->dsme.getPlatform().getRandom() % (1 << (uint16_t)backoffExp);
-
-    const uint16_t backoff = aUnitBackoffPeriod * (unitBackoffPeriods + 1); // +1 to avoid scheduling in the past
-    const uint32_t symbolsPerSlot = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot();
-    const uint16_t blockedEnd = symbolsRequired() + PRE_EVENT_SHIFT;
-    const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
-    const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
-    const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
-
-    DSME_ATOMIC_BLOCK {
-        const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
-        const uint32_t symbolsSinceCapFrameStart = this->dsme.getSymbolsSinceCapFrameStart(now);
-        const uint32_t CAPStart = now + symbolsPerSlot - symbolsSinceCapFrameStart;
-
-        uint32_t backoffFromCAPStart;
-        if(symbolsSinceCapFrameStart < symbolsPerSlot) {
-            /* '-> currently in beacon slot before CAP */
-            backoffFromCAPStart = backoff;
-
-        } else if(symbolsSinceCapFrameStart < usableCapPhaseEnd) {
-            /* '-> currently inside CAP */
-            backoffFromCAPStart = backoff + symbolsSinceCapFrameStart - symbolsPerSlot;
-
-        } else {
-            /* '-> after CAP */
-            backoffFromCAPStart = backoff + usableCapPhaseLength;
-        }
-
-        uint32_t backOfTimeLeft = backoffFromCAPStart;
-
-        const uint16_t superFramesPerMultiSuperframe = 1 << (this->dsme.getMAC_PIB().macMultiSuperframeOrder - this->dsme.getMAC_PIB().macSuperframeOrder);
-
-        const uint16_t startingSuperframe = 1;
-        uint16_t superframeIterator = startingSuperframe;
-        while(backOfTimeLeft > usableCapPhaseLength) {
-            if(!this->dsme.getMAC_PIB().macCapReduction || superframeIterator % superFramesPerMultiSuperframe == 0) {
-                /* '-> this superframe contains a CAP phase */
-                backOfTimeLeft -= usableCapPhaseLength;
-            }
-            superframeIterator++;
-        }
-
-        const uint16_t superframesToWait = superframeIterator - startingSuperframe;
-        const uint32_t superFrameDuration = this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() * aNumSuperframeSlots;
-        const uint32_t totalWaitTime = backOfTimeLeft + superFrameDuration * superframesToWait;
-
-        const uint32_t timerEndTime = CAPStart + totalWaitTime;
-
-        DSME_ASSERT(timerEndTime >= now + backoff);
-        if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
-            LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
-            LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
-            DSME_ASSERT(false);
-        }
-
         this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
     }
 }

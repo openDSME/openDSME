@@ -18,7 +18,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
                         if(action == (action_t)QAction::SEND) {
-                            qTable[i][action] = 0.1;
+                            qTable[i][action] = -0.1;
                         } else {
                             qTable[i][action] = 0;
                         }
@@ -26,8 +26,8 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         }
 }
 
-void QAgent::updateQTable(uint8_t const id, uint8_t const nextId, QAction const &action, reward_t reward) {
-//        std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
+void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const &action, reward_t reward) {
+        std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
         float q = qTable[id][(int)action] + lr * (reward + gamma * maxQ(nextId) - qTable[id][(int)action]);
         dsme.getPlatform().signalQ(q);
         qTable[id][(int)action] = q;
@@ -43,7 +43,7 @@ void QAgent::printQTable() const {
         }
 }
 
-float QAgent::maxQ(uint8_t id) const {
+float QAgent::maxQ(state_t id) const {
         auto maxQ = qTable[id][0];
         for(auto& q : qTable[id]) {
                 if(q > maxQ) {
@@ -53,7 +53,7 @@ float QAgent::maxQ(uint8_t id) const {
         return maxQ;
 }
 
-action_t QAgent::maxAction(uint8_t id) {
+action_t QAgent::maxAction(state_t id) {
         auto maxQ = qTable[id][0];
         action_t a = 0;
         for(uint8_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
@@ -97,6 +97,7 @@ auto QAgent::resetTx() -> void {
     QState currentState = featureManager.getState();
     LOG_INFO("QA: Someone sent in this slot -> negative reinforcement for sending");
     updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -2);
+    updateQTable(currentState.getId(), currentState.getId(), QAction::CCA, -2);
 }
 
 void QAgent::update() {
@@ -106,9 +107,11 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = currentState.getFeature<QueueFullFeature>().getValue() >= 1 ? -1 : 0;
+                reward = currentState.getFeature<QueueFullFeature>().getValue() >= 6 ? -3 : 0;
                 break;
             case QAction::CCA:
+                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -2 : 0;
+                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 4 : 0;
             case QAction::SEND:
                 reward = currentState.getFeature<SuccessFeature>().getValue() ? 4 : -2;
                 //reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() >= 3 ? 1 : 0;
