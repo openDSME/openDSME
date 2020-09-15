@@ -154,7 +154,7 @@ void BitVectorBase::copyFrom(const BitVectorBase& other, bit_vector_size_t their
 void BitVectorBase::setOperationJoin(const BitVectorBase& other, bit_vector_size_t myOffset) {
     if(myOffset + other.bitSize > this->bitSize) {
         /* '-> ERROR */
-        ASSERT(false);
+        //ASSERT(false);
         return;
     }
 

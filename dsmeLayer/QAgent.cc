@@ -106,10 +106,9 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-            //case QAction::BACKOFF12:
                 reward = currentState.getFeature<QueueFullFeature>().getValue() >= 1 ? -1 : 0;
                 break;
-            //case QAction::CCA:
+            case QAction::CCA:
             case QAction::SEND:
                 reward = currentState.getFeature<SuccessFeature>().getValue() ? 4 : -2;
                 //reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() >= 3 ? 1 : 0;

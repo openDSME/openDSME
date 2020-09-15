@@ -59,6 +59,9 @@ public: /* STATIC */
     }
 
 public: /* MEMBER */
+    Feature() : updateFunc{}, value{0} {
+    }
+
     auto getValue() -> T const {
         return value;
     }
