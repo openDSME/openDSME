@@ -12,6 +12,7 @@ namespace dsme {
 QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::BACKOFF} {
         /* INIT FEATURES */
         featureManager.getState().getFeature<QueueFullFeature>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
+        featureManager.getState().getFeature<QueueFullFeature2>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<TimeFeature>().setUpdateFunc(DELEGATE(&QAgent::timeFeatureUpdateFunc, *this));
 
         /* INIT QTABLE */
@@ -27,7 +28,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
 }
 
 void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const &action, reward_t reward) {
-        std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
+        //std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
         float q = qTable[id][(int)action] + lr * (reward + gamma * maxQ(nextId) - qTable[id][(int)action]);
         dsme.getPlatform().signalQ(q);
         qTable[id][(int)action] = q;
@@ -97,7 +98,6 @@ auto QAgent::resetTx() -> void {
     QState currentState = featureManager.getState();
     LOG_INFO("QA: Someone sent in this slot -> negative reinforcement for sending");
     updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -2);
-    updateQTable(currentState.getId(), currentState.getId(), QAction::CCA, -2);
 }
 
 void QAgent::update() {
@@ -107,14 +107,14 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = currentState.getFeature<QueueFullFeature>().getValue() >= 6 ? -3 : 0;
+                reward = currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? -2 : 0;
                 break;
             case QAction::CCA:
                 reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -2 : 0;
                 reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 4 : 0;
             case QAction::SEND:
                 reward = currentState.getFeature<SuccessFeature>().getValue() ? 4 : -2;
-                //reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() >= 3 ? 1 : 0;
+                reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 2 : 0;
                 break;
             default:
                 DSME_ASSERT(false);
@@ -124,18 +124,13 @@ void QAgent::update() {
         LOG_DEBUG("QA: time -> " << currentState.getFeature<TimeFeature>().getValue());
 
         LOG_INFO("QA: Got reward " << reward);
-        if(lastAction == QAction::SEND) {
-            updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
-        } else {
-            updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
-        }
-
+        updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
 }
 
 void QAgent::printTxTimes() const {
     LOG_INFO_PREFIX;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
-        if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND]) {  // || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
+        if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
             LOG_INFO_PURE(" " << id);
         }
     }

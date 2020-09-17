@@ -78,14 +78,16 @@ public: /* MEMBER */
         if(updateFunc) {
             if(getNumValues() == DESIRED_VALUES) {
                 T tmp = updateFunc();
-                if(tmp > MAX_VALUE) {
+                if(tmp >= MAX_VALUE) {
+                    return;
                     tmp = MAX_VALUE;
                 }
                 tmp = tmp * DESIRED_VALUES / (MAX_VALUE - MIN_VALUE);
                 FUNC<T>::call(value, tmp);
             } else {
                 T tmp = updateFunc();
-                if(tmp > MAX_VALUE) {
+                if(tmp >= MAX_VALUE) {
+                    return;
                     tmp = MAX_VALUE;
                 }
                 FUNC<T>::call(value, tmp);
@@ -97,6 +99,7 @@ public: /* MEMBER */
     auto update(T const& val) -> void {
         T tp = val;
         if(tp > MAX_VALUE) {
+            return;
             tp = MAX_VALUE;
         }
         if(getNumValues() == DESIRED_VALUES) {
