@@ -75,6 +75,7 @@ public:
     void dispatchCCAResult(bool success);
     void handleStartOfCFP();
     void setSlottedCSMA(bool slotted);
+    void setBLE(bool ble);
 
 private:
     /**
@@ -123,6 +124,7 @@ private:
      */
     uint32_t sentPackets;
     uint32_t failedPackets;
+    uint32_t successPackets;
     uint32_t failedCCAs;
 };
 

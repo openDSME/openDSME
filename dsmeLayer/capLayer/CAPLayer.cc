@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), failedPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), failedPackets(0), successPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
         if(!slottedCSMA) {
             batteryLifeExt = false;
         }
@@ -279,7 +279,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
-
+	successPackets++;
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         /* check if a sending should by retries */
@@ -327,10 +327,16 @@ void CAPLayer::handleStartOfCFP() {
     sentPackets = 0;
     this->dsme.getPlatform().signalFailedCCAs(failedCCAs);
     failedCCAs = 0;
+    this->dsme.getPlatform().signalSuccessPacketsCAP(successPackets);
+    successPackets = 0;
 }
 
 void CAPLayer::setSlottedCSMA(bool slotted) {
     slottedCSMA = slotted;
+}
+
+void CAPLayer::setBLE(bool ble) {
+    batteryLifeExt = ble;
 }
 
 void CAPLayer::actionStartBackoffTimer() {

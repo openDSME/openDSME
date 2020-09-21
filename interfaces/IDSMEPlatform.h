@@ -159,6 +159,12 @@ public:
     */
    virtual void signalPRRCAP(double prr) {
    }
+
+   /*
+    * Successfully sent packets per CAP
+    */
+   virtual void signalSuccessPacketsCAP(uint32_t packets) {
+   }
 };
 
 } /* namespace dsme */
