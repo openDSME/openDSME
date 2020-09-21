@@ -149,9 +149,10 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
         //if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
-            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 16 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 2 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+                dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
                 LOG_INFO("CL: Starting timer");
-                actionStartBackoffTimer(16);
+                actionStartBackoffTimer(2);
             }
         //}
         return FSM_HANDLED;
@@ -252,11 +253,12 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: Transmission did not finish within subslot");
-        DSME_ASSERT(false);
-        /*if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+        //DSME_ASSERT(false);
+        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 2 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
             LOG_INFO("CL: Starting timer");
-            actionStartBackoffTimer(8);
-        }*/
+            actionStartBackoffTimer(2);
+        }
         return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
@@ -269,6 +271,10 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateQAgentEvaluation(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         dsme.getQAgent().update();
+        if(messagePopped) {
+            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().reset();
+            messagePopped = false;
+        }
         return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
@@ -329,6 +335,7 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
 
     NR = 0;
     NB = 0;
+    messagePopped = true;
 }
 
 } /* namespace dsme */

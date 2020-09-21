@@ -12,7 +12,7 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 108>;
+using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 864>;
 using QueueFullFeature = Feature<uint16_t, 'Q', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, 2>;
 using QueueFullFeature2 = Feature<uint16_t, 'Z', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
 using OtherQueueFullFeature = Feature<uint16_t, 'O', 0, CAP_QUEUE_SIZE, MAXIMUM, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
@@ -25,8 +25,10 @@ using SentPacketsFeature = Feature<uint16_t, 'R', 0, 254, ACCUMULATE, UPDATE_RUL
 using TxSuccessFeature = Feature<uint8_t, 'E', 0, 253, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 using TxFailedFeature = Feature<uint8_t, 'F', 0, 252, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 
-using QState = State<QueueFullFeature2, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, CCASuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
-using QFeatureManager = FeatureManager<QueueFullFeature2, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, CCASuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
+using DwellTimeFeature = Feature<uint16_t, 'D', 0, 16000, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_USER_EVENT>;
+
+using QState = State<DwellTimeFeature, QueueFullFeature2, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, CCASuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
+using QFeatureManager = FeatureManager<DwellTimeFeature, QueueFullFeature2, TimeFeature, QueueFullFeature, OtherQueueFullFeature, SuccessFeature, CCASuccessFeature, OverheardPacketsFeature, SentPacketsFeature, TxSuccessFeature, TxFailedFeature>;
 
 using action_t = uint8_t;
 using reward_t = float;
@@ -56,6 +58,8 @@ public:
     auto printQTable() const -> void;
 
     auto printTxTimes() const -> void;
+
+    auto age() -> void;
 
     /* Feature helper */
     auto timeFeatureUpdateFunc() -> uint32_t;

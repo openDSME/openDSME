@@ -97,7 +97,7 @@ QAction QAgent::selectAction(bool deterministic) {
 auto QAgent::resetTx() -> void {
     QState currentState = featureManager.getState();
     LOG_INFO("QA: Someone sent in this slot -> negative reinforcement for sending");
-    updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -2);
+    updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -10);
 }
 
 void QAgent::update() {
@@ -107,23 +107,24 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? -2 : 0;
+                reward = -1; //currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? 0 : -1;
                 break;
             case QAction::CCA:
-                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -2 : 0;
-                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 4 : 0;
+                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -10 : 0;  
+                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 1 : 0;
+                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                break;
             case QAction::SEND:
-                reward = currentState.getFeature<SuccessFeature>().getValue() ? 4 : -2;
-                reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 2 : 0;
+                reward = currentState.getFeature<SuccessFeature>().getValue() ? 1 : -10;
+                reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 10 : 0;
+                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
                 break;
             default:
                 DSME_ASSERT(false);
         }
         dsme.getPlatform().signalReward(reward);
 
-        LOG_DEBUG("QA: time -> " << currentState.getFeature<TimeFeature>().getValue());
-
-        LOG_INFO("QA: Got reward " << reward);
+        std::cout << "QA: Got reward " << reward << std::endl;
         updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
 }
 
