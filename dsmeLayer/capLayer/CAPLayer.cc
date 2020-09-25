@@ -344,7 +344,11 @@ void CAPLayer::actionStartBackoffTimer() {
 
     uint8_t backoffExp;
 
-    backoffExp = batteryLifeExt ? std::min((int)this->dsme.getMAC_PIB().macMinBE, 2) + NB : this->dsme.getMAC_PIB().macMinBE + NB;
+    if((int)this->dsme.getMAC_PIB().macMinBE < 2 || !batteryLifeExt) {
+        backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
+    } else {
+        backoffExp = 2 + NB;
+    }
     
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
