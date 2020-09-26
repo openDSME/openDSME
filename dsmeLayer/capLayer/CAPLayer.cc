@@ -279,11 +279,11 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
         actionPopMessage(DataStatus::SUCCESS);
-	successPackets++;
+	    successPackets++;
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
-        /* check if a sending should by retries */
         failedPackets++;
+        /* check if a sending should by retries */
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::Data_Status::NO_ACK);
             return transition(&CAPLayer::stateIdle);
