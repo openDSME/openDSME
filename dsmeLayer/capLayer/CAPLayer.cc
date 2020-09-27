@@ -289,6 +289,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
             return transition(&CAPLayer::stateIdle);
         } else {
             NB = 0;
+            CW=CW0;
             NR++;
             return transition(&CAPLayer::stateBackoff);
         }
@@ -344,7 +345,7 @@ void CAPLayer::actionStartBackoffTimer() {
 
     uint8_t backoffExp;
 
-    if((int)this->dsme.getMAC_PIB().macMinBE < 2 || !batteryLifeExt) {
+    if((int)this->dsme.getMAC_PIB().macMinBE < 2 || !batteryLifeExt || !slottedCSMA) {
         backoffExp = this->dsme.getMAC_PIB().macMinBE + NB;
     } else {
         backoffExp = 2 + NB;
