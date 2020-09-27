@@ -192,7 +192,9 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
+        LOG_INFO("CL: stateCCA"); 
         if(queue.empty() || !enoughTimeLeft() || !dsme.getPlatform().startCCA()) {
+            LOG_INFO("Could not start CCA"); 
             return transition(&CAPLayer::stateIdle);
         }
         return FSM_HANDLED;
@@ -255,7 +257,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         LOG_ERROR("CL: Transmission did not finish within subslot");
         //DSME_ASSERT(false);
         if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 2 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
-            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
+            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(4);
             LOG_INFO("CL: Starting timer");
             actionStartBackoffTimer(2);
         }

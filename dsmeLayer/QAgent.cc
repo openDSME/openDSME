@@ -107,24 +107,24 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = -1; //currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? 0 : -1;
+                reward = currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? -10 : -1;
                 break;
             case QAction::CCA:
-                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -10 : 0;  
-                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 1 : 0;
-                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -20 : 0;
+                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 50 : 0;
+                reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
                 break;
             case QAction::SEND:
-                reward = currentState.getFeature<SuccessFeature>().getValue() ? 1 : -10;
+                reward = currentState.getFeature<SuccessFeature>().getValue() ? 50 : -20;
                 reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 10 : 0;
-                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
                 break;
             default:
                 DSME_ASSERT(false);
         }
         dsme.getPlatform().signalReward(reward);
 
-        std::cout << "QA: Got reward " << reward << std::endl;
+        LOG_INFO("QA: Got reward " << reward);
         updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
 }
 
@@ -141,6 +141,16 @@ void QAgent::printTxTimes() const {
 /* Feature helpers */
 auto QAgent::timeFeatureUpdateFunc() -> uint32_t {
     return dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter());
+}
+
+auto QAgent::age() -> void {
+    for(uint32_t id=0; id<QState::getMaxId(); id++) {
+        for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
+            //if(qTable[id][action] < 0) {
+                //qTable[id][action] = qTable[id][action] * 0.6;
+            //}
+        }
+    }
 }
 
 }; /* DSME */
