@@ -19,7 +19,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
                         if(action == (action_t)QAction::SEND) {
-                            qTable[i][action] = -0.1;
+                            qTable[i][action] = 0.1;
                         } else {
                             qTable[i][action] = 0;
                         }
@@ -97,7 +97,7 @@ QAction QAgent::selectAction(bool deterministic) {
 auto QAgent::resetTx() -> void {
     QState currentState = featureManager.getState();
     LOG_INFO("QA: Someone sent in this slot -> negative reinforcement for sending");
-    updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -10);
+    updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -2);
 }
 
 void QAgent::update() {
@@ -107,21 +107,42 @@ void QAgent::update() {
         reward_t reward = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? -10 : -1;
+                reward = -1; //currentState.getFeature<QueueFullFeature2>().getValue() >= 5 ? -10 : -1;
                 break;
             case QAction::CCA:
-                reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -20 : 0;
-                reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 50 : 0;
-                reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                //reward = currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue() ? -20 : 0;
+                //reward += currentState.getFeature<CCASuccessFeature>().getValue() && currentState.getFeature<SuccessFeature>().getValue() ? 50 : 0;
+                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                if(currentState.getFeature<CCASuccessFeature>().getValue()) {
+                    if(currentState.getFeature<SuccessFeature>().getValue()) {
+                        reward = 1;
+                    } else {
+                        reward = -2;
+                    }
+                } else {
+                    reward = 0;
+                }
                 break;
             case QAction::SEND:
-                reward = currentState.getFeature<SuccessFeature>().getValue() ? 50 : -20;
-                reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 10 : 0;
-                reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+                if(currentState.getFeature<SuccessFeature>().getValue()) {
+                    reward = 1;
+                } else {
+                    reward = -3;
+                }
+                //reward = currentState.getFeature<SuccessFeature>().getValue() ? 50 : -20;
+                //reward -= currentState.getFeature<OtherQueueFullFeature>().getValue() > currentState.getFeature<QueueFullFeature2>().getValue() ? 10 : 0;
+                //reward -= currentState.getFeature<DwellTimeFeature>().getValue() / 2;
+
                 break;
             default:
                 DSME_ASSERT(false);
         }
+        if(currentState.getFeature<TimeFeature>().getValue() > 800) {
+            if(currentState.getFeature<QueueFullFeature2>().getValue() > 0) {
+                //reward -= 10;
+            }
+        }
+
         dsme.getPlatform().signalReward(reward);
 
         LOG_INFO("QA: Got reward " << reward);

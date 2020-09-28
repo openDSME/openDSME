@@ -43,7 +43,7 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.02, float eps_decay=0.99, float gamma=0.9, float lr=0.1);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.10, float eps_decay=0.999, float gamma=0.9, float lr=0.1);
 
     auto getFeatureManager() -> QFeatureManager& {
         return featureManager;
