@@ -138,11 +138,11 @@ void QAgent::update() {
             default:
                 DSME_ASSERT(false);
         }
-        /*if(currentState.getFeature<TimeFeature>().getValue() > 860) {
+        if(currentState.getFeature<TimeFeature>().getValue() > 200) {
             if(currentState.getFeature<QueueFullFeature2>().getValue() > 0) {
-                reward -= 100;
+                reward -= 10;
             }
-        }*/
+        }
 
         dsme.getPlatform().signalReward(reward);
 
