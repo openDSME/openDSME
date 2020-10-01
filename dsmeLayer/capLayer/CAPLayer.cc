@@ -149,10 +149,10 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
         //if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
-            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 2 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
                 dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
                 LOG_INFO("CL: Starting timer");
-                actionStartBackoffTimer(2);
+                actionStartBackoffTimer(8);
             }
         //}
         return FSM_HANDLED;
@@ -166,22 +166,30 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        QAction action = (QAction)dsme.getQAgent().selectAction();
-        switch(action) {
-            case QAction::BACKOFF:
-                return transition(&CAPLayer::stateIdle);
-            case QAction::CCA:
-                return transition(&CAPLayer::stateCCA);
-            case QAction::SEND:
-                return transition(&CAPLayer::stateSending);
-            default:
-                DSME_ASSERT(false);
+        if(!queue.empty()) {
+            QAction action = (QAction)dsme.getQAgent().selectAction();
+            switch(action) {
+                case QAction::BACKOFF:
+                    return transition(&CAPLayer::stateIdle);
+                case QAction::CCA:
+                    return transition(&CAPLayer::stateCCA);
+                case QAction::SEND:
+                    return transition(&CAPLayer::stateSending);
+                default:
+                    DSME_ASSERT(false);
+            }
         }
+        return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: QAgent could not make a decision within subslot");
-        DSME_ASSERT(false);
+        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
+            LOG_INFO("CL: Starting timer");
+            actionStartBackoffTimer(8);
+        }
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -192,9 +200,10 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        LOG_INFO("CL: stateCCA"); 
-        if(queue.empty() || !enoughTimeLeft() || !dsme.getPlatform().startCCA()) {
-            LOG_INFO("Could not start CCA"); 
+        LOG_INFO("CL: stateCCA");
+        if(!enoughTimeLeft() || !dsme.getPlatform().startCCA()) {
+            LOG_INFO("Could not start CCA");
+            dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(false);
             return transition(&CAPLayer::stateIdle);
         }
         return FSM_HANDLED;
@@ -223,8 +232,9 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
 
 fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
-        if(queue.empty() || !enoughTimeLeft() || !dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
+        if(!enoughTimeLeft() || !dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             LOG_DEBUG("CL: Failed to prepare sending copy");
+            dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
             return transition(&CAPLayer::stateIdle);
         }
         dsme.getAckLayer().sendNowIfPending();
@@ -256,10 +266,10 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: Transmission did not finish within subslot");
         //DSME_ASSERT(false);
-        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 2 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
-            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(4);
+        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(),  8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
             LOG_INFO("CL: Starting timer");
-            actionStartBackoffTimer(2);
+            actionStartBackoffTimer(8);
         }
         return FSM_HANDLED;
     } else {

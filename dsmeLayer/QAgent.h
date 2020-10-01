@@ -12,7 +12,7 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 864>;
+using TimeFeature = Feature<uint32_t, 'T', 0, 60*8*(1<<6), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 216>;
 using QueueFullFeature = Feature<uint16_t, 'Q', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, 2>;
 using QueueFullFeature2 = Feature<uint16_t, 'Z', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
 using OtherQueueFullFeature = Feature<uint16_t, 'O', 0, CAP_QUEUE_SIZE, MAXIMUM, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
@@ -43,7 +43,9 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.10, float eps_decay=0.999, float gamma=0.9, float lr=0.1);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.01, float eps_decay=0.999, float gamma=0.9, float lr=0.5);
+
+    auto initialize() -> void;
 
     auto getFeatureManager() -> QFeatureManager& {
         return featureManager;
@@ -58,6 +60,8 @@ public:
     auto printQTable() const -> void;
 
     auto printTxTimes() const -> void;
+
+    auto printPolicy() const -> void;
 
     auto age() -> void;
 
@@ -79,6 +83,7 @@ private:
     float gamma;
     float lr;
     float qTable[QState::getMaxId()][(action_t)QAction::NUM_ACTIONS];
+    action_t policy[QState::getMaxId()];
 
     QAction lastAction;
     QState lastState;

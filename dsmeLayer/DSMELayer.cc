@@ -112,6 +112,8 @@ void DSMELayer::initialize(IDSMEPlatform* platform) {
             this->mac_pib->macHoppingSequenceList[shuffle] = ch_cpy;
         }
     }
+
+    qAgent.initialize();
 }
 
 void DSMELayer::start() {
@@ -184,7 +186,9 @@ void DSMELayer::preSlotEvent(void) {
     if(nextSlot == 0) {
         beaconManager.preSuperframeEvent(nextSuperframe, nextMultiSuperframe, nextSlotTime);
         if(nextSuperframe == 0) {
-            if(getMAC_PIB().macIsPANCoord) qAgent.printQTable();
+            //if(getMAC_PIB().macIsPANCoord) qAgent.printQTable();
+            qAgent.printQTable();
+            qAgent.printPolicy();
         }
     }
 
@@ -249,7 +253,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
     qAgent.getFeatureManager().handleSlotEvent(currentSlot, currentSuperframe);
 
     if(currentSlot == getMAC_PIB().helper.getFinalCAPSlot(currentSuperframe) + 1) {
-        qAgent.age(); 
+        qAgent.age();
         platform->scheduleStartOfCFP();
     }
 }
