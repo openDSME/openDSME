@@ -198,7 +198,7 @@ public:
      */
     bool isWithinTimeSlot(uint32_t now, uint16_t duration);
 
-    uint16_t getCurrentSuperframe() const {
+    uint16_t getCurrentSuperframe() {
         return currentSuperframe;
     }
 

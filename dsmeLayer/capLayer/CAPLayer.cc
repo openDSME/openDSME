@@ -149,10 +149,10 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
         //if(!queue.empty() && queue.front()->getHeader().getFrameType() != IEEE802154eMACHeader::FrameType::COMMAND) {
-            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+            if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 4 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
                 dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
                 LOG_INFO("CL: Starting timer");
-                actionStartBackoffTimer(8);
+                actionStartBackoffTimer(4);
             }
         //}
         return FSM_HANDLED;
@@ -184,10 +184,10 @@ fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: QAgent could not make a decision within subslot");
-        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(), 4 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
             dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
             LOG_INFO("CL: Starting timer");
-            actionStartBackoffTimer(8);
+            actionStartBackoffTimer(4);
         }
         return transition(&CAPLayer::stateQAgentDecision);
     } else {
@@ -266,10 +266,10 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_ERROR("CL: Transmission did not finish within subslot");
         //DSME_ASSERT(false);
-        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(),  8 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
+        if(dsme.isWithinCAP(dsme.getPlatform().getSymbolCounter(),  4 * aUnitBackoffPeriod + PRE_EVENT_SHIFT)) {
             dsme.getQAgent().getFeatureManager().getState().getFeature<DwellTimeFeature>().update(1);
             LOG_INFO("CL: Starting timer");
-            actionStartBackoffTimer(8);
+            actionStartBackoffTimer(4);
         }
         return FSM_HANDLED;
     } else {

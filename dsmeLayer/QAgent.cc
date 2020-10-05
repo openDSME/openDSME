@@ -18,6 +18,7 @@ QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float
 
 auto QAgent::initialize() -> void {
     /* INIT QTABLE */
+    featureManager.getState().getFeature<MSFFeature>().setUpdateFunc(DELEGATE(&DSMELayer::getCurrentSuperframe, dsme));
     for(uint32_t i=0; i<QState::getMaxId(); i++) {
         for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
             qTable[i][action] = -100;
@@ -138,11 +139,11 @@ void QAgent::update() {
             default:
                 DSME_ASSERT(false);
         }
-        if(currentState.getFeature<TimeFeature>().getValue() > 200) {
+        /*if(currentState.getFeature<TimeFeature>().getValue() > 200) {
             if(currentState.getFeature<QueueFullFeature2>().getValue() > 0) {
                 reward -= 10;
             }
-        }
+        }*/
 
         dsme.getPlatform().signalReward(reward);
 
