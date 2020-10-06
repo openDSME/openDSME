@@ -12,7 +12,7 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'T', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 54>;
+using TimeFeature = Feature<uint32_t, 'T', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 108>;
 using MSFFeature = Feature<uint16_t, 'M', 0, 8, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
 using QueueFullFeature = Feature<uint16_t, 'Q', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, 2>;
 using QueueFullFeature2 = Feature<uint16_t, 'Z', 0, CAP_QUEUE_SIZE, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
@@ -44,7 +44,7 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.01, float eps_decay=0.999, float gamma=0.9, float lr=1);
+    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.01, float eps_decay=0.99, float gamma=0.9, float lr=1);
 
     auto initialize() -> void;
 
