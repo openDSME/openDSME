@@ -23,7 +23,13 @@ auto QAgent::initialize() -> void {
         for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
             qTable[i][action] = -100;
         }
-        policy[i] = static_cast<action_t>(QAction::BACKOFF); //dsme.getPlatform().getRandom() % static_cast<action_t>(QAction::NUM_ACTIONS);
+        policy[i] = static_cast<action_t>(QAction::BACKOFF);
+        /*for(int i=0; i<16; i++) {
+            uint8_t msf = dsme.getPlatform().getRandom() % 8;
+            uint8_t slot = dsme.getPlatform().getRandom() % 8;
+            policy[8*msf + slot] = static_cast<action_t>(QAction::BACKOFF);
+        }*/
+        //policy[i] = dsme.getPlatform().getRandom() % static_cast<action_t>(QAction::NUM_ACTIONS);
     }
 }
 
@@ -31,9 +37,9 @@ void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const 
         //std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
         float q = qTable[id][(int)action] + lr * (reward + gamma * maxQ(nextId) - qTable[id][(int)action]);
         dsme.getPlatform().signalQ(q);
-        //if(q > qTable[id][(int)action]) {   //not correct
-        qTable[id][(int)action] = q;
-        //}
+        if(q > qTable[id][(int)action]) {
+            qTable[id][(int)action] = q;
+        }
         if(policy[id] != maxAction(id)) {
             policy[id] = maxAction(id);
         }
@@ -121,6 +127,9 @@ void QAgent::update() {
                     reward = 2 - eps;
                 } else if(!currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = -0.5 - eps;
+                    if(currentState.getFeature<HandshakeSuccessFeature>().getValue()) {
+                        //reward = 9 - eps;
+                    }
                 } else if(!currentState.getFeature<CCASuccessFeature>().getValue()) {
                     reward = -2 - eps;
                 } else {
@@ -130,6 +139,9 @@ void QAgent::update() {
             case QAction::SEND:
                 if(currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = 3 - eps;
+                    if(currentState.getFeature<HandshakeSuccessFeature>().getValue()) {
+                        //reward = 10 - eps;
+                    }
                 } else if(!currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = -0.5 - eps;
                 } else {
@@ -139,11 +151,6 @@ void QAgent::update() {
             default:
                 DSME_ASSERT(false);
         }
-        /*if(currentState.getFeature<TimeFeature>().getValue() > 200) {
-            if(currentState.getFeature<QueueFullFeature2>().getValue() > 0) {
-                reward -= 10;
-            }
-        }*/
 
         dsme.getPlatform().signalReward(reward);
 
@@ -154,8 +161,14 @@ void QAgent::update() {
 void QAgent::printTxTimes() const {
     LOG_INFO_PREFIX;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
-        if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
+        /*if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
             LOG_INFO_PURE(" " << id);
+        }*/
+        if(policy[id] == static_cast<action_t>(QAction::SEND)) {
+            std::cout << id << " ";
+        }
+        if(policy[id] == static_cast<action_t>(QAction::CCA)) {
+            std::cout << id << "(C) ";
         }
     }
     LOG_INFO_PURE(std::endl);
@@ -169,9 +182,9 @@ auto QAgent::timeFeatureUpdateFunc() -> uint32_t {
 auto QAgent::age() -> void {
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
         for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-            //if(qTable[id][action] < 0) {
-                //qTable[id][action] = qTable[id][action] * 0.9;
-            //}
+            if(qTable[id][action] < 0) {
+                //qTable[id][action] = qTable[id][action] - 0.01;
+            }
         }
     }
 }

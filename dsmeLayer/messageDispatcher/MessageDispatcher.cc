@@ -255,6 +255,9 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
                 case DSME_GTS_NOTIFY:
                     this->dsme.getGTSManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
                     break;
+                default:
+                    LOG_ERROR("Invalid cmdID " << (uint16_t)cmd.getCmdId());
+                    break;
             }
         } else {
             this->dsme.getPlatform().releaseMessage(msg);

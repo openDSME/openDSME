@@ -105,6 +105,8 @@ void AckLayer::abortPreparedTransmission() {
 void AckLayer::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader& header = msg->getHeader();
 
+    /* Signal received message to QAgent */
+    dsme.getQAgent().getFeatureManager().getState().getFeature<MsgReceivedFeature>().update(true);
     dsme.getQAgent().getFeatureManager().getState().getFeature<OverheardPacketsFeature>().update(1);
 
     /*
@@ -119,6 +121,8 @@ void AckLayer::receive(IDSMEMessage* msg) {
 
     /* if message is an ACK, directly dispatch the event */
     if(header.getFrameType() == IEEE802154eMACHeader::ACKNOWLEDGEMENT) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<AckReceivedFeature>().update(true); /* Signal overheard ack to QAgent */
+
         LOG_DEBUG("ACK_RECEIVED with seq num " << (uint16_t)header.getSequenceNumber());
         uint8_t seqNum = header.getSequenceNumber();
         uint8_t queue = header.getQueueLevel();
