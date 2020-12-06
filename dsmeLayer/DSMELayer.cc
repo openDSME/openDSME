@@ -247,6 +247,10 @@ void DSMELayer::slotEvent(int32_t lateness) {
         platform->signalOverheardMsg(qAgent.getFeatureManager().getState().getFeature<OverheardPacketsFeature>().getValue());
         platform->signalCAPSucc(qAgent.getFeatureManager().getState().getFeature<TxSuccessFeature>().getValue());
         platform->signalCAPFailed(qAgent.getFeatureManager().getState().getFeature<TxFailedFeature>().getValue());
+        platform->signalReward(qAgent.accReward);
+        qAgent.accReward = 0;
+
+        platform->signalQ(qAgent.calcMaxQ());
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);

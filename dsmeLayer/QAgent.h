@@ -12,8 +12,8 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'A', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 36>;
-using MSFFeature = Feature<uint16_t, 'B', 0, 8, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true>;
+using TimeFeature = Feature<uint32_t, 'A', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 54>;
+using MSFFeature = Feature<uint16_t, 'B', 0, 8, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
 using AckReceivedFeature = Feature<bool, 'Y', true, false, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, false, UPDATE_RULE::ON_MSF_EVENT>;
 using MsgReceivedFeature = Feature<bool, 'Z', true, false, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, false, UPDATE_RULE::ON_MSF_EVENT>;
 
@@ -50,7 +50,7 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, float eps=1.0, float eps_min=0.01, float eps_decay=0.9999, float gamma=0.9, float lr=1.0);
+    QAgent(DSMELayer &dsme, float eps=0.001, float eps_min=0.001, float eps_decay=0.9999, float gamma=0.9, float lr=1.0);
 
     auto initialize() -> void;
 
@@ -74,6 +74,16 @@ public:
 
     /* Feature helper */
     auto timeFeatureUpdateFunc() -> uint32_t;
+
+    uint32_t accReward;
+
+    auto calcMaxQ() -> uint32_t {
+        uint32_t q = 0;
+        for(uint32_t id=0; id<QState::getMaxId(); id++) {
+            q += maxQ(id);
+        }
+        return q;
+    }
 
 private:
     auto maxQ(state_t const id) const -> float;

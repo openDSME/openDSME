@@ -208,6 +208,9 @@ void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disas
      * Afterwards, reset the entire MLME.
      */
     reset();
+    //TODO: Lost of synchronization. try to associate again?
+        this->messageHelper.startAssociation();
+
 }
 
 } /* namespace dsme */

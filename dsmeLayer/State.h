@@ -58,14 +58,14 @@ public: /* MEMBER */
         }
     }
 
-    auto update(UPDATE_RULE const& rule) {
+    auto update(UPDATE_RULE const& rule) -> void  {
         if(T::getUpdateRule() == rule) {
             feature.update();
         }
         State<TS...>::update(rule);
     }
 
-    auto reset(UPDATE_RULE const& rule) {
+    auto reset(UPDATE_RULE const& rule) -> void {
         if(T::getResetRule() == rule) {
             feature.reset();
         }
@@ -105,14 +105,14 @@ public: /* MEMBER */
         return feature;
     }
 
-    auto update(UPDATE_RULE const& rule) {
+    auto update(UPDATE_RULE const& rule) -> void {
         if(T::getUpdateRule() == rule) {
             feature.update();
         }
         LOG_INFO("FM: All features updated with rule " << (int)rule);
     }
 
-    auto reset(UPDATE_RULE const& rule) {
+    auto reset(UPDATE_RULE const& rule) -> void {
         if(T::getResetRule() == rule) {
             feature.reset();
         }

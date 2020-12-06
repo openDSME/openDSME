@@ -21,28 +21,41 @@ auto QAgent::initialize() -> void {
     featureManager.getState().getFeature<MSFFeature>().setUpdateFunc(DELEGATE(&DSMELayer::getCurrentSuperframe, dsme));
     for(uint32_t i=0; i<QState::getMaxId(); i++) {
         for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-            qTable[i][action] = -100;
+            qTable[i][action] = -10;
         }
-        policy[i] = static_cast<action_t>(QAction::BACKOFF);
+        //policy[i] = static_cast<action_t>(QAction::BACKOFF);
         /*for(int i=0; i<16; i++) {
             uint8_t msf = dsme.getPlatform().getRandom() % 8;
             uint8_t slot = dsme.getPlatform().getRandom() % 8;
             policy[8*msf + slot] = static_cast<action_t>(QAction::BACKOFF);
         }*/
-        //policy[i] = dsme.getPlatform().getRandom() % static_cast<action_t>(QAction::NUM_ACTIONS);
+        //
+        policy[i] = static_cast<action_t>(QAction::BACKOFF); //dsme.getPlatform().getRandom() % static_cast<action_t>(QAction::NUM_ACTIONS);
     }
 }
 
 void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const &action, reward_t reward) {
-        //std::cout << "id: " << (int)id << " next: " << (int)nextId << " a: " << (int)action << std::endl;
         float q = qTable[id][(int)action] + lr * (reward + gamma * maxQ(nextId) - qTable[id][(int)action]);
-        dsme.getPlatform().signalQ(q);
         if(q > qTable[id][(int)action]) {
             qTable[id][(int)action] = q;
+            if(policy[id] != maxAction(id)) {
+                policy[id] = maxAction(id);
+            }
+        } else {
+            qTable[id][(int)action] -= 1;
         }
-        if(policy[id] != maxAction(id)) {
-            policy[id] = maxAction(id);
-        }
+        /*float q = reward + gamma * maxQ(nextId);
+        if(q > qTable[id][(int)action]) {
+            qTable[id][(int)action] = 0.8*qTable[id][(int)action] + 0.2*q;
+            if(policy[id] != maxAction(id)) {
+                policy[id] = maxAction(id);
+            }
+        } else {
+            qTable[id][(int)action] = 1.0*qTable[id][(int)action] + 0.0*q;
+            if(policy[id] != maxAction(id)) {
+                policy[id] = maxAction(id);
+            }
+        }*/
 }
 
 void QAgent::printQTable() const {
@@ -66,6 +79,8 @@ float QAgent::maxQ(state_t id) const {
 }
 
 action_t QAgent::maxAction(state_t id) {
+        //return this->policy[id];
+
         auto maxQ = qTable[id][0];
         action_t a = 0;
         for(uint8_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
@@ -120,10 +135,23 @@ void QAgent::update() {
         float eps = 0;
         switch(lastAction) {
             case QAction::BACKOFF:
-                reward = 0 - eps;
+                if(currentState.getFeature<AckReceivedFeature>().getValue() || currentState.getFeature<MsgReceivedFeature>().getValue()) {
+                    reward = 1.2 - eps;
+                } else {
+                    reward = 1.2 - eps;
+                }
                 break;
             case QAction::CCA:
-                if(currentState.getFeature<SuccessFeature>().getValue()) {
+                if(!currentState.getFeature<CCASuccessFeature>().getValue()) {
+                    reward = 1 - eps;
+                } else if(currentState.getFeature<SuccessFeature>().getValue()) {
+                    reward = 3 - eps;
+                } else if(currentState.getFeature<CCASuccessFeature>().getValue() && !currentState.getFeature<SuccessFeature>().getValue()) {
+                        reward = -2 - eps;
+                } else {
+                    DSME_ASSERT(false);
+                }
+                /*if(currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = 2 - eps;
                 } else if(!currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = -0.5 - eps;
@@ -134,10 +162,17 @@ void QAgent::update() {
                     reward = -2 - eps;
                 } else {
                     DSME_ASSERT(false);
-                }
+                }*/
                 break;
             case QAction::SEND:
                 if(currentState.getFeature<SuccessFeature>().getValue()) {
+                    reward = 4 - eps;
+                } else if(!currentState.getFeature<SuccessFeature>().getValue()) {
+                    reward = -3 - eps;
+                } else {
+                    DSME_ASSERT(false);
+                }
+                /*if(currentState.getFeature<SuccessFeature>().getValue()) {
                     reward = 3 - eps;
                     if(currentState.getFeature<HandshakeSuccessFeature>().getValue()) {
                         //reward = 10 - eps;
@@ -146,13 +181,13 @@ void QAgent::update() {
                     reward = -0.5 - eps;
                 } else {
                     DSME_ASSERT(false);
-                }
+                }*/
                 break;
             default:
                 DSME_ASSERT(false);
         }
 
-        dsme.getPlatform().signalReward(reward);
+        accReward += reward;
 
         LOG_INFO("QA: Got reward " << reward);
         updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);

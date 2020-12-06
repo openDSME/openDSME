@@ -80,7 +80,6 @@ private:
     /**
      * States
      */
-    fsmReturnStatus stateIdle(CSMAEvent& event);
     fsmReturnStatus stateQAgentDecision(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
     fsmReturnStatus stateCCA(CSMAEvent& event);

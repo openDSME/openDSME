@@ -164,7 +164,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         }
         else {
         */
-        params.gtsTx = !dst.isBroadcast();
+        params.gtsTx = false; //!dst.isBroadcast();
         //}
 
         params.indirectTx = false;
