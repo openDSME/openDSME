@@ -70,7 +70,7 @@ public: /* MEMBER */
         return value - MIN_VALUE;
     }
 
-    auto setUpdateFunc(Delegate<T()> updateFunc) {
+    auto setUpdateFunc(Delegate<T()> updateFunc) -> void {
         this->updateFunc = updateFunc;
     }
 

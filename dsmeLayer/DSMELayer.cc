@@ -65,6 +65,7 @@ DSMELayer::DSMELayer()
       ackLayer(*this),
       capLayer(*this),
       qAgent(*this),
+      useQAgent(false), 
       associationManager(*this),
       beaconManager(*this),
       gtsManager(*this),
@@ -227,7 +228,8 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     uint8_t skippedSlots = 0;
     if(currentSlot == 1) { // beginning of CAP
-        capLayer.dispatchTimerEvent();
+        if(useQAgent) capLayer.dispatchTimerEvent();
+
         if(this->mac_pib->macCapReduction && currentSuperframe > 0) {
             // no CAP available
             skippedSlots = 0;
@@ -273,6 +275,7 @@ void DSMELayer::handleStartOfCFP() {
         this->startOfCFPDelegate();
     }
 
+    this->capLayer.handleStartOfCFP();
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
