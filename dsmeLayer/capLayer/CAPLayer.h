@@ -77,7 +77,8 @@ public:
     void handleStartOfCFP();
     void setSlottedCSMA(bool slotted);
     void setBLE(bool ble);
-    uint16_t getQueueLevel(); 
+    void setUseQAgent(bool useQAgent);
+    uint16_t getQueueLevel();
 
 private:
     /**
@@ -88,6 +89,15 @@ private:
     fsmReturnStatus stateCCA(CSMAEvent& event);
     fsmReturnStatus stateContention(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
+
+    /**
+     * Q-States
+     */
+    fsmReturnStatus stateQAgentSending(CSMAEvent& event);
+    fsmReturnStatus stateQAgentCCA(CSMAEvent& event);
+    fsmReturnStatus stateQAgentDecision(CSMAEvent& event);
+    fsmReturnStatus stateQAgentEvaluation(CSMAEvent& event);
+    void actionQAgentStartBackoffTimer(uint16_t unitBackoffPeriods); 
 
     /**
      * External interfaces for use through callbacks
@@ -117,6 +127,7 @@ private:
     static const uint8_t CW0 = 2;
     bool batteryLifeExt;
     bool slottedCSMA;
+    bool useQAgent;
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;

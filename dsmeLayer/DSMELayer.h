@@ -133,10 +133,7 @@ public:
         this->mlme_sap = mlme_sap;
         return;
     }
-
-    void setUseQAgent(bool useQAgent) {
-        this->useQAgent = useQAgent;
-    }
+    
     /* <------------------------------------------------------- MAC SERVICES */
 
     GTSManager& getGTSManager() {
@@ -229,7 +226,7 @@ protected:
     AckLayer ackLayer;
     CAPLayer capLayer;
     QAgent qAgent;
-    bool useQAgent; 
+    bool useQAgent;
 
     AssociationManager associationManager;
     BeaconManager beaconManager;

@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(true), sentPackets(0), failedPackets(0), successPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(false), useQAgent(false), sentPackets(0), failedPackets(0), successPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
         if(!slottedCSMA) {
             batteryLifeExt = false;
         }
@@ -65,7 +65,7 @@ CAPLayer::CAPLayer(DSMELayer& dsme)
 
 void CAPLayer::reset() {
     if(useQAgent) {
-	 transition(&CAPLayerQ::stateQAgentEvaluation);
+	 transition(&CAPLayer::stateQAgentEvaluation);
     } else {
 	 transition(&CAPLayer::stateIdle);
     }
@@ -274,10 +274,7 @@ fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event) {
     }
 }
 
-/*****************************
- * Q-States
- *****************************/
-fsmReturnStatus CAPLayer::stateAgentSending(CSMAEvent& event) {
+fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
             // currently receiving external interference
@@ -316,27 +313,31 @@ fsmReturnStatus CAPLayer::stateAgentSending(CSMAEvent& event) {
     }
 }
 
+/*****************************
+ * Q-States
+ *****************************/
+
 fsmReturnStatus CAPLayer::stateQAgentDecision(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!queue.empty() && enoughTimeLeft()) {
             QAction action = (QAction)dsme.getQAgent().selectAction();
             switch(action) {
                 case QAction::BACKOFF:
-                    return transition(&CAPLayerQ::stateQAgentEvaluation);
+                    return transition(&CAPLayer::stateQAgentEvaluation);
                     return FSM_HANDLED;
                 case QAction::CCA:
-                    return transition(&CAPLayerQ::stateCCA);
+                    return transition(&CAPLayer::stateQAgentCCA);
                 case QAction::SEND:
-                    return transition(&CAPLayerQ::stateSending);
+                    return transition(&CAPLayer::stateQAgentSending);
                 default:
                     DSME_ASSERT(false);
             }
         }
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
-        return transition(&CAPLayerQ::stateQAgentDecision);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        return transition(&CAPLayerQ::stateQAgentDecision);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -351,13 +352,13 @@ fsmReturnStatus CAPLayer::stateQAgentCCA(CSMAEvent& event) {
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::CCA_SUCCESS) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(true);
-        return transition(&CAPLayerQ::stateSending);
+        return transition(&CAPLayer::stateQAgentSending);
     } else if(event.signal == CSMAEvent::CCA_FAILURE) {
         if(++NB >= dsme.getMAC_PIB().macMaxCSMABackoffs) {
             actionPopMessage(DataStatus::CHANNEL_ACCESS_FAILURE);
         }
         dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(false);
-        return transition(&CAPLayerQ::stateQAgentEvaluation);
+        return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else {
@@ -371,7 +372,7 @@ fsmReturnStatus CAPLayer::stateQAgentCCA(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         if(!dsme.getAckLayer().prepareSendingCopy(queue.front(), doneCallback)) {
-            actionStartBackoffTimer(1);
+            actionQAgentStartBackoffTimer(1);
             return FSM_HANDLED;
         }
         dsme.getAckLayer().sendNowIfPending();
@@ -381,7 +382,7 @@ fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
         actionPopMessage(DataStatus::SUCCESS);
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(true);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxSuccessFeature>().update(1);
-        return transition(&CAPLayerQ::stateQAgentEvaluation);
+        return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
         if(++NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::NO_ACK);
@@ -389,7 +390,7 @@ fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
         NB = 0;
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
-        return transition(&CAPLayerQ::stateQAgentEvaluation);
+        return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
         if(++NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
             actionPopMessage(DataStatus::NO_ACK);
@@ -397,12 +398,12 @@ fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
         NB = 0;
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
-        return transition(&CAPLayerQ::stateQAgentEvaluation);
+        return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
         LOG_DEBUG("Failure during TX -> backup to next subslot");
-        return transition(&CAPLayerQ::stateQAgentDecision);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             DSME_ASSERT(false);
@@ -414,12 +415,12 @@ fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateQAgentEvaluation(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         dsme.getQAgent().update();
-        actionStartBackoffTimer(4);
+        actionQAgentStartBackoffTimer(4);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {
-        return transition(&CAPLayerQ::stateQAgentDecision);
+        return transition(&CAPLayer::stateQAgentDecision);
     } else if(event.signal == CSMAEvent::EXIT_SIGNAL) {
         dsme.getQAgent().getFeatureManager().getState().getFeature<SuccessFeature>().update(false);
         dsme.getQAgent().getFeatureManager().getState().getFeature<CCASuccessFeature>().update(false);
@@ -468,6 +469,10 @@ void CAPLayer::setBLE(bool ble) {
     batteryLifeExt = ble;
 }
 
+void CAPLayer::setUseQAgent(bool useQAgent) {
+    this->useQAgent = useQAgent;
+}
+
 void CAPLayer::actionStartBackoffTimer() {
     totalNBs++;
 
@@ -478,7 +483,7 @@ void CAPLayer::actionStartBackoffTimer() {
     } else {
         backoffExp = 2 + NB;
     }
-    
+
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
@@ -490,7 +495,7 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
     const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
-    
+
 
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
@@ -508,7 +513,7 @@ void CAPLayer::actionStartBackoffTimer() {
             /* '-> after CAP */
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
-        
+
         uint32_t backOffTimeLeft = backoffFromCAPStart;
 
         // Backoff period synchronisation
@@ -582,7 +587,6 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
     if(useQAgent) {
     	NR = 0;
     	NB = 0;
-    	messagePopped = true;
     }
 }
 
