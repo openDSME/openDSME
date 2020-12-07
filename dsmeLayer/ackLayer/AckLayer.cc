@@ -134,7 +134,7 @@ void AckLayer::receive(IDSMEMessage* msg) {
     }
 
     /* Someone else is sending in this slot and its not an ACK so I should not do it */
-    dsme.getQAgent().resetTx();
+    dsme.getQAgent().signalOverheardMsg();
 
     /* filter messages not for this device */
     bool throwawayMessage = false;
@@ -434,5 +434,6 @@ void AckLayer::signalResult(enum AckLayerResponse response) {
     externalDoneCallback(response, pendingMessage);
     pendingMessage = nullptr; // owned by upper layer now
 }
+
 
 } /* namespace dsme */

@@ -9,7 +9,7 @@
 
 namespace dsme {
 
-QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::BACKOFF} {
+QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::BACKOFF}, sfCounter(0), sfCounterStarted(false) {
         /* INIT FEATURES */
         featureManager.getState().getFeature<QueueFullFeature>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<QueueFullFeature2>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
@@ -97,6 +97,11 @@ action_t QAgent::maxAction(state_t id) {
 }
 
 QAction QAgent::selectAction(bool deterministic) {
+        if(sfCounter < 5) {
+            sfCounterStarted = true;
+            return QAction::BACKOFF;
+        }
+
         QState currentState = featureManager.getState();
         lastState = currentState;
 
@@ -104,6 +109,34 @@ QAction QAgent::selectAction(bool deterministic) {
 
         // update and signal eps
         eps = eps * eps_decay > eps_min ? eps * eps_decay : eps_min;
+
+        // override eps by parameter-based exploration
+        switch(currentState.getFeature<QueueFullFeature2>().getValue()) {
+            case 0:
+            case 1:
+            case 2:
+                eps = 0.001;
+                break;
+            case 3:
+                eps = 0.01;
+                break;
+            case 4:
+                eps = 0.05;
+                break;
+            case 5:
+                eps = 0.08;
+                break;
+            case 6:
+                eps = 0.1;
+                break;
+            case 7:
+                eps = 0.2;
+                break;
+            case 8:
+                eps = 0.3;
+                break;
+        }
+
         LOG_INFO("EPS: " << eps);
         dsme.getPlatform().signalEPS(eps);
 
@@ -119,12 +152,6 @@ QAction QAgent::selectAction(bool deterministic) {
         LOG_INFO("ACTION: " << (int)lastAction);
 
         return lastAction;
-}
-
-auto QAgent::resetTx() -> void {
-    QState currentState = featureManager.getState();
-    LOG_INFO("QA: Someone sent in this slot -> negative reinforcement for sending");
-    //updateQTable(currentState.getId(), currentState.getId(), QAction::SEND, -2);
 }
 
 void QAgent::update() {
@@ -214,14 +241,14 @@ auto QAgent::timeFeatureUpdateFunc() -> uint32_t {
     return dsme.getSymbolsSinceCapFrameStart(dsme.getPlatform().getSymbolCounter());
 }
 
-auto QAgent::age() -> void {
-    for(uint32_t id=0; id<QState::getMaxId(); id++) {
-        for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-            if(qTable[id][action] < 0) {
-                //qTable[id][action] = qTable[id][action] - 0.01;
-            }
-        }
-    }
+auto QAgent::signalOverheardMsg() -> void {
+    QState currentState = featureManager.getState();
+    qTable[currentState.getId()][static_cast<action_t>(QAction::SEND)] = -3;
+    qTable[currentState.getId()][static_cast<action_t>(QAction::CCA)] = -3;
+}
+
+auto QAgent::handleStartOfCFP() -> void {
+    if(sfCounter < 10000 && sfCounterStarted) sfCounter++;
 }
 
 auto QAgent::printPolicy() const -> void {

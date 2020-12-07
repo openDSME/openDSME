@@ -12,8 +12,8 @@ namespace dsme {
 class DSMELayer;
 
 /* FEATURES (TABLE) */
-using TimeFeature = Feature<uint32_t, 'A', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 54>;
-using MSFFeature = Feature<uint16_t, 'B', 0, 8, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false>;
+using TimeFeature = Feature<uint32_t, 'A', 0, 60*9*(1<<3), REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true, 18>;
+using MSFFeature = Feature<uint16_t, 'B', 0, 8, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, true>;
 using AckReceivedFeature = Feature<bool, 'Y', true, false, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, false, UPDATE_RULE::ON_MSF_EVENT>;
 using MsgReceivedFeature = Feature<bool, 'Z', true, false, REPLACE, UPDATE_RULE::ON_STATE_COLLECTION, false, false, UPDATE_RULE::ON_MSF_EVENT>;
 
@@ -70,7 +70,9 @@ public:
 
     auto printPolicy() const -> void;
 
-    auto age() -> void;
+    auto signalOverheardMsg() -> void;
+
+    auto handleStartOfCFP() -> void;
 
     /* Feature helper */
     auto timeFeatureUpdateFunc() -> uint32_t;
@@ -101,6 +103,8 @@ private:
     float lr;
     float qTable[QState::getMaxId()][(action_t)QAction::NUM_ACTIONS];
     action_t policy[QState::getMaxId()];
+    uint16_t sfCounter;
+    bool sfCounterStarted;
 
     QAction lastAction;
     QState lastState;
