@@ -72,6 +72,9 @@ public:
     /* Indication of whether the device is a coordinator. */
     bool macIsCoord{false};
 
+    /** The amount of group acknowledgment slots per multi-superframe */
+    uint8_t macGroupAckOrder{15};
+
     /* GENERAL PART FROM HERE ON ------------------------------------------> */
 
     /** The extended address assigned to the device. */

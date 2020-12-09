@@ -77,6 +77,8 @@ public:
 
     uint16_t getAckWaitDuration() const;
 
+    uint8_t getNumberGroupAckSlotsPerMultiSuperframe() const;
+
 private:
     PHY_PIB& phy_pib;
     MAC_PIB& mac_pib;

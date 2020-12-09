@@ -137,6 +137,8 @@ public:
     }
 
     virtual void delayedTurnTransceiverOff() = 0;
+
+    virtual bool isGackEnabled() = 0;
 };
 
 } /* namespace dsme */
