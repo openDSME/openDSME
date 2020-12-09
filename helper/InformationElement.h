@@ -13,16 +13,20 @@ namespace dsme {
         protected:
         uint8_t IEID;
         public:
+        typedef enum{
+            ID_lastMessage = 0x10,
+            ID_gackEnabled = 0x0B
+        }tIEID;
         virtual ~InformationElement(){};
         virtual uint8_t parse() = 0;
-        virtual uint8_t getIEID(){return 10;};
+        virtual uint8_t getIEID() = 0;
 
      };
 
     class lastMessageIE : public InformationElement{
         public:
         lastMessageIE(){
-            IEID = 0x10;
+            IEID = ID_lastMessage;
         }
         ~lastMessageIE(){};
 
@@ -37,21 +41,21 @@ namespace dsme {
         }
     };
 
-    class otherIE : public InformationElement{
+    class gackEnabledIE : public InformationElement{
         public:
-        otherIE(){
-            IEID = 0xB;
+        gackEnabledIE(){
+            IEID = ID_gackEnabled;
         }
-        ~otherIE(){};
+        ~gackEnabledIE(){};
 
-        bool someFlag;
+        bool gackEnabled;
 
         uint8_t getIEID(){
             return IEID;
         }
 
         uint8_t parse(){
-            return IEID*0xA + someFlag;
+            return IEID*0xA + gackEnabled;
         }
     };
 }

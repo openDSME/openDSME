@@ -82,8 +82,8 @@ namespace dsme {
                         break;
                     }
                     case 11:{
-                        otherIE* oIE = dynamic_cast<otherIE*>(iePointer);
-                        *buf = oIE->parse();
+                        gackEnabledIE* gackIE = dynamic_cast<gackEnabledIE*>(iePointer);
+                        *buf = gackIE->parse();
                         break;
                     }
                 }
@@ -96,16 +96,16 @@ namespace dsme {
         void unparse(const uint8_t*& buffer, uint8_t ieQueueSize){
             for(int i = 0; i < ieQueueSize; i++){ //TODO dynamic size
                 switch((*buffer)/10){
-                    case 16:{
+                    case InformationElement::ID_lastMessage:{
                         lastMessageIE lmIE;// wie lange existiert dieses Object
                         lmIE.isLastMessage = (*buffer)%10;
                         this->push(lmIE);
                         break;
                     }
-                    case 11:{
-                        otherIE oIE;
-                        oIE.someFlag = (*buffer)%10;
-                        this->push(oIE);
+                    case InformationElement::ID_gackEnabled:{
+                        gackEnabledIE gackIE;
+                        gackIE.gackEnabled = (*buffer)%10;
+                        this->push(gackIE);
                         break;
                     }
                 }

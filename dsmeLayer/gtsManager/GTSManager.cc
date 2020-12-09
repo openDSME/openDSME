@@ -707,6 +707,18 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     params.preferredSuperframeId = req.getPreferredSuperframeID();
     params.preferredSlotId = req.getPreferredSlotID();
     params.dsmeSabSpecification = req.getSABSpec();
+    bool gackEnabled = false;   //This has to be passed up to GTSHelper
+
+    //Checks if message contains gackEnabled flag
+    InformationElement* iePointer = nullptr;
+    if(msg->getHeader().getIEListPresent() == true){
+        if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_gackEnabled, iePointer)){
+            if(dynamic_cast<gackEnabledIE*>(iePointer)->gackEnabled){
+                   gackEnabled = true;
+                   LOG_INFO("GACK:gackEnabled received");
+           }
+        }
+    }
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());
@@ -925,7 +937,18 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
-    msg->getHeader().setAckRequest(true);
+    bool gackEnabled = true; //has to move to higher layers
+    if (gackEnabled){
+        msg->getHeader().setAckRequest(false);
+        gackEnabledIE gackIE;
+        gackIE.gackEnabled = true;
+        msg->getHeader().ieQueue.push(gackIE);
+        LOG_INFO("GACK: gackEnabledIE added to queue");
+    }
+    else
+    {
+        msg->getHeader().setAckRequest(true);
+    }
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
 
     /* STATISTICS (START) */

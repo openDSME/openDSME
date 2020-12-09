@@ -351,7 +351,7 @@ private:
     void finalize();
 
 public:
-    IEQueue<1> ieQueue; //TODO private, dynamic size
+    IEQueue<2> ieQueue; //TODO private, dynamic size
     uint8_t ieQueueLength = 0;
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
 

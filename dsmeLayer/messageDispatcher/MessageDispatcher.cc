@@ -557,7 +557,7 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     //Checks if message contains lastMessageIE,
     InformationElement* iePointer = nullptr;
     if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getHeader().ieQueue.getIEByID(0x10, iePointer)){
+        if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_lastMessage, iePointer)){
             if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
                    turnOff = true;
                    LOG_INFO("Last Message true");//TODO: remove

@@ -230,6 +230,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
     responseParams.direction = params.direction;
     responseParams.prioritizedChannelAccess = params.prioritizedChannelAccess;
 
+
     bool sendReply = true;
 
     switch(params.managementType) {
