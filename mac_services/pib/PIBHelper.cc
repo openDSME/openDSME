@@ -65,8 +65,14 @@ uint8_t PIBHelper::getNumberSuperframesPerMultiSuperframe() const {
 }
 
 uint8_t PIBHelper::getNumberGroupAckSlotsPerMultiSuperframe() const {
-    /* 2^(AO-MO) */
-    return 1 << (uint8_t)(this->mac_pib.macGroupAckOrder - this->mac_pib.macMultiSuperframeOrder);
+    /* 2^(AO-MO) or NumSuperframesPerMSF if its smaller, as there can not be more GACK-GTS than Superframes*/
+    uint8_t numGroupAckSlots = 1 << (uint8_t)(this->mac_pib.macGroupAckOrder - this->mac_pib.macMultiSuperframeOrder);
+    if(getNumberSuperframesPerMultiSuperframe() < numGroupAckSlots){
+        return getNumberSuperframesPerMultiSuperframe();
+    }
+    else{
+        return numGroupAckSlots;
+    }
 }
 
 unsigned PIBHelper::getNumberSuperframesPerBeaconInterval() const {
