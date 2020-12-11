@@ -109,14 +109,14 @@ public: /* MEMBER */
         if(T::getUpdateRule() == rule) {
             feature.update();
         }
-        LOG_INFO("FM: All features updated with rule " << (int)rule);
+        //LOG_INFO("FM: All features updated with rule " << (int)rule);
     }
 
     auto reset(UPDATE_RULE const& rule) -> void {
         if(T::getResetRule() == rule) {
             feature.reset();
         }
-        LOG_INFO("FM: All features reset with rule " << (int)rule);
+        //LOG_INFO("FM: All features reset with rule " << (int)rule);
     }
 
 private:

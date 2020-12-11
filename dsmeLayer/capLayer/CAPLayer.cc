@@ -415,7 +415,7 @@ fsmReturnStatus CAPLayer::stateQAgentSending(CSMAEvent& event) {
 fsmReturnStatus CAPLayer::stateQAgentEvaluation(CSMAEvent& event) {
     if(event.signal == CSMAEvent::ENTRY_SIGNAL) {
         dsme.getQAgent().update();
-        actionQAgentStartBackoffTimer(7);
+        actionQAgentStartBackoffTimer(4);
         return FSM_HANDLED;
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;

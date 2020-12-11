@@ -9,9 +9,8 @@
 
 namespace dsme {
 
-QAgent::QAgent(DSMELayer &dsme, float eps, float eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::BACKOFF}, sfCounter(0), sfCounterStarted(false) {
+QAgent::QAgent(DSMELayer &dsme, uint16_t eps, uint16_t eps_min, float eps_decay, float gamma, float lr) : dsme(dsme), eps{eps}, eps_min{eps_min}, eps_decay{eps_decay}, gamma{gamma}, lr{lr}, lastAction{QAction::BACKOFF}, sfCounter(0), sfCounterStarted(false) {
         /* INIT FEATURES */
-        featureManager.getState().getFeature<QueueFullFeature>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<QueueFullFeature2>().setUpdateFunc(DELEGATE(&CAPLayer::getQueueLevel, dsme.getCapLayer()));
         featureManager.getState().getFeature<TimeFeature>().setUpdateFunc(DELEGATE(&QAgent::timeFeatureUpdateFunc, *this));
 }
@@ -59,12 +58,12 @@ void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const 
 }
 
 void QAgent::printQTable() const {
-        LOG_INFO("Q-TABLE:");
+        //LOG_INFO("Q-TABLE:");
         for(uint32_t i=0; i<QState::getMaxId(); i++) {
                 for(action_t action=0; action<(action_t)QAction::NUM_ACTIONS; action++) {
-                        LOG_INFO_PURE(qTable[i][action] << " ");
+                        //LOG_INFO_PURE(qTable[i][action] << " ");
                 }
-                LOG_INFO_PURE(std::endl);
+                //LOG_INFO_PURE(std::endl);
         }
 }
 
@@ -105,7 +104,7 @@ QAction QAgent::selectAction(bool deterministic) {
         QState currentState = featureManager.getState();
         lastState = currentState;
 
-        LOG_DEBUG("QA: time -> " << currentState.getFeature<TimeFeature>().getValue());
+        //LOG_DEBUG("QA: time -> " << currentState.getFeature<TimeFeature>().getValue());
 
         // update and signal eps
         eps = eps * eps_decay > eps_min ? eps * eps_decay : eps_min;
@@ -113,43 +112,47 @@ QAction QAgent::selectAction(bool deterministic) {
         // override eps by parameter-based exploration
         switch(currentState.getFeature<QueueFullFeature2>().getValue()) {
             case 0:
+                eps = 0;
+                break;
             case 1:
+                eps = 1;
+                break;
             case 2:
-                eps = 0.001;
+                eps = 10;
                 break;
             case 3:
-                eps = 0.01;
+                eps = 80;
                 break;
             case 4:
-                eps = 0.05;
+                eps = 200;
                 break;
             case 5:
-                eps = 0.08;
+                eps = 500;
                 break;
             case 6:
-                eps = 0.1;
+                eps = 1000;
                 break;
             case 7:
-                eps = 0.2;
+                eps = 1800;
                 break;
             case 8:
-                eps = 0.3;
+                eps = 3000;
                 break;
         }
 
-        LOG_INFO("EPS: " << eps);
+        //LOG_INFO("EPS: " << eps);
         dsme.getPlatform().signalEPS(eps);
 
         // select a next action and save it q update
         uint16_t rnd = dsme.getPlatform().getRandom() % 10000;
-        if((rnd < 10000*eps) && !deterministic) {
-                LOG_INFO("RANDOM");
+        if((rnd <= eps) && !deterministic) {
+                //LOG_INFO("RANDOM");
                 lastAction =  static_cast<QAction>(dsme.getPlatform().getRandom() % static_cast<action_t>(QAction::NUM_ACTIONS));
         } else {
                 lastAction =  static_cast<QAction>(policy[currentState.getId()]);
                 //lastAction = static_cast<QAction>(maxAction(currentState.getId()));
         }
-        LOG_INFO("ACTION: " << (int)lastAction);
+        //LOG_INFO("ACTION: " << (int)lastAction);
 
         return lastAction;
 }
@@ -216,15 +219,15 @@ void QAgent::update() {
 
         accReward += reward;
 
-        LOG_INFO("QA: Got reward " << reward);
+        //LOG_INFO("QA: Got reward " << reward);
         updateQTable(lastState.getId(), currentState.getId(), lastAction, reward);
 }
 
 void QAgent::printTxTimes() const {
-    LOG_INFO_PREFIX;
+    //LOG_INFO_PREFIX;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
         /*if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
-            LOG_INFO_PURE(" " << id);
+            //LOG_INFO_PURE(" " << id);
         }*/
         if(policy[id] == static_cast<action_t>(QAction::SEND)) {
             std::cout << id << " ";
@@ -233,7 +236,7 @@ void QAgent::printTxTimes() const {
             std::cout << id << "(C) ";
         }
     }
-    LOG_INFO_PURE(std::endl);
+    //LOG_INFO_PURE(std::endl);
 }
 
 /* Feature helpers */
@@ -243,8 +246,8 @@ auto QAgent::timeFeatureUpdateFunc() -> uint32_t {
 
 auto QAgent::signalOverheardMsg() -> void {
     QState currentState = featureManager.getState();
-    qTable[currentState.getId()][static_cast<action_t>(QAction::SEND)] = -3;
-    qTable[currentState.getId()][static_cast<action_t>(QAction::CCA)] = -3;
+    qTable[currentState.getId()][static_cast<action_t>(QAction::SEND)] -= 3;
+    qTable[currentState.getId()][static_cast<action_t>(QAction::CCA)] -= 2;
 }
 
 auto QAgent::handleStartOfCFP() -> void {
@@ -252,11 +255,11 @@ auto QAgent::handleStartOfCFP() -> void {
 }
 
 auto QAgent::printPolicy() const -> void {
-    LOG_INFO_PREFIX;
+    //LOG_INFO_PREFIX;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
-        LOG_INFO_PURE(" " << (int)policy[id]);
+        //LOG_INFO_PURE(" " << (int)policy[id]);
     }
-    LOG_INFO_PURE(std::endl);
+    //LOG_INFO_PURE(std::endl);
 }
 
 }; /* DSME */

@@ -551,8 +551,6 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
 
             dsme.getMLME_SAP().getCOMM_STATUS().notify_indication(params);
 
-            dsme.getQAgent().getFeatureManager().getState().getFeature<HandshakeSuccessFeature>().update(true);
-
             return transition(fsmId, &GTSManager::stateIdle);
         }
 

@@ -92,7 +92,7 @@ public: /* MEMBER */
                 }
                 FUNC<T>::call(value, tmp);
             }
-            LOG_INFO("FM: Feature " << FID << " updated with rule " << (int)UPDATE << " -> value = " << value);
+            //LOG_INFO("FM: Feature " << FID << " updated with rule " << (int)UPDATE << " -> value = " << value);
         }
     }
 
@@ -109,11 +109,11 @@ public: /* MEMBER */
             T tmp = tp;
             FUNC<T>::call(value, tmp);
         }
-        LOG_INFO("FM: Feature " << FID << " updated manually -> value = " << value);
+        //LOG_INFO("FM: Feature " << FID << " updated manually -> value = " << value);
     }
 
     auto reset() -> void {
-        LOG_INFO("FM: Feature " << FID << " reset with rule " << (int)RESET << " -> old value = " << value);
+        //LOG_INFO("FM: Feature " << FID << " reset with rule " << (int)RESET << " -> old value = " << value);
         value = DEFAULT_VALUE;
     }
 
