@@ -108,6 +108,8 @@ private:
     void sendDeallocationRequest(uint16_t address, Direction direction, DSMESABSpecification& sabSpecification);
 
 private:
+    GTS getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, const DSMESABSpecification* sabSpec);
+
     DSMEAdaptionLayer& dsmeAdaptionLayer;
 
     GTSScheduling* gtsScheduling = nullptr;

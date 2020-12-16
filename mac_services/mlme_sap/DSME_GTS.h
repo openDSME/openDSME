@@ -67,6 +67,7 @@ struct DSME_GTS_indication_parameters {
     uint8_t preferredSlotId;
     DSMESABSpecification dsmeSabSpecification;
     NOT_IMPLEMENTED_t allocationOrder;
+    bool gackGTS;
 };
 
 struct DSME_GTS_confirm_parameters {
@@ -82,6 +83,7 @@ struct DSME_GTS_confirm_parameters {
     NOT_IMPLEMENTED_t superframeId;
     NOT_IMPLEMENTED_t slotId;
     NOT_IMPLEMENTED_t channelIndex;
+    bool gackGTS;
 };
 
 /*
@@ -107,6 +109,7 @@ public:
         NOT_IMPLEMENTED_t keySource;
         NOT_IMPLEMENTED_t keyIndex;
         NOT_IMPLEMENTED_t allocationOrder;
+        bool gackGTS;
     };
 
     struct response_parameters {
@@ -122,6 +125,7 @@ public:
         NOT_IMPLEMENTED_t slotId;
         NOT_IMPLEMENTED_t channelIndex;
         GTSStatus::GTS_Status status;
+        bool gackGTS;
     };
 
     void request(request_parameters&);
