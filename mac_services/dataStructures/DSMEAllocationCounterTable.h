@@ -104,9 +104,9 @@ public:
 
     void printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address);
 
-    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state);
+    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gack = false);
 
-    void remove(iterator it);
+    void remove(DSMEAllocationCounterTable::iterator it, uint16_t deviceAddress = 0);
 
     bool isAllocated(uint16_t superframeID, uint8_t gtSlotID) const;
 
@@ -131,7 +131,7 @@ private:
     RBTree<ACTElement, ACTPosition> act;
 
     // TODO integrate this nicely into the NeighborQueue
-    RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0 == TX, 1 == RX
+    RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0x00 == TX, 0x01 == RX
 
     DSMELayer* dsme;
 };

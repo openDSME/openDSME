@@ -44,6 +44,7 @@
 #define ACTELEMENT_H_
 
 #include "../DSME_Common.h"
+#include "../../helper/DSMELinkedList.h"
 
 namespace dsme {
 
@@ -57,8 +58,25 @@ public:
         return idleCounter;
     }
 
-    uint16_t getAddress() const {
-        return address;
+    bool contains(uint16_t address) {
+        return addressList.contains(address);
+    }
+
+    uint16_t getAddress(){
+        return addressList.getLast();
+    }
+
+    void addAddress(uint16_t address) {
+        addressList.insertLast(address);
+    }
+
+    bool removeAddress(uint16_t address) {
+        if(addressList.contains(address))
+        {
+            addressList.deleteItemIfExists(address);
+            return true;
+        }
+        return false;
     }
 
     uint16_t getSuperframeID() const {
@@ -75,6 +93,10 @@ public:
 
     Direction getDirection() const {
         return direction;
+    }
+
+    bool isGack() {
+        return gack;
     }
 
     void incrementIdleCounter() {
@@ -126,16 +148,18 @@ public:
     }
 
 private:
-    ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state)
-        : superframeID(superframeID), slotID(slotID), channel(channel), direction(direction), address(address), idleCounter(0), state(state) {
+    ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gack = false)
+        : superframeID(superframeID), slotID(slotID), channel(channel), direction(direction), idleCounter(0), state(state), gack(gack) {
+        addressList.insertLast(address);
     }
 
     uint16_t superframeID;
     uint8_t slotID;
     uint8_t channel;
     Direction direction;
-    uint16_t address;
+    DSMELinkedList<uint16_t> addressList;
     uint16_t idleCounter;
+    bool gack;
 
     // Slot state
     // TODO implementation specific, not handled by the standard

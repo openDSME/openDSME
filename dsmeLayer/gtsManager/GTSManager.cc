@@ -235,6 +235,10 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 DSME_ASSERT(it->getState() != DEALLOCATED);
                 DSME_ASSERT(it->getState() != REMOVED);
 
+                if(it->isGack()){   //skip GACK-GTS
+                    continue;
+                }
+
                 LOG_DEBUG("check slot " << (uint16_t)it->getGTSlotID() << " " << it->getSuperframeID() << " " << (uint16_t)it->getChannel() << " ["
                                         << this->dsme.getMAC_PIB().macShortAddress << (const char*)((it->getDirection() == Direction::TX) ? ">" : "<")
                                         << it->getAddress() << ", " << it->getIdleCounter() << "]");

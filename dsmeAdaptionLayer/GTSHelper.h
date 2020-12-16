@@ -98,7 +98,7 @@ private:
 
     GTS getRandomFreeGTS();
 
-    GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec = nullptr);
+    GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec = nullptr, GTS *closestGackGTS = nullptr);
 
     GTSStatus::GTS_Status verifyDeallocation(DSMESABSpecification& requestSABSpec, uint16_t& deviceAddress, Direction& direction);
 

@@ -366,7 +366,8 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
     return;
 }
 
-GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
+GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, GTS *closestGackGTS)
+{
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -375,6 +376,11 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
     uint16_t slotsToCheck = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) +
                             (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
                                 this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+
+    //if gackEnabled, check if there exist already a GACK-GTS Slot, thats in the same superframe and after the chosen GTS.
+    //if yes, return this GACK-GTS and save the connection between receiver and this GACK-GTS.
+    //if not, register a new GACK-GTS Slot, which meets the requirements.
+
 
     uint8_t GroupAckSlotSpacing;
     bool gackEnabled = this->dsmeAdaptionLayer.getDSME().getPlatform().isGackEnabled();
