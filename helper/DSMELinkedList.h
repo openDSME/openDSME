@@ -61,7 +61,7 @@ public:
         }
     }
 
-    void insertFirst(C& element)
+    void insertFirst(C element)
     {
         struct listNode* newItem;
         newItem=new listNode;
@@ -84,7 +84,7 @@ public:
         }
     }
 
-    void insertLast(C& element)
+    void insertLast(C element)
     {
         struct listNode* newItem;
         newItem=new listNode;
@@ -157,18 +157,19 @@ public:
         }
     }
 
-    C getItem(C& element)
+    C getElementAt(uint8_t id)
     {
         struct listNode* temp;
         temp=head;
+        uint8_t ctr = 0;
         while(temp!=nullptr)
         {
-            if(temp->element==element)
+            if(ctr == id)
             {
-                return temp;
-                break;
+                return temp->element;
             }
             temp=temp->next;
+            ctr++;
         }
         return nullptr;
     }
@@ -178,7 +179,7 @@ public:
         return tail->element;
     }
 
-    bool contains(C& element)
+    bool contains(C element)
     {
         struct listNode* temp;
         temp=head;
@@ -194,7 +195,7 @@ public:
         return false;
     }
 
-    void deleteItemIfExists(C& element)
+    void deleteItemIfExists(C element)
     {
         struct listNode* temp;
         temp=head;

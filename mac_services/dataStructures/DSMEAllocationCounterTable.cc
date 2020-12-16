@@ -122,7 +122,7 @@ void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superfra
     LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
 }
 
-bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gack) {
+bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gackGTS) {
     if(state == ACTState::REMOVED) {
         LOG_DEBUG("Slot to be REMOVED is not in ACT -> Do nothing.");
         // DSME_ASSERT(false);
@@ -140,15 +140,16 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     pos.superframeID = superframeID;
     pos.gtSlotID = gtSlotID;
 
+
     bool success = false;
     //if its a Gack-GTS, first check if it already exist and just add the address
     iterator it = act.find(pos);
-    if(gack && it != end()){  //if it exists
-        it->addressList.insertLast(address);
+    if(gackGTS && it != end()){  //if it exists
+        it->addAddress(address);
         success = true;
     }
     else{
-        success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state, gack), pos);
+        success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state, gackGTS), pos);
 
         if(success) {
             this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
@@ -175,8 +176,8 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it,
     uint16_t superframeID = it->getSuperframeID();
     uint8_t gtSlotID = it->getGTSlotID();
 
-    if(it->isGack() && it->addressList.getSize()>1 && deviceAddress != 0){  //if it is allocated to at least two neighbors
-        it->addressList.deleteItemIfExists(deviceAddress);
+    if(it->isGackGTS() && it->getAddressCount()>1 && deviceAddress != 0){  //if it is allocated to at least two neighbors
+        it->removeAddress(deviceAddress);
         return;
     }
 

@@ -235,7 +235,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 DSME_ASSERT(it->getState() != DEALLOCATED);
                 DSME_ASSERT(it->getState() != REMOVED);
 
-                if(it->isGack()){   //skip GACK-GTS
+                if(it->isGackGTS()){   //skip GACK-GTS
                     continue;
                 }
 
@@ -711,18 +711,19 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     params.preferredSuperframeId = req.getPreferredSuperframeID();
     params.preferredSlotId = req.getPreferredSlotID();
     params.dsmeSabSpecification = req.getSABSpec();
-    bool gackEnabled = false;   //This has to be passed up to GTSHelper
+    bool gackGTSRequest = false;   //This has to be passed up to GTSHelper
 
     //Checks if message contains gackEnabled flag
     InformationElement* iePointer = nullptr;
     if(msg->getHeader().getIEListPresent() == true){
         if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_gackEnabled, iePointer)){
             if(dynamic_cast<gackEnabledIE*>(iePointer)->gackEnabled){
-                   gackEnabled = true;
-                   LOG_INFO("GACK:gackEnabled received");
+                gackGTSRequest = true;
+                LOG_INFO("GACK:gackGTSRequest received");
            }
         }
     }
+    params.gackGTS = gackGTSRequest;
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());

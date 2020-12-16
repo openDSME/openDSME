@@ -52,6 +52,7 @@ enum ACTState { VALID, UNCONFIRMED, INVALID, DEALLOCATED, REMOVED };
 
 class ACTElement {
     friend class DSMEAllocationCounterTable;
+    #define ADDRESSLIST_SIZE 2
 
 public:
     uint16_t getIdleCounter() const {
@@ -59,22 +60,52 @@ public:
     }
 
     bool contains(uint16_t address) {
-        return addressList.contains(address);
+        //return addressList.contains(address);
+        for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
+            if(addressList[i] == address)
+                return true;
+        return false;
+
     }
 
     uint16_t getAddress(){
-        return addressList.getLast();
+        //return addressList.getLast();
+        return addressList[0];
+    }
+
+    uint8_t getAddressCount(){
+        uint8_t ctr=0;
+        for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
+        {
+            if(addressList[i]!=0)
+            {
+                ctr++;
+            }
+        }
+        return ctr;
     }
 
     void addAddress(uint16_t address) {
-        addressList.insertLast(address);
+        //addressList.insertLast(address);
+        addressList[1] = address;
     }
 
     bool removeAddress(uint16_t address) {
+        /*
         if(addressList.contains(address))
         {
             addressList.deleteItemIfExists(address);
             return true;
+        }
+        return false;
+        */
+        for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
+        {
+            if(addressList[i] == address)
+            {
+                addressList[i] = 0;
+                return true;
+            }
         }
         return false;
     }
@@ -95,8 +126,8 @@ public:
         return direction;
     }
 
-    bool isGack() {
-        return gack;
+    bool isGackGTS() {
+        return gackGTS;
     }
 
     void incrementIdleCounter() {
@@ -148,18 +179,24 @@ public:
     }
 
 private:
-    ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gack = false)
-        : superframeID(superframeID), slotID(slotID), channel(channel), direction(direction), idleCounter(0), state(state), gack(gack) {
-        addressList.insertLast(address);
+    ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gackGTS = false)
+        : superframeID(superframeID), slotID(slotID), channel(channel), direction(direction), idleCounter(0), state(state), gackGTS(gackGTS) {
+        //addressList.insertLast(address);
+        addressList[0] = address;
+        for(uint8_t i=1;i<ADDRESSLIST_SIZE;i++)
+        {
+            addressList[i] = 0;
+        }
     }
 
     uint16_t superframeID;
     uint8_t slotID;
     uint8_t channel;
     Direction direction;
-    DSMELinkedList<uint16_t> addressList;
+    //DSMELinkedList<uint16_t> addressList;
+    uint16_t addressList[ADDRESSLIST_SIZE];
     uint16_t idleCounter;
-    bool gack;
+    bool gackGTS;
 
     // Slot state
     // TODO implementation specific, not handled by the standard
