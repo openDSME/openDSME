@@ -83,6 +83,7 @@ void DSME_GTS::request(request_parameters& params) {
         GTSManager& gtsManager = dsme.getGTSManager();
 
         GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess);
+        gtsManagement.gackGTS = params.gackGTS;
         GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeId, params.preferredSlotId, params.dsmeSabSpecification);
         bool busy = !gtsManager.handleMLMERequest(params.deviceAddress, gtsManagement, gtsRequestCmd);
 
@@ -98,6 +99,10 @@ void DSME_GTS::response(response_parameters& params) {
      */
     GTSManager& gtsManager = dsme.getGTSManager();
     GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess, params.status);
+    gtsManagement.gackGTS = true;
+    gtsManagement.gackGTSsuperframeID = params.gackGtsSuperframeID;
+    gtsManagement.gackGTSslotID = params.gackGtsSlotID;
+    gtsManagement.gackGTSChannelIndex = params.gackGtschannelIndex;
 
     bool busy;
     if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {

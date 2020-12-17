@@ -173,6 +173,8 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
             event.requestCmd.prependTo(msg);
 
+
+
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REQUEST, event.deviceAddr)) {
                 dsme.getPlatform().releaseMessage(msg);
 
@@ -711,19 +713,17 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     params.preferredSuperframeId = req.getPreferredSuperframeID();
     params.preferredSlotId = req.getPreferredSlotID();
     params.dsmeSabSpecification = req.getSABSpec();
-    bool gackGTSRequest = false;   //This has to be passed up to GTSHelper
-
+    params.gackGTS = false;
     //Checks if message contains gackEnabled flag
     InformationElement* iePointer = nullptr;
     if(msg->getHeader().getIEListPresent() == true){
         if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_gackEnabled, iePointer)){
             if(dynamic_cast<gackEnabledIE*>(iePointer)->gackEnabled){
-                gackGTSRequest = true;
+                params.gackGTS = true;
                 LOG_INFO("GACK:gackGTSRequest received");
            }
         }
     }
-    params.gackGTS = gackGTSRequest;
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
         dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(req.getSABSpec());
@@ -942,13 +942,19 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
-    bool gackEnabled = true; //has to move to higher layers
-    if (gackEnabled){
+    if (man.gackGTS){
         msg->getHeader().setAckRequest(false);
         gackEnabledIE gackIE;
         gackIE.gackEnabled = true;
         msg->getHeader().ieQueue.push(gackIE);
         LOG_INFO("GACK: gackEnabledIE added to queue");
+        if(commandId == CommandFrameIdentifier::DSME_GTS_REPLY){
+            gackResponseIE gackRspIE;
+            gackRspIE.superframeID = man.gackGTSsuperframeID;
+            gackRspIE.slotID = man.gackGTSslotID;
+            gackRspIE.channelIndex = man.gackGTSChannelIndex;
+            msg->getHeader().ieQueue.push(gackRspIE);
+        }
     }
     else
     {

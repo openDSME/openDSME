@@ -125,7 +125,9 @@ public:
         NOT_IMPLEMENTED_t slotId;
         NOT_IMPLEMENTED_t channelIndex;
         GTSStatus::GTS_Status status;
-        bool gackGTS;
+        uint16_t gackGtsSuperframeID;
+        uint8_t gackGtsSlotID;
+        uint8_t gackGtschannelIndex;
     };
 
     void request(request_parameters&);

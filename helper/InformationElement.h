@@ -15,7 +15,8 @@ namespace dsme {
         public:
         typedef enum{
             ID_lastMessage = 0x10,
-            ID_gackEnabled = 0x0B
+            ID_gackEnabled = 0x0B,
+            ID_gackResponse = 0x0C
         }tIEID;
         virtual ~InformationElement(){};
         virtual uint8_t parse() = 0;
@@ -56,6 +57,26 @@ namespace dsme {
 
         uint8_t parse(){
             return IEID*0xA + gackEnabled;
+        }
+    };
+    class gackResponseIE : public InformationElement{
+        public:
+        gackResponseIE(){
+            IEID = ID_gackResponse;
+        }
+        ~gackResponseIE(){};
+
+        uint16_t superframeID;
+        uint8_t slotID;
+        uint8_t channelIndex;
+
+        uint8_t getIEID(){
+            return IEID;
+        }
+
+        uint8_t parse(){
+            //TODO: currently only 8bits are allowed in an Information Element
+            return IEID*0xA + superframeID;
         }
     };
 }

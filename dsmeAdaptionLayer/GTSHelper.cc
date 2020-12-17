@@ -142,7 +142,8 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
-    GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
+    //The scheduling decision is always in TX direction. Therefore, we only need one GTS and no GACK-GTS here
+    GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId, nullptr, nullptr);
 
     if(preferredGTS == GTS::UNDEFINED) {
         LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
@@ -158,6 +159,12 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     params.numSlot = decision.numSlot;
     params.preferredSuperframeId = preferredGTS.superframeID;
     params.preferredSlotId = preferredGTS.slotID;
+    if(this->dsmeAdaptionLayer.getDSME().getPlatform().isGackEnabled()){    //request a GACK-GTS, if enabled
+        params.gackGTS = true;
+    }
+    else{
+        params.gackGTS = false;
+    }
 
     params.dsmeSabSpecification.setSubBlockLengthBytes(this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(preferredGTS.superframeID));
     params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
@@ -240,8 +247,18 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             DSME_ASSERT(params.dsmeSabSpecification.getSubBlockIndex() == params.preferredSuperframeId);
 
-            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
-                          params.preferredSlotId);
+            GTS gackGTS = GTS::UNDEFINED;
+            if(params.gackGTS){  //if GACK-GTS requested
+                findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
+                              params.preferredSlotId, &gackGTS);
+            }
+            else{
+                findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
+                              params.preferredSlotId, nullptr);
+            }
+
+
+
             //TODO: register GACK-GTS as well
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
@@ -422,11 +439,13 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
     }
     GTS currentGTS(0, 0, 0);
 
-    bool gackGTSRequested = false;
     if(closestGackGTS != nullptr)   //if GACK-GTS requested, try to find a slot in front of a GACK-GTS
     {
-        *closestGackGTS = GTS::UNDEFINED;
-        gackGTSRequested = true;
+        if(*closestGackGTS != GTS::UNDEFINED)  //if a GACK-GTS is given, it has to be used
+        {
+            currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, sabSpec);
+            return currentGTS; //either a found slot or a GTS::UNDEFINED
+        }
         DSMEAllocationCounterTable::iterator it = macDSMEACT.begin();
         while(it != macDSMEACT.end()) {
             if(it->isGackGTS()){    //get all already allocated GACK-GTS
@@ -575,11 +594,16 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
 }
 
 void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
-                              uint8_t preferredSlot) {
+                              uint8_t preferredSlot, GTS *selectedGackGTS) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
+    //if multiple GTS are requested, they all have to share the same GACK-GTS.
+    //Therefore we have to make sure, that we choose a GACK-GTS, where enough free slots are in front of it
+    //for now, we reject the allocation, if the first chosen GACK-GTS has not enough slots in front of it.
+    //TODO: improve by cycling through possible GACK-GTS or allocating one with enough space
+
     for(uint8_t i = 0; i < numSlots; i++) {
-        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec);
+        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec, selectedGackGTS);
 
         if(gts == GTS::UNDEFINED) {
             break;
@@ -587,6 +611,7 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
 
         /* mark slot as allocated TODO: GACK-GTS as well if not allocated yet*/
         replySABSpec.getSubBlock().set(gts.slotID * numChannels + gts.channel, true);
+        replySABSpec.getSubBlock().set(selectedGackGTS->slotID * numChannels + selectedGackGTS->channel, true);
 
         if(i < numSlots - 1) {
             /* mark already allocated slots as occupied for next round */
