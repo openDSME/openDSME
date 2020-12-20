@@ -234,7 +234,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
             skippedSlots = 0;
         } else {
             // no (pre) slot events required during CAP
-            skippedSlots = 0;
+            skippedSlots = 7;
         }
     }
 

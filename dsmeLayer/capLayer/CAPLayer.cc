@@ -57,7 +57,7 @@
 namespace dsme {
 
 CAPLayer::CAPLayer(DSMELayer& dsme)
-    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateQAgentEvaluation), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(false), useQAgent(false), sentPackets(0), failedPackets(0), successPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
+    : DSMEBufferedFSM<CAPLayer, CSMAEvent, 4>(&CAPLayer::stateIdle), dsme(dsme), NB(0), NR(0), totalNBs(0), CW(CW0), batteryLifeExt(false), slottedCSMA(false), useQAgent(false), sentPackets(0), failedPackets(0), successPackets(0), failedCCAs(0), doneCallback(DELEGATE(&CAPLayer::sendDone, *this)) {
         if(!slottedCSMA) {
             batteryLifeExt = false;
         }
@@ -180,6 +180,8 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         // messages already signaled as expired to upper layer
         DSME_ASSERT(this->queue.empty());
         return FSM_IGNORED;
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_ERROR((uint16_t)event.signal);
@@ -233,6 +235,8 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
         else {
             return transition(&CAPLayer::stateSending);
         }
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -304,6 +308,8 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
         actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
         return transition(&CAPLayer::stateIdle);
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
             LOG_INFO((uint16_t)event.signal);
@@ -361,9 +367,12 @@ fsmReturnStatus CAPLayer::stateQAgentCCA(CSMAEvent& event) {
         return transition(&CAPLayer::stateQAgentEvaluation);
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
+    } else if(event.signal == CSMAEvent::TIMER_FIRED) {
+        return transition(&CAPLayer::stateQAgentDecision);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            DSME_ASSERT(false);
+            return transition(&CAPLayer::stateQAgentDecision);
+            //DSME_ASSERT(false);
         }
         return FSM_IGNORED;
     }
@@ -427,7 +436,8 @@ fsmReturnStatus CAPLayer::stateQAgentEvaluation(CSMAEvent& event) {
         return FSM_HANDLED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            DSME_ASSERT(false);
+            return FSM_HANDLED;
+            //DSME_ASSERT(false);
         }
         return FSM_IGNORED;
     }
@@ -471,6 +481,7 @@ void CAPLayer::setBLE(bool ble) {
 
 void CAPLayer::setUseQAgent(bool useQAgent) {
     this->useQAgent = useQAgent;
+    reset();
 }
 
 void CAPLayer::actionStartBackoffTimer() {

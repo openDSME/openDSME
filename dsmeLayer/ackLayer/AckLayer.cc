@@ -127,7 +127,9 @@ void AckLayer::receive(IDSMEMessage* msg) {
         uint8_t seqNum = header.getSequenceNumber();
         uint8_t queue = header.getQueueLevel();
         dsme.getPlatform().releaseMessage(msg);
-        DSME_ASSERT(!isDispatchBusy());
+        if(isDispatchBusy()) {
+            return;
+        }
         bool dispatchSuccessful = dispatch(AckEvent::ACK_RECEIVED, seqNum, queue);
         DSME_ASSERT(dispatchSuccessful);
         return;

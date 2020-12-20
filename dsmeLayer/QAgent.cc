@@ -110,7 +110,10 @@ QAction QAgent::selectAction(bool deterministic) {
         eps = eps * eps_decay > eps_min ? eps * eps_decay : eps_min;
 
         // override eps by parameter-based exploration
-        switch(currentState.getFeature<QueueFullFeature2>().getValue()) {
+        uint8_t ownQueue = currentState.getFeature<QueueFullFeature2>().getValue();
+        uint8_t otherQueue = currentState.getFeature<OtherQueueFullFeature>().getValue();
+        if(ownQueue >= otherQueue) {
+        switch(ownQueue - otherQueue) {
             case 0:
                 eps = 0;
                 break;
@@ -139,6 +142,9 @@ QAction QAgent::selectAction(bool deterministic) {
                 eps = 3000;
                 break;
         }
+    } else {
+        eps = 0;
+    }
 
         //LOG_INFO("EPS: " << eps);
         dsme.getPlatform().signalEPS(eps);

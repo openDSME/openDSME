@@ -21,7 +21,7 @@ using SuccessFeature = Feature<bool, 'G', false, true, REPLACE, UPDATE_RULE::ON_
 using CCASuccessFeature = Feature<bool, 'H', false, true, REPLACE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 
 
-using OtherQueueFullFeature = Feature<uint16_t, 'E', 0, CAP_QUEUE_SIZE, MAXIMUM, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
+using OtherQueueFullFeature = Feature<float, 'E', 0, CAP_QUEUE_SIZE, AVERAGE, UPDATE_RULE::ON_USER_EVENT, false>;
 using OverheardPacketsFeature = Feature<uint8_t, 'F', 0, 255, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 using SentPacketsFeature = Feature<uint16_t, 'I', 0, 254, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
 using TxSuccessFeature = Feature<uint8_t, 'J', 0, 253, ACCUMULATE, UPDATE_RULE::ON_USER_EVENT, false, 0, UPDATE_RULE::ON_MSF_EVENT>;
@@ -42,7 +42,7 @@ enum class QAction : action_t {
 
 class QAgent {
 public:
-    QAgent(DSMELayer &dsme, uint16_t eps=0.001, uint16_t eps_min=0.001, float eps_decay=0.9999, float gamma=0.9, float lr=0.5);
+    QAgent(DSMELayer &dsme, uint16_t eps=10, uint16_t eps_min=10, float eps_decay=0.9999, float gamma=0.9, float lr=0.5);
 
     auto initialize() -> void;
 

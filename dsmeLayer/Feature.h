@@ -36,7 +36,14 @@ struct MAXIMUM {
     }
 };
 
-template<typename T, uint8_t FID, T MIN_VALUE, T MAX_VALUE, template<typename> typename FUNC=REPLACE, UPDATE_RULE UPDATE=UPDATE_RULE::ON_USER_EVENT,  bool ACTIVE=false, T DESIRED_VALUES = 0, UPDATE_RULE RESET=UPDATE_RULE::ON_USER_EVENT, T DEFAULT_VALUE=0>      /* TODO: use min, max value correctly */
+template<typename T>
+struct AVERAGE {
+    static auto call(T &value, T &newValue) -> void {
+        value = (9*value + newValue) / 10;
+    }
+};
+
+template<typename T, uint8_t FID, uint16_t MIN_VALUE, uint16_t MAX_VALUE, template<typename> typename FUNC=REPLACE, UPDATE_RULE UPDATE=UPDATE_RULE::ON_USER_EVENT,  bool ACTIVE=false, uint16_t DESIRED_VALUES = 0, UPDATE_RULE RESET=UPDATE_RULE::ON_USER_EVENT, uint16_t DEFAULT_VALUE=0>      /* TODO: use min, max value correctly */
 class Feature {
 public: /* STATIC */
     constexpr static auto isActive() -> bool {
