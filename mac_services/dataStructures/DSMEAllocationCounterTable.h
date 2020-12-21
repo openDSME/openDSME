@@ -113,10 +113,10 @@ public:
     uint16_t getNumAllocatedGTS(uint16_t address, Direction direction);
 
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     bool checkAddress = false);
+                     bool checkAddress = false, bool gackGTS = false);
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     condition_t condition, bool checkAddress = false);
-    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset);
+                     condition_t condition, bool checkAddress = false, bool gackGTS = false);
+    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset, bool gackGTS = false);
 
 private:
     DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) = delete;

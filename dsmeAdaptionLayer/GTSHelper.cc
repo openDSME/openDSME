@@ -394,8 +394,8 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, const
     occupied.setLength(numChannels);
     remoteOccupied.setLength(numChannels);
 
-    GTS currentGTS(0, 0, 0);
-    for(currentGTS.slotID = slotID; currentGTS.slotID > 0; currentGTS.slotID--) {
+    GTS currentGTS(superframeID, slotID-1, 0);
+    for(; currentGTS.slotID >= 0; currentGTS.slotID--) {
         LOG_INFO("Checking SlotID " << currentGTS.slotID << " in superframeID " << currentGTS.superframeID);
         if(!macDSMEACT.isAllocated(currentGTS.superframeID, currentGTS.slotID)) {   //if free slot available
             macDSMESAB.getOccupiedChannels(occupied, currentGTS.superframeID, currentGTS.slotID); //find a free channel
@@ -411,6 +411,9 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, const
                 }
                 currentGTS.channel = (currentGTS.channel+1)%numChannels;
             }
+        }
+        if(currentGTS.slotID == 0){ //for loop has to be stopped here to prevent underflow
+            break;
         }
     }
     return GTS::UNDEFINED;

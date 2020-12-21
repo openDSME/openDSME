@@ -216,9 +216,9 @@ uint16_t DSMEAllocationCounterTable::getNumAllocatedGTS(uint16_t address, Direct
     }
 }
 
-void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset) {
+void DSMEAllocationCounterTable::setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset, bool gackGTS) {
     Direction ignoredDirection = TX;
-    setACTState(subBlock, state, ignoredDirection, 0xFFFF, channelOffset, false);
+    setACTState(subBlock, state, ignoredDirection, 0xFFFF, channelOffset, false, gackGTS);
 }
 
 static const char* stateToString(ACTState state) {
@@ -239,17 +239,17 @@ static const char* stateToString(ACTState state) {
 }
 
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress,
-                                             uint16_t channelOffset, bool useChannelOffset, bool checkAddress) {
-    setACTState(subBlock, state, direction, deviceAddress, channelOffset, useChannelOffset, [](ACTElement e) { return true; }, checkAddress);
+                                             uint16_t channelOffset, bool useChannelOffset, bool checkAddress, bool gackGTS) {
+    setACTState(subBlock, state, direction, deviceAddress, channelOffset, useChannelOffset, [](ACTElement e) { return true; }, checkAddress, gackGTS);
 }
 
 void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress,
-                                             uint16_t channelOffset, bool useChannelOffset, condition_t condition, bool checkAddress) {
+                                             uint16_t channelOffset, bool useChannelOffset, condition_t condition, bool checkAddress, bool gackGTS) {
     // Supporting more than one slot allocation induces many open issues and is probably not needed most of the time.
     if(subBlock.getSubBlock().count(true) < 1) {
         return;
     }
-    DSME_ASSERT(subBlock.getSubBlock().count(true) == 1);
+    DSME_ASSERT(subBlock.getSubBlock().count(true) == (1+gackGTS)); //2 for gackGTS, 1 for normal GTS
 
     for(DSMESABSpecification::SABSubBlock::iterator it = subBlock.getSubBlock().beginSetBits(); it != subBlock.getSubBlock().endSetBits(); ++it) {
         // this calculation assumes there is always exactly one superframe in the subblock
@@ -288,7 +288,9 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
             if(deviceAddress != 0xFFFF) {
                 uint16_t channel = useChannelOffset ? channelOffset : gts.channel;
                 LOG_DEBUG("ch " << channelOffset << " " << gts.channel);
-                bool added = add(gts.superframeID, gts.slotID, channel, direction, deviceAddress, state);
+                //the GACK-GTS is always the last slot in the SAB, as it is always the one with the highest slotID.
+                //therefore we just check, if the iterator is at the end
+                bool added = add(gts.superframeID, gts.slotID, channel, direction, deviceAddress, state, (it == subBlock.getSubBlock().endSetBits()));
                 DSME_ASSERT(added);
                 LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << channel << " as " << stateToString(state)
                                       << " useChannelOffset: " << useChannelOffset << " nDirection: " << direction);
