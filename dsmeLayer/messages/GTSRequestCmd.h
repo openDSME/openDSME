@@ -55,12 +55,16 @@ private:
     uint8_t preferredSlotID;
     DSMESABSpecification SABSpec;
 
+    DSMELinkedList<InformationElement*> ieList;
+    //pack into an IEQueue pointer inside this message and handle IEQueue with serialization
+    bool gackGTS;
+
 public:
     GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec)
-        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
+        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec), gackGTS(false) {
     }
 
-    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{} {
+    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{}, gackGTS(false) {
     }
 
     uint8_t getNumSlots() const {
@@ -91,6 +95,10 @@ public:
         return SABSpec;
     }
 
+    DSMELinkedList<InformationElement*>* getIEList(){
+        return ieList;
+    }
+
 public:
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
@@ -98,10 +106,24 @@ public:
         size += 2; // preferred superframe ID
         size += 1; // preferred slot ID
         size += SABSpec.getSerializationLength();
+        size += 1; // ieQueueLength
+        size += ieList.getSize(); // IEs
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
+        if(ieList.getSize() != 0)
+        {
+            uint16_t ieListBytes = 0;
+            for(int i = 0; i < ieList.getSize(); i++){
+                ieListBytes += ieList.getElementAt(i)->getSize();
+            }
+            serializer << ieListBytes;  //collective size of all IEs
+            for(int i = 0; i < ieList.getSize(); i++){
+                ieList.getElementAt(i)->serialize(serializer);
+            }
+        }
+
         serializer << numSlots;
         serializer << preferredSuperframeID;
         serializer << preferredSlotID;

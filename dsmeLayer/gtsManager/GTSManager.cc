@@ -942,7 +942,9 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
-    if (man.gackGTS){
+    //has to be moved into the creation of the msg, as it is part of the message content and not the header
+    bool gackGTS = true;
+    if (gackGTS){
         msg->getHeader().setAckRequest(false);
         gackEnabledIE gackIE;
         gackIE.gackEnabled = true;

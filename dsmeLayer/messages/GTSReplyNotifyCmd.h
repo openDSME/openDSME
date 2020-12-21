@@ -58,6 +58,12 @@ protected:
     uint16_t channelOffset;
     DSMESABSpecification SABSpec;
 
+    //pack into an IEQueue pointer inside this message and handle IEQueue with serialization
+    bool gackGTS;
+    uint16_t gackGTSsuperframeID = 0;
+    uint8_t gackGTSslotID = 0;
+    uint8_t gackGTSChannelIndex = 0;
+
 public:
     GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0) {
     }

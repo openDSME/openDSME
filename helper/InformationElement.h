@@ -19,7 +19,8 @@ namespace dsme {
             ID_gackResponse = 0x0C
         }tIEID;
         virtual ~InformationElement(){};
-        virtual uint8_t parse() = 0;
+        virtual uint8_t getSerializationLength() = 0;
+        virtual void serialize(Serializer& serializer) = 0;
         virtual uint8_t getIEID() = 0;
 
      };
@@ -31,14 +32,18 @@ namespace dsme {
         }
         ~lastMessageIE(){};
 
-        bool isLastMessage;
+        uint8_t isLastMessage;
 
         uint8_t getIEID(){
             return IEID;
         }
 
-        uint8_t parse(){
-            return IEID*0xA + isLastMessage;
+        uint8_t getSerializationLength() {
+            return 1;
+        }
+
+        void serialize(Serializer& serializer) {
+            serializer << isLastMessage;
         }
     };
 
@@ -49,14 +54,18 @@ namespace dsme {
         }
         ~gackEnabledIE(){};
 
-        bool gackEnabled;
+        uint8_t gackEnabled;
 
         uint8_t getIEID(){
             return IEID;
         }
 
-        uint8_t parse(){
-            return IEID*0xA + gackEnabled;
+        uint8_t getSerializationLength() {
+            return 1;
+        }
+
+        void serialize(Serializer& serializer) {
+            serializer << gackEnabled;
         }
     };
     class gackResponseIE : public InformationElement{
@@ -74,9 +83,14 @@ namespace dsme {
             return IEID;
         }
 
-        uint8_t parse(){
-            //TODO: currently only 8bits are allowed in an Information Element
-            return IEID*0xA + superframeID;
+        uint8_t getSerializationLength() {
+            return 4;
+        }
+
+        void serialize(Serializer& serializer) {
+            serializer << superframeID;
+            serializer << slotID;
+            serializer << channelIndex;
         }
     };
 }

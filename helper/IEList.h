@@ -40,63 +40,37 @@
  * SUCH DAMAGE.
  */
 
-#ifndef IDSMEMESSAGE_H_
-#define IDSMEMESSAGE_H_
+#ifndef IELIST_H_
+#define IELIST_H_
 
-#include "../dsmeLayer/messages/IEEE802154eMACHeader.h"
-#include "../helper/Integers.h"
-#include "../mac_services/dataStructures/DSMEMessageElement.h"
-#include "../helper/DSMELinkedList.h"
+#include "./Integers.h"
+#include "InformationElement.h"
+#include "DSMELinkedList.h"
 
 namespace dsme {
 
-class IDSMEMessage {
+class IEList {
 public:
-    static constexpr int8_t INVALID_RSSI = INT8_MAX;
+    IEList(){
 
-    virtual ~IDSMEMessage() = default;
+    }
+    ~IEList(){
 
-    virtual void prependFrom(DSMEMessageElement* msg) = 0;
-
-    virtual void decapsulateTo(DSMEMessageElement* msg) = 0;
-
-    virtual bool hasPayload() = 0;
-
-    virtual uint32_t getStartOfFrameDelimiterSymbolCounter() = 0;
-
-    virtual void setStartOfFrameDelimiterSymbolCounter(uint32_t) = 0;
-
-    virtual uint16_t getTotalSymbols() = 0;
-
-    virtual uint8_t getMPDUSymbols()= 0;
-
-    virtual IEEE802154eMACHeader& getHeader() = 0;
-
-    virtual DSMELinkedList<InformationElement*>* getIEList(){
-        return nullptr;
     }
 
-    virtual uint8_t getLQI() = 0;
-
-    virtual int8_t getRSSI() {
-        return INVALID_RSSI;
+    uint8_t getSize()
+    {
+        return ieList.getSize();
     }
 
-    virtual bool getReceivedViaMCPS() = 0;
-
-    virtual void setReceivedViaMCPS(bool receivedViaMCPS) = 0;
-
-    virtual bool getCurrentlySending() = 0;
-
-    virtual void setCurrentlySending(bool currentlySending) = 0;
-
-    virtual void increaseRetryCounter() = 0;
-
-    virtual uint8_t getRetryCounter() = 0;
-
-    uint8_t queueAtCreation = -1;
+private:
+    struct IEListNode{
+        InformationElement::tIEID ieID;
+        InformationElement *ieElement;
+    };
+    DSMELinkedList<IEListNode*> ieList;
 };
 
 } /* namespace dsme */
 
-#endif /* IDSMEMESSAGE_H_ */
+#endif /* IELIST_H_ */

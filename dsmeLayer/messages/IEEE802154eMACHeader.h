@@ -47,7 +47,6 @@
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
 #include "../../helper/InformationElement.h"
-#include "../../helper/IEQueue.h"
 
 
 namespace dsme {
@@ -351,8 +350,6 @@ private:
     void finalize();
 
 public:
-    IEQueue<3> ieQueue; //TODO private, dynamic size
-    uint8_t ieQueueLength = 0;
     /* HELPER METHODS FOR HEADER FORMAT -----------------------------------> */
 
     inline bool hasSourceAddress() const {
@@ -451,8 +448,6 @@ public:
             size += this->sourceAddressLength(); // source address
 
             size += 0; // security
-            size += 1; // ieQueueLength
-            size += 1; // IEs //TODO size from Queue, Empfänger weiß nicht wie lang
         }
 
         return size;

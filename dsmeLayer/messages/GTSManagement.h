@@ -54,24 +54,20 @@ namespace dsme {
 class GTSManagement : public DSMEMessageElement {
 public:
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess)
-        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(GTSStatus::GTS_Status::SUCCESS), gackGTS(false) {
+        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(GTSStatus::GTS_Status::SUCCESS){
     }
 
     GTSManagement(ManagementType type, Direction direction, Priority prioritizedChannelAccess, GTSStatus::GTS_Status status)
-        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(status), gackGTS(false) {
+        : type(type), direction(direction), prioritizedChannelAccess(prioritizedChannelAccess), status(status){
     }
 
-    GTSManagement() : type(DEALLOCATION), direction(RX), prioritizedChannelAccess(HIGH), status(GTSStatus::SUCCESS), gackGTS(false) {
+    GTSManagement() : type(DEALLOCATION), direction(RX), prioritizedChannelAccess(HIGH), status(GTSStatus::SUCCESS){
     }
 
     ManagementType type;
     Direction direction;
     Priority prioritizedChannelAccess;
     GTSStatus::GTS_Status status;
-    bool gackGTS; //TODO: needs to be moved somewhere else, as it is not serialized here. Or maybe handle IEQueue insertion at serialization stage here
-    uint16_t gackGTSsuperframeID = 0;
-    uint8_t gackGTSslotID = 0;
-    uint8_t gackGTSChannelIndex = 0;
 
 public:
     virtual uint8_t getSerializationLength() {
