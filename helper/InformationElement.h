@@ -10,19 +10,19 @@
 
 namespace dsme {
     class InformationElement {
-        protected:
-        uint8_t IEID;
         public:
         typedef enum{
             ID_lastMessage = 0x10,
             ID_gackEnabled = 0x0B,
-            ID_gackResponse = 0x0C
+            ID_gackResponse = 0x0C,
+            ID_stopIE = 0xFF    //signal the end of the ieList
         }tIEID;
         virtual ~InformationElement(){};
         virtual uint8_t getSerializationLength() = 0;
         virtual void serialize(Serializer& serializer) = 0;
-        virtual uint8_t getIEID() = 0;
-
+        virtual InformationElement::tIEID getIEID() = 0;
+        protected:
+        InformationElement::tIEID IEID;
      };
 
     class lastMessageIE : public InformationElement{
@@ -34,7 +34,7 @@ namespace dsme {
 
         uint8_t isLastMessage;
 
-        uint8_t getIEID(){
+        InformationElement::tIEID getIEID(){
             return IEID;
         }
 
@@ -56,7 +56,7 @@ namespace dsme {
 
         uint8_t gackEnabled;
 
-        uint8_t getIEID(){
+        InformationElement::tIEID getIEID(){
             return IEID;
         }
 
@@ -79,7 +79,7 @@ namespace dsme {
         uint8_t slotID;
         uint8_t channelIndex;
 
-        uint8_t getIEID(){
+        InformationElement::tIEID getIEID(){
             return IEID;
         }
 
@@ -88,9 +88,16 @@ namespace dsme {
         }
 
         void serialize(Serializer& serializer) {
-            serializer << superframeID;
-            serializer << slotID;
-            serializer << channelIndex;
+            if(serializer.getType() == SERIALIZATION){
+                serializer << superframeID;
+                serializer << slotID;
+                serializer << channelIndex;
+            }
+            else{   //DESERIALIZATION
+                serializer << superframeID;
+                serializer << slotID;
+                serializer << channelIndex;
+            }
         }
     };
 }

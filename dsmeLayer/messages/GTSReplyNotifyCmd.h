@@ -45,6 +45,7 @@
 
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
 #include "./GTSManagement.h"
+#include "../../helper/IEList.h"
 
 namespace dsme {
 
@@ -57,6 +58,8 @@ protected:
     uint16_t destinationAddress;
     uint16_t channelOffset;
     DSMESABSpecification SABSpec;
+
+    IEList ieList;
 
     //pack into an IEQueue pointer inside this message and handle IEQueue with serialization
     bool gackGTS;
@@ -92,6 +95,10 @@ public:
 
     DSMESABSpecification& getSABSpec() {
         return SABSpec;
+    }
+
+    IEList* getIEList(){
+        return &ieList;
     }
 
 public:

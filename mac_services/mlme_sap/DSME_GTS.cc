@@ -83,8 +83,13 @@ void DSME_GTS::request(request_parameters& params) {
         GTSManager& gtsManager = dsme.getGTSManager();
 
         GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess);
-        gtsManagement.gackGTS = params.gackGTS;
         GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeId, params.preferredSlotId, params.dsmeSabSpecification);
+        if(params.gackGTS){
+            gackEnabledIE *gackIE = new gackEnabledIE();
+            DSME_ASSERT(gackIE != nullptr);
+            gackIE->gackEnabled = params.gackGTS;
+            gtsRequestCmd.getIEList()->insert(gackIE);
+        }
         bool busy = !gtsManager.handleMLMERequest(params.deviceAddress, gtsManagement, gtsRequestCmd);
 
         if(busy) {
@@ -99,19 +104,31 @@ void DSME_GTS::response(response_parameters& params) {
      */
     GTSManager& gtsManager = dsme.getGTSManager();
     GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess, params.status);
-    gtsManagement.gackGTS = true;
-    gtsManagement.gackGTSsuperframeID = params.gackGtsSuperframeID;
-    gtsManagement.gackGTSslotID = params.gackGtsSlotID;
-    gtsManagement.gackGTSChannelIndex = params.gackGtschannelIndex;
 
     bool busy;
     if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
         // channel adaption mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSabSpecification);
+        if (params.gackGtsSuperframeID != 0xFF){    //if gackGTS enabled
+            gackResponseIE *gackRspIE = new gackResponseIE();
+            DSME_ASSERT(gackRspIE != nullptr);
+            gackRspIE->superframeID = params.gackGtsSuperframeID;
+            gackRspIE->slotID = params.gackGtsSlotID;
+            gackRspIE->channelIndex = params.gackGtschannelIndex;
+            gtsReply.getIEList()->insert(gackRspIE);
+        }
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     } else {
         // channel hopping mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSabSpecification);
+        if (params.gackGtsSuperframeID != 0xFF){    //if gackGTS enabled
+            gackResponseIE *gackRspIE = new gackResponseIE();
+            DSME_ASSERT(gackRspIE != nullptr);
+            gackRspIE->superframeID = params.gackGtsSuperframeID;
+            gackRspIE->slotID = params.gackGtsSlotID;
+            gackRspIE->channelIndex = params.gackGtschannelIndex;
+            gtsReply.getIEList()->insert(gackRspIE);
+        }
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     }
     if(busy) {

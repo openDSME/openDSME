@@ -129,11 +129,6 @@ void IEEE802154eMACHeader::finalize() {
     } else {
         frameControl.panIDCompression = panIDCompression;
     }
-
-    if(!ieQueue.empty()){
-        this->setIEListPresent(true);
-    }
-
     finalized = true;
 }
 

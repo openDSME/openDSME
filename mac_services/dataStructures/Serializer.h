@@ -44,6 +44,7 @@
 #define SERIALIZER_H_
 
 #include "../../helper/Integers.h"
+//#include "../../../dsme_platform.h"
 
 enum serialization_type_t { SERIALIZATION, DESERIALIZATION };
 
@@ -72,6 +73,19 @@ public:
         }
         data += 1;
         return *this;
+    }
+
+    void push(uint8_t value){
+        //DSME_ASSERT(type==SERIALIZATION);
+        data[0] = value;
+        data+=1;
+    }
+
+    uint8_t pop(){
+        //DSME_ASSERT(type==DESERIALIZATION);
+        uint8_t value = data[0];
+        data+=1;
+        return value;
     }
 
     uint8_t* getData() {

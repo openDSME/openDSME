@@ -46,7 +46,7 @@
 #include "../dsmeLayer/messages/IEEE802154eMACHeader.h"
 #include "../helper/Integers.h"
 #include "../mac_services/dataStructures/DSMEMessageElement.h"
-#include "../helper/DSMELinkedList.h"
+#include "../helper/IEList.h"
 
 namespace dsme {
 
@@ -72,9 +72,7 @@ public:
 
     virtual IEEE802154eMACHeader& getHeader() = 0;
 
-    virtual DSMELinkedList<InformationElement*>* getIEList(){
-        return nullptr;
-    }
+    virtual IEList* getIEList() = 0;
 
     virtual uint8_t getLQI() = 0;
 

@@ -58,17 +58,114 @@ public:
 
     }
 
+    bool contains(InformationElement::tIEID ieID){
+        for(uint8_t id = 0; id < 255;id++){
+            IEListNode *element = ieNodeList.getElementAt(id);
+            if(element->ieID == ieID){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    InformationElement* getIEByID(InformationElement::tIEID ieID){
+        for(uint8_t id = 0; id < 255;id++){
+            IEListNode *element = ieNodeList.getElementAt(id);
+            if(element->ieID == ieID){
+                return element->ieElement;
+            }
+        }
+        return nullptr;
+    }
+
+    void insert(InformationElement *element){
+        IEListNode *node = new IEListNode;
+        //DSME_ASSERT(node != nullptr);
+        node->ieElement = element;
+        node->ieID = element->getIEID();
+        ieNodeList.insertLast(node);
+    }
+
     uint8_t getSize()
     {
-        return ieList.getSize();
+        return ieNodeList.getSize();
+    }
+
+    uint8_t getSerializationLength() {
+        uint8_t len = 0;
+        for(uint8_t id = 0; id < 255;id++){
+            IEListNode *element = ieNodeList.getElementAt(id);
+            if(element == nullptr){ //reached end
+                break;
+            }
+            len+=element->getSerializationLength();
+        }
+        len+=1; //stopIEID
+        return len;
+    }
+
+    void serialize(Serializer& serializer) {
+        if(serializer.getType() == SERIALIZATION){
+            for(uint8_t id = 0; id < 255;id++){
+                IEListNode *element = ieNodeList.getElementAt(id);
+                if(element == nullptr){ //reached end
+                    break;
+                }
+                element->serialize(serializer);
+            }
+            serializer.push((uint8_t)InformationElement::ID_stopIE);    //serializer << (uint8_t)InformationElement::ID_stopIE;    //set stopIE
+        }
+        else{   //DESERIALIZATION
+            //create a new IEListNode object and let it serialize itself
+            InformationElement::tIEID tmpID;
+            tmpID = (InformationElement::tIEID) serializer.pop();    //serializer << (uint8_t)tmpID;
+            if(tmpID == InformationElement::ID_stopIE){
+                return; //this was the last IE in the list
+            }
+            IEListNode *element = new IEListNode;
+            //DSME_ASSERT(element != nullptr);
+            element->ieID = tmpID;
+            element->serialize(serializer);
+        }
     }
 
 private:
     struct IEListNode{
         InformationElement::tIEID ieID;
         InformationElement *ieElement;
+
+        uint8_t getSerializationLength() {
+            uint8_t len = 0;
+            len += 1;   //ieID
+            len += ieElement->getSerializationLength();
+            return len;
+        }
+        void serialize(Serializer& serializer) {
+            if(serializer.getType() == SERIALIZATION){
+                serializer.push(ieID);  //serializer << (uint8_t)this->ieID;
+                ieElement->serialize(serializer);
+            }
+            else{   //DESERIALIZATION
+                switch (ieID) { //maybe this can be automated? getObjectByID?
+                    case InformationElement::ID_lastMessage:
+                        ieElement = (lastMessageIE*) new lastMessageIE;
+                        break;
+                    case InformationElement::ID_gackEnabled:
+                        ieElement = (gackEnabledIE*) new gackEnabledIE;
+                        break;
+                    case InformationElement::ID_gackResponse:
+                        ieElement = (gackResponseIE*) new gackResponseIE;
+                        break;
+                    default:
+                        //DSME_ASSERT(false);
+                        break;
+                }
+                //DSME_ASSERT(ieElement != nullptr);
+                ieElement->serialize(serializer);
+            }
+        }
     };
-    DSMELinkedList<IEListNode*> ieList;
+    DSMELinkedList<IEListNode*> ieNodeList;
 };
 
 } /* namespace dsme */

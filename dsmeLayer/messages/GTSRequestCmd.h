@@ -45,6 +45,7 @@
 
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../../helper/IEList.h"
 
 namespace dsme {
 
@@ -55,16 +56,14 @@ private:
     uint8_t preferredSlotID;
     DSMESABSpecification SABSpec;
 
-    DSMELinkedList<InformationElement*> ieList;
-    //pack into an IEQueue pointer inside this message and handle IEQueue with serialization
-    bool gackGTS;
+    IEList ieList;
 
 public:
     GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec)
-        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec), gackGTS(false) {
+        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
     }
 
-    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{}, gackGTS(false) {
+    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{} {
     }
 
     uint8_t getNumSlots() const {
@@ -95,8 +94,8 @@ public:
         return SABSpec;
     }
 
-    DSMELinkedList<InformationElement*>* getIEList(){
-        return ieList;
+    IEList* getIEList(){
+        return &ieList;
     }
 
 public:
@@ -107,23 +106,12 @@ public:
         size += 1; // preferred slot ID
         size += SABSpec.getSerializationLength();
         size += 1; // ieQueueLength
-        size += ieList.getSize(); // IEs
+        size += ieList.getSerializationLength(); // IEs
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
-        if(ieList.getSize() != 0)
-        {
-            uint16_t ieListBytes = 0;
-            for(int i = 0; i < ieList.getSize(); i++){
-                ieListBytes += ieList.getElementAt(i)->getSize();
-            }
-            serializer << ieListBytes;  //collective size of all IEs
-            for(int i = 0; i < ieList.getSize(); i++){
-                ieList.getElementAt(i)->serialize(serializer);
-            }
-        }
-
+        ieList.serialize(serializer);
         serializer << numSlots;
         serializer << preferredSuperframeID;
         serializer << preferredSlotID;

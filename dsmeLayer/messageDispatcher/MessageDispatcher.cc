@@ -557,11 +557,9 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
     //Checks if message contains lastMessageIE,
     InformationElement* iePointer = nullptr;
     if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_lastMessage, iePointer)){
-            if(dynamic_cast<lastMessageIE*>(iePointer)->isLastMessage){
-                   turnOff = true;
-                   LOG_INFO("Last Message true");//TODO: remove
-           }
+        if(msg->getIEList()->contains(InformationElement::ID_lastMessage)){
+           turnOff = true;
+           LOG_INFO("Last Message true");//TODO: remove
         }
         LOG_INFO("Information Element present");//TODO: remove
     }
@@ -606,9 +604,10 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
         preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
-        lastMessageIE lmIE;
-        lmIE.isLastMessage = true;
-        preparedMsg->getHeader().ieQueue.push(lmIE);
+        lastMessageIE *lmIE = new lastMessageIE();
+        DSME_ASSERT(lmIE != nullptr);
+        lmIE->isLastMessage = true;
+        preparedMsg->getIEList()->insert(lmIE);
         LOG_INFO("lastMessageIE added to queue");
     }
 

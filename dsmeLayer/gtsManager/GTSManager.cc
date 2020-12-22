@@ -717,7 +717,9 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     //Checks if message contains gackEnabled flag
     InformationElement* iePointer = nullptr;
     if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getHeader().ieQueue.getIEByID(InformationElement::ID_gackEnabled, iePointer)){
+        iePointer = msg->getIEList()->getIEByID(InformationElement::ID_gackEnabled);
+        if(msg->getIEList()->getIEByID(InformationElement::ID_gackEnabled))
+        if(iePointer != nullptr){
             if(dynamic_cast<gackEnabledIE*>(iePointer)->gackEnabled){
                 params.gackGTS = true;
                 LOG_INFO("GACK:gackGTSRequest received");
@@ -942,27 +944,9 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
     msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
     msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
 
-    //has to be moved into the creation of the msg, as it is part of the message content and not the header
-    bool gackGTS = true;
-    if (gackGTS){
-        msg->getHeader().setAckRequest(false);
-        gackEnabledIE gackIE;
-        gackIE.gackEnabled = true;
-        msg->getHeader().ieQueue.push(gackIE);
-        LOG_INFO("GACK: gackEnabledIE added to queue");
-        if(commandId == CommandFrameIdentifier::DSME_GTS_REPLY){
-            gackResponseIE gackRspIE;
-            gackRspIE.superframeID = man.gackGTSsuperframeID;
-            gackRspIE.slotID = man.gackGTSslotID;
-            gackRspIE.channelIndex = man.gackGTSChannelIndex;
-            msg->getHeader().ieQueue.push(gackRspIE);
-        }
-    }
-    else
-    {
-        msg->getHeader().setAckRequest(true);
-    }
+    msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
+    msg->getHeader().setIEListPresent(msg->getIEList()->getSize()>0);  //set ieListPresent, if ieList size > 0
 
     /* STATISTICS (START) */
     msg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
