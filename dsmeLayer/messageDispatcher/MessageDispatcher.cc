@@ -555,9 +555,8 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
 
     //Checks if message contains lastMessageIE,
-    InformationElement* iePointer = nullptr;
-    if(msg->getHeader().getIEListPresent() == true){
-        if(msg->getIEList()->contains(InformationElement::ID_lastMessage)){
+    if(msg->getHeader().getIEListPresent()){
+        if(msg->getHeader().getIEList().contains(InformationElement::ID_lastMessage)){
            turnOff = true;
            LOG_INFO("Last Message true");//TODO: remove
         }
@@ -607,7 +606,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         lastMessageIE *lmIE = new lastMessageIE();
         DSME_ASSERT(lmIE != nullptr);
         lmIE->isLastMessage = true;
-        preparedMsg->getIEList()->insert(lmIE);
+        preparedMsg->getHeader().getIEList().insert(lmIE);
         LOG_INFO("lastMessageIE added to queue");
     }
 

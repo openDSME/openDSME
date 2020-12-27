@@ -72,8 +72,6 @@ public:
 
     virtual IEEE802154eMACHeader& getHeader() = 0;
 
-    virtual IEList* getIEList() = 0;
-
     virtual uint8_t getLQI() = 0;
 
     virtual int8_t getRSSI() {

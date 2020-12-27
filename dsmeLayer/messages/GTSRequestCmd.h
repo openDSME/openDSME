@@ -51,19 +51,29 @@ namespace dsme {
 
 class GTSRequestCmd : public DSMEMessageElement {
 private:
+    //serialized by Serializer
     uint8_t numSlots;
     uint16_t preferredSuperframeID;
     uint8_t preferredSlotID;
     DSMESABSpecification SABSpec;
 
-    IEList ieList;
+    //serialized inside IEList
+    bool gackGTS;
 
 public:
     GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec)
-        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
+        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec), gackGTS(false) {
     }
 
-    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{} {
+    GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{}, gackGTS{false} {
+    }
+
+    bool isGackGTS() const {
+        return gackGTS;
+    }
+
+    void setGackGTS(bool gackGTS) {
+        this->gackGTS = gackGTS;
     }
 
     uint8_t getNumSlots() const {
@@ -94,10 +104,6 @@ public:
         return SABSpec;
     }
 
-    IEList* getIEList(){
-        return &ieList;
-    }
-
 public:
     virtual uint8_t getSerializationLength() {
         uint8_t size = 0;
@@ -106,12 +112,10 @@ public:
         size += 1; // preferred slot ID
         size += SABSpec.getSerializationLength();
         size += 1; // ieQueueLength
-        size += ieList.getSerializationLength(); // IEs
         return size;
     }
 
     virtual void serialize(Serializer& serializer) {
-        ieList.serialize(serializer);
         serializer << numSlots;
         serializer << preferredSuperframeID;
         serializer << preferredSlotID;

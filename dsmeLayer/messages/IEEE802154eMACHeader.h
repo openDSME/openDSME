@@ -46,7 +46,7 @@
 #include "../../mac_services/DSME_Common.h"
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
 #include "../../mac_services/dataStructures/IEEE802154MacAddress.h"
-#include "../../helper/InformationElement.h"
+#include "../../helper/IEList.h"
 
 
 namespace dsme {
@@ -245,6 +245,10 @@ public:
             return this->frameControl.ieListPresent;
         }
 
+    IEList& getIEList(){
+        return ieList;
+    }
+
     void setSeqNumSuppression(bool suppression) {
         finalized = false;
         this->frameControl.seqNumSuppression = suppression;
@@ -344,6 +348,8 @@ private:
     IEEE802154MacAddress srcAddr;
 
     bool finalized;
+
+    IEList ieList;
 
     uint32_t creationTime;  // STATISTICS
 

@@ -55,30 +55,52 @@ protected:
      * Last variables of DSME GTS reply command. (IEEE 802.15.4e-2012 5.3.11.5)
      * Same for DSME GTS notify command.(IEEE 802.15.4e-2012 5.3.11.6)
      */
+    //serialized by Serializer
     uint16_t destinationAddress;
     uint16_t channelOffset;
     DSMESABSpecification SABSpec;
 
-    IEList ieList;
-
-    //pack into an IEQueue pointer inside this message and handle IEQueue with serialization
-    bool gackGTS;
-    uint16_t gackGTSsuperframeID = 0;
-    uint8_t gackGTSslotID = 0;
-    uint8_t gackGTSChannelIndex = 0;
+    //serialized inside IEList
+    uint16_t gackGTSSuperframeID;
+    uint8_t gackGTSSlotID;
+    uint8_t gackGTSChannelIndex;
 
 public:
-    GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0) {
+    GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
     }
 
     // in channel hopping mode
     GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification& SABSpec)
-        : destinationAddress(destinationAddress), channelOffset(channelOffset), SABSpec(SABSpec) {
+        : destinationAddress(destinationAddress), channelOffset(channelOffset), SABSpec(SABSpec), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
     }
 
     // in channel adaption mode
     GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification& SABSpec)
-        : destinationAddress(destinationAddress), channelOffset(0), SABSpec(SABSpec) {
+        : destinationAddress(destinationAddress), channelOffset(0), SABSpec(SABSpec), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
+    }
+
+    uint16_t getGackGTSSuperframeID() {
+        return gackGTSSuperframeID;
+    }
+
+    void setGackGTSSuperframeID(uint16_t gackGTSSuperframeID) {
+        this->gackGTSSuperframeID = gackGTSSuperframeID;
+    }
+
+    uint8_t getGackGTSSlotID() {
+        return gackGTSSlotID;
+    }
+
+    void setGackGTSSlotID(uint8_t gackGTSSlotID) {
+        this->gackGTSSlotID = gackGTSSlotID;
+    }
+
+    uint8_t getGackGTSChannelIndex() {
+        return gackGTSChannelIndex;
+    }
+
+    void setGackGTSChannelIndex(uint8_t gackGTSChannelIndex) {
+        this->gackGTSChannelIndex = gackGTSChannelIndex;
     }
 
     uint16_t getDestinationAddress() const {
@@ -95,10 +117,6 @@ public:
 
     DSMESABSpecification& getSABSpec() {
         return SABSpec;
-    }
-
-    IEList* getIEList(){
-        return &ieList;
     }
 
 public:

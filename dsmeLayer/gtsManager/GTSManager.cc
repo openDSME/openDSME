@@ -171,9 +171,14 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
+            //add gackGTS parameters to Header IEList
+            if(event.requestCmd.isGackGTS()){
+                gackEnabledIE *gackIE = new gackEnabledIE();
+                DSME_ASSERT(gackIE != nullptr);
+                gackIE->gackEnabled = true;
+                msg->getHeader().getIEList().insert(gackIE);
+            }
             event.requestCmd.prependTo(msg);
-
-
 
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REQUEST, event.deviceAddr)) {
                 dsme.getPlatform().releaseMessage(msg);
@@ -192,6 +197,17 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             preparePendingConfirm(event);
 
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+
+            //add gackGTS parameters to Header IEList
+            if(event.replyNotifyCmd.getGackGTSSuperframeID()!=0xFFFF){
+                gackResponseIE *gackRspIE = new gackResponseIE();
+                DSME_ASSERT(gackRspIE != nullptr);
+                gackRspIE->superframeID = event.replyNotifyCmd.getGackGTSSuperframeID();
+                gackRspIE->slotID = event.replyNotifyCmd.getGackGTSSlotID();
+                gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTSChannelIndex();
+                msg->getHeader().getIEList().insert(gackRspIE);
+            }
+
             event.replyNotifyCmd.prependTo(msg);
 
             uint16_t destinationShortAddress;
@@ -714,16 +730,12 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     params.preferredSlotId = req.getPreferredSlotID();
     params.dsmeSabSpecification = req.getSABSpec();
     params.gackGTS = false;
+
     //Checks if message contains gackEnabled flag
-    InformationElement* iePointer = nullptr;
-    if(msg->getHeader().getIEListPresent() == true){
-        iePointer = msg->getIEList()->getIEByID(InformationElement::ID_gackEnabled);
-        if(msg->getIEList()->getIEByID(InformationElement::ID_gackEnabled))
-        if(iePointer != nullptr){
-            if(dynamic_cast<gackEnabledIE*>(iePointer)->gackEnabled){
-                params.gackGTS = true;
-                LOG_INFO("GACK:gackGTSRequest received");
-           }
+    if(msg->getHeader().getIEListPresent()){
+        gackEnabledIE *gackIE = (gackEnabledIE*) msg->getHeader().getIEList().getIEByID(InformationElement::ID_gackEnabled);
+        if(gackIE != nullptr){
+            params.gackGTS = gackIE->gackEnabled;
         }
     }
 
@@ -946,7 +958,7 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
 
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
-    msg->getHeader().setIEListPresent(msg->getIEList()->getSize()>0);  //set ieListPresent, if ieList size > 0
+    msg->getHeader().setIEListPresent(msg->getHeader().getIEList().getSize()>0);  //set ieListPresent, if ieList size > 0
 
     /* STATISTICS (START) */
     msg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
