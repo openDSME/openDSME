@@ -19,7 +19,8 @@ namespace dsme {
         }tIEID;
         virtual ~InformationElement(){};
         virtual uint8_t getSerializationLength() = 0;
-        virtual void serialize(Serializer& serializer) = 0;
+        virtual void serializeTo(uint8_t*& buffer) = 0;
+        virtual void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) = 0;
         virtual InformationElement::tIEID getIEID() = 0;
         protected:
         InformationElement::tIEID IEID;
@@ -42,8 +43,11 @@ namespace dsme {
             return 1;
         }
 
-        void serialize(Serializer& serializer) {
-            serializer << isLastMessage;
+        void serializeTo(uint8_t*& buffer) {
+            *(buffer++) = isLastMessage;
+        }
+        void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
+            isLastMessage = *(buffer++);
         }
     };
 
@@ -64,8 +68,11 @@ namespace dsme {
             return 1;
         }
 
-        void serialize(Serializer& serializer) {
-            serializer << gackEnabled;
+        void serializeTo(uint8_t*& buffer) {
+            *(buffer++) = gackEnabled;
+        }
+        void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
+            gackEnabled = *(buffer++);
         }
     };
     class gackResponseIE : public InformationElement{
@@ -87,17 +94,17 @@ namespace dsme {
             return 4;
         }
 
-        void serialize(Serializer& serializer) {
-            if(serializer.getType() == SERIALIZATION){
-                serializer << superframeID;
-                serializer << slotID;
-                serializer << channelIndex;
-            }
-            else{   //DESERIALIZATION
-                serializer << superframeID;
-                serializer << slotID;
-                serializer << channelIndex;
-            }
+        void serializeTo(uint8_t*& buffer) {
+            *(buffer++) = superframeID & 0xFF;  //LSB first?
+            *(buffer++) = superframeID >> 8;
+            *(buffer++) = slotID;
+            *(buffer++) = channelIndex;
+        }
+        void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
+            superframeID = *(buffer) | (*(buffer + 1) << 8);
+            buffer += 2;
+            slotID = *(buffer++);
+            channelIndex = *(buffer++);
         }
     };
 }

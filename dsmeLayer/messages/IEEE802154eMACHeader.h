@@ -456,6 +456,10 @@ public:
             size += 0; // security
         }
 
+        if(ieList.getSize()>0){
+            size += ieList.getSerializationLength();
+        }
+
         return size;
     }
 

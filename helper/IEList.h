@@ -104,28 +104,30 @@ public:
         return len;
     }
 
-    void serialize(Serializer& serializer) {
-        if(serializer.getType() == SERIALIZATION){
-            for(uint8_t id = 0; id < 255;id++){
-                IEListNode *element = ieNodeList.getElementAt(id);
-                if(element == nullptr){ //reached end
-                    break;
-                }
-                element->serialize(serializer);
+    void serializeTo(uint8_t*& buffer) {
+        for(uint8_t id = 0; id < 255;id++){
+            IEListNode *element = ieNodeList.getElementAt(id);
+            if(element == nullptr){ //reached end
+                break;
             }
-            serializer.push((uint8_t)InformationElement::ID_stopIE);    //serializer << (uint8_t)InformationElement::ID_stopIE;    //set stopIE
+            element->serializeTo(buffer);
         }
-        else{   //DESERIALIZATION
-            //create a new IEListNode object and let it serialize itself
+        *(buffer++) = (uint8_t)InformationElement::ID_stopIE;   //set stopIE
+    }
+
+    void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength){
+        for(uint8_t id = 0; id < 255;id++){
+            //create a new IEListNode object and let it deserialize itself
             InformationElement::tIEID tmpID;
-            tmpID = (InformationElement::tIEID) serializer.pop();    //serializer << (uint8_t)tmpID;
+            tmpID = (InformationElement::tIEID) *(buffer++);
             if(tmpID == InformationElement::ID_stopIE){
                 return; //this was the last IE in the list
             }
             IEListNode *element = new IEListNode;
             //DSME_ASSERT(element != nullptr);
             element->ieID = tmpID;
-            element->serialize(serializer);
+            element->deserializeFrom(buffer, payloadLength);
+            ieNodeList.insertLast(element);
         }
     }
 
@@ -140,29 +142,28 @@ private:
             len += ieElement->getSerializationLength();
             return len;
         }
-        void serialize(Serializer& serializer) {
-            if(serializer.getType() == SERIALIZATION){
-                serializer.push(ieID);  //serializer << (uint8_t)this->ieID;
-                ieElement->serialize(serializer);
+        void serializeTo(uint8_t*& buffer) {
+            *(buffer++) = (uint8_t)this->ieID;
+            ieElement->serializeTo(buffer);
+        }
+
+        void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength){
+            switch (ieID) { //maybe this can be automated? getObjectByID?
+                case InformationElement::ID_lastMessage:
+                    ieElement = (lastMessageIE*) new lastMessageIE;
+                    break;
+                case InformationElement::ID_gackEnabled:
+                    ieElement = (gackEnabledIE*) new gackEnabledIE;
+                    break;
+                case InformationElement::ID_gackResponse:
+                    ieElement = (gackResponseIE*) new gackResponseIE;
+                    break;
+                default:
+                    //DSME_ASSERT(false);
+                    break;
             }
-            else{   //DESERIALIZATION
-                switch (ieID) { //maybe this can be automated? getObjectByID?
-                    case InformationElement::ID_lastMessage:
-                        ieElement = (lastMessageIE*) new lastMessageIE;
-                        break;
-                    case InformationElement::ID_gackEnabled:
-                        ieElement = (gackEnabledIE*) new gackEnabledIE;
-                        break;
-                    case InformationElement::ID_gackResponse:
-                        ieElement = (gackResponseIE*) new gackResponseIE;
-                        break;
-                    default:
-                        //DSME_ASSERT(false);
-                        break;
-                }
-                //DSME_ASSERT(ieElement != nullptr);
-                ieElement->serialize(serializer);
-            }
+            //DSME_ASSERT(ieElement != nullptr);
+            ieElement->deserializeFrom(buffer, payloadLength);
         }
     };
     DSMELinkedList<IEListNode*> ieNodeList;

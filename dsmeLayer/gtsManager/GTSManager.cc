@@ -958,7 +958,6 @@ bool GTSManager::sendGTSCommand(uint8_t fsmId, IDSMEMessage* msg, GTSManagement&
 
     msg->getHeader().setAckRequest(true);
     msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
-    msg->getHeader().setIEListPresent(msg->getHeader().getIEList().getSize()>0);  //set ieListPresent, if ieList size > 0
 
     /* STATISTICS (START) */
     msg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());

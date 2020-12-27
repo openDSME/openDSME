@@ -130,6 +130,13 @@ void IEEE802154eMACHeader::finalize() {
         frameControl.panIDCompression = panIDCompression;
     }
     finalized = true;
+
+    if(ieList.getSize()>0){
+        this->setIEListPresent(true);
+    }
+    else{
+        this->setIEListPresent(false);
+    }
 }
 
 void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
@@ -175,6 +182,10 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
         *(buffer++) = shortSrcAddr >> 8;
     } else if(sourceAddressLength() == 8) {
         buffer << srcAddr;
+    }
+
+    if(ieList.getSize()>0){
+        ieList.serializeTo(buffer);
     }
 }
 
@@ -234,6 +245,10 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
         buffer >> this->srcAddr;
     } else {
         this->srcAddr = IEEE802154MacAddress::UNSPECIFIED;
+    }
+
+    if(getIEListPresent()){
+        ieList.deserializeFrom(buffer, payloadLength);
     }
 
     return true;
