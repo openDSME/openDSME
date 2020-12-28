@@ -52,16 +52,22 @@ namespace dsme {
 class IEList {
 public:
     IEList(){
-
+        ieListID = ieListIDCtr;
+        ieListIDCtr++;
     }
     ~IEList(){
-
+        while(ieNodeList.getSize()>0){
+            IEListNode &element = ieNodeList.getLast();
+            delete element.ieElement;
+            element.ieElement = nullptr;
+            ieNodeList.deleteLast();
+        }
     }
 
     bool contains(InformationElement::tIEID ieID){
         for(uint8_t id = 0; id < 255;id++){
-            IEListNode *element = ieNodeList.getElementAt(id);
-            if(element->ieID == ieID){
+            IEListNode &element = ieNodeList.getElementAt(id);
+            if(element.ieID == ieID){
                 return true;
             }
         }
@@ -70,19 +76,18 @@ public:
 
     InformationElement* getIEByID(InformationElement::tIEID ieID){
         for(uint8_t id = 0; id < 255;id++){
-            IEListNode *element = ieNodeList.getElementAt(id);
-            if(element->ieID == ieID){
-                return element->ieElement;
+            IEListNode &element = ieNodeList.getElementAt(id);
+            if(element.ieID == ieID){
+                return element.ieElement;
             }
         }
         return nullptr;
     }
 
     void insert(InformationElement *element){
-        IEListNode *node = new IEListNode;
-        //DSME_ASSERT(node != nullptr);
-        node->ieElement = element;
-        node->ieID = element->getIEID();
+        IEListNode node;
+        node.ieElement = element;
+        node.ieID = element->getIEID();
         ieNodeList.insertLast(node);
     }
 
@@ -93,24 +98,18 @@ public:
 
     uint8_t getSerializationLength() {
         uint8_t len = 0;
-        for(uint8_t id = 0; id < 255;id++){
-            IEListNode *element = ieNodeList.getElementAt(id);
-            if(element == nullptr){ //reached end
-                break;
-            }
-            len+=element->getSerializationLength();
+        for(uint8_t id = 0; id < ieNodeList.getSize();id++){
+            IEListNode &element = ieNodeList.getElementAt(id);
+            len+=element.getSerializationLength();
         }
         len+=1; //stopIEID
         return len;
     }
 
     void serializeTo(uint8_t*& buffer) {
-        for(uint8_t id = 0; id < 255;id++){
-            IEListNode *element = ieNodeList.getElementAt(id);
-            if(element == nullptr){ //reached end
-                break;
-            }
-            element->serializeTo(buffer);
+        for(uint8_t id = 0; id < ieNodeList.getSize();id++){
+            IEListNode &element = ieNodeList.getElementAt(id);
+            element.serializeTo(buffer);
         }
         *(buffer++) = (uint8_t)InformationElement::ID_stopIE;   //set stopIE
     }
@@ -123,15 +122,16 @@ public:
             if(tmpID == InformationElement::ID_stopIE){
                 return; //this was the last IE in the list
             }
-            IEListNode *element = new IEListNode;
-            //DSME_ASSERT(element != nullptr);
-            element->ieID = tmpID;
-            element->deserializeFrom(buffer, payloadLength);
+            IEListNode element;
+            element.ieID = tmpID;
+            element.deserializeFrom(buffer, payloadLength);
             ieNodeList.insertLast(element);
         }
     }
 
 private:
+    static uint16_t ieListIDCtr;
+    uint16_t ieListID;
     struct IEListNode{
         InformationElement::tIEID ieID;
         InformationElement *ieElement;
@@ -159,14 +159,16 @@ private:
                     ieElement = (gackResponseIE*) new gackResponseIE;
                     break;
                 default:
-                    //DSME_ASSERT(false);
+                    ieElement = nullptr;
                     break;
             }
-            //DSME_ASSERT(ieElement != nullptr);
+            if(ieElement == nullptr){
+                //assert
+            }
             ieElement->deserializeFrom(buffer, payloadLength);
         }
     };
-    DSMELinkedList<IEListNode*> ieNodeList;
+    DSMELinkedList<IEListNode> ieNodeList;
 };
 
 } /* namespace dsme */

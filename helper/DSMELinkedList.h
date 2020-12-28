@@ -119,6 +119,7 @@ public:
             head=nullptr;
             tail=nullptr;
             delete cur;
+            cur = nullptr;
             size--;
             return;
         }
@@ -129,6 +130,7 @@ public:
             head=head->next;
             head->prev=nullptr;
             delete cur;
+            cur = nullptr;
             size--;
         }
     }
@@ -143,6 +145,7 @@ public:
             head=nullptr;
             tail=nullptr;
             delete cur;
+            cur = nullptr;
             size--;
             return;
         }
@@ -152,29 +155,23 @@ public:
             cur=tail;
             tail=tail->prev;
             tail->next=nullptr;
-            size--;
             delete cur;
+            cur = nullptr;
+            size--;
         }
     }
 
-    C getElementAt(uint8_t id)
+    C& getElementAt(uint8_t id)
     {
-        struct listNode* temp;
-        temp=head;
-        uint8_t ctr = 0;
-        while(temp!=nullptr)
+        struct listNode* temp = head;
+        while(id--)
         {
-            if(ctr == id)
-            {
-                return temp->element;
-            }
             temp=temp->next;
-            ctr++;
         }
-        return nullptr;
+        return temp->element;
     }
 
-    C getLast()
+    C& getLast()
     {
         return tail->element;
     }

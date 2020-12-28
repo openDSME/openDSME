@@ -251,13 +251,15 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             if(params.gackGTS){  //if GACK-GTS requested
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                               params.preferredSlotId, &gackGTS);
+                DSME_ASSERT(gackGTS != GTS::UNDEFINED);
             }
             else{
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                               params.preferredSlotId, nullptr);
             }
-
-
+            responseParams.gackGTSSuperframeID = gackGTS.superframeID;
+            responseParams.gackGTSSlotID = gackGTS.slotID;
+            responseParams.gackGTSChannelIndex = gackGTS.channel;
 
             //TODO: register GACK-GTS as well
 
