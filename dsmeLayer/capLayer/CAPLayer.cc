@@ -290,10 +290,12 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
         return FSM_IGNORED;
     } else if(event.signal == CSMAEvent::SEND_SUCCESSFUL) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<TxSuccessFeature>().update(1);
         actionPopMessage(DataStatus::SUCCESS);
 	    successPackets++;
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::SEND_FAILED) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         failedPackets++;
         /* check if a sending should by retries */
         if(NR >= dsme.getMAC_PIB().macMaxFrameRetries) {
@@ -306,6 +308,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
             return transition(&CAPLayer::stateBackoff);
         }
     } else if(event.signal == CSMAEvent::SEND_ABORTED) {
+        dsme.getQAgent().getFeatureManager().getState().getFeature<TxFailedFeature>().update(1);
         actionPopMessage(DataStatus::Data_Status::TRANSACTION_EXPIRED);
         return transition(&CAPLayer::stateIdle);
     } else if(event.signal == CSMAEvent::TIMER_FIRED) {

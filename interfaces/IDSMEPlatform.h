@@ -188,8 +188,8 @@ public:
     }
 
 
-    virtual void signalReward(int32_t reward) {}
-    virtual void signalQ(int32_t q) {}
+    virtual void signalReward(double reward) {}
+    virtual void signalQ(double  q) {}
     virtual void signalBE(uint8_t be) {}
     virtual void signalEPS(float eps) {}
 };

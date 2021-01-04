@@ -41,7 +41,7 @@ void QAgent::updateQTable(state_t const id, state_t const nextId, QAction const 
                 policy[id] = maxAction(id);
             }
         } else {
-            qTable[id][(int)action] -= 1;
+            qTable[id][(int)action] -= 1.0;
         }
         /*float q = reward + gamma * maxQ(nextId);
         if(q > qTable[id][(int)action]) {
@@ -223,6 +223,7 @@ void QAgent::update() {
                 DSME_ASSERT(false);
         }
 
+        dsme.getPlatform().signalReward(reward); 
         accReward += reward;
 
         //LOG_INFO("QA: Got reward " << reward);
@@ -230,7 +231,7 @@ void QAgent::update() {
 }
 
 void QAgent::printTxTimes() const {
-    //LOG_INFO_PREFIX;
+    LOG_INFO_PREFIX_DIRTY;
     for(uint32_t id=0; id<QState::getMaxId(); id++) {
         /*if(qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::SEND] || qTable[id][(int)QAction::BACKOFF] < qTable[id][(int)QAction::CCA] ) {
             //LOG_INFO_PURE(" " << id);
@@ -242,7 +243,7 @@ void QAgent::printTxTimes() const {
             std::cout << id << "(C) ";
         }
     }
-    //LOG_INFO_PURE(std::endl);
+    std::cout << std::endl;
 }
 
 /* Feature helpers */

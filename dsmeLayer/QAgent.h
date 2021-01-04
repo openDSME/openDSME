@@ -71,8 +71,8 @@ public:
 
     uint32_t accReward;
 
-    auto calcMaxQ() -> uint32_t {
-        uint32_t q = 0;
+    auto calcMaxQ() -> double {
+        double q = 0;
         for(uint32_t id=0; id<QState::getMaxId(); id++) {
             q += maxQ(id);
         }
