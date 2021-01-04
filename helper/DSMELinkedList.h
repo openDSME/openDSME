@@ -55,6 +55,14 @@ public:
         tail = nullptr;
         size = 0;
     }
+
+    DSMELinkedList(DSMELinkedList const& other) {
+        size = 0;
+        for(uint8_t i=0; i<other.getSize(); i++) {
+            this->insertLast(other.getElementAt(i));
+        }
+    }
+
     ~DSMELinkedList(){
         while(size>0){
             deleteLast();
@@ -161,7 +169,7 @@ public:
         }
     }
 
-    C& getElementAt(uint8_t id)
+    C& getElementAt(uint8_t id) const
     {
         struct listNode* temp = head;
         while(id--)
@@ -176,7 +184,7 @@ public:
         return tail->element;
     }
 
-    bool contains(C element)
+    bool contains(C element) const
     {
         struct listNode* temp;
         temp=head;
@@ -239,7 +247,7 @@ public:
         delete temp;
     }
 
-    uint8_t getSize()
+    uint8_t getSize() const
     {
         return size;
     }

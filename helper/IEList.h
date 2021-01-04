@@ -136,12 +136,31 @@ private:
         InformationElement::tIEID ieID;
         InformationElement *ieElement;
 
+        IEListNode() = default;
+        IEListNode(IEListNode const& other) {
+            this->ieID = other.ieID;
+            if(other.ieID == InformationElement::ID_lastMessage) {
+                lastMessageIE *ie = new lastMessageIE();
+                *ie = *reinterpret_cast<lastMessageIE*>(other.ieElement);
+                this->ieElement = ie;
+            } else if(other.ieID == InformationElement::ID_gackEnabled) {
+                gackEnabledIE *ie = new gackEnabledIE();
+                *ie = *reinterpret_cast<gackEnabledIE*>(other.ieElement);
+                this->ieElement = ie;
+            } else if(other.ieID == InformationElement::ID_gackResponse) {
+                gackResponseIE *ie = new gackResponseIE();
+                *ie = *reinterpret_cast<gackResponseIE*>(other.ieElement);
+                this->ieElement = ie;
+            }
+        }
+
         uint8_t getSerializationLength() {
             uint8_t len = 0;
             len += 1;   //ieID
             len += ieElement->getSerializationLength();
             return len;
         }
+
         void serializeTo(uint8_t*& buffer) {
             *(buffer++) = (uint8_t)this->ieID;
             ieElement->serializeTo(buffer);
