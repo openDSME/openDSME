@@ -307,7 +307,7 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 }
 
 void MessageDispatcher::receive(IDSMEMessage* msg) {
-    IEEE802154eMACHeader macHdr = msg->getHeader();
+    IEEE802154eMACHeader &macHdr = msg->getHeader();
 
     switch(macHdr.getFrameType()) {
         case IEEE802154eMACHeader::FrameType::BEACON: {
