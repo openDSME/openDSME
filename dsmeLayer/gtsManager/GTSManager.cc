@@ -498,6 +498,17 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 IDSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);
                 event.replyNotifyCmd.prependTo(msg_notify);
+
+                //add gackGTS parameters to Header IEList
+                if(event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED){
+                    gackResponseIE *gackRspIE = new gackResponseIE();
+                    DSME_ASSERT(gackRspIE != nullptr);
+                    gackRspIE->superframeID = event.replyNotifyCmd.getGackGTS().superframeID;
+                    gackRspIE->slotID = event.replyNotifyCmd.getGackGTS().slotID;
+                    gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTS().channel;
+                    msg_notify->getHeader().getIEList().insert(gackRspIE);
+                }
+
                 if(!sendGTSCommand(fsmId, msg_notify, event.management, CommandFrameIdentifier::DSME_GTS_NOTIFY,
                                    IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS)) {
                     // TODO should this be signaled to the upper layer?
@@ -665,6 +676,16 @@ void GTSManager::actionSendImmediateNegativeResponse(GTSEvent& event) {
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     event.replyNotifyCmd.prependTo(msg);
 
+    //add gackGTS parameters to Header IEList
+    if(event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED){
+        gackResponseIE *gackRspIE = new gackResponseIE();
+        DSME_ASSERT(gackRspIE != nullptr);
+        gackRspIE->superframeID = event.replyNotifyCmd.getGackGTS().superframeID;
+        gackRspIE->slotID = event.replyNotifyCmd.getGackGTS().slotID;
+        gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTS().channel;
+        msg->getHeader().getIEList().insert(gackRspIE);
+    }
+
     LOG_INFO("Negative GTS response " << event.replyNotifyCmd.getDestinationAddress() << " TRANSACTION_OVERFLOW");
     uint16_t destinationShortAddress = event.replyNotifyCmd.getDestinationAddress();
     event.management.status = GTSStatus::NO_DATA; // misuse NO_DATA to signal that the destination was busy
@@ -755,6 +776,14 @@ bool GTSManager::handleGTSResponse(IDSMEMessage* msg) {
     management.decapsulateFrom(msg);
     replyNotifyCmd.decapsulateFrom(msg);
 
+    //Checks if message contains gackRspIE
+    if(msg->getHeader().getIEListPresent()){
+        gackResponseIE *gackRspIE = (gackResponseIE*) msg->getHeader().getIEList().getIEByID(InformationElement::ID_gackResponse);
+        if(gackRspIE != nullptr){
+            replyNotifyCmd.setGackGTS(GTS(gackRspIE->superframeID,gackRspIE->slotID, gackRspIE->channelIndex));
+        }
+    }
+
     if(replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
         int8_t fsmId = getFsmIdFromResponseForMe(msg);
         data[fsmId].responsePartnerAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
@@ -790,6 +819,14 @@ bool GTSManager::handleGTSNotify(IDSMEMessage* msg) {
 
     GTSReplyNotifyCmd replyNotifyCmd;
     replyNotifyCmd.decapsulateFrom(msg);
+
+    //Checks if message contains gackRspIE
+    if(msg->getHeader().getIEListPresent()){
+        gackResponseIE *gackRspIE = (gackResponseIE*) msg->getHeader().getIEList().getIEByID(InformationElement::ID_gackResponse);
+        if(gackRspIE != nullptr){
+            replyNotifyCmd.setGackGTS(GTS(gackRspIE->superframeID,gackRspIE->slotID, gackRspIE->channelIndex));
+        }
+    }
 
     if(replyNotifyCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
         int8_t fsmId = getFsmIdFromNotifyForMe(msg);

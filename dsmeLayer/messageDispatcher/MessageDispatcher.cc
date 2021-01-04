@@ -506,35 +506,41 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         } else if(this->currentACTElement->getState() == VALID) {
             /* '-> if any messages are queued for this link, send one */
 
-            DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
-
-            IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
-            this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
-            if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
-                /* '-> the neighbor associated with the current slot does not exist */
-
-                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
-                LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
-                for(auto it : this->neighborQueue) {
-                    LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
-                                                   << DECOUT);
-                }
-                DSME_ASSERT(false);
-            }
-
-            bool success = prepareNextMessageIfAny();
-            LOG_DEBUG(success);
-            if(success) {
-                /* '-> a message is queued for transmission */
-                success = sendPreparedMessage();
-            }
-            LOG_DEBUG(success);
-
-            if(success == false) {
-                /* '-> no message to be sent */
-                LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
-                this->numUnusedTxGts++;
+            if(this->currentACTElement->isGackGTS()){
+                //send GACK here
                 finalizeGTSTransmission();
+            }else{
+
+                DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+
+                IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
+                this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
+                if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
+                    /* '-> the neighbor associated with the current slot does not exist */
+
+                    LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                    LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                    for(auto it : this->neighborQueue) {
+                        LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                       << DECOUT);
+                    }
+                    DSME_ASSERT(false);
+                }
+
+                bool success = prepareNextMessageIfAny();
+                LOG_DEBUG(success);
+                if(success) {
+                    /* '-> a message is queued for transmission */
+                    success = sendPreparedMessage();
+                }
+                LOG_DEBUG(success);
+
+                if(success == false) {
+                    /* '-> no message to be sent */
+                    LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
+                    this->numUnusedTxGts++;
+                    finalizeGTSTransmission();
+                }
             }
         } else {
             finalizeGTSTransmission();

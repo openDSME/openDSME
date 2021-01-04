@@ -179,7 +179,7 @@ void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& ma
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTElement e) { return e.getState() != ACTState::INVALID; });
         if(gackGTS != GTS::UNDEFINED){
-            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, channelOffset, management.direction, deviceAddr);
+            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, management.direction, deviceAddr);
         }
     } else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, invert(management.direction), deviceAddr, 0, false);
