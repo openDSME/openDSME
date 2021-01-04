@@ -45,6 +45,12 @@
 namespace dsme {
 const GTS GTS::UNDEFINED = GTS(0xffff, 0xffff, 0xff);
 
+GTS::GTS(){
+    this->superframeID = 0xffff;
+    this->slotID = 0xffff;
+    this->channel = 0xff;
+}
+
 GTS::GTS(uint16_t superframeID, uint16_t slotID, uint8_t channel) {
     this->superframeID = superframeID;
     this->slotID = slotID;

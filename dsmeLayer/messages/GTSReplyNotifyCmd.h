@@ -44,6 +44,7 @@
 #define GTSREPLYNOTIFYCMD_H_
 
 #include "../../mac_services/dataStructures/DSMESABSpecification.h"
+#include "../../mac_services/dataStructures/GTS.h"
 #include "./GTSManagement.h"
 #include "../../helper/IEList.h"
 
@@ -61,46 +62,28 @@ protected:
     DSMESABSpecification SABSpec;
 
     //serialized inside IEList
-    uint16_t gackGTSSuperframeID;
-    uint8_t gackGTSSlotID;
-    uint8_t gackGTSChannelIndex;
+    GTS gackGTS;
 
 public:
-    GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
+    GTSReplyNotifyCmd() : destinationAddress(0), channelOffset(0), gackGTS(GTS::UNDEFINED){
     }
 
     // in channel hopping mode
     GTSReplyNotifyCmd(uint16_t destinationAddress, uint16_t channelOffset, const DSMESABSpecification& SABSpec)
-        : destinationAddress(destinationAddress), channelOffset(channelOffset), SABSpec(SABSpec), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
+        : destinationAddress(destinationAddress), channelOffset(channelOffset), SABSpec(SABSpec), gackGTS(GTS::UNDEFINED){
     }
 
     // in channel adaption mode
     GTSReplyNotifyCmd(uint16_t destinationAddress, const DSMESABSpecification& SABSpec)
-        : destinationAddress(destinationAddress), channelOffset(0), SABSpec(SABSpec), gackGTSSuperframeID(0xFFFF), gackGTSSlotID(0xFF), gackGTSChannelIndex(0xFF) {
+        : destinationAddress(destinationAddress), channelOffset(0), SABSpec(SABSpec), gackGTS(GTS::UNDEFINED){
     }
 
-    uint16_t getGackGTSSuperframeID() {
-        return gackGTSSuperframeID;
+    GTS getGackGTS() {
+        return gackGTS;
     }
 
-    void setGackGTSSuperframeID(uint16_t gackGTSSuperframeID) {
-        this->gackGTSSuperframeID = gackGTSSuperframeID;
-    }
-
-    uint8_t getGackGTSSlotID() {
-        return gackGTSSlotID;
-    }
-
-    void setGackGTSSlotID(uint8_t gackGTSSlotID) {
-        this->gackGTSSlotID = gackGTSSlotID;
-    }
-
-    uint8_t getGackGTSChannelIndex() {
-        return gackGTSChannelIndex;
-    }
-
-    void setGackGTSChannelIndex(uint8_t gackGTSChannelIndex) {
-        this->gackGTSChannelIndex = gackGTSChannelIndex;
+    void setGackGTS(GTS gackGTS) {
+        this->gackGTS = gackGTS;
     }
 
     uint16_t getDestinationAddress() const {

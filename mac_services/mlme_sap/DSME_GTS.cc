@@ -104,16 +104,12 @@ void DSME_GTS::response(response_parameters& params) {
     if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
         // channel adaption mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.dsmeSabSpecification);
-        gtsReply.setGackGTSChannelIndex(params.gackGTSChannelIndex);
-        gtsReply.setGackGTSSlotID(params.gackGTSSlotID);
-        gtsReply.setGackGTSSuperframeID(params.gackGTSSuperframeID);
+        gtsReply.setGackGTS(params.gackGTS);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     } else {
         // channel hopping mode
         GTSReplyNotifyCmd gtsReply(params.deviceAddress, params.channelOffset, params.dsmeSabSpecification);
-        gtsReply.setGackGTSChannelIndex(params.gackGTSChannelIndex);
-        gtsReply.setGackGTSSlotID(params.gackGTSSlotID);
-        gtsReply.setGackGTSSuperframeID(params.gackGTSSuperframeID);
+        gtsReply.setGackGTS(params.gackGTS);
         busy = !gtsManager.handleMLMEResponse(gtsManagement, gtsReply);
     }
     if(busy) {

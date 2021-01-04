@@ -104,7 +104,7 @@ public:
 
     void printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address);
 
-    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gack = false);
+    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state);
 
     void remove(DSMEAllocationCounterTable::iterator it, uint16_t deviceAddress = 0);
 
@@ -113,10 +113,14 @@ public:
     uint16_t getNumAllocatedGTS(uint16_t address, Direction direction);
 
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     bool checkAddress = false, bool gackGTS = false);
+                     bool checkAddress = false);
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     condition_t condition, bool checkAddress = false, bool gackGTS = false);
-    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset, bool gackGTS = false);
+                     condition_t condition, bool checkAddress = false);
+    void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset);
+
+    bool addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address);
+
+    void removeFromGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint16_t deviceAddress);
 
 private:
     DSMEAllocationCounterTable(const DSMEAllocationCounterTable& other) = delete;

@@ -199,12 +199,12 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
             //add gackGTS parameters to Header IEList
-            if(event.replyNotifyCmd.getGackGTSSuperframeID()!=0xFFFF){
+            if(event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED){
                 gackResponseIE *gackRspIE = new gackResponseIE();
                 DSME_ASSERT(gackRspIE != nullptr);
-                gackRspIE->superframeID = event.replyNotifyCmd.getGackGTSSuperframeID();
-                gackRspIE->slotID = event.replyNotifyCmd.getGackGTSSlotID();
-                gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTSChannelIndex();
+                gackRspIE->superframeID = event.replyNotifyCmd.getGackGTS().superframeID;
+                gackRspIE->slotID = event.replyNotifyCmd.getGackGTS().slotID;
+                gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTS().channel;
                 msg->getHeader().getIEList().insert(gackRspIE);
             }
 
@@ -234,6 +234,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             } else {
                 if(event.management.status == GTSStatus::SUCCESS) {
                     actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
+                    //TODO: transmit gackGTS information to actUpdater here
                 }
                 return transition(fsmId, &GTSManager::stateSending);
             }
@@ -333,7 +334,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
             if(event.cmdId == DSME_GTS_NOTIFY) {
-                actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
+                actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
@@ -513,7 +514,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
                 DSME_ASSERT(event.management.status == GTSStatus::DENIED);
-                actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
+                actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS());
                 return transition(fsmId, &GTSManager::stateIdle);
             }
         }
@@ -558,7 +559,7 @@ fsmReturnStatus GTSManager::stateWaitForNotify(GTSEvent& event) {
         case GTSEvent::NOTIFY_CMD_FOR_ME: {
             // TODO! DSME_ASSERT((state == State::SENDING && cmdToSend == DSME_GTS_REPLY) || state == State::WAIT_FOR_NOTIFY); // TODO what if the notify comes
             // too late, probably send a deallocation again???
-            actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
+            actUpdater.notifyReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS());
 
             /* If the DSME-GTS Destination address is the same as the macShortAddress, the device shall notify the next higher
              * layer of the receipt of the DSME-GTS notify command frame using MLME-COMM- STATUS.indication */

@@ -257,11 +257,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                               params.preferredSlotId, nullptr);
             }
-            responseParams.gackGTSSuperframeID = gackGTS.superframeID;
-            responseParams.gackGTSSlotID = gackGTS.slotID;
-            responseParams.gackGTSChannelIndex = gackGTS.channel;
-
-            //TODO: register GACK-GTS as well
+            responseParams.gackGTS = gackGTS;
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
@@ -614,9 +610,9 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
             break;
         }
 
-        /* mark slot as allocated TODO: GACK-GTS as well if not allocated yet*/
+        /* mark slot as allocated. Dont mark GACK-GTS Slot. Will be handled differently*/
         replySABSpec.getSubBlock().set(gts.slotID * numChannels + gts.channel, true);
-        replySABSpec.getSubBlock().set(selectedGackGTS->slotID * numChannels + selectedGackGTS->channel, true);
+        //replySABSpec.getSubBlock().set(selectedGackGTS->slotID * numChannels + selectedGackGTS->channel, true);
 
         if(i < numSlots - 1) {
             /* mark already allocated slots as occupied for next round */
