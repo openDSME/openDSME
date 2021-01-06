@@ -68,11 +68,25 @@ void GTSEvent::fill(IDSMEMessage* msg, GTSManagement& management, CommandFrameId
     switch(cmdId) {
         case CommandFrameIdentifier::DSME_GTS_REQUEST:
             this->requestCmd.decapsulateFrom(msg);
+            //Checks if message contains gackEnabled flag
+            if(msg->getHeader().getIEListPresent()){
+                gackEnabledIE *gackIE = (gackEnabledIE*) msg->getHeader().getIEList().getIEByID(InformationElement::ID_gackEnabled);
+                if(gackIE != nullptr){
+                    this->requestCmd.setGackGTS(gackIE->gackEnabled);
+                }
+            }
             this->deviceAddr = msg->getHeader().getDestAddr().getShortAddress();
             break;
         case CommandFrameIdentifier::DSME_GTS_REPLY:
         case CommandFrameIdentifier::DSME_GTS_NOTIFY:
             this->replyNotifyCmd.decapsulateFrom(msg);
+            //Checks if message contains gackRspIE
+            if(msg->getHeader().getIEListPresent()){
+                gackResponseIE *gackRspIE = (gackResponseIE*) msg->getHeader().getIEList().getIEByID(InformationElement::ID_gackResponse);
+                if(gackRspIE != nullptr){
+                    this->replyNotifyCmd.setGackGTS(GTS(gackRspIE->superframeID,gackRspIE->slotID, gackRspIE->channelIndex));
+                }
+            }
             this->deviceAddr = this->replyNotifyCmd.getDestinationAddress();
             break;
         default:

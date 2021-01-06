@@ -55,13 +55,24 @@ public:
         ieListID = ieListIDCtr;
         ieListIDCtr++;
     }
+    IEList(IEList const& other) {   //copy ieList
+        uint8_t len = other.getSerializationLength();
+        uint8_t *buffer = new uint8_t[len];
+        if(buffer != nullptr){
+            other.serializeTo(buffer);
+            this->deserializeFrom((const uint8_t*&)buffer, len);
+            delete buffer;
+        }
+    }
     ~IEList(){
+        /*
         while(ieNodeList.getSize()>0){
             IEListNode &element = ieNodeList.getLast();
             delete element.ieElement;
             element.ieElement = nullptr;
             ieNodeList.deleteLast();
         }
+        */
     }
 
     bool contains(InformationElement::tIEID ieID){
@@ -96,7 +107,7 @@ public:
         return ieNodeList.getSize();
     }
 
-    uint8_t getSerializationLength() {
+    uint8_t getSerializationLength() const{
         uint8_t len = 0;
         for(uint8_t id = 0; id < ieNodeList.getSize();id++){
             IEListNode &element = ieNodeList.getElementAt(id);
@@ -106,7 +117,7 @@ public:
         return len;
     }
 
-    void serializeTo(uint8_t*& buffer) {
+    void serializeTo(uint8_t*& buffer) const{
         for(uint8_t id = 0; id < ieNodeList.getSize();id++){
             IEListNode &element = ieNodeList.getElementAt(id);
             element.serializeTo(buffer);
@@ -137,6 +148,7 @@ private:
         InformationElement *ieElement;
 
         IEListNode() = default;
+        /*
         IEListNode(IEListNode const& other) {
             this->ieID = other.ieID;
             if(other.ieID == InformationElement::ID_lastMessage) {
@@ -153,6 +165,7 @@ private:
                 this->ieElement = ie;
             }
         }
+        */
 
         uint8_t getSerializationLength() {
             uint8_t len = 0;

@@ -64,9 +64,11 @@ public:
     }
 
     ~DSMELinkedList(){
+        /*
         while(size>0){
             deleteLast();
         }
+        */
     }
 
     void insertFirst(C element)
