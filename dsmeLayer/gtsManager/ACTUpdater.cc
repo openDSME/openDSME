@@ -130,7 +130,7 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTElement e) { return e.getState() != ACTState::INVALID; });
         if(gackGTS != GTS::UNDEFINED){
-            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, channelOffset, management.direction, deviceAddr);
+            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, management.direction, deviceAddr);
         }
     } else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction

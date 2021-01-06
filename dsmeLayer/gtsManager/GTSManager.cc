@@ -198,6 +198,8 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
 
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
+            event.replyNotifyCmd.prependTo(msg);
+
             //add gackGTS parameters to Header IEList
             if(event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED){
                 gackResponseIE *gackRspIE = new gackResponseIE();
@@ -207,8 +209,6 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 gackRspIE->channelIndex = event.replyNotifyCmd.getGackGTS().channel;
                 msg->getHeader().getIEList().insert(gackRspIE);
             }
-
-            event.replyNotifyCmd.prependTo(msg);
 
             uint16_t destinationShortAddress;
 

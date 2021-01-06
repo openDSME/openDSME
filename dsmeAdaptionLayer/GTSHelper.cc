@@ -192,7 +192,8 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     DSMEAllocationCounterTable::iterator toDeallocate = act.end();
     for(auto it = act.begin(); it != act.end(); ++it) {
         if(it->getDirection() == Direction::TX && it->getAddress() == address) {
-            if(it->getState() == ACTState::VALID && it->getIdleCounter() > highestIdleCounter) {
+            if(it->getState() == ACTState::VALID && it->getIdleCounter() > highestIdleCounter && it->isGackGTS() == false) {
+                //ignore GACK-GTS here, as they will be deallocated together with its GTS
                 highestIdleCounter = it->getIdleCounter();
                 toDeallocate = it;
             }
@@ -452,6 +453,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
             if(it->isGackGTS()){    //get all already allocated GACK-GTS
                 closestGackGTS->slotID = it->getGTSlotID();
                 closestGackGTS->superframeID = it->getSuperframeID();
+                closestGackGTS->channel = it->getChannel();
                 LOG_INFO("Closest GACK-GTS: SlotID " << closestGackGTS->slotID << " in superframeID " << closestGackGTS->superframeID);
                 //check in front of each, if a slot is available, running backwards from Gack-SlotID
                 currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, sabSpec);
@@ -471,8 +473,12 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         //select a possible new GACK-GTS first, then find a fitting GTS in front of it
         //e.g. numGacks=2 and numSF = 4 -> spacing=2, possible slots 0/2 and 1/3
         if(*closestGackGTS == GTS::UNDEFINED){   //if its the first GACK-GTS, select first SuperframeID randomly to evenly split Superframes between coordinators
-            closestGackGTS->superframeID = (this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numSuperFramesPerMultiSuperframe);
+            //closestGackGTS->superframeID = (this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numSuperFramesPerMultiSuperframe);
+            closestGackGTS->superframeID = initialSuperframeID; //has to be the same superframeID
         }
+        /*
+         * Currently only GACK-GTS in the same superframe are possible, as only the sub block of the current superframe is available
+         */
         uint8_t currentSlotShift = 0;
         while(currentSlotShift <= maxSlotShift){
             //try all possible superframeIDs in the last GTSlot first, then decrement GTSlot number
