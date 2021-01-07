@@ -52,7 +52,7 @@ enum ACTState { VALID, UNCONFIRMED, INVALID, DEALLOCATED, REMOVED };
 
 class ACTElement {
     friend class DSMEAllocationCounterTable;
-    #define ADDRESSLIST_SIZE 2
+    //#define ADDRESSLIST_SIZE 2
 
 public:
     uint16_t getIdleCounter() const {
@@ -60,21 +60,24 @@ public:
     }
 
     bool contains(uint16_t address) {
-        //return addressList.contains(address);
+        return addressList.contains(address);
+        /*
         for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
             if(addressList[i] == address)
                 return true;
         return false;
+        */
 
     }
 
     uint16_t getAddress(){
-        //return addressList.getLast();
-        return addressList[0];
+        return addressList.getLast();
+        //return addressList[0];
     }
 
     uint8_t getAddressCount(){
         uint8_t ctr=0;
+        /*
         for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
         {
             if(addressList[i]!=0)
@@ -82,23 +85,24 @@ public:
                 ctr++;
             }
         }
-        return ctr;
+        */
+        return addressList.getSize();
     }
 
     void addAddress(uint16_t address) {
-        //addressList.insertLast(address);
-        addressList[1] = address;
+        addressList.insertLast(address);
+        //addressList[1] = address;
     }
 
     bool removeAddress(uint16_t address) {
-        /*
+
         if(addressList.contains(address))
         {
             addressList.deleteItemIfExists(address);
             return true;
         }
         return false;
-        */
+        /*
         for(uint8_t i=0;i<ADDRESSLIST_SIZE;i++)
         {
             if(addressList[i] == address)
@@ -108,6 +112,7 @@ public:
             }
         }
         return false;
+        */
     }
 
     uint16_t getSuperframeID() const {
@@ -181,22 +186,23 @@ public:
 private:
     ACTElement(uint16_t superframeID, uint8_t slotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gackGTS = false)
         : superframeID(superframeID), slotID(slotID), channel(channel), direction(direction), idleCounter(0), state(state), gackGTS(gackGTS) {
-        //addressList.insertLast(address);
+        addressList.insertLast(address);
+        /*
         addressList[0] = address;
         for(uint8_t i=1;i<ADDRESSLIST_SIZE;i++)
         {
             addressList[i] = 0;
         }
+        */
     }
 
     uint16_t superframeID;
     uint8_t slotID;
     uint8_t channel;
     Direction direction;
-    //DSMELinkedList<uint16_t> addressList;
-    uint16_t addressList[ADDRESSLIST_SIZE];
+    DSMELinkedList<uint16_t> addressList;
+    //uint16_t addressList[ADDRESSLIST_SIZE];
     uint16_t idleCounter;
-    bool gackGTS;
 
     // Slot state
     // TODO implementation specific, not handled by the standard
@@ -210,6 +216,7 @@ private:
     // since a transmission might induce collisions, but a reception could collect pending messages if
     // the slot on the other device is still VALID.
     ACTState state;
+    bool gackGTS;
 };
 
 } /* namespace dsme */

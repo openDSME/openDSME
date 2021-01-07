@@ -57,6 +57,8 @@ public:
     }
 
     DSMELinkedList(DSMELinkedList const& other) {
+        head = nullptr;
+        tail = nullptr;
         size = 0;
         for(uint8_t i=0; i<other.getSize(); i++) {
             this->insertLast(other.getElementAt(i));
@@ -64,11 +66,9 @@ public:
     }
 
     ~DSMELinkedList(){
-        /*
         while(size>0){
             deleteLast();
         }
-        */
     }
 
     void insertFirst(C element)

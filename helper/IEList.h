@@ -55,24 +55,32 @@ public:
         ieListID = ieListIDCtr;
         ieListIDCtr++;
     }
-    IEList(IEList const& other) {   //copy ieList
+    IEList& operator=(IEList const& other) {    //copy ieList
         uint8_t len = other.getSerializationLength();
         uint8_t *buffer = new uint8_t[len];
+        uint8_t *movingPtr = buffer;
         if(buffer != nullptr){
-            other.serializeTo(buffer);
-            this->deserializeFrom((const uint8_t*&)buffer, len);
-            delete buffer;
+            for(uint8_t i=0;i<len;i++){
+                buffer[i]=0;
+            }
+            other.serializeTo(movingPtr);
+            movingPtr = buffer; //reset pointer
+            this->deserializeFrom((const uint8_t*&)movingPtr, len);
+            delete[] buffer;
+            buffer = nullptr;
+            movingPtr = nullptr;
         }
+        return *this;
     }
+
     ~IEList(){
-        /*
         while(ieNodeList.getSize()>0){
             IEListNode &element = ieNodeList.getLast();
             delete element.ieElement;
             element.ieElement = nullptr;
             ieNodeList.deleteLast();
         }
-        */
+        ieListIDCtr--;
     }
 
     bool contains(InformationElement::tIEID ieID){
