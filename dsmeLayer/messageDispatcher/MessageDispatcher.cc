@@ -424,6 +424,9 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                     uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);
                     this->dsme.getPlatform().setChannelNumber(channel);
                 }
+                if(this->currentACTElement->isGackGTS() && (this->currentACTElement->getDirection() == Direction::TX)){
+                    //prepare GACK Message
+                }
             }
 
             // statistic
@@ -506,8 +509,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         } else if(this->currentACTElement->getState() == VALID) {
             /* '-> if any messages are queued for this link, send one */
 
-            if(this->currentACTElement->isGackGTS()){
-                //send GACK here
+            if(this->currentACTElement->isGackGTS()){   //TX GACK
+                //send GACK here, broadcast address
                 finalizeGTSTransmission();
             }else{
 
