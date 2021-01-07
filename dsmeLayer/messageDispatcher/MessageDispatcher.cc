@@ -84,6 +84,12 @@ MessageDispatcher::~MessageDispatcher() {
             this->dsme.getPlatform().releaseMessage(msg);
         }
     }
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        while(!this->retransmissionQueue.isQueueEmpty(it)) {
+            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            this->dsme.getPlatform().releaseMessage(msg);
+        }
+    }
 }
 
 void MessageDispatcher::initialize(void) {
@@ -332,6 +338,10 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
                 case CommandFrameIdentifier::DSME_GTS_NOTIFY:
                     LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getGTSManager().handleGTSNotify(msg);
+                    break;
+                case CommandFrameIdentifier::DSME_GTS_GACK:
+                    LOG_INFO("DSME-GTS-GACK from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    dsme.getGTSManager().handleGTSGack(msg);
                     break;
                 case CommandFrameIdentifier::ASSOCIATION_REQUEST:
                     LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");

@@ -164,6 +164,7 @@ protected:
     IDSMEMessage* dsmeAckFrame;
 
     NeighborQueue<MAX_NEIGHBORS> neighborQueue;
+    NeighborQueue<MAX_NEIGHBORS> retransmissionQueue;
 
     NeighborQueue<MAX_NEIGHBORS>::iterator lastSendGTSNeighbor;
 
