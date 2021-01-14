@@ -90,6 +90,7 @@ public:
     inline void addNeighbor(const IEEE802154MacAddress& address) {
         Neighbor n(address);
         neighborQueue.addNeighbor(n);
+        retransmissionQueue.addNeighbor(n);
     }
 
     inline bool neighborExists(const IEEE802154MacAddress& address) {
@@ -180,6 +181,9 @@ protected:
      * Called on reception of a GTS frame. Send Ack and send payload to upper layer.
      */
     void handleGTSFrame(IDSMEMessage* msg);
+
+
+    bool prepareGackCommand();
 
     /*! Prepares the next GTS message from the packet queue for transmission.
      *\return true if a message was prepared, false otherwise, i.e., if there is

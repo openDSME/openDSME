@@ -84,7 +84,7 @@ public:
     }
 
     bool contains(InformationElement::tIEID ieID){
-        for(uint8_t id = 0; id < 255;id++){
+        for(uint8_t id = 0; id < ieNodeList.getSize();id++){
             IEListNode &element = ieNodeList.getElementAt(id);
             if(element.ieID == ieID){
                 return true;
@@ -94,7 +94,7 @@ public:
     }
 
     InformationElement* getIEByID(InformationElement::tIEID ieID){
-        for(uint8_t id = 0; id < 255;id++){
+        for(uint8_t id = 0; id < ieNodeList.getSize();id++){
             IEListNode &element = ieNodeList.getElementAt(id);
             if(element.ieID == ieID){
                 return element.ieElement;

@@ -66,6 +66,7 @@
 #include "../gtsManager/GTSManager.h"
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
+#include "../messages/GTSGackCmd.h"
 
 namespace dsme {
 
@@ -142,6 +143,12 @@ void MessageDispatcher::reset(void) {
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg) {
     LOG_DEBUG("sendDoneGTS");
 
+    if(this->currentACTElement->isGackGTS()){   //if it is a GACK-GTS
+        //clear gackVector
+        finalizeGTSTransmission();
+        return;
+    }
+
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
 
@@ -167,6 +174,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     bool signalUpperLayer = false;
+    /*Insert sent message into retransmissionQueue for eventual retransmission*/
     if(currentACTElement->isGackEnabled() && !retransmissionQueue.isQueueFull()) {
         IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
         const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
@@ -180,8 +188,9 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         if(retransmissionQueueNeighbor == retransmissionQueue.end()){
             //create neighbor
         }
+        DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
         retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg);
-    } else {
+    } else {  /*if not gackEnabled, release Message*/
         neighborQueue.popFront(lastSendGTSNeighbor);
         signalUpperLayer = true;
     }
@@ -193,6 +202,11 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         totalSize += it->queueSize;
     }
     this->dsme.getPlatform().signalQueueLength(totalSize);
+    totalSize = 0;
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        totalSize += it->queueSize;
+    }
+    this->dsme.getPlatform().signalRetransmissionQueueLength(totalSize);
     /* END STATISTICS */
 
     mcps_sap::DATA_confirm_parameters params;
@@ -471,9 +485,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
                     uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);
                     this->dsme.getPlatform().setChannelNumber(channel);
                 }
-                if(this->currentACTElement->isGackGTS() && (this->currentACTElement->getDirection() == Direction::TX)){
-                    //prepare GACK Message
-                }
             }
 
             // statistic
@@ -557,8 +568,20 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             /* '-> if any messages are queued for this link, send one */
 
             if(this->currentACTElement->isGackGTS()){   //TX GACK
-                //send GACK here, broadcast address
-                finalizeGTSTransmission();
+                bool success = prepareGackCommand();    //send GACK here, broadcast address
+                LOG_DEBUG(success);
+                if(success) {
+                    /* '-> a message is queued for transmission */
+                    success = sendPreparedMessage();
+                }
+                LOG_DEBUG(success);
+
+                if(success == false) {
+                    /* '-> no message to be sent */
+                    LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GACK GTS");
+                    this->numUnusedTxGts++;
+                    finalizeGTSTransmission();
+                }
             }else{
 
                 DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
@@ -635,6 +658,68 @@ void MessageDispatcher::handleAckTransmitted(){
    }
 }
 
+
+bool MessageDispatcher::prepareGackCommand(){
+    bool result = false;
+    bool checkTimeToSendMessage = false;
+
+    // check if there exists a pending Message
+    DSME_ASSERT(this->preparedMsg == nullptr);
+    this->preparedMsg = dsme.getPlatform().getEmptyMessage();
+    DSME_ASSERT(this->preparedMsg != nullptr);
+
+    GTSGackCmd gackCmd(GACK_MAX_SIZE);
+    //prepare gackCmd here
+    gackCmd.getGackVector().set(0, 1);
+    gackCmd.getGackVector().set(1, 0);
+    gackCmd.getGackVector().set(2, 1);
+    gackCmd.getGackVector().set(3, 1);
+    LOG_INFO("GACK MAP SENT: ");
+    int count = 0;
+    for(int i = 0; i < gackCmd.getGackVector().length(); i++){
+        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
+        if(gackCmd.getGackVector().get(i) == true){
+            count++;
+        }
+    }
+    gackCmd.prependTo(this->preparedMsg);
+
+    MACCommand cmd;
+    cmd.setCmdId(DSME_GTS_GACK);
+    cmd.prependTo(this->preparedMsg);
+
+    this->preparedMsg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
+    this->preparedMsg->getHeader().setSrcAddrMode(AddrMode::SHORT_ADDRESS);
+    this->preparedMsg->getHeader().setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
+    this->preparedMsg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
+
+    this->preparedMsg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    this->preparedMsg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
+
+    this->preparedMsg->getHeader().setAckRequest(false);   //No ACK for gACK as it is broadcasted
+    this->preparedMsg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
+
+    /* STATISTICS (START) */
+    this->preparedMsg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
+    /* STATISTICS (END) */
+
+
+    checkTimeToSendMessage = true;
+    if(checkTimeToSendMessage) {//if the timming for transmission must be checked
+        // determined how long the transmission of the preparedMessage will take.
+        uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;
+        uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
+        // check if the remaining slot time is enough to transmit the prepared packet
+        if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
+            LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
+            this->preparedMsg = nullptr; // reset value of pending Message
+            result = false; // there is no enough time, no transmission will take place
+        } else {
+            result = true; // there is time, then proceed
+        }
+    }
+    return result;
+}
 
 // Function to determine if there is any message that can be transmitted or not.
 // Returns: True: 1. If there is a pending message (e.g. from failed transmission) to transmit

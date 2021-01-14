@@ -124,6 +124,9 @@ public:
     virtual void signalQueueLength(uint32_t length) {
     }
 
+    virtual void signalRetransmissionQueueLength(uint32_t length) {
+    }
+
     /*
      * Signal transmitted packets per slot
      */
