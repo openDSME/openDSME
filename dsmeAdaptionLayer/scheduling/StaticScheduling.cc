@@ -90,7 +90,8 @@ void StaticScheduling::setNegotiateChannels(bool negotiateChannels) {
 void StaticScheduling::allocateGTS(uint8_t superframeID, uint8_t slotID, uint8_t channelID, Direction direction, uint16_t address) {
     if(!this->negotiateChannels) {
         this->dsmeAdaptionLayer.getDSME().getMessageDispatcher().addNeighbor(IEEE802154MacAddress(address));
-        this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID);
+        this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.add(superframeID, slotID, channelID, direction, address, ACTState::VALID, false);
+        //TODO: gackEnabled in static Scheduler?
     } else {
         if(direction == Direction::TX) {
             this->superframes.push_back(superframeID); 

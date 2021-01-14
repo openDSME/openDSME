@@ -113,9 +113,26 @@ void MessageDispatcher::reset(void) {
             this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
         }
     }
+    for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+        while(!this->retransmissionQueue.isQueueEmpty(it)) {
+            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            mcps_sap::DATA_confirm_parameters params;
+            params.msduHandle = msg;
+            params.timestamp = 0;
+            params.rangingReceived = false;
+            params.gtsTX = true;
+            params.status = DataStatus::TRANSACTION_EXPIRED;
+            params.numBackoffs = 0;
+            this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+        }
+    }
     while(this->neighborQueue.getNumNeighbors() > 0) {
         NeighborQueue<MAX_NEIGHBORS>::iterator it = this->neighborQueue.begin();
         this->neighborQueue.eraseNeighbor(it);
+    }
+    while(this->retransmissionQueue.getNumNeighbors() > 0) {
+        NeighborQueue<MAX_NEIGHBORS>::iterator it = this->retransmissionQueue.begin();
+        this->retransmissionQueue.eraseNeighbor(it);
     }
 
     return;
@@ -149,7 +166,25 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         this->dsme.getPlatform().signalAckedTransmissionResult(response == AckLayerResponse::ACK_SUCCESSFUL, msg->getRetryCounter() + 1, msg->getHeader().getDestAddr());
     }
 
-    neighborQueue.popFront(lastSendGTSNeighbor);
+    bool signalUpperLayer = false;
+    if(currentACTElement->isGackEnabled() && !retransmissionQueue.isQueueFull()) {
+        IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
+        const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
+
+        /* Keep track of how many packets have been sent in each GTS this SF*/
+        int a = currentACTElement.node()->content.getGTSlotID();
+        LOG_INFO(a);
+        //this->gackHelper.packetTransmitted(currentACTElement.node()->content.getGTSlotID());
+
+        NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
+        if(retransmissionQueueNeighbor == retransmissionQueue.end()){
+            //create neighbor
+        }
+        retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg);
+    } else {
+        neighborQueue.popFront(lastSendGTSNeighbor);
+        signalUpperLayer = true;
+    }
     this->preparedMsg = nullptr;
 
     /* STATISTICS */
@@ -192,7 +227,9 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     params.numBackoffs = 0;
-    this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+    if(signalUpperLayer || !msg->getHeader().getIEList().contains(InformationElement::ID_gackEnabled)){
+        this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+    }
 
 
     if(!this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {

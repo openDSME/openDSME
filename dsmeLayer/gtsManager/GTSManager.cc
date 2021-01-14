@@ -248,8 +248,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 return FSM_HANDLED;
             } else {
                 if(event.management.status == GTSStatus::SUCCESS) {
-                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
-                    //TODO: transmit gackGTS information to actUpdater here
+                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset, event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED);
                 }
                 return transition(fsmId, &GTSManager::stateSending);
             }
@@ -501,7 +500,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         }
                     } else {
                         actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr,
-                                                    event.replyNotifyCmd.getChannelOffset());
+                                                    event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED);
                     }
                 }
             }
@@ -871,14 +870,14 @@ bool GTSManager::handleGTSGack(IDSMEMessage* msg) {
 //        return true;
 //    }
 
-    GTSGackCmd gackCmd;
+    GTSGackCmd gackCmd(GACK_MAX_SIZE);
     gackCmd.decapsulateFrom(msg);
 
     LOG_INFO("GACK MAP RECEIVED: ");
     int count = 0;
     for(int i = 0; i < gackCmd.getGackVector().length(); i++){
-        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackMap().get(i));
-        if(gackCmd.getGackMap().get(i) == true){
+        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
+        if(gackCmd.getGackVector().get(i) == true){
             count++;
         }
     }

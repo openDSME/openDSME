@@ -102,9 +102,9 @@ public:
 
     iterator find(uint16_t superframeID, uint8_t gtSlotID);
 
-    void printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address);
+    void printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address, bool gackEnabled);
 
-    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state);
+    bool add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state, bool gackEnabled);
 
     void remove(DSMEAllocationCounterTable::iterator it, uint16_t deviceAddress = 0);
 
@@ -113,9 +113,9 @@ public:
     uint16_t getNumAllocatedGTS(uint16_t address, Direction direction);
 
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     bool checkAddress = false);
+                     bool checkAddress = false, bool gackEnabled = false);
     void setACTState(DSMESABSpecification& subBlock, ACTState state, Direction direction, uint16_t deviceAddress, uint16_t channelOffset, bool useChannelOffset,
-                     condition_t condition, bool checkAddress = false);
+                     condition_t condition, bool checkAddress = false, bool gackEnabled = false);
     void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset);
 
     bool addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address);

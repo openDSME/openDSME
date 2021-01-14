@@ -164,6 +164,8 @@ public:
      */
     bool handleGTSNotify(IDSMEMessage* msg);
 
+    bool handleGTSGack(IDSMEMessage* msg);
+
     /**
      * This shall be called at the start of every CFP.
      *

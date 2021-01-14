@@ -70,21 +70,21 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
     // No action required
 }
 
-void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
+void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled) {
     LOG_DEBUG("ACTUpdater - approvavQueued");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
-                                                       useChannelOffset, [](ACTState b) { return b != ACTState::INVALID; });
+                                                       useChannelOffset, [](ACTState b) { return b != ACTState::INVALID; }, gackEnabled);
     }
 }
 
-void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
+void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled) {
     LOG_ACT("approvalReceived");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, channelOffset, useChannelOffset,
-                                                       [](ACTState b) { return b != ACTState::INVALID; });
+                                                       [](ACTState b) { return b != ACTState::INVALID; }, gackEnabled);
     }
 }
 
