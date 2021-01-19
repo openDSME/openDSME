@@ -236,11 +236,6 @@ public:
         this->frameControl.panIDCompression = compression;
     }
 
-    void setIEListPresent(bool present) {
-        finalized = false;
-        this->frameControl.ieListPresent = present;
-    }
-
     bool getIEListPresent() {
             return this->frameControl.ieListPresent;
         }
@@ -331,6 +326,12 @@ public:
     }
 
 private:
+
+    void setIEListPresent(bool present) {
+        finalized = false;
+        this->frameControl.ieListPresent = present;
+    }
+
     FrameControl frameControl;
 
     uint8_t seqNum;

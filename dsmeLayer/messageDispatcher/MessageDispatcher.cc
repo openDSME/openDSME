@@ -324,6 +324,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
 
     numUpperPacketsForGTS++;
 
+
     if(!neighborQueue.isQueueFull()) {
         /* push into queue */
         // TODO implement TRANSACTION_EXPIRED
@@ -757,8 +758,18 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         this->preparedMsg = neighborQueue.front(this->lastSendGTSNeighbor);
     }
 
+    if(this->preparedMsg){
+        if(currentACTElement->isGackEnabled() && this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
+            //if gackEnabled in the current GTS and its a data message -> get gackEnabled flag
+            gackEnabledIE *gackIE = new gackEnabledIE();
+            DSME_ASSERT(gackIE != nullptr);
+            gackIE->gackEnabled = true;
+            preparedMsg->getHeader().getIEList().insert(gackIE);
+            preparedMsg->getHeader().setAckRequest(false);
+        }
+    }
+
     if(this->neighborQueue.getPacketsInQueue(this->lastSendGTSNeighbor) == 1){
-        preparedMsg->getHeader().setIEListPresent(true);
         LOG_INFO("last Packet in queue");
         lastMessageIE *lmIE = new lastMessageIE();
         DSME_ASSERT(lmIE != nullptr);

@@ -84,7 +84,6 @@ void DATA::request(request_parameters& params) {
     header.setAckRequest(params.ackTx);
     header.setSecurityEnabled(false);
     header.overridePanIDCompression(params.panIdSuppressed);
-    header.setIEListPresent(false);
     header.setSeqNumSuppression(params.seqNumSuppressed);
 
     if(params.gtsTx) {

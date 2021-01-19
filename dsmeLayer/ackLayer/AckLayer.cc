@@ -247,51 +247,65 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
             // according to 5.2.1.1.4, the ACK shall be sent anyway even with broadcast address, but this can not work for GTS replies (where the AR bit has to
             // be set 5.3.11.5.2)
-            if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
-                LOG_DEBUG("sending ACK");
 
-                // keep the received message and set up the acknowledgement as new pending message
-                IDSMEMessage* receivedMessage = pendingMessage;
-                pendingMessage = dsme.getPlatform().getEmptyMessage();
-                if(pendingMessage == nullptr) {
-                    DSME_ASSERT(false);
-                    DSME_ATOMIC_BLOCK {
-                        this->busy = false;
-                    }
-                    return FSM_HANDLED;
-                }
-
-                IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader(); //TODO remove IEQueue
-                ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
-                ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
-
-                ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
-
-                /* platform has to handle delaying the ACK to obey aTurnaroundTime */
-                bool success = dsme.getPlatform().sendDelayedAck(pendingMessage, receivedMessage, internalDoneCallback);
-
-                /* let upper layer handle the received message after the ACK has been transmitted */
-                dsme.getPlatform().handleReceivedMessageFromAckLayer(receivedMessage);
-
-                if(success) {
-                    return transition(&AckLayer::stateTxAck);
-                } else {
-                    DSME_SIM_ASSERT(false);
-
-                    dsme.getPlatform().releaseMessage(pendingMessage);
-                    pendingMessage = nullptr;
-                    DSME_ATOMIC_BLOCK {
-                        this->busy = false;
-                    }
-                    return FSM_HANDLED;
-                }
-            } else {
+            if(pendingMessage->getHeader().getIEListPresent() \
+                && pendingMessage->getHeader().getIEList().contains(InformationElement::ID_gackEnabled)\
+                && !pendingMessage->getHeader().isAckRequested()){
+                    //GACK enabled, therefore no direct ACK
+                    //TODO:register in GackVector here, that a message has been received successfully
                 dsme.getPlatform().handleReceivedMessageFromAckLayer(pendingMessage);
                 pendingMessage = nullptr; // owned by upper layer now
                 DSME_ATOMIC_BLOCK {
                     this->busy = false;
                 }
                 return FSM_HANDLED;
+            } else {
+                if(pendingMessage->getHeader().isAckRequested() && !pendingMessage->getHeader().getDestAddr().isBroadcast()) {
+                    LOG_DEBUG("sending ACK");
+
+                    // keep the received message and set up the acknowledgement as new pending message
+                    IDSMEMessage* receivedMessage = pendingMessage;
+                    pendingMessage = dsme.getPlatform().getEmptyMessage();
+                    if(pendingMessage == nullptr) {
+                        DSME_ASSERT(false);
+                        DSME_ATOMIC_BLOCK {
+                            this->busy = false;
+                        }
+                        return FSM_HANDLED;
+                    }
+
+                    IEEE802154eMACHeader& ackHeader = pendingMessage->getHeader(); //TODO remove IEQueue
+                    ackHeader.setFrameType(IEEE802154eMACHeader::ACKNOWLEDGEMENT);
+                    ackHeader.setSequenceNumber(receivedMessage->getHeader().getSequenceNumber());
+
+                    ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
+
+                    /* platform has to handle delaying the ACK to obey aTurnaroundTime */
+                    bool success = dsme.getPlatform().sendDelayedAck(pendingMessage, receivedMessage, internalDoneCallback);
+
+                    /* let upper layer handle the received message after the ACK has been transmitted */
+                    dsme.getPlatform().handleReceivedMessageFromAckLayer(receivedMessage);
+
+                    if(success) {
+                        return transition(&AckLayer::stateTxAck);
+                    } else {
+                        DSME_SIM_ASSERT(false);
+
+                        dsme.getPlatform().releaseMessage(pendingMessage);
+                        pendingMessage = nullptr;
+                        DSME_ATOMIC_BLOCK {
+                            this->busy = false;
+                        }
+                        return FSM_HANDLED;
+                    }
+                } else {
+                    dsme.getPlatform().handleReceivedMessageFromAckLayer(pendingMessage);
+                    pendingMessage = nullptr; // owned by upper layer now
+                    DSME_ATOMIC_BLOCK {
+                        this->busy = false;
+                    }
+                    return FSM_HANDLED;
+                }
             }
 
         default:
