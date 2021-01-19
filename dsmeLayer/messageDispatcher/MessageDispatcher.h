@@ -48,6 +48,7 @@
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../ackLayer/AckLayer.h"
 #include "../neighbors/NeighborQueue.h"
+#include "../../helper/GackHelper.h"
 
 namespace dsme {
 
@@ -67,6 +68,7 @@ private:
     bool turnOff{false};
 
 public:
+    GackHelper gackHelper;
     /*! Queues a message for transmission during a GTS.
      *
      * \param msg The message to transmit

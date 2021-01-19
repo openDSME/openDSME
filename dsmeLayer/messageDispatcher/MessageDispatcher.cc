@@ -95,6 +95,7 @@ MessageDispatcher::~MessageDispatcher() {
 
 void MessageDispatcher::initialize(void) {
     currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
+    gackHelper.init(this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot(), this->dsme.getMAC_PIB().macSuperframeOrder, this->dsme.getMAC_PIB().macCapReduction?15:7); //15 GTSlots if CAPReduction is active
     return;
 }
 
@@ -135,7 +136,7 @@ void MessageDispatcher::reset(void) {
         NeighborQueue<MAX_NEIGHBORS>::iterator it = this->retransmissionQueue.begin();
         this->retransmissionQueue.eraseNeighbor(it);
     }
-
+    gackHelper.reset();
     return;
 }
 
@@ -365,7 +366,12 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 void MessageDispatcher::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader &macHdr = msg->getHeader();
 
+    if(macHdr.getIEList().contains(InformationElement::ID_gack)){   //msg with gack=true received, signal gackHelper
+        gackHelper.registerReceivedMessage(macHdr.getSequenceNumber(), currentACTElement->getSuperframeID(), currentACTElement->getGTSlotID());
+    }
+
     switch(macHdr.getFrameType()) {
+
         case IEEE802154eMACHeader::FrameType::BEACON: {
             LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << " " << dsme.getCurrentSuperframe() << ".");
             this->dsme.getBeaconManager().handleBeacon(msg);
@@ -761,10 +767,9 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     if(this->preparedMsg){
         if(currentACTElement->isGackEnabled() && this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
             //if gackEnabled in the current GTS and its a data message -> get gackEnabled flag
-            gackEnabledIE *gackIE = new gackEnabledIE();
-            DSME_ASSERT(gackIE != nullptr);
-            gackIE->gackEnabled = true;
-            preparedMsg->getHeader().getIEList().insert(gackIE);
+            gackIE *gIE = new gackIE();
+            DSME_ASSERT(gIE != nullptr);
+            preparedMsg->getHeader().getIEList().insert(gIE);
             preparedMsg->getHeader().setAckRequest(false);
         }
     }

@@ -79,6 +79,8 @@ public:
 
     uint8_t getNumberGroupAckSlotsPerMultiSuperframe() const;
 
+    uint8_t getNumberSuperframesPerGroupAckSlot() const;
+
 private:
     PHY_PIB& phy_pib;
     MAC_PIB& mac_pib;

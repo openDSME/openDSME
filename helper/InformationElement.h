@@ -15,6 +15,7 @@ namespace dsme {
             ID_lastMessage = 0x10,
             ID_gackEnabled = 0x0B,
             ID_gackResponse = 0x0C,
+            ID_gack = 0x0D,
             ID_stopIE = 0xFF    //signal the end of the ieList
         }tIEID;
         virtual ~InformationElement(){};
@@ -48,6 +49,26 @@ namespace dsme {
         }
         void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
             isLastMessage = *(buffer++);
+        }
+    };
+    class gackIE : public InformationElement{
+        public:
+        gackIE(){
+            IEID = ID_gack;
+        }
+        ~gackIE(){};
+
+        InformationElement::tIEID getIEID(){
+            return IEID;
+        }
+
+        uint8_t getSerializationLength() {
+            return 0;
+        }
+
+        void serializeTo(uint8_t*& buffer) {
+        }
+        void deserializeFrom(const uint8_t*& buffer, uint8_t payloadLength) {
         }
     };
 

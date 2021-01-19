@@ -75,6 +75,10 @@ uint8_t PIBHelper::getNumberGroupAckSlotsPerMultiSuperframe() const {
     }
 }
 
+uint8_t PIBHelper::getNumberSuperframesPerGroupAckSlot() const {
+    return (getNumberSuperframesPerMultiSuperframe()/getNumberGroupAckSlotsPerMultiSuperframe());
+}
+
 unsigned PIBHelper::getNumberSuperframesPerBeaconInterval() const {
     /* 2^(BO-SO) */
     return 1 << (unsigned)(this->mac_pib.macBeaconOrder - this->mac_pib.macSuperframeOrder);
