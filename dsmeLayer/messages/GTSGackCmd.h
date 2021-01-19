@@ -49,20 +49,18 @@
 namespace dsme {
 
 class GTSGackCmd : public DSMEMessageElement {
-    #define GACK_MAX_SIZE 123 //TODO
+    #define GACK_MAX_SIZE 32 //TODO
 private:
-    uint8_t gackVectorSize;
     BitVector<GACK_MAX_SIZE> gackVector;
 
 public:
     GTSGackCmd(uint8_t size){
         gackVector.setLength(size);
-        gackVectorSize = size;
     }
     GTSGackCmd(BitVector<GACK_MAX_SIZE> BitVector) : gackVector(BitVector){
     }
 
-    BitVector<GACK_MAX_SIZE> getGackVector(){
+    BitVector<GACK_MAX_SIZE>& getGackVector(){
         return gackVector;
     }
 

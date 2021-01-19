@@ -185,10 +185,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         //this->gackHelper.packetTransmitted(currentACTElement.node()->content.getGTSlotID());
 
         NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
-        if(retransmissionQueueNeighbor == retransmissionQueue.end()){
-            //create neighbor
-        }
         DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
+
         retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg);
     } else {  /*if not gackEnabled, release Message*/
         neighborQueue.popFront(lastSendGTSNeighbor);
@@ -392,7 +390,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
                     break;
                 case CommandFrameIdentifier::DSME_GTS_GACK:
                     LOG_INFO("DSME-GTS-GACK from " << macHdr.getSrcAddr().getShortAddress() << ".");
-                    dsme.getGTSManager().handleGTSGack(msg);
+                    handleGackReception(msg);
                     break;
                 case CommandFrameIdentifier::ASSOCIATION_REQUEST:
                     LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
@@ -658,6 +656,22 @@ void MessageDispatcher::handleAckTransmitted(){
    }
 }
 
+bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
+
+    GTSGackCmd gackCmd(GACK_MAX_SIZE);
+    gackCmd.decapsulateFrom(msg);
+
+    LOG_INFO("GACK MAP RECEIVED: ");
+    int count = 0;
+    for(int i = 0; i < gackCmd.getGackVector().length(); i++){
+        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
+        if(gackCmd.getGackVector().get(i) == true){
+            count++;
+        }
+    }
+    return true;
+}
+
 
 bool MessageDispatcher::prepareGackCommand(){
     bool result = false;
@@ -670,6 +684,8 @@ bool MessageDispatcher::prepareGackCommand(){
 
     GTSGackCmd gackCmd(GACK_MAX_SIZE);
     //prepare gackCmd here
+    //for all neighbors, that listen on this GACK-GTS:
+        //get
     gackCmd.getGackVector().set(0, 1);
     gackCmd.getGackVector().set(1, 0);
     gackCmd.getGackVector().set(2, 1);

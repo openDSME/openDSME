@@ -861,49 +861,6 @@ bool GTSManager::handleGTSNotify(IDSMEMessage* msg) {
     return true;
 }
 
-bool GTSManager::handleGTSGack(IDSMEMessage* msg) {
-    GTSManagement management;
-
-    management.decapsulateFrom(msg);
-
-//    if(management.type != ManagementType::ALLOCATION && management.type != ManagementType::DEALLOCATION) {
-//        return true;
-//    }
-
-    GTSGackCmd gackCmd(GACK_MAX_SIZE);
-    gackCmd.decapsulateFrom(msg);
-
-    LOG_INFO("GACK MAP RECEIVED: ");
-    int count = 0;
-    for(int i = 0; i < gackCmd.getGackVector().length(); i++){
-        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
-        if(gackCmd.getGackVector().get(i) == true){
-            count++;
-        }
-    }
-
-    /*
-    if(gackCmd.getDestinationAddress() == dsme.getMAC_PIB().macShortAddress) {
-        int8_t fsmId = getFsmIdFromNotifyForMe(msg);
-        data[fsmId].notifyPartnerAddress = IEEE802154MacAddress::NO_SHORT_ADDRESS;
-        return dispatch(fsmId, GTSEvent::NOTIFY_CMD_FOR_ME, msg, management, replyNotifyCmd);
-    } else {
-        // Notify overheared -> Add to the SAB regardless of the current state
-        if(management.type == ManagementType::ALLOCATION) {
-            if(!checkAndHandleGTSDuplicateAllocation(replyNotifyCmd.getSABSpec(), msg->getHeader().getSrcAddr().getShortAddress(), false)) {
-                // If there is no conflict, the device shall update macDSMESAB according to the DSMESABSpecification in this
-                // command frame to reflect the neighbor's newly allocated DSME-GTSs
-                this->dsme.getMAC_PIB().macDSMESAB.addOccupiedSlots(replyNotifyCmd.getSABSpec());
-            }
-        } else if(management.type == ManagementType::DEALLOCATION) {
-            this->dsme.getMAC_PIB().macDSMESAB.removeOccupiedSlots(replyNotifyCmd.getSABSpec());
-        }
-    }
-    */
-    return true;
-
-}
-
 bool GTSManager::handleStartOfCFP(uint8_t superframe) {
     for(uint8_t i = 0; i < GTS_STATE_MULTIPLICITY; ++i) {
         data[i].superframesInCurrentState++;

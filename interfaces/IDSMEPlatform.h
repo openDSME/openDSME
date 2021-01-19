@@ -139,6 +139,9 @@ public:
     virtual void signalPacketsRXPerSlot(uint32_t packets) {
     }
 
+    virtual void signalMessagesInUse(uint32_t nr) {
+    }
+
     virtual void delayedTurnTransceiverOff() = 0;
 
     virtual bool isGackEnabled() = 0;

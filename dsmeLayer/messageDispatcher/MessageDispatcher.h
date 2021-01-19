@@ -185,6 +185,8 @@ protected:
 
     bool prepareGackCommand();
 
+    bool handleGackReception(IDSMEMessage* msg);
+
     /*! Prepares the next GTS message from the packet queue for transmission.
      *\return true if a message was prepared, false otherwise, i.e., if there is
      *        no packet in the queue or the remaining time is not sufficient for
