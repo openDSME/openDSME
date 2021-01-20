@@ -676,6 +676,72 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
             count++;
         }
     }
+    //parse received gackVector and retransmit messages
+
+    DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
+    uint16_t cfpSlotsPerSuperframe = this->dsme.getMAC_PIB().macCapReduction?15:7;
+    uint8_t superframesPerGroupAckSlot = this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot();
+    DSME_ASSERT(gackCmd.getGackVector().length() % cfpSlotsPerSuperframe == 0);
+    uint8_t packetsPerGTS = gackCmd.getGackVector().length() / cfpSlotsPerSuperframe / superframesPerGroupAckSlot;
+
+    const IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
+    NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
+    NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
+    DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
+
+    for(uint8_t superframeID; superframeID < superframesPerGroupAckSlot;superframeID++){ //for every superframe in the msg
+        for(uint8_t gtsId=0; gtsId<cfpSlotsPerSuperframe; gtsId++) { //for every GTSlot
+            uint16_t vectorPtr = superframeID*cfpSlotsPerSuperframe*packetsPerGTS + gtsId*packetsPerGTS;
+            if(act.isAllocated(superframeID, gtsId)) {
+                if(IEEE802154MacAddress(act.find(superframeID, gtsId)->getAddress()) == srcAddr) {   /* '-> we transmitted in this gts to the device that sent the gack */
+
+                    int a = gackHelper.transmittedPacketsGTS[gtsId]; //???
+                    LOG_INFO(a);
+
+                    for(uint16_t i = 0; i<packetsPerGTS; i++) { /* '-> check for all bits of the bitmap */
+
+                        if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
+                            break;
+                        }
+                        IDSMEMessage* msg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
+                        mcps_sap::DATA_confirm_parameters params;
+                        params.msduHandle = msg;
+                        params.timestamp = 0; // TODO
+                        params.rangingReceived = false;
+                        params.gtsTX = true;
+
+                        if(gackCmd.getGackVector().get(vectorPtr+i) == true) {
+                            /* '-> successful transmission */
+                            params.status = DataStatus::SUCCESS;
+                        } else {
+                            /* '-> failed transmission */
+                            if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
+                                msg->increaseRetryCounter();
+                                LOG_DEBUG("handleGACK - retry");
+                                if(!neighborQueue.isQueueFull()) {
+                                    DSME_ASSERT(msg != nullptr);
+                                    neighborQueue.pushBack(neighborQueueNeighbor, msg);
+                                }
+                                preparedMsg = nullptr;
+                                continue;
+                            } else {
+                                // should not happen MessageHelper.cc 269
+                                params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
+                            }
+                        }
+
+                        this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+                    }
+                }
+            }
+        }
+    }
+    //this->gackHelper.resetTransmittedPacketsGTS();
+
+
+
+
+
     return true;
 }
 

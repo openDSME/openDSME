@@ -67,7 +67,7 @@ private:
     uint8_t lastSuperframeID = 0;
     uint16_t lastSequenceNumber = 0;
     uint8_t lastGTSlotID = 0;
-    uint8_t gackMapIterator;
+    uint16_t gackMapIterator;
     uint8_t maxSuperframeID;
     uint8_t superframeOrder;
     BitVector<(105*4*7)> gackMap; //superframeID * GTSlotID * MsgSlotID
