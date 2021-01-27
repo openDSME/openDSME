@@ -49,7 +49,7 @@
 namespace dsme {
 
 class GTSGackCmd : public DSMEMessageElement {
-    #define GACK_MAX_SIZE 32 //TODO
+    #define GACK_MAX_SIZE 2*7*12 //TODO
 private:
     BitVector<GACK_MAX_SIZE> gackVector;
 

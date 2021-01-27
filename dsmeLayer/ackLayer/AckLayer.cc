@@ -286,6 +286,13 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
                     }
                     return FSM_HANDLED;
                 }
+            } else {
+                dsme.getPlatform().handleReceivedMessageFromAckLayer(pendingMessage);
+                pendingMessage = nullptr; // owned by upper layer now
+                DSME_ATOMIC_BLOCK {
+                    this->busy = false;
+                }
+                return FSM_HANDLED;
             }
 
         default:

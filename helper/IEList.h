@@ -198,6 +198,9 @@ private:
                 case InformationElement::ID_gackResponse:
                     ieElement = (gackResponseIE*) new gackResponseIE;
                     break;
+                case InformationElement::ID_gack:
+                    ieElement = (gackIE*) new gackIE;
+                    break;
                 default:
                     ieElement = nullptr;
                     break;

@@ -95,7 +95,8 @@ MessageDispatcher::~MessageDispatcher() {
 
 void MessageDispatcher::initialize(void) {
     currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
-    gackHelper.init(this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot(), this->dsme.getMAC_PIB().macSuperframeOrder, this->dsme.getMAC_PIB().macCapReduction?15:7); //15 GTSlots if CAPReduction is active
+    //gackHelper.init(this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot(), this->dsme.getMAC_PIB().macSuperframeOrder, this->dsme.getMAC_PIB().macCapReduction?15:7); //15 GTSlots if CAPReduction is active
+    gackHelper.init(2,6,7); //TODO: fix initialization
     return;
 }
 
@@ -689,23 +690,19 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
     DSME_ASSERT(neighborQueueNeighbor != neighborQueue.end() && retransmissionQueueNeighbor != retransmissionQueue.end());
 
-    for(uint8_t superframeID; superframeID < superframesPerGroupAckSlot;superframeID++){ //for every superframe in the msg
+    for(uint8_t superframeID = 0; superframeID < superframesPerGroupAckSlot;superframeID++){ //for every superframe in the msg
         for(uint8_t gtsId=0; gtsId<cfpSlotsPerSuperframe; gtsId++) { //for every GTSlot
             uint16_t vectorPtr = superframeID*cfpSlotsPerSuperframe*packetsPerGTS + gtsId*packetsPerGTS;
             if(act.isAllocated(superframeID, gtsId)) {
                 if(IEEE802154MacAddress(act.find(superframeID, gtsId)->getAddress()) == srcAddr) {   /* '-> we transmitted in this gts to the device that sent the gack */
-
-                    int a = gackHelper.transmittedPacketsGTS[gtsId]; //???
-                    LOG_INFO(a);
-
                     for(uint16_t i = 0; i<packetsPerGTS; i++) { /* '-> check for all bits of the bitmap */
 
                         if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
                             break;
                         }
-                        IDSMEMessage* msg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
+                        IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
                         mcps_sap::DATA_confirm_parameters params;
-                        params.msduHandle = msg;
+                        params.msduHandle = queuedMsg;
                         params.timestamp = 0; // TODO
                         params.rangingReceived = false;
                         params.gtsTX = true;
@@ -715,12 +712,11 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
                             params.status = DataStatus::SUCCESS;
                         } else {
                             /* '-> failed transmission */
-                            if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
-                                msg->increaseRetryCounter();
+                            if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
+                                queuedMsg->increaseRetryCounter();
                                 LOG_DEBUG("handleGACK - retry");
                                 if(!neighborQueue.isQueueFull()) {
-                                    DSME_ASSERT(msg != nullptr);
-                                    neighborQueue.pushBack(neighborQueueNeighbor, msg);
+                                    neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
                                 }
                                 preparedMsg = nullptr;
                                 continue;
@@ -755,14 +751,8 @@ bool MessageDispatcher::prepareGackCommand(){
     this->preparedMsg = dsme.getPlatform().getEmptyMessage();
     DSME_ASSERT(this->preparedMsg != nullptr);
 
-    GTSGackCmd gackCmd(GACK_MAX_SIZE);
-    //prepare gackCmd here
-    //for all neighbors, that listen on this GACK-GTS:
-        //get
-    gackCmd.getGackVector().set(0, 1);
-    gackCmd.getGackVector().set(1, 0);
-    gackCmd.getGackVector().set(2, 1);
-    gackCmd.getGackVector().set(3, 1);
+    GTSGackCmd gackCmd(gackHelper.getGackVector()); //prepare gackCmd here
+
     LOG_INFO("GACK MAP SENT: ");
     int count = 0;
     for(int i = 0; i < gackCmd.getGackVector().length(); i++){
