@@ -81,14 +81,16 @@ MessageDispatcher::MessageDispatcher(DSMELayer& dsme)
 MessageDispatcher::~MessageDispatcher() {
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(!this->neighborQueue.isQueueEmpty(it)) {
-            IDSMEMessage* msg = neighborQueue.popFront(it);
-            this->dsme.getPlatform().releaseMessage(msg);
+            IDSMEMessage* currentMsg = neighborQueue.popFront(it);
+            this->dsme.getPlatform().releaseMessage(currentMsg);
+            currentMsg = nullptr;
         }
     }
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
         while(!this->retransmissionQueue.isQueueEmpty(it)) {
-            IDSMEMessage* msg = retransmissionQueue.popFront(it);
-            this->dsme.getPlatform().releaseMessage(msg);
+            IDSMEMessage* currentMsg = retransmissionQueue.popFront(it);
+            this->dsme.getPlatform().releaseMessage(currentMsg);
+            currentMsg = nullptr;
         }
     }
 }
@@ -96,7 +98,7 @@ MessageDispatcher::~MessageDispatcher() {
 void MessageDispatcher::initialize(void) {
     currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
     //gackHelper.init(this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot(), this->dsme.getMAC_PIB().macSuperframeOrder, this->dsme.getMAC_PIB().macCapReduction?15:7); //15 GTSlots if CAPReduction is active
-    gackHelper.init(2,6,7); //TODO: fix initialization
+    gackHelper.init(2,7,7); //TODO: fix initialization
     return;
 }
 
@@ -105,9 +107,9 @@ void MessageDispatcher::reset(void) {
 
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
         while(!this->neighborQueue.isQueueEmpty(it)) {
-            IDSMEMessage* msg = neighborQueue.popFront(it);
+            IDSMEMessage* currentMsg = neighborQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
-            params.msduHandle = msg;
+            params.msduHandle = currentMsg;
             params.timestamp = 0;
             params.rangingReceived = false;
             params.gtsTX = true;
@@ -118,9 +120,9 @@ void MessageDispatcher::reset(void) {
     }
     for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
         while(!this->retransmissionQueue.isQueueEmpty(it)) {
-            IDSMEMessage* msg = retransmissionQueue.popFront(it);
+            IDSMEMessage* currentMsg = retransmissionQueue.popFront(it);
             mcps_sap::DATA_confirm_parameters params;
-            params.msduHandle = msg;
+            params.msduHandle = currentMsg;
             params.timestamp = 0;
             params.rangingReceived = false;
             params.gtsTX = true;
@@ -181,11 +183,6 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
         const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
 
-        /* Keep track of how many packets have been sent in each GTS this SF*/
-        int a = currentACTElement.node()->content.getGTSlotID();
-        LOG_INFO(a);
-        //this->gackHelper.packetTransmitted(currentACTElement.node()->content.getGTSlotID());
-
         NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
         DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
 
@@ -241,7 +238,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     }
 
     params.numBackoffs = 0;
-    if(signalUpperLayer || !msg->getHeader().getIEList().contains(InformationElement::ID_gackEnabled)){
+    if(signalUpperLayer){
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     }
 
@@ -467,7 +464,6 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             return false;
         }
     }
-
     if(nextSlot > this->dsme.getMAC_PIB().helper.getFinalCAPSlot(nextSuperframe)) {
         /* '-> next slot will be GTS */
 
@@ -505,6 +501,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     } else if(nextSlot == 0) {
         /* '-> beacon slots are handled by the BeaconManager */
         DSME_ASSERT(this->currentACTElement == act.end());
+        gackHelper.handleNewSuperframe(nextSuperframe, nextMultiSuperframe);
     } else if(nextSlot == 1) {
         /* '-> next slot will be CAP */
 
