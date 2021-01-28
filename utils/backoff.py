@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 def main():
-    SO = 5
-    MO = 7
+    SO = 3
+    MO = 5
     print("SO:", SO)
     print("MO:", MO)
 

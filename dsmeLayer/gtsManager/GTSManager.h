@@ -188,6 +188,13 @@ public:
 
     uint32_t numGTSMessages{0};
 
+    uint8_t gtsRequestSuccess{0};
+    uint8_t gtsRequestFailed{0};
+    uint8_t gtsReplySuccess{0};
+    uint8_t gtsReplyFailed{0};
+    uint8_t gtsNotifySuccess{0};
+    uint8_t gtsNotifyFailed{0};
+
 private:
     /**
      * States

@@ -174,6 +174,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             event.requestCmd.prependTo(msg);
 
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REQUEST, event.deviceAddr)) {
+                gtsRequestFailed++;
                 dsme.getPlatform().releaseMessage(msg);
 
                 LOG_INFO("TRANSACTION_OVERFLOW");
@@ -205,6 +206,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
             }
 
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REPLY, destinationShortAddress)) {
+                gtsReplyFailed++;
                 LOG_INFO("Could not send REPLY");
                 dsme.getPlatform().releaseMessage(msg);
 
@@ -311,11 +313,14 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
             if(event.cmdId == DSME_GTS_NOTIFY) {
+                if(event.dataStatus != DataStatus::Data_Status::SUCCESS) gtsNotifyFailed++;
+                else gtsNotifySuccess++;
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
                     LOG_DEBUG("GTSManager sending request failed " << (uint16_t)event.dataStatus);
+                    gtsRequestFailed++;
 
                     switch(event.dataStatus) {
                         case DataStatus::NO_ACK:
@@ -338,11 +343,13 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     // REQUEST_SUCCESS
+                    gtsRequestSuccess++;
                     data[fsmId].responsePartnerAddress = event.deviceAddr;
                     return transition(fsmId, &GTSManager::stateWaitForResponse);
                 }
             } else if(event.cmdId == DSME_GTS_REPLY) {
                 if(event.dataStatus != DataStatus::Data_Status::SUCCESS) {
+                    gtsReplyFailed++;
                     mlme_sap::COMM_STATUS_indication_parameters params;
                     // TODO also fill other fields
 
@@ -377,6 +384,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     this->dsme.getMLME_SAP().getCOMM_STATUS().notify_indication(params);
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
+                    gtsReplySuccess++;
                     if(event.management.status == GTSStatus::SUCCESS) {
                         actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
                         data[fsmId].notifyPartnerAddress = event.deviceAddr;
@@ -477,6 +485,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                 event.replyNotifyCmd.prependTo(msg_notify);
                 if(!sendGTSCommand(fsmId, msg_notify, event.management, CommandFrameIdentifier::DSME_GTS_NOTIFY,
                                    IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS)) {
+                    gtsNotifyFailed++;
                     // TODO should this be signaled to the upper layer?
                     LOG_INFO("NOTIFY could not be sent");
                     actUpdater.notifyAccessFailure(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);

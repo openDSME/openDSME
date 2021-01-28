@@ -252,6 +252,19 @@ void DSMELayer::slotEvent(int32_t lateness) {
         qAgent.accReward = 0;
 
         platform->signalQ(qAgent.calcMaxQ());
+
+        platform->signalRequestFailed(gtsManager.gtsRequestFailed);
+        platform->signalRequestSuccess(gtsManager.gtsRequestSuccess);
+        platform->signalReplyFailed(gtsManager.gtsReplyFailed);
+        platform->signalReplySuccess(gtsManager.gtsReplySuccess);
+        platform->signalNotifyFailed(gtsManager.gtsNotifyFailed);
+        platform->signalNotifySuccess(gtsManager.gtsNotifySuccess);
+        gtsManager.gtsRequestSuccess = 0;
+        gtsManager.gtsRequestFailed = 0;
+        gtsManager.gtsReplySuccess = 0;
+        gtsManager.gtsReplyFailed = 0;
+        gtsManager.gtsNotifySuccess = 0;
+        gtsManager.gtsNotifyFailed = 0;
     }
 
     messageDispatcher.handleSlotEvent(currentSlot, currentSuperframe, lateness);

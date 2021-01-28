@@ -192,6 +192,13 @@ public:
     virtual void signalQ(double  q) {}
     virtual void signalBE(uint8_t be) {}
     virtual void signalEPS(float eps) {}
+
+    virtual void signalRequestSuccess(uint8_t value) {}
+    virtual void signalRequestFailed(uint8_t value) {}
+    virtual void signalReplyFailed(uint8_t value) {}
+    virtual void signalReplySuccess(uint8_t value) {}
+    virtual void signalNotifyFailed(uint8_t value) {}
+    virtual void signalNotifySuccess(uint8_t value) {}
 };
 
 } /* namespace dsme */
