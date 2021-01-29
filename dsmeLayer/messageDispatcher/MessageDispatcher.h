@@ -48,7 +48,8 @@
 #include "../../mac_services/dataStructures/DSMEAllocationCounterTable.h"
 #include "../ackLayer/AckLayer.h"
 #include "../neighbors/NeighborQueue.h"
-#include "../../helper/GackHelper.h"
+//#include "../../helper/GackHelper.h"
+#include "../../mac_services/dataStructures/DSMEGACKBitmap.h"
 
 namespace dsme {
 
@@ -66,9 +67,9 @@ private:
     DSMELayer& dsme;
     bool multiplePacketsPerGTS{false};
     bool turnOff{false};
+    DSMEGACKBitmap gackBitmap; // TODO: this should be owned by the ack layer, the message dispatcher should not care about acks
 
 public:
-    GackHelper gackHelper;
     /*! Queues a message for transmission during a GTS.
      *
      * \param msg The message to transmit

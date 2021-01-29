@@ -101,6 +101,8 @@ public:
 
     IDSMEMessage* popFront(iterator& neighbor);
 
+    IDSMEMessage* popBySequenceNumber(iterator& neighbor, uint8_t sequenceNumber);
+
     void pushBack(iterator& neighbor, IDSMEMessage* msg);
 
     void flushQueues(bool keepFront);
@@ -183,6 +185,11 @@ template <uint8_t N>
 void NeighborQueue<N>::pushBack(iterator& neighbor, IDSMEMessage* msg) {
     queue.push_back(*neighbor, msg);
     return;
+}
+
+template <uint8_t N>
+IDSMEMessage* NeighborQueue<N>::popBySequenceNumber(iterator& neighbor, uint8_t sequenceNumber) {
+    return queue.pop_by_sequence_number(*neighbor, sequenceNumber);
 }
 
 template <uint8_t N>

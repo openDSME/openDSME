@@ -97,6 +97,14 @@ public:
     void push_back(NeighborListEntry<T>& neighbor, T* msg);
 
     /**
+     * Gets and removes the element with the given sequence number, nullptr if not existent
+     * -> time: O(neighbor->queueSize)
+     * @param neighbor the neighbor the message belongs to
+     * @param sequenceNumber the sequence number of the message to remove
+     */
+    T* pop_by_sequence_number(NeighborListEntry<T>& neighbor, uint8_t sequenceNumber);
+
+    /**
      * Gets and removes the first (oldest) element of the queue of a neighbor, nullptr if not existent
      * -> time: O(1)
      * @param neighbor the neighbor the message belongs to
@@ -180,6 +188,47 @@ void MultiMessageQueue<T, S>::push_back(NeighborListEntry<T>& neighbor, T* msg) 
 
     neighbor.queueSize++;
 }
+
+template <typename T, uint8_t S>
+T* MultiMessageQueue<T, S>::pop_by_sequence_number(NeighborListEntry<T>& neighbor, uint8_t sequenceNumber) {
+    if(neighbor.queueSize > 0) {
+        MessageQueueEntry<T>* entry = neighbor.messageFront;
+        if(entry->value->getHeader().getSequenceNumber() == sequenceNumber) {
+            /* pop the first message */
+            return pop_front(neighbor);
+        }
+
+        if(entry->next == nullptr) {
+            return nullptr;
+        }
+
+        while(entry->next->value->getHeader().getSequenceNumber() != sequenceNumber) {
+            entry = entry->next;
+            if(entry->next == nullptr) {
+                return nullptr;
+            }
+        }
+        /* -> entry.next holds the correct sequence number */
+
+        if(entry->next == neighbor.messageBack) {
+            /* -> check if it is the last message */
+            neighbor.messageBack = entry;
+        }
+
+        /* otherwise there is no special case to handle */
+        T* msg = entry->next->value;
+        MessageQueueEntry<T>* nextEntry = entry->next->next;
+        this->addToFree(entry->next);
+        entry->next = nextEntry;
+        neighbor.queueSize--;
+        this->full = false;
+        return msg;
+    } else {
+        /* -> no message with found */
+        return nullptr;
+    }
+}
+
 
 template <typename T, uint8_t S>
 T* MultiMessageQueue<T, S>::pop_front(NeighborListEntry<T>& neighbor) {

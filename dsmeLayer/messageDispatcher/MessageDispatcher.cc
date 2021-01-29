@@ -98,7 +98,7 @@ MessageDispatcher::~MessageDispatcher() {
 void MessageDispatcher::initialize(void) {
     currentACTElement = dsme.getMAC_PIB().macDSMEACT.end();
     //gackHelper.init(this->dsme.getMAC_PIB().helper.getNumberSuperframesPerGroupAckSlot(), this->dsme.getMAC_PIB().macSuperframeOrder, this->dsme.getMAC_PIB().macCapReduction?15:7); //15 GTSlots if CAPReduction is active
-    gackHelper.init(2,7,7); //TODO: fix initialization
+    //gackHelper.init(2,7,7); //TODO: fix initialization
     return;
 }
 
@@ -139,7 +139,7 @@ void MessageDispatcher::reset(void) {
         NeighborQueue<MAX_NEIGHBORS>::iterator it = this->retransmissionQueue.begin();
         this->retransmissionQueue.eraseNeighbor(it);
     }
-    gackHelper.reset();
+    gackBitmap.reset();
     return;
 }
 
@@ -365,7 +365,8 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader &macHdr = msg->getHeader();
 
     if(macHdr.getIEList().contains(InformationElement::ID_gack)){   //msg with gack=true received, signal gackHelper
-        gackHelper.registerReceivedMessage(macHdr.getSequenceNumber(), currentACTElement->getSuperframeID(), currentACTElement->getGTSlotID());
+        //gackHelper.registerReceivedMessage(macHdr.getSequenceNumber(), currentACTElement->getSuperframeID(), currentACTElement->getGTSlotID());
+        gackBitmap.registerPacket(macHdr.getSrcAddr(), macHdr.getSequenceNumber());
     }
 
     switch(macHdr.getFrameType()) {
@@ -501,7 +502,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     } else if(nextSlot == 0) {
         /* '-> beacon slots are handled by the BeaconManager */
         DSME_ASSERT(this->currentACTElement == act.end());
-        gackHelper.handleNewSuperframe(nextSuperframe, nextMultiSuperframe);
+        //gackHelper.handleNewSuperframe(nextSuperframe, nextMultiSuperframe);
     } else if(nextSlot == 1) {
         /* '-> next slot will be CAP */
 
@@ -662,8 +663,63 @@ void MessageDispatcher::handleAckTransmitted(){
 }
 
 bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
+    GTSGackCmd gackCmd(gackBitmap);
+    gackCmd.decapsulateFrom(msg);
+    LOG_INFO("GACK received");
 
-    GTSGackCmd gackCmd(GACK_MAX_SIZE);
+    const IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
+    NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
+    NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
+
+    IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
+    uint8_t acknowledgedPackets = gackBitmap.getNumberOfPackets(ownAddress);
+    for(uint8_t packet=0; packet<acknowledgedPackets; packet++) {
+        /* -> remove all packets that were delivered successfully */
+        if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
+            DSME_ASSERT(false); // why should we get an ACK for a packet we did not send
+        }
+
+        /* retrieve sequence number */
+        uint8_t sequenceNumber = gackBitmap.getNextSequenceNumber(ownAddress);
+
+        IDSMEMessage* queuedMsg = retransmissionQueue.popBySequenceNumber(retransmissionQueueNeighbor, sequenceNumber);
+        mcps_sap::DATA_confirm_parameters params;
+        params.msduHandle = queuedMsg;
+        params.timestamp = 0; // TODO
+        params.rangingReceived = false;
+        params.gtsTX = true;
+        params.status = DataStatus::SUCCESS;
+        this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+    }
+
+    /* -> retransmit all packets that are not acknowledged yet */
+    while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
+        IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
+        if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
+            queuedMsg->increaseRetryCounter();
+            LOG_DEBUG("handleGACK - retry");
+            if(!neighborQueue.isQueueFull()) {
+                // message is dropped here
+                neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
+            }
+            preparedMsg = nullptr;
+            continue;
+        } else {
+            /* -> inform the upper layer about the unsuccessful transmission */
+            mcps_sap::DATA_confirm_parameters params;
+            params.msduHandle = queuedMsg;
+            params.timestamp = 0; // TODO
+            params.rangingReceived = false;
+            params.gtsTX = true;
+            params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
+            this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
+        }
+    }
+}
+
+/*bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
+
+    GTSGackCmd gackCmd(gackBitmap);
     gackCmd.decapsulateFrom(msg);
 
     LOG_INFO("GACK MAP RECEIVED: ");
@@ -691,8 +747,8 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
         for(uint8_t gtsId=0; gtsId<cfpSlotsPerSuperframe; gtsId++) { //for every GTSlot
             uint16_t vectorPtr = superframeID*cfpSlotsPerSuperframe*packetsPerGTS + gtsId*packetsPerGTS;
             if(act.isAllocated(superframeID, gtsId)) {
-                if(IEEE802154MacAddress(act.find(superframeID, gtsId)->getAddress()) == srcAddr) {   /* '-> we transmitted in this gts to the device that sent the gack */
-                    for(uint16_t i = 0; i<packetsPerGTS; i++) { /* '-> check for all bits of the bitmap */
+                if(IEEE802154MacAddress(act.find(superframeID, gtsId)->getAddress()) == srcAddr) {
+                    for(uint16_t i = 0; i<packetsPerGTS; i++) {
 
                         if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
                             break;
@@ -705,10 +761,8 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
                         params.gtsTX = true;
 
                         if(gackCmd.getGackVector().get(vectorPtr+i) == true) {
-                            /* '-> successful transmission */
                             params.status = DataStatus::SUCCESS;
                         } else {
-                            /* '-> failed transmission */
                             if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
                                 queuedMsg->increaseRetryCounter();
                                 LOG_DEBUG("handleGACK - retry");
@@ -736,7 +790,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 
 
     return true;
-}
+} */
 
 
 bool MessageDispatcher::prepareGackCommand(){
@@ -748,16 +802,16 @@ bool MessageDispatcher::prepareGackCommand(){
     this->preparedMsg = dsme.getPlatform().getEmptyMessage();
     DSME_ASSERT(this->preparedMsg != nullptr);
 
-    GTSGackCmd gackCmd(gackHelper.getGackVector()); //prepare gackCmd here
+    GTSGackCmd gackCmd(gackBitmap); //prepare gackCmd here
 
     LOG_INFO("GACK MAP SENT: ");
     int count = 0;
-    for(int i = 0; i < gackCmd.getGackVector().length(); i++){
+    /*for(int i = 0; i < gackCmd.getGackVector().length(); i++){
         LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
         if(gackCmd.getGackVector().get(i) == true){
             count++;
         }
-    }
+    }*/
     gackCmd.prependTo(this->preparedMsg);
 
     MACCommand cmd;

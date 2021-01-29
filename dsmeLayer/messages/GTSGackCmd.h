@@ -44,35 +44,30 @@
 #define GTSGACKCMD_H_
 
 #include "../../mac_services/dataStructures/DSMEMessageElement.h"
-#include "../../mac_services/dataStructures/DSMEBitVector.h"
+#include "../../mac_services/dataStructures/DSMEGACKBitmap.h"
 
 namespace dsme {
 
 class GTSGackCmd : public DSMEMessageElement {
-    #define GACK_MAX_SIZE 2*7*26 //TODO
 private:
-    BitVector<GACK_MAX_SIZE> gackVector;
+    DSMEGACKBitmap &gackBitmap;
 
 public:
-    GTSGackCmd(uint8_t size){
-        gackVector.setLength(size);
-    }
-    GTSGackCmd(BitVector<GACK_MAX_SIZE> BitVector) : gackVector(BitVector){
-    }
+    GTSGackCmd(DSMEGACKBitmap &gackBitmap) : gackBitmap(gackBitmap) {};
 
-    BitVector<GACK_MAX_SIZE>& getGackVector(){
-        return gackVector;
+    auto getGackBitmap() ->  DSMEGACKBitmap& {
+        return gackBitmap;
     }
 
 public:
     virtual uint8_t getSerializationLength(){
         uint8_t size = 0;
-        size += gackVector.getSerializationLength();
+        size += gackBitmap.getSerializationLength();
         return size;
     }
 
     virtual void serialize(Serializer& serializer){
-        serializer << gackVector;
+        serializer << gackBitmap;
     }
 };
 

@@ -70,6 +70,12 @@ struct RBNode {
     const T& getContent() const;
 
     /*
+     * Get the key of the node
+     */
+    K& getKey();
+    const K& getKey() const;
+
+    /*
      * Pointers to construct the tree
      */
     RBNode<T, K> *leftChild, *rightChild, *parent;
@@ -102,6 +108,16 @@ T& RBNode<T, K>::getContent() {
 template <typename T, typename K>
 const T& RBNode<T, K>::getContent() const {
     return content;
+}
+
+template <typename T, typename K>
+K& RBNode<T, K>::getKey() {
+    return key;
+}
+
+template <typename T, typename K>
+const K& RBNode<T, K>::getKey() const {
+    return key;
 }
 
 } /* namespace dsme */

@@ -47,6 +47,8 @@
 
 namespace dsme {
 
+// TODO requires iterator
+
 template <typename C>
 class DSMELinkedList {
 public:
