@@ -224,7 +224,7 @@ T* MultiMessageQueue<T, S>::pop_by_sequence_number(NeighborListEntry<T>& neighbo
         this->full = false;
         return msg;
     } else {
-        /* -> no message with found */
+        /* -> no message found */
         return nullptr;
     }
 }

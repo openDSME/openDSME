@@ -66,7 +66,7 @@ auto DSMEGACKBitmapFragment::getBit(uint8_t pos) const -> bool {
 auto DSMEGACKBitmapFragment::getFirstSetBitIndex() const -> uint8_t {
     uint8_t pos;
     for(pos=0; pos<8; pos++) {
-        if(this->bits & (1<<pos) > 0) break;
+        if((this->bits & (1<<pos)) > 0) break;
     }
     return pos;
 }
@@ -74,7 +74,7 @@ auto DSMEGACKBitmapFragment::getFirstSetBitIndex() const -> uint8_t {
 auto DSMEGACKBitmapFragment::getLastSetBitIndex() const -> uint8_t {
     uint8_t pos;
     for(pos=7; pos>=0; pos--) {
-        if(this->bits & (1<<pos) > 0) break;
+        if((this->bits & (1<<pos)) > 0) break;
     }
     return pos;
 }
@@ -82,7 +82,7 @@ auto DSMEGACKBitmapFragment::getLastSetBitIndex() const -> uint8_t {
 auto DSMEGACKBitmapFragment::getNumSetBits() const -> uint8_t {
     uint8_t numBits = 0;
     for(uint8_t i=0; i<8; i++) {
-        if(this->bits & (1<<i) > 0) {
+        if((this->bits & (1<<i)) > 0) {
             ++numBits;
         }
     }
@@ -91,7 +91,7 @@ auto DSMEGACKBitmapFragment::getNumSetBits() const -> uint8_t {
 }
 
 auto DSMEGACKBitmapFragment::getLastSequenceNumber() const -> uint8_t {
-    return this->sequenceNumber + 8;
+    return this->sequenceNumber + 7;
 }
 
 } /* namespace dsme */

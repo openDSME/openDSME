@@ -168,7 +168,7 @@ queue_size_t NeighborQueue<N>::getPacketsInQueue(const iterator& neighbor) const
 
 template <uint8_t N>
 bool NeighborQueue<N>::isQueueEmpty(iterator& neighbor) {
-    return (neighbor->queueSize == 0);
+    return neighbor == end() || neighbor->queueSize == 0;
 }
 
 template <uint8_t N>

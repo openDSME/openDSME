@@ -57,10 +57,17 @@ auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t co
     if(bitmapIterator != this->bitmap.end()) {
         /* -> some packets from this addr already registered */
         DSMEGACKBitmapFragment *frag = *bitmapIterator;
+
+        while(sequenceNumber < frag->sequenceNumber) {
+            DSMEGACKBitmapFragment *prev = new DSMEGACKBitmapFragment(frag->sequenceNumber - 8);
+            prev->next = frag;
+            frag = prev;
+            *bitmapIterator = frag;
+        }
         while(frag->getLastSequenceNumber() < sequenceNumber) {     // TODO wraparound from 255 to 0 ????
             if(frag->next == nullptr) {
                 /* -> new fragment required */
-                frag->next = new DSMEGACKBitmapFragment(frag->getLastSequenceNumber()+1, 1);
+                frag->next = new DSMEGACKBitmapFragment(frag->getLastSequenceNumber()+1);
             }
             frag = frag->next;
         }
@@ -69,7 +76,7 @@ auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t co
         frag->setBit(sequenceNumber - frag->sequenceNumber, true);
     } else {
         /* -> Add the first fragment for this address */
-        this->bitmap.insert(new DSMEGACKBitmapFragment(sequenceNumber), addr);
+        this->bitmap.insert(new DSMEGACKBitmapFragment(sequenceNumber, 1), addr);
     }
 }
 
@@ -135,7 +142,8 @@ auto operator<<(Serializer& serializer, DSMEGACKBitmap& gack) -> Serializer& {
 
         for(auto bitmapIterator = gack.bitmap.begin(); bitmapIterator != gack.bitmap.end(); ++bitmapIterator) {
             IEEE802154MacAddress& addr = bitmapIterator.node()->getKey();
-            serializer << addr;
+            uint16_t short_addr = addr.getShortAddress();
+            serializer << short_addr;
 
             uint8_t numBitmapFragments = 0;
             DSMEGACKBitmapFragment *frag = *bitmapIterator;
@@ -152,8 +160,14 @@ auto operator<<(Serializer& serializer, DSMEGACKBitmap& gack) -> Serializer& {
             frag = *bitmapIterator;
             while(frag != nullptr) {
                 uint8_t bits = frag->getBits();
-                serializer << bits; // TODO why can this not be written directly (overwrite with lvalue?)
+                serializer << bits;
                 frag = frag->getNext();
+            }
+
+            //DIRTY
+            uint8_t size = gack.getNumberOfPackets(addr);
+            for(uint8_t i=0; i<size; i++) {
+                gack.getNextSequenceNumber(addr); //throwaway
             }
         }
     } else { // DESERIALIZE
@@ -161,8 +175,9 @@ auto operator<<(Serializer& serializer, DSMEGACKBitmap& gack) -> Serializer& {
         serializer << numAdresses;
 
         for(uint8_t i=0; i<numAdresses; i++) {
-            IEEE802154MacAddress addr;
-            serializer << addr;
+            uint16_t short_addr;
+            serializer << short_addr;
+            IEEE802154MacAddress addr(short_addr);
 
             uint8_t numBitmapFragments = 0;
             serializer << numBitmapFragments;

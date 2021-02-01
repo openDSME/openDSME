@@ -671,18 +671,25 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
 
+    DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
+
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
     uint8_t acknowledgedPackets = gackBitmap.getNumberOfPackets(ownAddress);
     for(uint8_t packet=0; packet<acknowledgedPackets; packet++) {
         /* -> remove all packets that were delivered successfully */
-        if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
-            DSME_ASSERT(false); // why should we get an ACK for a packet we did not send
-        }
 
         /* retrieve sequence number */
         uint8_t sequenceNumber = gackBitmap.getNextSequenceNumber(ownAddress);
 
+        if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
+            continue;
+        }
+
         IDSMEMessage* queuedMsg = retransmissionQueue.popBySequenceNumber(retransmissionQueueNeighbor, sequenceNumber);
+        if(queuedMsg == nullptr) {
+            continue;
+        }
+
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = queuedMsg;
         params.timestamp = 0; // TODO
@@ -699,11 +706,10 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
             queuedMsg->increaseRetryCounter();
             LOG_DEBUG("handleGACK - retry");
             if(!neighborQueue.isQueueFull()) {
-                // message is dropped here
+                // message is dropped here TODO: handle
                 neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
             }
             preparedMsg = nullptr;
-            continue;
         } else {
             /* -> inform the upper layer about the unsuccessful transmission */
             mcps_sap::DATA_confirm_parameters params;
@@ -711,10 +717,13 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
             params.timestamp = 0; // TODO
             params.rangingReceived = false;
             params.gtsTX = true;
-            params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
+            params.status = DataStatus::NO_ACK;
             this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
         }
     }
+
+    //gackBitmap.reset();
+    return true;
 }
 
 /*bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
