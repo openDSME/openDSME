@@ -76,7 +76,8 @@ auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t co
         frag->setBit(sequenceNumber - frag->sequenceNumber, true);
     } else {
         /* -> Add the first fragment for this address */
-        this->bitmap.insert(new DSMEGACKBitmapFragment(sequenceNumber, 1), addr);
+        uint8_t fragSequenceNumber = (sequenceNumber & 0b11111000);  // int(sequenceNumber / 8) * 8
+        this->bitmap.insert(new DSMEGACKBitmapFragment(fragSequenceNumber, sequenceNumber - fragSequenceNumber), addr);
     }
 }
 
@@ -100,19 +101,30 @@ auto DSMEGACKBitmap::getNextSequenceNumber(IEEE802154MacAddress const& addr) -> 
     DSME_ASSERT(bitmapIterator != bitmap.end());
     DSMEGACKBitmapFragment *frag = *bitmapIterator;
 
+    /* skip empty fragments */
+    while(frag->getNumSetBits() == 0) {
+        *bitmapIterator = frag->next;
+        frag->next = nullptr;
+        delete frag;
+        frag = *bitmapIterator;
+    }
+
     /* retrieve and delete next sequence number */
-    uint8_t bitmapIndex = frag->getFirstSetBitIndex();
+    uint8_t bitmapIndex = frag->getFirstSetBitIndex();  //TODO no set bit
     uint8_t sequenceNumber = frag->sequenceNumber + bitmapIndex;
     frag->setBit(bitmapIndex, false);
 
-    if(frag->getNumSetBits() == 0) {
+    while(frag != nullptr && frag->getNumSetBits() == 0) {
         /* we removed all packets from fragment so delete it */
         if(frag->next == nullptr) {
             bitmap.remove(bitmapIterator);
+            delete frag;
+            break;
         } else {
             *bitmapIterator = frag->next;
         }
         delete frag;
+        frag = *bitmapIterator;
     }
 
     return sequenceNumber;
