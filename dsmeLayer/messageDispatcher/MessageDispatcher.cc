@@ -148,7 +148,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     LOG_DEBUG("sendDoneGTS");
 
     if(this->currentACTElement->isGackGTS()){   //if it is a GACK-GTS
-        //clear gackVector
+        this->dsme.getPlatform().releaseMessage(msg);
         finalizeGTSTransmission();
         return;
     }
@@ -309,6 +309,9 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
                 case DSME_GTS_NOTIFY:
                     this->dsme.getGTSManager().onCSMASent(msg, cmd.getCmdId(), status, numBackoffs);
                     break;
+                default:
+                    DSME_ASSERT(false); //not handled!
+                    break;
             }
         } else {
             this->dsme.getPlatform().releaseMessage(msg);
@@ -364,6 +367,7 @@ bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
 void MessageDispatcher::receive(IDSMEMessage* msg) {
     IEEE802154eMACHeader &macHdr = msg->getHeader();
 
+    //if(currentACTElement->isGackEnabled()){
     if(macHdr.getIEList().contains(InformationElement::ID_gack)){   //msg with gack=true received, signal gackHelper
         //gackHelper.registerReceivedMessage(macHdr.getSequenceNumber(), currentACTElement->getSuperframeID(), currentACTElement->getGTSlotID());
         gackBitmap.registerPacket(macHdr.getSrcAddr(), macHdr.getSequenceNumber());
