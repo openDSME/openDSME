@@ -59,7 +59,7 @@
 using namespace dsme;
 
 DSMEAllocationCounterTable::DSMEAllocationCounterTable()
-    : numSuperFramesPerMultiSuperframe(0), numGTSlotsFirstSuperframe(0), numGTSlotsLatterSuperframes(0), numChannels(0) {
+    : numSuperFramesPerMultiSuperframe(0), numGTSlotsFirstSuperframe(0), numGTSlotsLatterSuperframes(0), numChannels(0), numAllocatedGTS(0), numAllocatedGackGTS(0){
 }
 
 void DSMEAllocationCounterTable::initialize(uint16_t numSuperFramesPerMultiSuperframe, uint8_t numGTSlotsFirstSuperframe, uint8_t numGTSlotsLatterSuperframes,
@@ -144,7 +144,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state, false, gackEnabled), pos);
 
     if(success) {
-        this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
+        this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), false);
 
         int d = (direction == TX) ? 0 : 1;
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
@@ -174,7 +174,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it,
 
     printChange("dealloc", it->superframeID, it->slotID, it->channel, it->direction, it->getAddress(), it->gackEnabled);
 
-    this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(it->getAddress()));
+    this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(it->getAddress()), false);
 
     DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 
@@ -308,14 +308,14 @@ bool DSMEAllocationCounterTable::addToGackGTS(uint16_t superframeID, uint8_t gtS
         printChange("G_add", superframeID, gtSlotID, channel, direction, address, true);
         it->addAddress(address);
         success = true;
-        this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address)); //here as well?
+        //this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), true); //here as well?
     }
     else{
         printChange("G_alloc", superframeID, gtSlotID, channel, direction, address, true);
         success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, ACTState::VALID, true), pos);
 
         if(success) {
-            this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address));
+            this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), true);
 
             int d = (direction == TX) ? 0 : 1;
             RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
@@ -345,12 +345,12 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
         if(it->isGackGTS() && it->getAddressCount()>1 && deviceAddress != 0){  //if it is allocated to at least two neighbors
             it->removeAddress(deviceAddress);
             printChange("G_rem", it->superframeID, it->slotID, it->channel, it->direction, deviceAddress, true);
-            this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress));    //here as well?
+            //this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress));    //here as well?
 
         }else{
             printChange("G_dealloc", it->superframeID, it->slotID, it->channel, it->direction, deviceAddress, true);
 
-            this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress));
+            this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress), true);
 
             DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 

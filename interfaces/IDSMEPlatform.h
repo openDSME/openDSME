@@ -115,7 +115,7 @@ public:
     /*
      * Signal GTS allocation or deallocation
      */
-    virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart) {
+    virtual void signalGTSChange(bool deallocation, IEEE802154MacAddress counterpart, bool gackGTS) {
     }
 
     /*
@@ -125,6 +125,18 @@ public:
     }
 
     virtual void signalRetransmissionQueueLength(uint32_t length) {
+    }
+
+    virtual void signalNumDroppedRetransmissionPackets(uint32_t packets){
+    }
+
+    virtual void signalNumDroppedPackets(uint32_t packets){
+    }
+
+    virtual void signalAcksInGack(uint32_t packets){
+    }
+
+    virtual void signalPacketRetransmissionRate(double rate){
     }
 
     /*

@@ -179,14 +179,23 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     bool signalUpperLayer = false;
     /*Insert sent message into retransmissionQueue for eventual retransmission*/
-    if(currentACTElement->isGackEnabled() && !retransmissionQueue.isQueueFull()) {
-        IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
-        const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
+    if(currentACTElement->isGackEnabled()) {
+        if(retransmissionQueue.isQueueFull()) {
+            LOG_ERROR("RetransmissionQueue is full!");
+            numRetransmissionPacketsDroppedFullQueue++;
+            this->dsme.getPlatform().signalNumDroppedRetransmissionPackets(numRetransmissionPacketsDroppedFullQueue);
+            neighborQueue.popFront(lastSendGTSNeighbor);
+            signalUpperLayer = true;
+        }else{
+            IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
+            const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
 
-        NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
-        DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
+            NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
+            DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
 
-        retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg);
+            retransmissionQueue.pushBack(retransmissionQueueNeighbor, msg);
+        }
+
     } else {  /*if not gackEnabled, release Message*/
         neighborQueue.popFront(lastSendGTSNeighbor);
         signalUpperLayer = true;
@@ -340,8 +349,9 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         return true;
     } else {
         /* queue full */
-        LOG_INFO("NeighborQueue is full!");
+        LOG_ERROR("NeighborQueue is full!");
         numUpperPacketsDroppedFullQueue++;
+        this->dsme.getPlatform().signalNumDroppedPackets(numUpperPacketsDroppedFullQueue);
         return false;
     }
 }
@@ -667,6 +677,9 @@ void MessageDispatcher::handleAckTransmitted(){
 }
 
 bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
+    //debug vars
+    uint16_t numAckedPackets = 0, numRetransmittedPackets = 0;
+
     GTSGackCmd gackCmd(gackBitmap);
     gackCmd.decapsulateFrom(msg);
     LOG_INFO("GACK received");
@@ -679,6 +692,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
     uint8_t acknowledgedPackets = gackBitmap.getNumberOfPackets(ownAddress);
+    this->dsme.getPlatform().signalAcksInGack(acknowledgedPackets);
     for(uint8_t packet=0; packet<acknowledgedPackets; packet++) {
         /* -> remove all packets that were delivered successfully */
 
@@ -693,6 +707,12 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
         if(queuedMsg == nullptr) {
             continue;
         }
+        numAckedPackets++;
+        uint16_t totalSize = 0;
+        for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
+            totalSize += it->queueSize;
+        }
+        this->dsme.getPlatform().signalRetransmissionQueueLength(totalSize);
 
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = queuedMsg;
@@ -706,12 +726,16 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     /* -> retransmit all packets that are not acknowledged yet */
     while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
         IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
+        numRetransmittedPackets++;
         if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             queuedMsg->increaseRetryCounter();
             LOG_DEBUG("handleGACK - retry");
             if(!neighborQueue.isQueueFull()) {
-                // message is dropped here TODO: handle
                 neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
+            }else{
+                LOG_ERROR("NeighborQueue is full!");
+                numUpperPacketsDroppedFullQueue++;
+                this->dsme.getPlatform().signalNumDroppedPackets(numUpperPacketsDroppedFullQueue);
             }
             preparedMsg = nullptr;
         } else {
@@ -725,6 +749,8 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
             this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
         }
     }
+
+    this->dsme.getPlatform().signalPacketRetransmissionRate(((double)numRetransmittedPackets)/((double)(numAckedPackets+numRetransmittedPackets)));
 
     //gackBitmap.reset();
     return true;

@@ -138,6 +138,10 @@ private:
     RBTree<uint16_t, uint16_t> numAllocatedSlots[2]; // 0x00 == TX, 0x01 == RX
 
     DSMELayer* dsme;
+
+    //debug vars
+    uint16_t numAllocatedGTS;
+    uint16_t numAllocatedGackGTS;
 };
 
 } /* namespace dsme */

@@ -251,6 +251,7 @@ private:
     long numRxGtsFrames = 0;
     long numUnusedTxGts = 0;
     long numUnusedRxGts = 0;
+    long numRetransmissionPacketsDroppedFullQueue = 0;
     long numUpperPacketsDroppedFullQueue = 0;
     long numUpperPacketsForCAP = 0;
     long numUpperPacketsForGTS = 0;
