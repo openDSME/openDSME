@@ -682,7 +682,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 
     GTSGackCmd gackCmd(gackBitmap);
     gackCmd.decapsulateFrom(msg);
-    LOG_INFO("GACK received");
+    LOG_INFO("GACK: received");
 
     const IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
@@ -691,13 +691,17 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
 
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
+
     uint8_t acknowledgedPackets = gackBitmap.getNumberOfPackets(ownAddress);
     this->dsme.getPlatform().signalAcksInGack(acknowledgedPackets);
+    LOG_INFO("GACK: ackedPackets:"<< (int)acknowledgedPackets);
     for(uint8_t packet=0; packet<acknowledgedPackets; packet++) {
         /* -> remove all packets that were delivered successfully */
 
         /* retrieve sequence number */
         uint8_t sequenceNumber = gackBitmap.getNextSequenceNumber(ownAddress);
+        LOG_INFO("GACK: p:"<< (int)packet);
+        LOG_INFO("GACK: seqNr:"<< (int)sequenceNumber);
 
         if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
             continue;
@@ -705,8 +709,10 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 
         IDSMEMessage* queuedMsg = retransmissionQueue.popBySequenceNumber(retransmissionQueueNeighbor, sequenceNumber);
         if(queuedMsg == nullptr) {
+            LOG_INFO("GACK: not found in queue");
             continue;
         }
+        LOG_INFO("GACK: removed from queue");
         numAckedPackets++;
         uint16_t totalSize = 0;
         for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
@@ -724,13 +730,16 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     }
 
     /* -> retransmit all packets that are not acknowledged yet */
+    LOG_INFO("GACK: not acknowledged:");
     while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
         IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
+        LOG_INFO("GACK: seqNr:"<< (int)queuedMsg->getHeader().getSequenceNumber());
+        LOG_INFO("GACK: retry:"<< (int)queuedMsg->getRetryCounter());
         numRetransmittedPackets++;
         if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             queuedMsg->increaseRetryCounter();
-            LOG_DEBUG("handleGACK - retry");
             if(!neighborQueue.isQueueFull()) {
+                LOG_INFO("GACK: resend:"<< (int)queuedMsg->getHeader().getSequenceNumber());
                 neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
             }else{
                 LOG_ERROR("NeighborQueue is full!");
