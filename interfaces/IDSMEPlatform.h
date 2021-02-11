@@ -124,6 +124,14 @@ public:
     virtual void signalQueueLength(uint32_t length) {
     }
 
+    virtual void signalGTSCount(uint32_t value) {
+
+    }
+
+    virtual void signalGackGTSCount(uint32_t value) {
+
+    }
+
     virtual void signalRetransmissionQueueLength(uint32_t length) {
     }
 
