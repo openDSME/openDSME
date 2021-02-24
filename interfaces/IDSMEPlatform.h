@@ -165,6 +165,10 @@ public:
     virtual void delayedTurnTransceiverOff() = 0;
 
     virtual bool isGackEnabled() = 0;
+
+    virtual bool isGackGTSEnabled() = 0;
+
+    virtual bool isGackCAPEnabled() = 0;
 };
 
 } /* namespace dsme */

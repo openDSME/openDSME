@@ -308,6 +308,10 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
                     // TODO handle correctly
                     this->dsme.getPlatform().releaseMessage(msg);
                     break;
+                case DSME_GTS_GACK:
+                    // TODO FM: handling required?
+                    this->dsme.getPlatform().releaseMessage(msg);
+                    break;
                 case BEACON_REQUEST:
                 case DSME_BEACON_ALLOCATION_NOTIFICATION:
                 case DSME_BEACON_COLLISION_NOTIFICATION:
@@ -520,6 +524,10 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     } else if(nextSlot == 1) {
         /* '-> next slot will be CAP */
 
+        if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackCAPEnabled()) {
+            this->sendGackCAP();
+        }
+
         if(!this->dsme.getMAC_PIB().macCapReduction || nextSuperframe == 0) {
             /* '-> active CAP slot */
 
@@ -688,6 +696,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
 
+    if(retransmissionQueueNeighbor == retransmissionQueue.end()) return true;
     DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
 
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
@@ -840,6 +849,34 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     return true;
 } */
 
+
+void MessageDispatcher::sendGackCAP() {
+    IDSMEMessage *msg = dsme.getPlatform().getEmptyMessage();
+
+    GTSGackCmd gackCmd(gackBitmap);
+    gackCmd.prependTo(msg);
+    MACCommand cmd;
+    cmd.setCmdId(DSME_GTS_GACK);
+    cmd.prependTo(msg);
+
+    msg->getHeader().setDstAddr(IEEE802154MacAddress(IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS));
+    msg->getHeader().setSrcAddrMode(AddrMode::SHORT_ADDRESS);
+    msg->getHeader().setSrcAddr(IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress));
+    msg->getHeader().setDstAddrMode(AddrMode::SHORT_ADDRESS);
+
+    msg->getHeader().setSrcPANId(this->dsme.getMAC_PIB().macPANId);
+    msg->getHeader().setDstPANId(this->dsme.getMAC_PIB().macPANId);
+
+    msg->getHeader().setAckRequest(false);   //No ACK for gACK as it is broadcasted
+    msg->getHeader().setFrameType(IEEE802154eMACHeader::FrameType::COMMAND);
+
+    /* STATISTICS (START) */
+    msg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
+
+    if(!this->sendInCAP(msg)) {
+        this->dsme.getPlatform().releaseMessage(msg);
+    }
+}
 
 bool MessageDispatcher::prepareGackCommand(){
     bool result = false;

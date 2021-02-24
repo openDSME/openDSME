@@ -174,7 +174,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     params.numSlot = decision.numSlot;
     params.preferredSuperframeId = preferredGTS.superframeID;
     params.preferredSlotId = preferredGTS.slotID;
-    if(this->dsmeAdaptionLayer.getDSME().getPlatform().isGackEnabled()){    //request a GACK-GTS, if enabled
+    if(this->dsmeAdaptionLayer.getDSME().getPlatform().isGackEnabled() && this->dsmeAdaptionLayer.getDSME().getPlatform().isGackGTSEnabled()){    //request a GACK-GTS, if enabled
         params.gackGTS = true;
     }
     else{

@@ -188,6 +188,8 @@ protected:
 
     bool prepareGackCommand();
 
+    void sendGackCAP();
+
     bool handleGackReception(IDSMEMessage* msg);
 
     /*! Prepares the next GTS message from the packet queue for transmission.
