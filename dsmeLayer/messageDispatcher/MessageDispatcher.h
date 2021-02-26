@@ -104,6 +104,10 @@ public:
         this->multiplePacketsPerGTS = multiplePacketsPerGTS;
     }
 
+    inline DSMEGACKBitmap& getGackBitmap() {
+        return this->gackBitmap;
+    }
+
 
 /* Event handlers (START) ----------------------------------------------------*/
     /*! This shall be called shortly before the start of every slot to allow for setting up the transceiver.
@@ -158,6 +162,8 @@ public:
      */
     void receive(IDSMEMessage* msg);
 
+    bool handleGackBitmap(IEEE802154MacAddress &srcAddr);
+
 /* Event handlers (END) ------------------------------------------------------*/
 
 protected:
@@ -191,6 +197,8 @@ protected:
     void sendGackCAP();
 
     bool handleGackReception(IDSMEMessage* msg);
+
+
 
     /*! Prepares the next GTS message from the packet queue for transmission.
      *\return true if a message was prepared, false otherwise, i.e., if there is

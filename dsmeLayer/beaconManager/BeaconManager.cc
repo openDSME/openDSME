@@ -65,6 +65,7 @@
 #include "../messages/BeaconNotificationCmd.h"
 #include "../messages/IEEE802154eMACHeader.h"
 #include "../messages/MACCommand.h"
+#include "../messages/GTSGackCmd.h"
 
 namespace dsme {
 
@@ -177,6 +178,11 @@ void BeaconManager::superframeEvent(int32_t lateness, uint32_t currentSlotTime) 
 void BeaconManager::prepareEnhancedBeacon(uint32_t nextSlotTime) {
     DSME_ASSERT(!transmissionPending);
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
+
+    if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackBeaconEnabled()) {
+        GTSGackCmd gackCmd(dsme.getMessageDispatcher().getGackBitmap());
+        gackCmd.prependTo(msg);
+    }
 
     dsmePANDescriptor.getTimeSyncSpec().setBeaconTimestampMicroSeconds(nextSlotTime * aSymbolDuration);
     dsmePANDescriptor.getTimeSyncSpec().setBeaconOffsetTimestampMicroSeconds(0);
@@ -341,6 +347,12 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
                 LOG_INFO("No window for a BEACON could be found.");
             }
         }
+    }
+
+    if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackBeaconEnabled()) {
+        GTSGackCmd gackCmd(dsme.getMessageDispatcher().getGackBitmap());
+        gackCmd.decapsulateFrom(msg);
+        dsme.getMessageDispatcher().handleGackBitmap(msg->getHeader().getSrcAddr());
     }
 
     return false;

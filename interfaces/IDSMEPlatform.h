@@ -169,6 +169,8 @@ public:
     virtual bool isGackGTSEnabled() = 0;
 
     virtual bool isGackCAPEnabled() = 0;
+
+    virtual bool isGackBeaconEnabled() = 0;
 };
 
 } /* namespace dsme */
