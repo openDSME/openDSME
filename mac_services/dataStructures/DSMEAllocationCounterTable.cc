@@ -345,8 +345,6 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
         if(it->isGackGTS() && it->getAddressCount()>1 && deviceAddress != 0){  //if it is allocated to at least two neighbors
             it->removeAddress(deviceAddress);
             printChange("G_rem", it->superframeID, it->slotID, it->channel, it->direction, deviceAddress, true);
-            //this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress));    //here as well?
-
         }else{
             printChange("G_dealloc", it->superframeID, it->slotID, it->channel, it->direction, deviceAddress, true);
 
@@ -364,7 +362,6 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
             if((*numSlotIt) == 0) {
                 numAllocatedSlots[d].remove(numSlotIt);
             }
-
             act.remove(it);
         }
     }
