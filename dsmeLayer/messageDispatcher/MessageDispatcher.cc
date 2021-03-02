@@ -677,14 +677,20 @@ void MessageDispatcher::handleAckTransmitted(){
 }
 
 bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
-    //debug vars
-    uint16_t numAckedPackets = 0, numRetransmittedPackets = 0;
-
-    GTSGackCmd gackCmd(gackBitmap);
+    DSMEGACKBitmap bitmap;
+    GTSGackCmd gackCmd(bitmap);
     gackCmd.decapsulateFrom(msg);
     LOG_INFO("GACK: received");
 
-    const IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
+    IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
+
+    return handleGackBitmap(bitmap, srcAddr);
+}
+
+bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAddress &srcAddr) {
+    //debug vars
+    uint16_t numAckedPackets = 0, numRetransmittedPackets = 0;
+
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
 
@@ -761,7 +767,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 
     this->dsme.getPlatform().signalPacketRetransmissionRate(((double)numRetransmittedPackets)/((double)(numAckedPackets+numRetransmittedPackets)));
 
-    //gackBitmap.reset();
+    gackBitmap.reset();
     return true;
 }
 
@@ -832,14 +838,8 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
         }
     }
     //this->gackHelper.resetTransmittedPacketsGTS();
-
-
-
-
-
     return true;
 } */
-
 
 bool MessageDispatcher::prepareGackCommand(){
     bool result = false;
@@ -920,7 +920,8 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
     }
 
     if(this->preparedMsg){
-        if(currentACTElement->isGackEnabled() && this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
+        //if(currentACTElement->isGackEnabled() && this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
+        if(dsme.getPlatform().isGackEnabled() && this->preparedMsg->getHeader().getFrameControl().frameType == IEEE802154eMACHeader::DATA){
             //if gackEnabled in the current GTS and its a data message -> get gackEnabled flag
             gackIE *gIE = new gackIE();
             DSME_ASSERT(gIE != nullptr);
