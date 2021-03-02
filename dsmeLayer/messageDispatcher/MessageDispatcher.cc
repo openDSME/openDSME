@@ -707,14 +707,14 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
 
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
 
-    uint8_t acknowledgedPackets = gackBitmap.getNumberOfPackets(ownAddress);
+    uint8_t acknowledgedPackets = bitmap.getNumberOfPackets(ownAddress);
     this->dsme.getPlatform().signalAcksInGack(acknowledgedPackets);
     LOG_INFO("GACK: ackedPackets:"<< (int)acknowledgedPackets);
     for(uint8_t packet=0; packet<acknowledgedPackets; packet++) {
         /* -> remove all packets that were delivered successfully */
 
         /* retrieve sequence number */
-        uint8_t sequenceNumber = gackBitmap.getNextSequenceNumber(ownAddress);
+        uint8_t sequenceNumber = bitmap.getNextSequenceNumber(ownAddress);
         LOG_INFO("GACK: p:"<< (int)packet);
         LOG_INFO("GACK: seqNr:"<< (int)sequenceNumber);
 
@@ -776,7 +776,7 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
 
     this->dsme.getPlatform().signalPacketRetransmissionRate(((double)numRetransmittedPackets)/((double)(numAckedPackets+numRetransmittedPackets)));
 
-    gackBitmap.reset();
+    bitmap.reset();
     return true;
 }
 
