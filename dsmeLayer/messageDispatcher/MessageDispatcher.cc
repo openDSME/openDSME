@@ -197,6 +197,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         }
 
     } else {  /*if not gackEnabled, release Message*/
+        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-msg->getHeader().getCreationTime()); //signal Ack Delay for statistics
         neighborQueue.popFront(lastSendGTSNeighbor);
         signalUpperLayer = true;
     }
