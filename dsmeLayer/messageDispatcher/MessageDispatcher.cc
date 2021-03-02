@@ -685,16 +685,17 @@ void MessageDispatcher::handleAckTransmitted(){
 }
 
 bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
-    GTSGackCmd gackCmd(gackBitmap);
+    DSMEGACKBitmap bitmap;
+    GTSGackCmd gackCmd(bitmap);
     gackCmd.decapsulateFrom(msg);
     LOG_INFO("GACK: received");
 
     IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
 
-    return handleGackBitmap(srcAddr);
+    return handleGackBitmap(bitmap, srcAddr);
 }
 
-bool MessageDispatcher::handleGackBitmap(IEEE802154MacAddress &srcAddr) {
+bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAddress &srcAddr) {
     //debug vars
     uint16_t numAckedPackets = 0, numRetransmittedPackets = 0;
 
@@ -775,7 +776,7 @@ bool MessageDispatcher::handleGackBitmap(IEEE802154MacAddress &srcAddr) {
 
     this->dsme.getPlatform().signalPacketRetransmissionRate(((double)numRetransmittedPackets)/((double)(numAckedPackets+numRetransmittedPackets)));
 
-    //gackBitmap.reset();
+    gackBitmap.reset();
     return true;
 }
 

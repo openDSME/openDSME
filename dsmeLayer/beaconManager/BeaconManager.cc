@@ -350,9 +350,10 @@ bool BeaconManager::handleEnhancedBeacon(IDSMEMessage* msg, DSMEPANDescriptor& d
     }
 
     if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackBeaconEnabled()) {
-        GTSGackCmd gackCmd(dsme.getMessageDispatcher().getGackBitmap());
+        DSMEGACKBitmap bitmap;
+        GTSGackCmd gackCmd(bitmap);
         gackCmd.decapsulateFrom(msg);
-        dsme.getMessageDispatcher().handleGackBitmap(msg->getHeader().getSrcAddr());
+        dsme.getMessageDispatcher().handleGackBitmap(bitmap, msg->getHeader().getSrcAddr());
     }
 
     return false;
