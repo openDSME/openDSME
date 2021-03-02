@@ -279,6 +279,7 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
         }
     }
 
+    this->dsme.getPlatform().signalCAPAckDelay(this->dsme.getPlatform().getSymbolCounter()-msg->getHeader().getCreationTime()); //signal Ack Delay for statistics
     if(msg->getReceivedViaMCPS()) {
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = msg;
@@ -335,7 +336,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
 
     numUpperPacketsForGTS++;
 
-
+    msg->getHeader().setCreationTime(this->dsme.getPlatform().getSymbolCounter()); //set Message Creation Time for statistics
     if(!neighborQueue.isQueueFull()) {
         /* push into queue */
         // TODO implement TRANSACTION_EXPIRED
@@ -358,6 +359,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
 
 bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
     LOG_INFO("Inserting message into CAP queue.");
+    msg->getHeader().setCreationTime(this->dsme.getPlatform().getSymbolCounter()); //set Message Creation Time for statistics
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
         LOG_INFO("Message dropped due to missing association!");
         // TODO document this behaviour
@@ -726,6 +728,7 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
         }
         this->dsme.getPlatform().signalRetransmissionQueueLength(totalSize);
 
+        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-queuedMsg->getHeader().getCreationTime()); //signal Ack Delay for statistics
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = queuedMsg;
         params.timestamp = 0; // TODO
