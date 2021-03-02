@@ -158,6 +158,8 @@ public:
      */
     void receive(IDSMEMessage* msg);
 
+    bool handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAddress &srcAddr);
+
 /* Event handlers (END) ------------------------------------------------------*/
 
 protected:
