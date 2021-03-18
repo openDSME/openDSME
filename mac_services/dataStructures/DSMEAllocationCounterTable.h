@@ -118,7 +118,9 @@ public:
                      condition_t condition, bool checkAddress = false, bool gackEnabled = false);
     void setACTStateIfExists(DSMESABSpecification& subBlock, ACTState state, uint16_t channelOffset);
 
-    bool addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address);
+    void setGackGTSValid(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address);
+
+    bool addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state);
 
     void removeFromGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint16_t deviceAddress);
 

@@ -294,8 +294,25 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
     }
 }
 
-bool DSMEAllocationCounterTable::addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address){
+void DSMEAllocationCounterTable::setGackGTSValid(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address) {
+    ACTPosition pos;
+    pos.superframeID = superframeID;
+    pos.gtSlotID = gtSlotID;
 
+    bool success = false;
+    //if its a Gack-GTS, first check if it already exist and just add the address
+    iterator it = act.find(pos);
+    if(it != end()){  //if it exists
+        printChange("G_setValid", superframeID, gtSlotID, channel, direction, address, true);
+        it->state = ACTState::VALID;
+        success = true;
+    }else{ //reallocate
+        printChange("G_reallocate valid", superframeID, gtSlotID, channel, direction, address, true);
+        addToGackGTS(superframeID, gtSlotID, channel, direction, address, ACTState::VALID);
+    }
+}
+
+bool DSMEAllocationCounterTable::addToGackGTS(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state){
 
     ACTPosition pos;
     pos.superframeID = superframeID;
@@ -312,7 +329,7 @@ bool DSMEAllocationCounterTable::addToGackGTS(uint16_t superframeID, uint8_t gtS
     }
     else{
         printChange("G_alloc", superframeID, gtSlotID, channel, direction, address, true);
-        success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, ACTState::VALID, true), pos);
+        success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state, true), pos);
 
         if(success) {
             this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), true);

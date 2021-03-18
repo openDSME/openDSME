@@ -479,7 +479,8 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
             if(it->isGackGTS()){    //get all already allocated GACK-GTS
                 uint8_t currentDistance = abs((int8_t)it->getSuperframeID()-preferredSuperframeID);
                 LOG_DEBUG("GACK: Slot" << (int)it->getGTSlotID() << " in SF" << (int)it->getSuperframeID() << " distance:" << (int)currentDistance);
-                if(currentDistance <= closestGackGTSDistance){ //if distance is lower or equal to lowest GackGTSDistance
+                //The requested gackGTS is always in TX direction
+                if(currentDistance <= closestGackGTSDistance && it->getDirection() == TX){ //if distance is lower or equal to lowest GackGTSDistance
                     closestGackGTSDistance = currentDistance;
                     closestGackGTS->slotID = it->getGTSlotID();
                     closestGackGTS->superframeID = it->getSuperframeID();
@@ -491,8 +492,13 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
         LOG_DEBUG("GACK: log done.");
         LOG_DEBUG("GACK: superframesPerMSF: " << (int)numSuperFramesPerMultiSuperframe);
         LOG_DEBUG("GACK: gackGTSPerMSF: " << (int)numGackGTSPerMultiSuperframe);
-        LOG_DEBUG("GACK: closest Slot" << (int)closestGackGTS->slotID << " in SF" << (int)closestGackGTS->superframeID << " distance:" << (int)closestGackGTSDistance);
-        LOG_DEBUG("GACK: closestGackGTS: " << (int)closestGackGTSDistance << " >= GackGTSSpacing: " << (int)GackGTSSpacing);
+        if(*closestGackGTS == GTS::UNDEFINED){
+            LOG_DEBUG("GACK: no GACKGTS available yet");
+        }else{
+            LOG_DEBUG("GACK: closest Slot" << (int)closestGackGTS->slotID << " in SF" << (int)closestGackGTS->superframeID << " distance:" << (int)closestGackGTSDistance);
+            LOG_DEBUG("GACK: closestGackGTS: " << (int)closestGackGTSDistance << " >= GackGTSSpacing: " << (int)GackGTSSpacing << "?");
+        }
+
         if(closestGackGTSDistance >= GackGTSSpacing){
             LOG_DEBUG("GACK: true! allocate new GACK-GTS");
             //allocate new GackGTS, calculate next superframeID
