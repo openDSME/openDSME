@@ -52,7 +52,7 @@ namespace dsme {
 /* PUBLIC METHODS ************************************************************/
 
 
-auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t const sequenceNumber) -> void { //TODO
+auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t const sequenceNumber) -> void {
     auto bitmapIterator = this->bitmap.find(addr);
     if(bitmapIterator != this->bitmap.end()) {
         /* -> some packets from this addr already registered */
@@ -77,7 +77,8 @@ auto DSMEGACKBitmap::registerPacket(IEEE802154MacAddress const& addr, uint8_t co
     } else {
         /* -> Add the first fragment for this address */
         uint8_t fragSequenceNumber = (sequenceNumber & 0b11111000);  // int(sequenceNumber / 8) * 8
-        this->bitmap.insert(new DSMEGACKBitmapFragment(fragSequenceNumber, sequenceNumber - fragSequenceNumber), addr);
+        DSMEGACKBitmapFragment *fragment = new DSMEGACKBitmapFragment(fragSequenceNumber, 1 << (sequenceNumber - fragSequenceNumber));
+        this->bitmap.insert(fragment, addr);
     }
 }
 
@@ -152,7 +153,9 @@ auto operator<<(Serializer& serializer, DSMEGACKBitmap& gack) -> Serializer& {
         uint8_t numAddresses = gack.bitmap.size();
         serializer << numAddresses;
 
-        for(auto bitmapIterator = gack.bitmap.begin(); bitmapIterator != gack.bitmap.end(); ++bitmapIterator) {
+        //for(auto bitmapIterator = gack.bitmap.begin(); bitmapIterator != gack.bitmap.end(); bitmapIterator++) {
+        for(uint8_t i=0; i<numAddresses; i++) {
+            auto bitmapIterator = gack.bitmap.begin();
             IEEE802154MacAddress& addr = bitmapIterator.node()->getKey();
             uint16_t short_addr = addr.getShortAddress();
             serializer << short_addr;

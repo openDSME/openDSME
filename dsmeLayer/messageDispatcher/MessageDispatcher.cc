@@ -712,10 +712,6 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
         LOG_INFO("GACK: p:"<< (int)packet);
         LOG_INFO("GACK: seqNr:"<< (int)sequenceNumber);
 
-        if(retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
-            continue;
-        }
-
         IDSMEMessage* queuedMsg = retransmissionQueue.popBySequenceNumber(retransmissionQueueNeighbor, sequenceNumber);
         if(queuedMsg == nullptr) {
             LOG_INFO("GACK: not found in queue");
