@@ -91,6 +91,9 @@ public:
     virtual uint8_t getRetryCounter() = 0;
 
     uint8_t queueAtCreation = -1;
+
+    uint8_t txSlotId = 0;
+    uint8_t txSuperframeId = 0;
 };
 
 } /* namespace dsme */

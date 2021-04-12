@@ -189,6 +189,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         }else{
             IDSMEMessage* msg = neighborQueue.popFront(lastSendGTSNeighbor);
             const IEEE802154MacAddress &addr = lastSendGTSNeighbor->address;
+            msg->txSlotId = currentACTElement->getGTSlotID();
+            msg->txSuperframeId = currentACTElement->getSuperframeID();
 
             NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(addr);
             DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
@@ -693,6 +695,7 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
 bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAddress &srcAddr) {
     //debug vars
     uint16_t numAckedPackets = 0, numRetransmittedPackets = 0;
+    DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
 
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
@@ -718,6 +721,13 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
             continue;
         }
         LOG_INFO("GACK: removed from queue");
+
+        /* reset idle counter of the GTS */
+        DSMEAllocationCounterTable::iterator actIter = act.find(queuedMsg->txSuperframeId, queuedMsg->txSlotId);
+        if(actIter != act.end()) {
+            actIter->resetIdleCounter();
+        }
+
         numAckedPackets++;
         uint16_t totalSize = 0;
         for(NeighborQueue<MAX_NEIGHBORS>::iterator it = retransmissionQueue.begin(); it != retransmissionQueue.end(); ++it) {
@@ -737,11 +747,19 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
 
     /* -> retransmit all packets that are not acknowledged yet */
     LOG_INFO("GACK: not acknowledged:");
+
     while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
         IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
         LOG_INFO("GACK: seqNr:"<< (int)queuedMsg->getHeader().getSequenceNumber());
         LOG_INFO("GACK: retry:"<< (int)queuedMsg->getRetryCounter());
         numRetransmittedPackets++;
+
+        /* Increament idle counter of the GTS */
+        DSMEAllocationCounterTable::iterator actIter = act.find(queuedMsg->txSuperframeId, queuedMsg->txSlotId);
+        if(actIter != act.end()) {
+            actIter->incrementIdleCounter();
+        }
+
         if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             queuedMsg->increaseRetryCounter();
             if(!neighborQueue.isQueueFull()) {

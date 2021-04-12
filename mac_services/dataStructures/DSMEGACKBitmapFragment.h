@@ -101,7 +101,7 @@ public:
      */
     auto getLastSequenceNumber() const -> uint8_t;
 
-    auto setNext(DSMEGACKBitmapFragment* n) {
+    auto setNext(DSMEGACKBitmapFragment* n) -> void {
         next = n;
     }
 
