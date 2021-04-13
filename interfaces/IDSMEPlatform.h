@@ -144,6 +144,10 @@ public:
     virtual void signalAcksInGack(uint32_t packets){
     }
 
+    virtual void signalGackSize(uint16_t bytes){
+
+    }
+
     virtual void signalPacketRetransmissionRate(double rate){
     }
 
@@ -171,6 +175,8 @@ public:
     virtual void delayedTurnTransceiverOff() = 0;
 
     virtual bool isGackEnabled() = 0;
+
+    virtual void signalAckSent() = 0;
 };
 
 } /* namespace dsme */

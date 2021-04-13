@@ -669,6 +669,7 @@ void MessageDispatcher::handleGTSFrame(IDSMEMessage* msg) {
 
 void MessageDispatcher::handleAckTransmitted(){
     LOG_INFO("handleAckTransmitted");
+    dsme.getPlatform().signalAckSent();
     if(currentACTElement != dsme.getMAC_PIB().macDSMEACT.end()) {
         if(turnOff) {
             LOG_INFO("turnOFF");
@@ -683,7 +684,9 @@ bool MessageDispatcher::handleGackReception(IDSMEMessage* msg) {
     DSMEGACKBitmap bitmap;
     GTSGackCmd gackCmd(bitmap);
     gackCmd.decapsulateFrom(msg);
-    LOG_INFO("GACK: received");
+    char buf[5];
+    sprintf(buf,"%i",gackCmd.getSerializationLength());
+    LOG_INFO("GACK: received, size: "<< buf <<" Bytes");
 
     IEEE802154MacAddress srcAddr = msg->getHeader().getSrcAddr();
 
@@ -697,7 +700,10 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
     NeighborQueue<MAX_NEIGHBORS>::iterator neighborQueueNeighbor = neighborQueue.findByAddress(srcAddr);
     NeighborQueue<MAX_NEIGHBORS>::iterator retransmissionQueueNeighbor = retransmissionQueue.findByAddress(srcAddr);
 
-    DSME_ASSERT(retransmissionQueueNeighbor != retransmissionQueue.end());
+    if(retransmissionQueueNeighbor == retransmissionQueue.end()){
+        LOG_INFO("GACK: neighbor does not exist yet. discarding.");
+        return true;
+    }
 
     IEEE802154MacAddress ownAddress = IEEE802154MacAddress(dsme.getMAC_PIB().macShortAddress);
 
@@ -739,23 +745,17 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     }
 
-    /* -> retransmit all packets that are not acknowledged yet */
+    /* -> retransmit all packets that are not acknowledged yet until neighborQueue full */
     LOG_INFO("GACK: not acknowledged:");
-    while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor)) {
+    while(!retransmissionQueue.isQueueEmpty(retransmissionQueueNeighbor) && !neighborQueue.isQueueFull()) {
         IDSMEMessage* queuedMsg = retransmissionQueue.popFront(retransmissionQueueNeighbor);
         LOG_INFO("GACK: seqNr:"<< (int)queuedMsg->getHeader().getSequenceNumber());
         LOG_INFO("GACK: retry:"<< (int)queuedMsg->getRetryCounter());
         numRetransmittedPackets++;
         if(queuedMsg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             queuedMsg->increaseRetryCounter();
-            if(!neighborQueue.isQueueFull()) {
-                LOG_INFO("GACK: resend:"<< (int)queuedMsg->getHeader().getSequenceNumber());
-                neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
-            }else{
-                LOG_ERROR("NeighborQueue is full!");
-                numUpperPacketsDroppedFullQueue++;
-                this->dsme.getPlatform().signalNumDroppedPackets(numUpperPacketsDroppedFullQueue);
-            }
+            LOG_INFO("GACK: resend:"<< (int)queuedMsg->getHeader().getSequenceNumber());
+            neighborQueue.pushBack(neighborQueueNeighbor, queuedMsg);
             preparedMsg = nullptr;
         } else {
             /* -> inform the upper layer about the unsuccessful transmission */
@@ -855,15 +855,12 @@ bool MessageDispatcher::prepareGackCommand(){
     DSME_ASSERT(this->preparedMsg != nullptr);
 
     GTSGackCmd gackCmd(gackBitmap); //prepare gackCmd here
+    char buf[5];
+    sprintf(buf,"%i",gackCmd.getSerializationLength());
+    dsme.getPlatform().signalGackSize(gackCmd.getSerializationLength());
+    dsme.getPlatform().signalAckSent();
+    LOG_INFO("GACK MAP SENT: "<< buf << " bytes");
 
-    LOG_INFO("GACK MAP SENT: ");
-    int count = 0;
-    /*for(int i = 0; i < gackCmd.getGackVector().length(); i++){
-        LOG_INFO("slotID: " << i << " status: " << gackCmd.getGackVector().get(i));
-        if(gackCmd.getGackVector().get(i) == true){
-            count++;
-        }
-    }*/
     gackCmd.prependTo(this->preparedMsg);
 
     MACCommand cmd;

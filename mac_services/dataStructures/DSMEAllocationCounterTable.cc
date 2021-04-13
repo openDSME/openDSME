@@ -325,25 +325,11 @@ bool DSMEAllocationCounterTable::addToGackGTS(uint16_t superframeID, uint8_t gtS
         printChange("G_add", superframeID, gtSlotID, channel, direction, address, true);
         it->addAddress(address);
         success = true;
-        //this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), true); //here as well?
     }
     else{
         printChange("G_alloc", superframeID, gtSlotID, channel, direction, address, true);
         success = act.insert(ACTElement(superframeID, gtSlotID, channel, direction, address, state, true), pos);
-
-        if(success) {
-            this->dsme->getPlatform().signalGTSChange(false, IEEE802154MacAddress(address), true);
-
-            int d = (direction == TX) ? 0 : 1;
-            RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
-            if(numSlotIt == numAllocatedSlots[d].end()) {
-                LOG_DEBUG("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
-                numAllocatedSlots[d].insert(1, address);
-            } else {
-                (*numSlotIt)++;
-                LOG_DEBUG("Incrementing slot count " << d << HEXOUT << " for 0x" << address << DECOUT << " (now at " << *numSlotIt << ").");
-            }
-
+        if(success){
             bitmap.set(getBitmapPosition(superframeID, gtSlotID), true);
         }
     }
@@ -365,20 +351,9 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
         }else{
             printChange("G_dealloc", it->superframeID, it->slotID, it->channel, it->direction, deviceAddress, true);
 
-            this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress), true);
-
             DSME_ASSERT(isAllocated(superframeID, gtSlotID));
 
             bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
-
-            int d = (it->direction == TX) ? 0 : 1;
-            RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->getAddress());
-            DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
-            (*numSlotIt)--;
-            LOG_DEBUG("Decrementing slot count for " << it->getAddress() << DECOUT << " (now at " << *numSlotIt << ").");
-            if((*numSlotIt) == 0) {
-                numAllocatedSlots[d].remove(numSlotIt);
-            }
             act.remove(it);
         }
     }
