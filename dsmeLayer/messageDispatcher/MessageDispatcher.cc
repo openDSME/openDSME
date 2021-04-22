@@ -896,6 +896,8 @@ bool MessageDispatcher::prepareGackCommand(){
     this->preparedMsg->getHeader().setCreationTime(dsme.getPlatform().getSymbolCounter());
     /* STATISTICS (END) */
 
+    uint16_t ackSize = this->preparedMsg->getHeader().getSerializationLength();
+
 
     checkTimeToSendMessage = true;
     if(checkTimeToSendMessage) {//if the timming for transmission must be checked

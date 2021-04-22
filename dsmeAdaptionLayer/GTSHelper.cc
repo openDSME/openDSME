@@ -403,13 +403,15 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    uint8_t maxTry = 100;
     BitVector<MAX_CHANNELS> occupied;
     BitVector<MAX_CHANNELS> remoteOccupied; // only used if sabSpec != nullptr
     occupied.setLength(numChannels);
     remoteOccupied.setLength(numChannels);
 
     GTS currentGTS(superframeID, slotID-1, 0);
-    for(; currentGTS.slotID >= lowestSlotID; currentGTS.slotID--) {
+    for(uint8_t currentTry; currentTry < maxTry; currentTry++) {
+        currentGTS.slotID = lowestSlotID + (this->dsmeAdaptionLayer.getRandom()%(slotID-lowestSlotID));//get new random slot
         LOG_INFO("Checking SlotID " << currentGTS.slotID << " in superframeID " << currentGTS.superframeID);
         if(!macDSMEACT.isAllocated(currentGTS.superframeID, currentGTS.slotID)) {   //if free slot available
             macDSMESAB.getOccupiedChannels(occupied, currentGTS.superframeID, currentGTS.slotID); //find a free channel
@@ -417,7 +419,7 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8
                 remoteOccupied.copyFrom(sabSpec->getSubBlock(), currentGTS.slotID * numChannels);
                 occupied.setOperationJoin(remoteOccupied);
             }
-            currentGTS.channel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
+            currentGTS.channel = this->dsmeAdaptionLayer.getRandom() % numChannels;
             for(uint8_t i = 0; i < numChannels; i++) {
                 if(!occupied.get(currentGTS.channel)) {    /* found one */
                     return currentGTS;
@@ -425,9 +427,6 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8
                 }
                 currentGTS.channel = (currentGTS.channel+1)%numChannels;
             }
-        }
-        if(currentGTS.slotID == 0){ //for loop has to be stopped here to prevent underflow
-            break;
         }
     }
     return GTS::UNDEFINED;
@@ -516,7 +515,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
         }
         //if distance lower than GackGTSSpacing, use closestGackGTS as chosen GackGTS
         //check in front of it, if a slot is available, running backwards from Gack-SlotID
-        /*currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, 0, sabSpec);
+        currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, 0, sabSpec);
         if(currentGTS != GTS::UNDEFINED)
         {
             LOG_DEBUG("GACK: found GTS in Slot" << (int)currentGTS.slotID << " in SF" << (int)currentGTS.superframeID);
@@ -524,7 +523,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
         }else{
             LOG_DEBUG("GACK: no GTS slot found, abort!");
             return GTS::UNDEFINED;
-        }*/
+        }
     }
     //No GACK-GTS requested
     for(currentGTS.superframeID = preferredSuperframeID; slotsToCheck > 0; currentGTS.superframeID = (currentGTS.superframeID + 1) % numSuperFramesPerMultiSuperframe) {

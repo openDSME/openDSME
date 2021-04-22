@@ -268,6 +268,8 @@ fsmReturnStatus AckLayer::stateIdle(AckEvent& event) {
 
                 ackHeader.setDstAddr(receivedMessage->getHeader().getSrcAddr()); // TODO remove, this is only for the sequence diagram
 
+                uint16_t ackSize = pendingMessage->getHeader().getSerializationLength();
+
                 /* platform has to handle delaying the ACK to obey aTurnaroundTime */
                 bool success = dsme.getPlatform().sendDelayedAck(pendingMessage, receivedMessage, internalDoneCallback);
 

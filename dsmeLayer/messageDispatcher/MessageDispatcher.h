@@ -67,7 +67,7 @@ private:
     DSMELayer& dsme;
     bool multiplePacketsPerGTS{false};
     bool turnOff{false};
-    DSMEGACKBitmap gackBitmap; // TODO: this should be owned by the ack layer, the message dispatcher should not care about acks
+    DSMEGACKBitmap gackBitmap;
 
 public:
     /*! Queues a message for transmission during a GTS.
