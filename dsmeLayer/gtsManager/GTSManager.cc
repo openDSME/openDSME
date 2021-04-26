@@ -248,7 +248,7 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 return FSM_HANDLED;
             } else {
                 if(event.management.status == GTSStatus::SUCCESS) {
-                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset, event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED);
+                    actUpdater.approvalQueued(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset, event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED, event.replyNotifyCmd.getGackGTS());
                 }
                 return transition(fsmId, &GTSManager::stateSending);
             }
@@ -415,7 +415,7 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     if(event.management.status == GTSStatus::SUCCESS) {
-                        actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset);
+                        actUpdater.approvalDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, dsme.getMAC_PIB().macChannelOffset, event.replyNotifyCmd.getGackGTS());
                         data[fsmId].notifyPartnerAddress = event.deviceAddr;
                         return transition(fsmId, &GTSManager::stateWaitForNotify);
                     } else if(event.management.status == GTSStatus::DENIED) {
@@ -500,7 +500,7 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                         }
                     } else {
                         actUpdater.approvalReceived(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr,
-                                                    event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED);
+                                                    event.replyNotifyCmd.getChannelOffset(), event.replyNotifyCmd.getGackGTS()!=GTS::UNDEFINED, event.replyNotifyCmd.getGackGTS());
                     }
                 }
             }

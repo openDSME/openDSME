@@ -70,21 +70,27 @@ void ACTUpdater::responseTimeout(DSMESABSpecification& sabSpec, GTSManagement& m
     // No action required
 }
 
-void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled) {
+void ACTUpdater::approvalQueued(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled, GTS gackGTS) {
     LOG_DEBUG("ACTUpdater - approvavQueued");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
                                                        useChannelOffset, [](ACTState b) { return b != ACTState::INVALID; }, gackEnabled);
+        if(gackGTS != GTS::UNDEFINED){
+            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, management.direction, deviceAddr, ACTState::UNCONFIRMED);
+        }
     }
 }
 
-void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled) {
+void ACTUpdater::approvalReceived(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, bool gackEnabled, GTS gackGTS) {
     LOG_ACT("approvalReceived");
     if(management.type == ManagementType::ALLOCATION) {
         bool useChannelOffset = dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING;
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, management.direction, deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTState b) { return b != ACTState::INVALID; }, gackEnabled);
+        if(gackGTS != GTS::UNDEFINED){
+            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, invert(management.direction), deviceAddr, ACTState::UNCONFIRMED);
+        }
     }
 }
 
@@ -130,7 +136,7 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, management.direction, deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTElement e) { return e.getState() != ACTState::INVALID; });
         if(gackGTS != GTS::UNDEFINED){
-            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, invert(management.direction), deviceAddr);
+            this->dsme.getMAC_PIB().macDSMEACT.setGackGTSValid(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, invert(management.direction), deviceAddr);
         }
     } else if(management.type == ManagementType::DEALLOCATION) {
         // The sender of the notify is also the requester, so do not invert the direction
@@ -141,13 +147,16 @@ void ACTUpdater::notifyDelivered(DSMESABSpecification& sabSpec, GTSManagement& m
     }
 }
 
-void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset) {
+void ACTUpdater::approvalDelivered(DSMESABSpecification& sabSpec, GTSManagement& management, uint16_t deviceAddr, uint16_t channelOffset, GTS gackGTS) {
     LOG_ACT("approvalDelivered");
     if(management.type == ManagementType::ALLOCATION) {
         // This is not handled by the standard, but improves the consistency
         bool useChannelOffset = (dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_HOPPING);
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, channelOffset,
                                                        useChannelOffset);
+        if(gackGTS != GTS::UNDEFINED){
+            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, invert(management.direction), deviceAddr, ACTState::UNCONFIRMED);
+        }
     } else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::UNCONFIRMED, invert(management.direction), deviceAddr, 0, false);
     } else {
@@ -179,7 +188,7 @@ void ACTUpdater::notifyReceived(DSMESABSpecification& sabSpec, GTSManagement& ma
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::VALID, invert(management.direction), deviceAddr, channelOffset, useChannelOffset,
                                                        [](ACTElement e) { return e.getState() != ACTState::INVALID; });
         if(gackGTS != GTS::UNDEFINED){
-            this->dsme.getMAC_PIB().macDSMEACT.addToGackGTS(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, management.direction, deviceAddr);
+            this->dsme.getMAC_PIB().macDSMEACT.setGackGTSValid(gackGTS.superframeID, gackGTS.slotID, gackGTS.channel, management.direction, deviceAddr);
         }
     } else if(management.type == ManagementType::DEALLOCATION) {
         this->dsme.getMAC_PIB().macDSMEACT.setACTState(sabSpec, ACTState::REMOVED, invert(management.direction), deviceAddr, 0, false);

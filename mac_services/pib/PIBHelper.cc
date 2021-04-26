@@ -66,6 +66,9 @@ uint8_t PIBHelper::getNumberSuperframesPerMultiSuperframe() const {
 
 uint8_t PIBHelper::getNumberGroupAckSlotsPerMultiSuperframe() const {
     /* 2^(MO-GAO) or NumSuperframesPerMSF if its smaller, as there can not be more GACK-GTS than Superframes*/
+    if(this->mac_pib.macGroupAckOrder >= this->mac_pib.macMultiSuperframeOrder){
+        return 1; //can not be lower than 1
+    }
     uint8_t numGroupAckSlots = 1 << (uint8_t)(this->mac_pib.macMultiSuperframeOrder - this->mac_pib.macGroupAckOrder);
     if(getNumberSuperframesPerMultiSuperframe() < numGroupAckSlots){
         return getNumberSuperframesPerMultiSuperframe();

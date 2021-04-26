@@ -72,7 +72,10 @@ public:
     }
 
     void addAddress(uint16_t address) {
-        addressList.insertLast(address);
+        if(!addressList.contains(address))
+        {
+            addressList.insertLast(address);
+        }
     }
 
     bool removeAddress(uint16_t address) {

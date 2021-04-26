@@ -73,6 +73,15 @@ public:
         }
     }
 
+    void operator=(DSMELinkedList const& other) {
+        this->head = nullptr;
+        this->tail = nullptr;
+        this->size = 0;
+        for(uint8_t i=0; i<other.getSize(); i++) {
+            this->insertLast(other.getElementAt(i));
+        }
+    }
+
     void insertFirst(C element)
     {
         struct listNode* newItem;

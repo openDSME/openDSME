@@ -147,6 +147,12 @@ public:
     virtual void signalPacketRetransmissionRate(double rate){
     }
 
+    virtual void signalCFPAckDelay(uint32_t symbols) {
+    }
+
+    virtual void signalCAPAckDelay(uint32_t symbols) {
+    }
+
     /*
      * Signal transmitted packets per slot
      */
