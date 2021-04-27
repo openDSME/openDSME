@@ -267,7 +267,6 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             if(params.gackGTS){  //if GACK-GTS requested
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                               params.preferredSlotId, &gackGTS);
-                DSME_ASSERT(gackGTS != GTS::UNDEFINED);
             }
             else{
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
@@ -278,6 +277,9 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
                 LOG_ERROR("Unable to allocate GTS.");
+                responseParams.status = GTSStatus::DENIED;
+            }else if(params.gackGTS == true && gackGTS == GTS::UNDEFINED){
+                LOG_ERROR("Unable to allocate GTS. No free GACK-GTS found");
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;
