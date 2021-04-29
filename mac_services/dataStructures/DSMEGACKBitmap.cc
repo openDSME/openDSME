@@ -225,6 +225,10 @@ auto operator<<(Serializer& serializer, DSMEGACKBitmap& gack) -> Serializer& {
     return serializer;
 }
 
+auto DSMEGACKBitmap::size() -> uint8_t {
+    return bitmap.size();
+}
+
 auto DSMEGACKBitmap::reset() -> void {
     for(auto bitmapIterator = bitmap.begin(); bitmapIterator != bitmap.end(); ++bitmapIterator) {
         DSMEGACKBitmapFragment *bitmapFragment = *bitmapIterator;

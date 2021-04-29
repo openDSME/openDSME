@@ -93,6 +93,8 @@ public:
      */
     auto reset() -> void;
 
+    auto size() -> uint8_t;
+
     virtual auto getSerializationLength() -> uint8_t;
 
 protected:

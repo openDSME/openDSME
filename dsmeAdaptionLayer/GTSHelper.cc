@@ -516,7 +516,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
         }
         //if distance lower than GackGTSSpacing, use closestGackGTS as chosen GackGTS
         //check in front of it, if a slot is available, running backwards from Gack-SlotID
-        currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, 0, sabSpec);
+        /*currentGTS = getNextFreeGTSBefore(closestGackGTS->superframeID, closestGackGTS->slotID, 0, sabSpec);
         if(currentGTS != GTS::UNDEFINED)
         {
             LOG_DEBUG("GACK: found GTS in Slot" << (int)currentGTS.slotID << " in SF" << (int)currentGTS.superframeID);
@@ -524,7 +524,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
         }else{
             LOG_DEBUG("GACK: no GTS slot found, abort!");
             return GTS::UNDEFINED;
-        }
+        }*/
     }
     //No GACK-GTS requested
     for(currentGTS.superframeID = preferredSuperframeID; slotsToCheck > 0; currentGTS.superframeID = (currentGTS.superframeID + 1) % numSuperFramesPerMultiSuperframe) {

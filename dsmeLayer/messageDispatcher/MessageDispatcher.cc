@@ -527,7 +527,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
     } else if(nextSlot == 1) {
         /* '-> next slot will be CAP */
 
-        if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackCAPEnabled()) {
+        if(dsme.getPlatform().isGackEnabled() && dsme.getPlatform().isGackCAPEnabled() && gackBitmap.size() != 0) {
             this->sendGackCAP();
         }
 
