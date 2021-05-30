@@ -159,7 +159,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     DSME_ASSERT(this->currentACTElement != act.end());
 
-    this->dsme.getEventDispatcher().setupIFSTimer(msg->getTotalSymbols() > aMaxSIFSFrameSize);
+    //this->dsme.getEventDispatcher().setupIFSTimer(msg->getTotalSymbols() > aMaxSIFSFrameSize);
+    this->dsme.getEventDispatcher().setupIFSTimer(!dsme.getPlatform().isGackEnabled());
 
     if(response != AckLayerResponse::NO_ACK_REQUESTED && response != AckLayerResponse::ACK_SUCCESSFUL) {
         currentACTElement->incrementIdleCounter();
@@ -179,7 +180,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 
     bool signalUpperLayer = false;
     /*Insert sent message into retransmissionQueue for eventual retransmission*/
-    if(currentACTElement->isGackEnabled()) {
+    //if(currentACTElement->isGackEnabled()) {
+    if(dsme.getPlatform().isGackEnabled()) {
         if(retransmissionQueue.isQueueFull()) {
             LOG_ERROR("RetransmissionQueue is full!");
             numRetransmissionPacketsDroppedFullQueue++;
@@ -482,7 +484,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
             LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
-            DSME_SIM_ASSERT(false);
+            //DSME_SIM_ASSERT(false);
             return false;
         }
     }

@@ -267,7 +267,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             if(params.gackGTS){  //if GACK-GTS requested
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
                               params.preferredSlotId, &gackGTS);
-                DSME_ASSERT(gackGTS != GTS::UNDEFINED);
+                //DSME_ASSERT(gackGTS != GTS::UNDEFINED);
             }
             else{
                 findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
@@ -281,6 +281,9 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;
+            }
+            if(this->dsmeAdaptionLayer.getDSME().getPlatform().isGackGTSEnabled() && responseParams.gackGTS == GTS::UNDEFINED) {
+                responseParams.status = GTSStatus::DENIED;
             }
             break;
         }
