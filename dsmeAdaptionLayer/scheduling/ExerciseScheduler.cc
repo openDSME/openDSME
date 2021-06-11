@@ -24,7 +24,7 @@ void ExerciseScheduler::multisuperframeEvent() {
         allocatedRxGTSTotal += dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::RX);
     }
     uint16_t neighborhoodGTS = 0;
-    for(abs_slot_idx_t slot=0; slot<MAX_OCCUPIED_SLOTS; slot++) {
+    for(abs_slot_idx_t slot=0; slot<dsmeAdaptionLayer.getMAC_PIB().helper.getNumberGTSlotsPerMultisuperframe() * dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels(); slot++) {
         if(dsmeAdaptionLayer.getMAC_PIB().macDSMESAB.isOccupied(slot)) {
             neighborhoodGTS++;
         }
@@ -60,12 +60,15 @@ void ExerciseScheduler::multisuperframeEvent() {
 int16_t ExerciseScheduler::getTargetGTS(uint16_t incomingPackets, uint16_t outgoingPackets, uint16_t allocatedTxGTS, uint16_t allocatedTxGTSTotal, uint16_t allocatedRxGTSTotal, uint16_t neighborhoodGTS, int16_t currentTarget, uint16_t queueLevel, uint8_t numChildren, bool isLeaf) {
     LOG_INFO("incoming Packets: " << (int)incomingPackets << " outgoingPackets: " << (int)outgoingPackets << " allocatedTxGTS: " << (int)allocatedTxGTS << " allocatedTxGTSTotal: " << (int)allocatedTxGTSTotal << " allocatedRxGTSTotal: " << (int)allocatedRxGTSTotal << " neighborhoodGTS: " << (int)neighborhoodGTS << " currentTarget: " << (int)currentTarget << " queueLevel: " << queueLevel << " numChildren: " << (int)numChildren << " isLeaf: " << isLeaf);
 
-    if(incomingPackets > 0) {
+    // TODO: remove the current implementation and implement your own solution here!
+
+    if(incomingPackets > 2) {
         return 3;
+    } else if(incomingPackets > 0) {
+        return 1;
     } else {
         return 0;
     }
-
 }
 
 } /* NAMESPACE DSME */
