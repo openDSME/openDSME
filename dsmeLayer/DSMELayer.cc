@@ -253,6 +253,7 @@ void DSMELayer::handleStartOfCFP() {
         this->startOfCFPDelegate();
     }
 
+    this->capLayer.handleStartOfCFP();
     this->gtsManager.handleStartOfCFP(this->currentSuperframe);
     this->associationManager.handleStartOfCFP(this->currentSuperframe);
     this->beaconManager.handleStartOfCFP(this->currentSuperframe, this->currentMultiSuperframe);
