@@ -130,7 +130,7 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
     }
     printChange("alloc", superframeID, gtSlotID, channel, direction, address, gackEnabled);
 
-  
+
     if(isAllocated(superframeID, gtSlotID)) {
         DSME_ASSERT(false);
     }
@@ -373,11 +373,12 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
 
             int d = (it->direction == TX) ? 0 : 1;
             RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->getAddress());
-            DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
-            (*numSlotIt)--;
-            LOG_DEBUG("Decrementing slot count for " << it->getAddress() << DECOUT << " (now at " << *numSlotIt << ").");
-            if((*numSlotIt) == 0) {
-                numAllocatedSlots[d].remove(numSlotIt);
+            if(numSlotIt != numAllocatedSlots[d].end()) {
+                (*numSlotIt)--;
+                LOG_DEBUG("Decrementing slot count for " << it->getAddress() << DECOUT << " (now at " << *numSlotIt << ").");
+                if((*numSlotIt) == 0) {
+                    numAllocatedSlots[d].remove(numSlotIt);
+                }
             }
             act.remove(it);
         }
