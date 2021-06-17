@@ -6,17 +6,24 @@
 
 namespace dsme {
 
-ChannelAdaptor::ChannelAdaptor(DSMEAdaptionLayer &dsmeAdaptionLayer) : dsmeAdaptionLayer(dsmeAdaptionLayer) {
+ChannelAdaptor::ChannelAdaptor(DSMEAdaptionLayer &dsmeAdaptionLayer) : dsmeAdaptionLayer{dsmeAdaptionLayer}, agent{ExpectedSarsaAgent()} {
 }
 
-uint8_t ChannelAdaptor::selectChannel() {
+uint8_t ChannelAdaptor::selectChannel(uint8_t slotId) {
     LOG_INFO("SELECTING CHANNEL:");
     printChannelStatusList();
 
-    // TODO create a blacklist and use it to choose a channel
+    // state is given by the time slot to allocate
+    Q_STATE_TYPE currentState = slotId;
+
+    // Select the next action based on the current state
+    Q_ACTION_TYPE_TYPE action = agent.greedyActionSelection(currentState);
+
+    // Delay update to a later point in time
 
     // return a random channel
-    return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    //return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    return action;
 }
 
 bool ChannelAdaptor::checkDeallocateGTS(uint8_t channel) {
@@ -25,6 +32,20 @@ bool ChannelAdaptor::checkDeallocateGTS(uint8_t channel) {
 }
 
 void ChannelAdaptor::signalTransmissionStatus(uint8_t channel, uint8_t attempts, bool success) {
+    // calcualte reward for transmission
+    Q_REWARD_TYPE reward = 10 * success;
+
+    // get current state (one of the 16 time slots per superframe)
+    Q_STATE_TYPE currentState = dsmeAdaptionLayer.getDSME().getCurrentSlot();
+
+    // update Sarsa based on transmission where channel was the action
+    agent.update(currentState, channel, reward, (currentState+1)%16, epsilon);
+
+    // update epsilon
+    epsilon *= 0.9999;
+
+
+    // update prr of all channels -> not of interest
     auto it = std::find_if(channelStatusList.begin(), channelStatusList.end(), [channel](const std::tuple<uint8_t, uint32_t, uint32_t>& e) {return std::get<0>(e) == channel;});
     if(it != channelStatusList.end()) {
         std::get<1>(*it) += attempts;

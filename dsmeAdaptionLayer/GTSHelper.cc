@@ -410,7 +410,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                     occupied.setOperationJoin(remoteOccupied);
                 }
 
-                gts.channel = channelAdaptor.selectChannel();
+                gts.channel = channelAdaptor.selectChannel(gts.slotID);
                 return gts;
                 //for(uint8_t i = 0; i < numChannels; i++) {
                 //    if(!occupied.get(gts.channel)) {

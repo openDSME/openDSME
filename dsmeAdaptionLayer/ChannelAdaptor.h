@@ -2,6 +2,7 @@
 #define CHANNELADAPTOR_H_
 
 #include "../mac_services/DSME_Common.h"
+#include "ExpectedSarsa.h"
 
 #include <vector>
 #include <tuple>
@@ -21,7 +22,7 @@ public:
      *
      *  TODO: TO BE IMPLEMENTED BY YOU!
      */
-    uint8_t selectChannel();
+    uint8_t selectChannel(uint8_t slotId);
 
 
     /** Checks if the GTS with the given channel id
@@ -37,6 +38,10 @@ public:
 
 private:
     std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> channelStatusList; // Vector of tuples (channel, transmissions, successful transmissions)
+
+    // SARSA
+    ExpectedSarsaAgent agent;
+    Q_VALUE_TYPE epsilon = 1.0;
 
     // Not of interest
     DSMEAdaptionLayer &dsmeAdaptionLayer;
