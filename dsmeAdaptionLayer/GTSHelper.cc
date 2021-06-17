@@ -372,7 +372,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
     return;
 }
 
-GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
+GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, bool receiver) {
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -410,19 +410,23 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                     occupied.setOperationJoin(remoteOccupied);
                 }
 
-                gts.channel = channelAdaptor.selectChannel(gts.slotID);
-                return gts;
-                //for(uint8_t i = 0; i < numChannels; i++) {
-                //    if(!occupied.get(gts.channel)) {
-                        /* found one */
-                //        return gts;
-                //    }
+                if(receiver) {
+                    gts.channel = startChannel;
+                    for(uint8_t i = 0; i < numChannels; i++) {
+                        if(!occupied.get(gts.channel)) {
+                              /* found one */
+                            return gts;
+                        }
+                        gts.channel++;
+                        if(gts.channel == numChannels) {
+                            gts.channel = 0;
+                        }
+                    }
+                } else {
+                    gts.channel = channelAdaptor.selectChannel(gts.slotID);
+                    return gts;
+                }
 
-                //    gts.channel++;
-                //    if(gts.channel == numChannels) {
-                //        gts.channel = 0;
-                //    }
-                //}
             }
             slotsToCheck--;
             if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
@@ -486,7 +490,7 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
     for(uint8_t i = 0; i < numSlots; i++) {
-        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec);
+        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec, true);
 
         if(gts == GTS::UNDEFINED) {
             break;
