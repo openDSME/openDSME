@@ -34,6 +34,14 @@ public:
     /* Prints the current Q-table */ 
     auto printQTable() -> void;
 
+    auto setAlpha(Q_VALUE_TYPE alpha) -> void {
+        this->alpha = alpha;
+    }
+
+    auto setGamma(Q_VALUE_TYPE gamma) -> void {
+        this->gamma = gamma;
+    }
+
 private:
     // state and actions are consecutively numbered -> 0,1,2,3,...
     Q_VALUE_TYPE qTable[NUM_STATES][NUM_ACTIONS];

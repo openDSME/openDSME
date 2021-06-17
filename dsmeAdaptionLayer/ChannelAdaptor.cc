@@ -3,10 +3,11 @@
 #include "../interfaces/IDSMEPlatform.h"
 #include "../mac_services/pib/MAC_PIB.h"
 #include "../../dsme_platform.h"
+#include "../dsmeLayer/DSMELayer.h"
 
 namespace dsme {
 
-ChannelAdaptor::ChannelAdaptor(DSMEAdaptionLayer &dsmeAdaptionLayer) : dsmeAdaptionLayer{dsmeAdaptionLayer}, agent{ExpectedSarsaAgent()} {
+ChannelAdaptor::ChannelAdaptor(DSMEAdaptionLayer &dsmeAdaptionLayer) : useSarsa{false}, dsmeAdaptionLayer{dsmeAdaptionLayer}, agent{ExpectedSarsaAgent()} {
 }
 
 uint8_t ChannelAdaptor::selectChannel(uint8_t slotId) {
@@ -17,13 +18,16 @@ uint8_t ChannelAdaptor::selectChannel(uint8_t slotId) {
     Q_STATE_TYPE currentState = slotId;
 
     // Select the next action based on the current state
-    Q_ACTION_TYPE_TYPE action = agent.greedyActionSelection(currentState);
+    Q_ACTION_TYPE action = agent.greedyActionSelection(currentState);
 
     // Delay update to a later point in time
 
     // return a random channel
-    //return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
-    return action;
+    if(useSarsa) {
+        return action;
+    } else {
+        return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    }
 }
 
 bool ChannelAdaptor::checkDeallocateGTS(uint8_t channel) {
@@ -33,7 +37,7 @@ bool ChannelAdaptor::checkDeallocateGTS(uint8_t channel) {
 
 void ChannelAdaptor::signalTransmissionStatus(uint8_t channel, uint8_t attempts, bool success) {
     // calcualte reward for transmission
-    Q_REWARD_TYPE reward = 10 * success;
+    Q_REWARD_TYPE reward = attempts + 10 * success;
 
     // get current state (one of the 16 time slots per superframe)
     Q_STATE_TYPE currentState = dsmeAdaptionLayer.getDSME().getCurrentSlot();

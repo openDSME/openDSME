@@ -25,6 +25,18 @@ public:
     uint8_t selectChannel(uint8_t slotId);
 
 
+    void setUseSarsa(bool useSarsa) {
+        this->useSarsa = useSarsa;
+    }
+
+    void setAlpha(Q_VALUE_TYPE alpha) {
+        agent.setAlpha(alpha);
+    }
+
+    void setGamma(Q_VALUE_TYPE gamma) {
+        agent.setGamma(gamma);
+    }
+
     /** Checks if the GTS with the given channel id
      *  shall be deallocated. True to deallocate the
      *  GTS, false to keep it. Called every Multisuperframe.
@@ -38,6 +50,8 @@ public:
 
 private:
     std::vector<std::tuple<uint8_t, uint32_t, uint32_t>> channelStatusList; // Vector of tuples (channel, transmissions, successful transmissions)
+
+    bool useSarsa;
 
     // SARSA
     ExpectedSarsaAgent agent;
