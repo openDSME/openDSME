@@ -99,12 +99,12 @@ private:
 
     GTS getRandomFreeGTS();
 
-    GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec = nullptr, bool receiver=false);
+    GTS getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, uint8_t initialChannel, const DSMESABSpecification* sabSpec = nullptr, bool receiver=false);
 
     GTSStatus::GTS_Status verifyDeallocation(DSMESABSpecification& requestSABSpec, uint16_t& deviceAddress, Direction& direction);
 
     void findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
-                       uint8_t preferredSlot);
+                       uint8_t preferredSlot, uint8_t preferredChannel);
 
     void sendDeallocationRequest(uint16_t address, Direction direction, DSMESABSpecification& sabSpecification);
 

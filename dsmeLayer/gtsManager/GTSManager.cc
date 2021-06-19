@@ -706,6 +706,7 @@ bool GTSManager::handleGTSRequest(IDSMEMessage* msg) {
     params.numSlot = req.getNumSlots();
     params.preferredSuperframeId = req.getPreferredSuperframeID();
     params.preferredSlotId = req.getPreferredSlotID();
+    params.preferredChannelId = req.getPreferredChannel();
     params.dsmeSabSpecification = req.getSABSpec();
 
     if(man.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {

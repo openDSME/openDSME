@@ -149,7 +149,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
 
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
-    GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
+    GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId, 0);
 
     if(preferredGTS == GTS::UNDEFINED) {
         LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
@@ -165,6 +165,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     params.numSlot = decision.numSlot;
     params.preferredSuperframeId = preferredGTS.superframeID;
     params.preferredSlotId = preferredGTS.slotID;
+    params.preferredChannelId = preferredGTS.channel;
 
     params.dsmeSabSpecification.setSubBlockLengthBytes(this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(preferredGTS.superframeID));
     params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
@@ -247,7 +248,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             DSME_ASSERT(params.dsmeSabSpecification.getSubBlockIndex() == params.preferredSuperframeId);
 
             findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
-                          params.preferredSlotId);
+                          params.preferredSlotId, params.preferredChannelId);
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
@@ -372,7 +373,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
     return;
 }
 
-GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec, bool receiver) {
+GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotID, uint8_t initialChannel, const DSMESABSpecification* sabSpec, bool receiver) {
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
 
@@ -411,7 +412,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 }
 
                 if(receiver) {
-                    gts.channel = startChannel;
+                    gts.channel = initialChannel;
                     for(uint8_t i = 0; i < numChannels; i++) {
                         if(!occupied.get(gts.channel)) {
                               /* found one */
@@ -421,12 +422,12 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                         if(gts.channel == numChannels) {
                             gts.channel = 0;
                         }
+                        return gts;
                     }
                 } else {
                     gts.channel = channelAdaptor.selectChannel(gts.slotID);
                     return gts;
                 }
-
             }
             slotsToCheck--;
             if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
@@ -486,11 +487,11 @@ GTSStatus::GTS_Status GTSHelper::verifyDeallocation(DSMESABSpecification& reques
 }
 
 void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpecification& replySABSpec, uint8_t numSlots, uint16_t preferredSuperframe,
-                              uint8_t preferredSlot) {
+                              uint8_t preferredSlot, uint8_t preferredChannel) {
     const uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
 
     for(uint8_t i = 0; i < numSlots; i++) {
-        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec, true);
+        GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, preferredChannel, &requestSABSpec, true);
 
         if(gts == GTS::UNDEFINED) {
             break;

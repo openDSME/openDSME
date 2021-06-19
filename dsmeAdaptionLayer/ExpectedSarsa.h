@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <array>
 
-#define NUM_STATES 16
+#define NUM_STATES 7
 #define NUM_ACTIONS 16
 
 using Q_STATE_TYPE = uint8_t;
@@ -15,7 +15,7 @@ using Q_REWARD_TYPE = Q_VALUE_TYPE;
 
 class ExpectedSarsaAgent {
 public:
-    ExpectedSarsaAgent(Q_VALUE_TYPE alpha = 0.5, Q_VALUE_TYPE gamma = 0.99) : qTable{0}, alpha{alpha}, gamma{gamma} {
+    ExpectedSarsaAgent(Q_VALUE_TYPE alpha = 0.5, Q_VALUE_TYPE gamma = 0.99) : alpha{alpha}, gamma{gamma},  qTable{0} {
     }
     ~ExpectedSarsaAgent() = default;
 
@@ -24,6 +24,9 @@ public:
 
     /* Expected Sarsa update. */
     auto update(Q_STATE_TYPE const& state, Q_ACTION_TYPE const& action, Q_REWARD_TYPE const& reward, Q_STATE_TYPE nextState, Q_VALUE_TYPE epsilon) -> void;
+
+    /* Get next action */
+    auto getAction(Q_STATE_TYPE const& state, Q_VALUE_TYPE epsilon) -> Q_ACTION_TYPE;
 
     /* Selects action with the highest Q-value for the given state. */
     auto greedyActionSelection(Q_STATE_TYPE const& state) -> Q_ACTION_TYPE;

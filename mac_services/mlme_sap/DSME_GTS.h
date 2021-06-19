@@ -65,6 +65,7 @@ struct DSME_GTS_indication_parameters {
     uint8_t numSlot;
     uint16_t preferredSuperframeId;
     uint8_t preferredSlotId;
+    uint8_t preferredChannelId;
     DSMESABSpecification dsmeSabSpecification;
     NOT_IMPLEMENTED_t allocationOrder;
 };
@@ -101,6 +102,7 @@ public:
         uint8_t numSlot;
         uint16_t preferredSuperframeId;
         uint8_t preferredSlotId;
+        uint8_t preferredChannelId;
         DSMESABSpecification dsmeSabSpecification;
         NOT_IMPLEMENTED_t securityLevel;
         NOT_IMPLEMENTED_t keyIdMode;

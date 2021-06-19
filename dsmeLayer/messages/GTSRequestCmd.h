@@ -53,11 +53,12 @@ private:
     uint8_t numSlots;
     uint16_t preferredSuperframeID;
     uint8_t preferredSlotID;
+    uint8_t preferredChannel;
     DSMESABSpecification SABSpec;
 
 public:
-    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, const DSMESABSpecification& SABSpec)
-        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), SABSpec(SABSpec) {
+    GTSRequestCmd(int8_t numSlots, uint16_t preferredSuperframeID, uint8_t preferredSlotID, uint8_t preferredChannel, const DSMESABSpecification& SABSpec)
+        : numSlots(numSlots), preferredSuperframeID(preferredSuperframeID), preferredSlotID(preferredSlotID), preferredChannel(preferredChannel), SABSpec(SABSpec) {
     }
 
     GTSRequestCmd() : numSlots{0}, preferredSuperframeID{0}, preferredSlotID{0}, SABSpec{} {
@@ -87,6 +88,14 @@ public:
         this->preferredSlotID = preferredSlotID;
     }
 
+    void setPreferredChannel(uint8_t channel) {
+        this->preferredChannel = channel;
+    }
+
+    uint8_t getPreferredChannel() {
+        return this->preferredChannel;
+    }
+
     DSMESABSpecification& getSABSpec() {
         return SABSpec;
     }
@@ -97,6 +106,7 @@ public:
         size += 1; // number of slots
         size += 2; // preferred superframe ID
         size += 1; // preferred slot ID
+        size += 1; // preferred channel
         size += SABSpec.getSerializationLength();
         return size;
     }
@@ -105,6 +115,7 @@ public:
         serializer << numSlots;
         serializer << preferredSuperframeID;
         serializer << preferredSlotID;
+        serializer << preferredChannel;
         serializer << SABSpec;
     }
 };

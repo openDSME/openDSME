@@ -15,10 +15,13 @@ uint8_t ChannelAdaptor::selectChannel(uint8_t slotId) {
     printChannelStatusList();
 
     // state is given by the time slot to allocate
-    Q_STATE_TYPE currentState = 9 + slotId;
+    Q_STATE_TYPE currentState = slotId;
 
     // Select the next action based on the current state
-    Q_ACTION_TYPE action = agent.greedyActionSelection(currentState);
+    Q_ACTION_TYPE action = agent.getAction(currentState, epsilon);
+
+    // update epsilon
+    epsilon *= 0.9;
 
     // Delay update to a later point in time
 
@@ -27,6 +30,7 @@ uint8_t ChannelAdaptor::selectChannel(uint8_t slotId) {
         std::cout << "state: " << (int)currentState << std::endl;
         agent.printQTable();
         std::cout << "action: " << (int)action << std::endl;
+        std::cout << "eps: " << epsilon << std::endl;
         return action;
     } else {
         return dsmeAdaptionLayer.getRandom() % dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
@@ -44,12 +48,10 @@ void ChannelAdaptor::signalTransmissionStatus(uint8_t channel, uint8_t attempts,
 
     // get current state (one of the 16 time slots per superframe)
     Q_STATE_TYPE currentState = dsmeAdaptionLayer.getDSME().getCurrentSlot();
+    if(currentState < 9) return;
 
     // update Sarsa based on transmission where channel was the action
-    agent.update(currentState, channel, reward, (currentState+1)%16, epsilon);
-
-    // update epsilon
-    epsilon *= 0.9999;
+    agent.update(currentState-9, channel, reward, (currentState-8)%7, epsilon);
 
     agent.printQTable();
 

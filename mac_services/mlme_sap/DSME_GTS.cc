@@ -83,7 +83,7 @@ void DSME_GTS::request(request_parameters& params) {
         GTSManager& gtsManager = dsme.getGTSManager();
 
         GTSManagement gtsManagement(params.managementType, params.direction, params.prioritizedChannelAccess);
-        GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeId, params.preferredSlotId, params.dsmeSabSpecification);
+        GTSRequestCmd gtsRequestCmd(params.numSlot, params.preferredSuperframeId, params.preferredSlotId, params.preferredChannelId, params.dsmeSabSpecification);
         bool busy = !gtsManager.handleMLMERequest(params.deviceAddress, gtsManagement, gtsRequestCmd);
 
         if(busy) {

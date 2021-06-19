@@ -18,6 +18,16 @@ auto ExpectedSarsaAgent::update(Q_STATE_TYPE const& state, Q_ACTION_TYPE const& 
     this->qTable[state][action] = this->qTable[state][action] + this->alpha * (reward + this->gamma * nextStateExpection - this->qTable[state][action]);
 }
 
+/* Get next action */
+auto ExpectedSarsaAgent::getAction(Q_STATE_TYPE const& state, Q_VALUE_TYPE epsilon) -> Q_ACTION_TYPE {
+    if((rand()%1000) < (epsilon*1000)) {
+        std::cout << "random" << std::endl;
+        return rand() % NUM_ACTIONS;
+    } else {
+        return greedyActionSelection(state);
+    }
+}
+
 /* Selects action with the highest Q-value for the given state. */
 auto ExpectedSarsaAgent::greedyActionSelection(Q_STATE_TYPE const& state) -> Q_ACTION_TYPE {
     // set maximum Q-value to first action
