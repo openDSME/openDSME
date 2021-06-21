@@ -15,7 +15,7 @@ using Q_REWARD_TYPE = Q_VALUE_TYPE;
 
 class ExpectedSarsaAgent {
 public:
-    ExpectedSarsaAgent(Q_VALUE_TYPE alpha = 0.5, Q_VALUE_TYPE gamma = 0.99) : alpha{alpha}, gamma{gamma},  qTable{0} {
+    ExpectedSarsaAgent(Q_VALUE_TYPE alpha = 0.5, Q_VALUE_TYPE gamma = 0.99) : qTable{0}, alpha{alpha}, gamma{gamma} {
     }
     ~ExpectedSarsaAgent() = default;
 
