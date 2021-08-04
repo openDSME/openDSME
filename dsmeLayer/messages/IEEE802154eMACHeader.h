@@ -107,6 +107,7 @@ public:
         srcPAN = BROADCAST_PAN;
 
         creationTime = 0;
+        transmissionTime = 0;
 
         hasDstPAN = false;
         hasSrcPAN = false;
@@ -325,6 +326,14 @@ public:
         this->creationTime = symbols;
     }
 
+    uint32_t getTransmissionTime() {
+        return this->transmissionTime;
+    }
+
+    void setTransmissionTime(uint32_t symbols) {
+        this->transmissionTime = symbols;
+    }
+
 private:
 
     void setIEListPresent(bool present) {
@@ -353,6 +362,7 @@ private:
     IEList ieList;
 
     uint32_t creationTime;  // STATISTICS
+    uint32_t transmissionTime;
 
     void finalize();
 

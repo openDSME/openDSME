@@ -199,7 +199,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         }
 
     } else {  /*if not gackEnabled, release Message*/
-        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-msg->getHeader().getCreationTime()); //signal Ack Delay for statistics
+        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-msg->getHeader().getTransmissionTime()); //signal Ack Delay for statistics
         neighborQueue.popFront(lastSendGTSNeighbor);
         signalUpperLayer = true;
     }
@@ -253,7 +253,6 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     if(signalUpperLayer){
         this->dsme.getMCPS_SAP().getDATA().notify_confirm(params);
     }
-
 
     if(!this->multiplePacketsPerGTS || !prepareNextMessageIfAny()) {
         /* '-> prepare next frame for transmission after one IFS */
@@ -740,7 +739,7 @@ bool MessageDispatcher::handleGackBitmap(DSMEGACKBitmap &bitmap, IEEE802154MacAd
         }
         this->dsme.getPlatform().signalRetransmissionQueueLength(totalSize);
 
-        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-queuedMsg->getHeader().getCreationTime()); //signal Ack Delay for statistics
+        this->dsme.getPlatform().signalCFPAckDelay(this->dsme.getPlatform().getSymbolCounter()-queuedMsg->getHeader().getTransmissionTime()); //signal Ack Delay for statistics
         mcps_sap::DATA_confirm_parameters params;
         params.msduHandle = queuedMsg;
         params.timestamp = 0; // TODO
@@ -1011,6 +1010,10 @@ bool MessageDispatcher::sendPreparedMessage() {
         /* '-> Sufficient time to send message in remaining slot time */
         if (this->dsme.getAckLayer().prepareSendingCopy(this->preparedMsg, this->doneGTS)) {
             /* '-> Message transmission can be attempted */
+            if(preparedMsg->getRetryCounter() == 0) {
+                this->preparedMsg->getHeader().setTransmissionTime(dsme.getPlatform().getSymbolCounter());
+            }
+
             this->dsme.getAckLayer().sendNowIfPending();
             this->numTxGtsFrames++;
         } else {
