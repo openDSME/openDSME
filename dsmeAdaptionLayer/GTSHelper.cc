@@ -484,7 +484,7 @@ GTS GTSHelper::getNextFreeGTSExtended(uint16_t initialSuperframeID, uint8_t init
                 }
             }
             slotsToCheck--;
-            if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
+            if((gts.slotID+1)%numGTSlots == initialSlotID) {
                 break;
             }
         }

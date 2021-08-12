@@ -61,7 +61,7 @@ public:
         this->signal = signal;
     }
 
-    enum : uint8_t { MSG_PUSHED = USER_SIGNAL_START, TIMER_FIRED, CCA_FAILURE, CCA_SUCCESS, SEND_SUCCESSFUL, SEND_FAILED, SEND_ABORTED };
+    enum : uint8_t { MSG_PUSHED = USER_SIGNAL_START, TIMER_FIRED, CCA_FAILURE, CCA_SUCCESS, SEND_SUCCESSFUL, SEND_FAILED, SEND_ABORTED, CONTENTION_COUNTDOWN, CONTENTION_PASSED };
 };
 
 class DSMELayer;
@@ -69,11 +69,13 @@ class DSMELayer;
 class CAPLayer : private DSMEBufferedFSM<CAPLayer, CSMAEvent, 4> {
 public:
     explicit CAPLayer(DSMELayer& dsme);
-
     void reset();
     bool pushMessage(IDSMEMessage* msg);
     void dispatchTimerEvent();
     void dispatchCCAResult(bool success);
+    void handleStartOfCFP();
+    void setSlottedCSMA(bool slotted);
+    void setBLE(bool ble);
 
 private:
     /**
@@ -82,9 +84,10 @@ private:
     fsmReturnStatus stateIdle(CSMAEvent& event);
     fsmReturnStatus stateBackoff(CSMAEvent& vent);
     fsmReturnStatus stateCCA(CSMAEvent& event);
+    fsmReturnStatus stateContention(CSMAEvent& event);
     fsmReturnStatus stateSending(CSMAEvent& event);
 
-    /*
+    /**
      * External interfaces for use through callbacks
      */
     void sendDone(AckLayerResponse response, IDSMEMessage* msg);
@@ -102,15 +105,27 @@ private:
     bool enoughTimeLeft();
     uint16_t symbolsRequired();
 
-    /*
+    /**
      * Attributes
      */
     DSMELayer& dsme;
     uint8_t NB;
     uint8_t NR;
+    uint8_t CW;
+    static const uint8_t CW0 = 2;
+    bool batteryLifeExt;
+    bool slottedCSMA;
     uint8_t totalNBs;
     AckLayer::done_callback_t doneCallback;
     DSMEQueue<IDSMEMessage*, CAP_QUEUE_SIZE> queue;
+
+    /**
+     * Counters for statistics
+     */
+    uint32_t sentPackets;
+    uint32_t failedPackets;
+    uint32_t successPackets;
+    uint32_t failedCCAs;
 };
 
 } /* namespace dsme */
