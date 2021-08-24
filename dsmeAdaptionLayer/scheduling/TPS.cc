@@ -73,6 +73,8 @@ void TPS::setUseMultiplePacketsPerGTS(bool useMultiplePackets) {
 }
 
 void TPS::multisuperframeEvent() {
+    static bool switched = false;
+
     if(!header) {
         LOG_DEBUG("control"
                   << ","
@@ -129,7 +131,18 @@ void TPS::multisuperframeEvent() {
             change = ceil(error);
         }
 
+        /*NeighborQueue<MAX_NEIGHBORS>& queue = dsmeAdaptionLayer.getDSME().getMessageDispatcher().getNeighborQueue();
+        NeighborQueue<MAX_NEIGHBORS>::iterator neighbor = queue.findByAddress(IEEE802154MacAddress(data.address));
+        if(neighbor != queue.end() && error < 0 && error > -.1f && queue.getPacketsInQueue(neighbor) >= (slots + change)) { 
+            change += 1;
+            switched = true; 
+        }
+        if(neighbor != queue.end() && error <= -1.0f  && error > -1.1f && queue.getPacketsInQueue(neighbor) < (slots + change) && switched) {
+            change = ceil(error); 
+        }*/
+
         data.slotTarget = slots + change;
+
         LOG_DEBUG("TPS target: " << data.slotTarget);
 
         if(data.messagesInLastMultisuperframe == 0) {

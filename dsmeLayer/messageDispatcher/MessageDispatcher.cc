@@ -159,8 +159,8 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     DSMEAllocationCounterTable& act = this->dsme.getMAC_PIB().macDSMEACT;
     DSME_ASSERT(this->currentACTElement != act.end());
 
-    //this->dsme.getEventDispatcher().setupIFSTimer(msg->getTotalSymbols() > aMaxSIFSFrameSize);
-    this->dsme.getEventDispatcher().setupIFSTimer(!dsme.getPlatform().isGackEnabled());
+    this->dsme.getEventDispatcher().setupIFSTimer(msg->getTotalSymbols() > aMaxSIFSFrameSize);
+    //this->dsme.getEventDispatcher().setupIFSTimer(!dsme.getPlatform().isGackEnabled());
 
     if(response != AckLayerResponse::NO_ACK_REQUESTED && response != AckLayerResponse::ACK_SUCCESSFUL) {
         currentACTElement->incrementIdleCounter();

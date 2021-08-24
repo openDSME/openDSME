@@ -403,6 +403,7 @@ void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& pa
 
 GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8_t lowestSlotID, const DSMESABSpecification* sabSpec)
 {
+    uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
@@ -411,7 +412,9 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8
     occupied.setLength(numChannels);
     remoteOccupied.setLength(numChannels);
 
-    GTS currentGTS(superframeID, slotID-1, 0);
+    GTS currentGTS(superframeID, slotID, 0);
+    for(uint8_t i=0; i<numSuperFramesPerMultiSuperframe; i++) {
+        currentGTS.superframeID = (currentGTS.superframeID + 1) % numSuperFramesPerMultiSuperframe; 
     for(; currentGTS.slotID >= lowestSlotID; currentGTS.slotID--) {
         LOG_INFO("Checking SlotID " << currentGTS.slotID << " in superframeID " << currentGTS.superframeID);
         if(!macDSMEACT.isAllocated(currentGTS.superframeID, currentGTS.slotID)) {   //if free slot available
@@ -433,6 +436,8 @@ GTS GTSHelper::getNextFreeGTSBefore(uint16_t superframeID, uint8_t slotID, uint8
             break;
         }
     }
+        currentGTS.slotID = slotID; 
+    }
     return GTS::UNDEFINED;
 }
 
@@ -448,7 +453,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t preferredSuperframeID, uint8_t preferredS
                             (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
                                 this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
     uint8_t numGackGTSPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberGroupAckSlotsPerMultiSuperframe();
-    uint8_t maxSlotShift = 3; //maximum difference between last slotID of a CFP and GACK-GTS SlotID
+    uint8_t maxSlotShift = 6; //maximum difference between last slotID of a CFP and GACK-GTS SlotID
 
     BitVector<MAX_CHANNELS> occupied;
     BitVector<MAX_CHANNELS> remoteOccupied; // only used if sabSpec != nullptr

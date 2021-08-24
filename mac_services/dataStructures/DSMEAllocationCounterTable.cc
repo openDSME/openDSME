@@ -176,13 +176,15 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it,
 
     this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(it->getAddress()), false);
 
-    DSME_ASSERT(isAllocated(superframeID, gtSlotID));
+    //DSME_ASSERT(isAllocated(superframeID, gtSlotID));
+    if(!isAllocated(superframeID, gtSlotID)) return;
 
     bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
 
     int d = (it->direction == TX) ? 0 : 1;
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->getAddress());
-    DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
+    //DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
+    if(numSlotIt == numAllocatedSlots[d].end()) return;
     (*numSlotIt)--;
     LOG_DEBUG("Decrementing slot count for " << it->getAddress() << DECOUT << " (now at " << *numSlotIt << ").");
     if((*numSlotIt) == 0) {
@@ -367,7 +369,7 @@ void DSMEAllocationCounterTable::removeFromGackGTS(uint16_t superframeID, uint8_
 
             this->dsme->getPlatform().signalGTSChange(true, IEEE802154MacAddress(deviceAddress), true);
 
-            DSME_ASSERT(isAllocated(superframeID, gtSlotID));
+            if(!isAllocated(superframeID, gtSlotID)) return;
 
             bitmap.set(getBitmapPosition(superframeID, gtSlotID), false);
 
