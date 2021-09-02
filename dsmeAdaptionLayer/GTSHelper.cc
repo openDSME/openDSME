@@ -145,9 +145,13 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
-        gtsConfirmPending = false;
-        return;
+        LOG_ERROR("No free GTS found! Going to reduce CAP! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+        preferredGTS = getNextFreeGTSExtended(decision.preferredSuperframeId, decision.preferredSlotId);
+        if(preferredGTS == GTS::UNDEFINED) {
+            LOG_ERROR("No free GTS found with dynamic CAP! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+            gtsConfirmPending = false;
+            return;
+        }
     }
 
     mlme_sap::DSME_GTS::request_parameters params;
@@ -239,9 +243,13 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             DSME_ASSERT(params.dsmeSabSpecification.getSubBlockIndex() == params.preferredSuperframeId);
 
-            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
-                          params.preferredSlotId);
-
+            GTSSchedulingDecision decision = this->gtsScheduling->getNextSchedulingActionRx(nullptr, params.preferredSuperframeId);
+            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, decision.preferredSuperframeId,
+                          decision.preferredSlotId);
+            params.preferredSuperframeId = decision.preferredSuperframeId;
+            params.preferredSlotId = decision.preferredSlotId;
+            decision.preferredSlotId++;
+            checkAndAllocateGTS(decision);
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
                 LOG_ERROR("Unable to allocate GTS.");
@@ -392,10 +400,73 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
             return GTS::UNDEFINED;
         }
 
-        uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
-        LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
+        uint8_t numGTSlots = 7; //this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
+        LOG_INFO("Checking " << (int)numGTSlots << " slots in superframe " << gts.superframeID);
         for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
-            if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
+            uint8_t id_offset = gts.superframeID == 0 ? 0 : 8;
+            if(!macDSMEACT.isAllocated(gts.superframeID, id_offset + gts.slotID)) {
+                uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
+                macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, id_offset + gts.slotID);
+                if(sabSpec != nullptr) {
+                    remoteOccupied.copyFrom(sabSpec->getSubBlock(), (id_offset + gts.slotID) * numChannels);
+                    occupied.setOperationJoin(remoteOccupied);
+                }
+
+                gts.channel = startChannel;
+                for(uint8_t i = 0; i < numChannels; i++) {
+                    if(!occupied.get(gts.channel)) {
+                        /* found one */
+                        gts.slotID += id_offset;
+                        return gts;
+                    }
+
+                    gts.channel++;
+                    if(gts.channel == numChannels) {
+                        gts.channel = 0;
+                    }
+                }
+            }
+            slotsToCheck--;
+            if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
+                break;
+            }
+        }
+    }
+
+    return GTS::UNDEFINED;
+}
+
+GTS GTSHelper::getNextFreeGTSExtended(uint16_t initialSuperframeID, uint8_t initialSlotID, const DSMESABSpecification* sabSpec) {
+    DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
+    DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
+
+    uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
+    uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
+    uint16_t slotsToCheck = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(0) +
+                            (this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe() - 1) *
+                                this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(1);
+
+    GTS gts(0, 0, 0);
+
+    BitVector<MAX_CHANNELS> occupied;
+    BitVector<MAX_CHANNELS> remoteOccupied; // only used if sabSpec != nullptr
+    occupied.setLength(numChannels);
+
+    if(sabSpec != nullptr) {
+        DSME_ASSERT(sabSpec->getSubBlockIndex() == initialSuperframeID);
+        remoteOccupied.setLength(numChannels);
+    }
+
+    for(gts.superframeID = initialSuperframeID; slotsToCheck > 0; gts.superframeID = (gts.superframeID + 1) % numSuperFramesPerMultiSuperframe) {
+        if(sabSpec != nullptr && gts.superframeID != initialSuperframeID) {
+            /* currently per convention a sub block holds exactly one superframe */
+            return GTS::UNDEFINED;
+        }
+
+        uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
+        LOG_INFO("Checking " << (int)numGTSlots << " slots in superframe " << gts.superframeID);
+        for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
+            if((gts.superframeID != 0) && !macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
                 if(sabSpec != nullptr) {
@@ -405,7 +476,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
 
                 gts.channel = startChannel;
                 for(uint8_t i = 0; i < numChannels; i++) {
-                    if(!occupied.get(gts.channel)) {
+                    if(!occupied.get(gts.channel) && gts.channel != this->dsmeAdaptionLayer.getPHY_PIB().phyCurrentChannel) {
                         /* found one */
                         return gts;
                     }
@@ -417,7 +488,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
                 }
             }
             slotsToCheck--;
-            if((gts.slotID+1)%numGTSlots == initialSlotID) {
+            if((gts.slotID+1)%numGTSlots == initialSuperframeID) {
                 break;
             }
         }
@@ -481,7 +552,11 @@ void GTSHelper::findFreeSlots(DSMESABSpecification& requestSABSpec, DSMESABSpeci
         GTS gts = getNextFreeGTS(preferredSuperframe, preferredSlot, &requestSABSpec);
 
         if(gts == GTS::UNDEFINED) {
-            break;
+            LOG_INFO("Could not find free GTS. Reducing CAP now!");
+            gts = getNextFreeGTSExtended(preferredSuperframe, preferredSlot, &requestSABSpec);
+            if(gts == GTS::UNDEFINED) {
+                break;
+            }
         }
 
         /* mark slot as allocated */
