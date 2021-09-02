@@ -243,9 +243,13 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             DSME_ASSERT(params.dsmeSabSpecification.getSubBlockIndex() == params.preferredSuperframeId);
 
-            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, params.preferredSuperframeId,
-                          params.preferredSlotId);
-
+            GTSSchedulingDecision decision = this->gtsScheduling->getNextSchedulingActionRx(nullptr, params.preferredSuperframeId);
+            findFreeSlots(params.dsmeSabSpecification, responseParams.dsmeSabSpecification, params.numSlot, decision.preferredSuperframeId,
+                          decision.preferredSlotId);
+            params.preferredSuperframeId = decision.preferredSuperframeId;
+            params.preferredSlotId = decision.preferredSlotId;
+            decision.preferredSlotId++;
+            checkAndAllocateGTS(decision);
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
                 LOG_ERROR("Unable to allocate GTS.");

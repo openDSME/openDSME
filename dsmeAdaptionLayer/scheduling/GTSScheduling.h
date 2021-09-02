@@ -96,6 +96,7 @@ public:
     virtual int16_t getSlotTarget(uint16_t address) = 0;
     virtual uint16_t getPriorityLink() = 0;
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) = 0;
+    virtual GTSSchedulingDecision getNextSchedulingActionRx(uint16_t address,uint8_t prefSF) = default;
     virtual GTSSchedulingDecision getNextSchedulingAction() = 0;
 
 protected:
