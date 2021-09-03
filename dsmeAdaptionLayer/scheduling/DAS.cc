@@ -110,22 +110,31 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
            DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
            //  auswahl superframe und GTS
 
+      //     if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot))
+            //   return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, (targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot};
+
 
            uint8_t currentSF = this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe();
            uint8_t targetSF = (currentSF + 1) % numSuperFramesPerMultiSuperframe;
+           uint8_t distance[16]{0};
+           distance[0] = 1;
+           GTSSchedulingDecision bestEffortSchedule;
+           uint8_t timeslot = 0;
 
-           for(uint8_t superframe; superframe < numSuperFramesPerMultiSuperframe; superframe++) {
-               for(uint8_t timeslot = 8; timeslot < (numGTSlots-1);timeslot++){
-                   if(!macDSMEACT.isAllocated((targetSF + superframe)%numSuperFramesPerMultiSuperframe,timeslot)) {
-                       if(!macDSMEACT.isAllocated((targetSF + superframe)%numSuperFramesPerMultiSuperframe,timeslot+1)) {
-                           return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, (targetSF + superframe)%numSuperFramesPerMultiSuperframe, timeslot};
-                       }
+           while(!macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot)|| timeslot >= 8) {timeslot++;}  // abfrage wo CAP endet
+           timeslot++;
+           for(timeslot;timeslot < 16; timeslot++){
+               if(!macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot)) {
+                   timeslot++;
+                   while(macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot)){
+                       distance[0]++;
+                       timeslot++;
                    }
+                   distance[timeslot-distance[0]] = distance[0];
+                   distance[0] = 1;
                }
            }
-              // neuer loot von i = 7 bis timeslot 8, sonst i-- und try again
-              // Matrix mit abständen bilden, niedrigsten abstand auswählen, break bei abstand 1
-
+           //TODO: return indext der kleinsten zahl > 0 aus distance
 
            return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
        } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
