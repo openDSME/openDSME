@@ -1045,7 +1045,7 @@ GTS GTSHelper::getNextFreeGTSExtended(uint16_t initialSuperframeID, uint8_t init
 
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
         LOG_INFO("Checking " << (int)numGTSlots << " slots in superframe " << gts.superframeID);
-        for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
+        for(gts.slotID = numGTSlots-1; slotsToCheck > 0; gts.slotID = (gts.slotID - 1 + numGTSlots) % numGTSlots) {
             if((gts.superframeID != 0) && !macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;
                 macDSMESAB.getOccupiedChannels(occupied, gts.superframeID, gts.slotID);
