@@ -122,14 +122,14 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
            uint8_t cfpStart = 0;
            uint8_t maxSlot = 10;
 
-           for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // für alle Superframes
+           for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // fÃ¼r alle Superframes
                cfpStart = 0;
-               while(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot) && (cfpStart <= 7)) {cfpStart++;}   // abfrage wo CAP endet
+               while(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot) && (cfpStart <= 7)) {cfpStart++;timeslot++;}   // abfrage wo CAP endet
                timeslot = cfpStart +1;
-               for(;timeslot < maxSlot; timeslot++){       // Schreibt abstände zum nächsten freien slot in array
-                   if(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // für alle freien Slots
+               for(;timeslot < maxSlot; timeslot++){       // Schreibt abstÃ¤nde zum nÃ¤chsten freien slot in array
+                   if(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // fÃ¼r alle freien Slots
                        timeslot++;
-                       while(macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot) && timeslot <= (maxSlot-1)){ // zählt Schritte zum nächsten freien slot
+                       while(macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot) && timeslot <= (maxSlot-1)){ // zÃ¤hlt Schritte zum nÃ¤chsten freien slot
                            distance[0]++;
                            timeslot++;
                            if(timeslot >= maxSlot){break;}
@@ -183,14 +183,14 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
             uint8_t offset = 0;
             uint8_t cfpStart = 0;
             uint8_t maxSlot = 10;
-            for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // für alle Superframes
+            for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // fÃ¼r alle Superframes
                 cfpStart = 0;
-                while(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot) && (cfpStart <= 7)) {cfpStart++;}   // abfrage wo CAP endet
+                while(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot) && (cfpStart <= 7)) {cfpStart++;timeslot++;}   // abfrage wo CAP endet
                 timeslot = cfpStart +1;
-                for(;timeslot < maxSlot; timeslot++){       // Schreibt abstände zum nächsten freien slot in array
-                    if(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // für alle freien Slots
+                for(;timeslot < maxSlot; timeslot++){       // Schreibt abstÃ¤nde zum nÃ¤chsten freien slot in array
+                    if(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // fÃ¼r alle freien Slots
                         timeslot++;
-                        while(macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot) && timeslot <= (maxSlot-1)){ // zählt Schritte zum nächsten freien slot
+                        while(macDSMEACT.isAllocated(targetSF % numSuperFramesPerMultiSuperframe, timeslot) && timeslot <= (maxSlot-1)){ // zÃ¤hlt Schritte zum nÃ¤chsten freien slot
                             distance[0]++;
                             timeslot++;
                             if(timeslot >= maxSlot){break;}
