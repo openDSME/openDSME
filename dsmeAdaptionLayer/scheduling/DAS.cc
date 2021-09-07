@@ -120,7 +120,7 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
            uint8_t outputTimeslot = 16;
            uint8_t offset = 0;
            uint8_t cfpStart = 0;
-           uint8_t maxSlot = 12;
+           uint8_t maxSlot = 10;
 
            for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // für alle Superframes
                cfpStart = 0;
@@ -182,7 +182,7 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
             uint8_t outputTimeslot = 16;
             uint8_t offset = 0;
             uint8_t cfpStart = 0;
-            uint8_t maxSlot = 1;
+            uint8_t maxSlot = 10;
             for(;offset < numSuperFramesPerMultiSuperframe; offset++){  // für alle Superframes
                 cfpStart = 0;
                 while(!macDSMEACT.isAllocated((targetSF+offset) % numSuperFramesPerMultiSuperframe, timeslot) && (cfpStart <= 7)) {cfpStart++;}   // abfrage wo CAP endet
