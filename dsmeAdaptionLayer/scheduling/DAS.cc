@@ -53,7 +53,7 @@ static bool header = false;
 
 namespace dsme {
 
-DASTxData::DASTxData() : avgIn{0}, pastQValues{0}, messagesInLastMultisuperframe{0} {
+DASTxData::DASTxData() : pastQValues{0},  messagesInLastMultisuperframe{0}, incomingPacketsHistory{0}, avgIn{0} {
 }
 
 void DAS::setAlpha(float alpha) {
@@ -147,7 +147,7 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
         uint8_t maxSlot = 14;
         uint8_t temp = 1;
 
-        for(; offset < numSuperFramesPerMultiSuperframe; offset++) { // für alle Superframes
+        for(; offset < numSuperFramesPerMultiSuperframe; offset++) { // fï¿½r alle Superframes
             timeslot = 0;
             if((targetSF + offset) % numSuperFramesPerMultiSuperframe != 0) {
                 while((timeslot <= 7) && !macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) {
@@ -158,11 +158,11 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
                 timeslot = 0;
                 maxSlot = 6;
             }
-            for(; timeslot < maxSlot; timeslot++) { // Schreibt abstände zum nächsten freien slot in array
-                if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // für alle freien Slots
+            for(; timeslot < maxSlot; timeslot++) { // Schreibt abstï¿½nde zum nï¿½chsten freien slot in array
+                if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // fï¿½r alle freien Slots
                     timeslot++;
                     while(macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                          timeslot <= (maxSlot - 1)) { // zählt Schritte zum nächsten freien slot
+                          timeslot <= (maxSlot - 1)) { // zï¿½hlt Schritte zum nï¿½chsten freien slot
                         temp++;
                         timeslot++;
                     }
@@ -220,11 +220,11 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
         maxSlot = 6;
         timeslot = 0;
     }
-    for(; timeslot < maxSlot; timeslot++) {                                                    // Schreibt abstände zum nächsten freien slot in array
-        if(!macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot)) { // für alle freien Slots
+    for(; timeslot < maxSlot; timeslot++) {                                                    // Schreibt abstï¿½nde zum nï¿½chsten freien slot in array
+        if(!macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot)) { // fï¿½r alle freien Slots
             timeslot++;
             while(macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                  timeslot < maxSlot ) { // zählt Schritte zum nächsten freien slot
+                  timeslot < maxSlot ) { // zï¿½hlt Schritte zum nï¿½chsten freien slot
                 temp++;
                 timeslot++;
                 if(timeslot >= maxSlot) {

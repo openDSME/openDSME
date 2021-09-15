@@ -49,7 +49,7 @@ namespace dsme {
 
 class DSMEAdaptionLayer;
 
-struct DASTxData : GTSSchedulingData {  // Werte die für tx link gespeichert werdenm avg hier berechnen
+struct DASTxData : GTSSchedulingData {  // Werte die fï¿½r tx link gespeichert werdenm avg hier berechnen
     DASTxData();
     int pastQValues[3]{0};
     int messagesInLastMultisuperframe;
@@ -62,16 +62,16 @@ public:
     DAS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha{0} {
     }
 
-    virtual void multisuperframeEvent();
+    virtual void multisuperframeEvent() override;
     // virtual uint8_t registerIncomingMessage(uint16_t address) override;
     void incCounter();
     void setAlpha(float alpha);
     void setUseMultiplePacketsPerGTS(bool useMultiplePackets);
-    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address);
-    virtual GTSSchedulingDecision getNextSchedulingActionRx(uint8_t prefSF);
-private:
+    virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) override;
+    virtual GTSSchedulingDecision getNextSchedulingActionRx(uint8_t prefSF) override;
 
-    float alpha = 0.5; // paramater für packetallocation zwecks Q abbau
+private:
+    float alpha = 0.5; // paramater fï¿½r packetallocation zwecks Q abbau
     bool useMultiplePacketsPerGTS{true};
     uint8_t counter = 0;
 };
