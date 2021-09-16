@@ -55,6 +55,7 @@ struct DASTxData : GTSSchedulingData {  // Werte die f�r tx link gespeichert w
     int messagesInLastMultisuperframe;
     int incomingPacketsHistory[3]{0};
     float avgIn; // TODO no float!
+    int dynamicSlots{1};
 };
 
 class DAS : public GTSSchedulingImpl<DASTxData, GTSRxData> {
