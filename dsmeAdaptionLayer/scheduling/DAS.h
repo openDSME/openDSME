@@ -61,19 +61,16 @@ struct DASTxData : GTSSchedulingData {  // Werte die f�r tx link gespeichert w
 
 class DAS : public GTSSchedulingImpl<DASTxData, GTSRxData> {
 public:
-    DAS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer), alpha{0} {
+    DAS(DSMEAdaptionLayer& dsmeAdaptionLayer) : GTSSchedulingImpl(dsmeAdaptionLayer) {
     }
 
     virtual void multisuperframeEvent() override;
     // virtual uint8_t registerIncomingMessage(uint16_t address) override;
-    void setAlpha(float alpha);
     void setUseMultiplePacketsPerGTS(bool useMultiplePackets);
     virtual GTSSchedulingDecision getNextSchedulingAction(uint16_t address) override;
     virtual GTSSchedulingDecision getNextSchedulingActionRx(uint8_t prefSF) override;
 private:
-    float alpha; // paramater f�r packetallocation zwecks Q abbau
     bool useMultiplePacketsPerGTS{true};
-    int seedcounter = 10;
 };
 
 } /* namespace dsme */
