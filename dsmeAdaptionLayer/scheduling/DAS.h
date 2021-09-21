@@ -73,6 +73,7 @@ public:
 private:
     float alpha; // paramater f�r packetallocation zwecks Q abbau
     bool useMultiplePacketsPerGTS{true};
+    int seedcounter = 10;
 };
 
 } /* namespace dsme */

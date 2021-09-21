@@ -74,13 +74,14 @@ void DAS::multisuperframeEvent() {
         data.avgIn = (data.incomingPacketsHistory[0]+data.incomingPacketsHistory[1]+data.incomingPacketsHistory[2]+data.incomingPacketsHistory[3]+data.incomingPacketsHistory[4])/5.0;
         if(data.avgIn <= 0){ data.avgIn = 1;}
         if((data.pastQValues[data.counter%3] > data.pastQValues[(data.counter-2)%3]) &&
-           (data.pastQValues[data.counter%3]-(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX))) > 0) {
+           (data.pastQValues[data.counter%3]-(data.dynamicSlots + this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX))) > 0) {
                data.dynamicSlots++;
                }
         if(this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX) > (data.avgIn + data.dynamicSlots) && data.dynamicSlots != 0) {
                data.dynamicSlots-=2;
         }
-        if(data.slotTarget < data.dynamicSlots - 5) {data.dynamicSlots -=5;}
+        if(data.pastQValues[data.counter%3] < ( 2 + data.pastQValues[(data.counter-2)%3])){data.dynamicSlots--;}
+        if(data.avgIn +5 < data.dynamicSlots) {data.dynamicSlots -=4;}
         if(data.dynamicSlots < 0) {data.dynamicSlots = 0;}
         //uint8_t slots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(data.address, Direction::TX);
 
@@ -120,28 +121,27 @@ void DAS::multisuperframeEvent() {
 GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
     uint16_t numAllocatedSlots = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT.getNumAllocatedGTS(address, Direction::TX);
     int16_t target = getSlotTarget(address);
-
+    uint8_t seed = address % 15;
     if(target > numAllocatedSlots) {
         uint8_t numSuperFramesPerMultiSuperframe = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
-        uint8_t currentSF = this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe();
+        uint8_t currentSF = (uint8_t)this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe();
         uint8_t targetSF = (currentSF+1) % numSuperFramesPerMultiSuperframe;
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(targetSF);
         DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
         uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
         DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
-        //  auswahl superframe und GTS
-        // if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot))
-        // return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, (targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot};
+
         uint8_t distance[5][16]{0};
         distance[0][15] = 255;
         uint8_t timeslot = 0;
-        uint8_t outputTimeslot = 15;
+        int outputTimeslot = 15;
         uint8_t offset = 0;
         uint8_t maxSlot = 14;
         uint8_t temp = 1;
         uint8_t outputSF = 0;
-        uint8_t threshold = 2;
+        uint8_t threshold = 3;
         for(; offset < numSuperFramesPerMultiSuperframe; offset++) { // f�r alle Superframes
+            LOG_DEBUG("Versuche in superframe " << (int)((targetSF + offset)% numSuperFramesPerMultiSuperframe) << " frei paare zu finden");
             timeslot = 0;
             if((targetSF + offset) % numSuperFramesPerMultiSuperframe != 0) {
                 while((timeslot <= 7) && !macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) {
@@ -154,32 +154,41 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
             }
             for(; timeslot < maxSlot; timeslot++) { // Schreibt abst�nde zum n�chsten freien slot in array
                 if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) {
+                    LOG_DEBUG("Slot " << (int)timeslot << " ist frei");
                     timeslot++;
                     while(macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                          timeslot < maxSlot) { // z�hlt Schritte zum n�chsten freien slot
+                          timeslot <= maxSlot) { // z�hlt Schritte zum n�chsten freien slot
                         temp++;
                         timeslot++;
+                        if(timeslot >= maxSlot){break;}
                     }
+                    LOG_DEBUG("Sein partner ist slot " << (int)timeslot << " mit distance von " << (int)(temp));
                     distance[offset][timeslot - temp] = temp;
                     if(timeslot >= maxSlot) {
                         distance[offset][timeslot - temp] = 0;
                     }
                     timeslot--;
                     temp = 1;
-                }
-            }
-
+                } // ende if timeslot frei
+            } // ende for timeslot
             for(uint8_t i = 0; i < 15; i++) { // sucht kleinste Zahl aus distance array
-                if(distance[offset][i] > 0 && (distance[offset][i] < distance[outputSF][outputTimeslot]))
-                    outputTimeslot = i;
-                    outputSF = offset;
+                   if(distance[offset][i] > 0 && (distance[offset][i] < distance[outputSF][outputTimeslot])){
+                          outputTimeslot = i;
+                          outputSF = offset;
+                          LOG_DEBUG("outputSF und slot " << (int)((targetSF + outputSF)%numSuperFramesPerMultiSuperframe) << "und " << (int)outputTimeslot);
+                          LOG_DEBUG("Die distance hier ist " << (int)distance[outputSF][outputTimeslot]);
+                   }
             }
+        } // ende for offset
+        if(distance[outputSF][outputTimeslot] < threshold) {
+                LOG_DEBUG("mein seed ist: " << (int)seed);
+                LOG_DEBUG("gebe folgenden output: outputSF = " << (int)((targetSF + outputSF)%numSuperFramesPerMultiSuperframe) << " outputTimeslot = " << (outputTimeslot + seed)%maxSlot);
+               return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1,
+                   (uint8_t)((targetSF + outputSF+seed)%numSuperFramesPerMultiSuperframe), (uint8_t)((outputTimeslot + seed)%maxSlot)};
         }
-       /* if(distance[outputSF][outputTimeslot] < threshold) {
-               return GTSSchedulingDecision{
-                      address, ManagementType::ALLOCATION, Direction::TX, 1,(uint8_t)((targetSF + outputSF)%numSuperFramesPerMultiSuperframe), outputTimeslot};
-        }*/
-        if(distance[outputSF][outputTimeslot] > threshold){
+
+        if(distance[outputSF][outputTimeslot] >= threshold){
+            LOG_DEBUG("distance zu hoch, versuche in cap reduction zu suchen");
             offset = 0;
             for(; offset < numSuperFramesPerMultiSuperframe; offset++) { // f�r alle Superframes
                         timeslot = 0;
@@ -193,9 +202,10 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
                             if(!macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot)) { // f�r alle freien Slots
                                 timeslot++;
                                 while(macDSMEACT.isAllocated((targetSF + offset) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                                      timeslot < maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
+                                      timeslot <= maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
                                     temp++;
                                     timeslot++;
+                                    if(timeslot >= maxSlot){break;}
                                 }
                                 distance[offset][timeslot - temp] = temp;
                                 if(timeslot > maxSlot) {
@@ -203,27 +213,27 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
                                 }
                                 timeslot--;
                                 temp = 1;
-                            }
-                        }
+                            } // ende if timeslot frei
+                        } // ende for timeslot
+                    } //ende for offset
+            for(uint8_t i = 0; i < 15; i++) { // sucht kleinste Zahl aus distance array
+                if((distance[offset][i] > 0) && (distance[offset][i] < distance[outputSF][outputTimeslot])){
+                    outputTimeslot = i;
+                    outputSF = offset;
+                }
+            } // for finde lowest disntace
+        } // ende if distanz > threshold
 
-                        for(uint8_t i = 0; i < 15; i++) { // sucht kleinste Zahl aus distance array
-                            if((distance[offset][i] > 0) && (distance[offset][i] < distance[outputSF][outputTimeslot]))
-                                outputTimeslot = i;
-                                outputSF = offset;
-                        }
-                    }
 
-        }
-
-
-        if(distance[outputSF][outputTimeslot] == 0 ||  distance[outputSF][outputTimeslot] == 255) {return NO_SCHEDULING_ACTION;}
-        return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1,(uint8_t)(uint8_t)((targetSF + outputSF)%numSuperFramesPerMultiSuperframe), outputTimeslot};
+        if(distance[outputSF][outputTimeslot] == 255) {return NO_SCHEDULING_ACTION;}
+        return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1,(uint8_t)((targetSF + outputSF+ seed)%numSuperFramesPerMultiSuperframe),
+            (uint8_t)(seed+outputTimeslot)};
            // return GTSSchedulingDecision{address, ManagementType::ALLOCATION, Direction::TX, 1, randomSuperframeID, randomSlotID};
     } else if(target < numAllocatedSlots && numAllocatedSlots > 1) {
         /* TODO: slot and superframe ID are currently ignored for DEALLOCATION */
         return GTSSchedulingDecision{address, ManagementType::DEALLOCATION, Direction::TX, 1, 0, 0};
     } else {return NO_SCHEDULING_ACTION;}
-}
+} // ende funktion
 
 GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
     uint8_t address = 0;
@@ -234,18 +244,17 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
     uint8_t numChannels = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumChannels();
     DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
     //  auswahl superframe und GTS
-    uint8_t threshold = 2;
-    uint8_t distance[14]{0};
+    uint8_t threshold = 3;
+    uint8_t distance[16]{0};
     uint8_t temp = 1;
     uint8_t timeslot = 0;
     uint8_t outputTimeslot = 15;
     uint8_t maxSlot = 14;
 
-    if(prefSF % numSuperFramesPerMultiSuperframe != 0) {
+    if(prefSF != 0) {
         while((timeslot <= 7) && !macDSMEACT.isAllocated(prefSF % numSuperFramesPerMultiSuperframe, timeslot)) {
             timeslot++;
         } // abfrage wo CAP endet
-        if(macDSMEACT.isAllocated(prefSF % numSuperFramesPerMultiSuperframe, timeslot)){timeslot++;};
         maxSlot = 14;
     } else {
         maxSlot = 6;
@@ -254,10 +263,11 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
     for(; timeslot < maxSlot; timeslot++) {                                                    // Schreibt abst�nde zum n�chsten freien slot in array
         if(!macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot)) {// f�r alle freien Slots
             timeslot++;
-            while(macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                  timeslot < maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
+            while(macDSMEACT.isAllocated(prefSF, timeslot) &&
+                  timeslot <= maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
                 temp++;
                 timeslot++;
+                if(timeslot >= maxSlot){break;}
             }
             distance[timeslot - temp] = temp;
             if(timeslot > maxSlot) {
@@ -265,15 +275,14 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
             }
             timeslot--;
             temp = 1;
-        }
-    }
+        } // ende if timeslot frei
+    } // ende for timeslot
 
     for(uint8_t i = 1; i < 15; i++) { // sucht kleinste Zahl aus distance array
-        if(distance[i] > 0 && distance[i] < distance[outputTimeslot])
+        if(distance[i] > 0 && distance[i] < distance[outputTimeslot]){
             outputTimeslot = i;
+        }
     }
-
-    //
     if(distance[outputTimeslot] >= threshold){
             uint8_t timeslot = 0;
             if(prefSF != 0) {
@@ -287,9 +296,10 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
                    if(!macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot)) { // f�r alle freien Slots
                           timeslot++;
                           while(macDSMEACT.isAllocated((prefSF) % numSuperFramesPerMultiSuperframe, timeslot) &&
-                                 timeslot < maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
+                                 timeslot <= maxSlot ) { // z�hlt Schritte zum n�chsten freien slot
                                      temp++;
                                      timeslot++;
+                                     if(timeslot >= maxSlot){break;}
                            }
                            distance[timeslot - temp] = temp;
                            if(timeslot > maxSlot) {
@@ -297,22 +307,18 @@ GTSSchedulingDecision DAS::getNextSchedulingActionRx(uint8_t prefSF) {
                            }
                            timeslot--;
                            temp = 1;
-                   }
-             }
+                   } // ende if timeslot frei
+             } // ende for timeslot
 
              for(uint8_t i = 1; i < 15; i++) { // sucht kleinste Zahl aus distance array
-                    if(distance[i] > 0 && distance[i] < distance[outputTimeslot]){
-                           outputTimeslot = i;
-                    }
-             }
-      }
+                   if(distance[i] > 0 && distance[i] < distance[outputTimeslot]){
+                          outputTimeslot = i;
+                   }
+            }
 
-    //
-    if(outputTimeslot >= 15) {
-        return NO_SCHEDULING_ACTION;
-        //return GTSSchedulingDecision{address,ManagementType::ALLOCATION, Direction::TX, 1, (uint8_t)(prefSF),0};;
-    }
+      } // ende if distanz > treshold
+    if(outputTimeslot >= 15) {return NO_SCHEDULING_ACTION;}
     return GTSSchedulingDecision{0,ManagementType::ALLOCATION, Direction::TX, 1, (uint8_t)(prefSF),outputTimeslot};
-    }
+}// ende funktion
 
 } /* namespace dsme */
