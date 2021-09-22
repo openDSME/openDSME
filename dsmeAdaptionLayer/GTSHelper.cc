@@ -244,7 +244,6 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             DSME_ASSERT(params.dsmeSabSpecification.getSubBlockIndex() == params.preferredSuperframeId);
 
             GTSSchedulingDecision decision = this->gtsScheduling->getNextSchedulingActionRx(params.preferredSuperframeId);
-
             if(decision.numSlot > 0) {
                 // find GTS in best effort way
                 params.preferredSuperframeId = decision.preferredSuperframeId;
@@ -256,7 +255,12 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
             //params.preferredSuperframeId = decision.preferredSuperframeId;
             //params.preferredSlotId = decision.preferredSlotId;
             //decision.preferredSlotId++;
-            //checkAndAllocateGTS(decision);
+
+            //GTSSchedulingDecision decision = gtsScheduling->getNextSchedulingAction();
+            decision.preferredSlotId = params.preferredSlotId + 1;
+            decision.preferredSuperframeId = params.preferredSuperframeId;
+            checkAndAllocateGTS(decision);
+
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
 
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {

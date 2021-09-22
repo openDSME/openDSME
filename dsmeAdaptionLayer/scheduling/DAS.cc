@@ -124,7 +124,7 @@ GTSSchedulingDecision DAS::getNextSchedulingAction(uint16_t address) {
         DSMESlotAllocationBitmap& macDSMESAB = this->dsmeAdaptionLayer.getMAC_PIB().macDSMESAB;
         DSMEAllocationCounterTable& macDSMEACT = this->dsmeAdaptionLayer.getMAC_PIB().macDSMEACT;
         uint8_t maxSlot = 14;
-        uint8_t distance[5][16]{0};
+        uint8_t distance[8][16]{0};
         uint8_t timeslot = 0;
         distance[0][15] = 255;
         int outputTimeslot = 15;
