@@ -142,7 +142,7 @@ void IEEE802154eMACHeader::serializeTo(uint8_t*& buffer) {
     *(buffer++) = getFrameControlLowByte();
     *(buffer++) = getFrameControlHighByte();
 
-    // LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " <<
+    // DSME_LOG_INFO("TX " << destinationAddressLength() << " " << sourceAddressLength() << " " << hasDstPAN << " " << hasSrcPAN << " " <<
     // frameControl.panIDCompression);
 
     /* serialize sequence number */
@@ -189,7 +189,7 @@ bool IEEE802154eMACHeader::deserializeFrom(const uint8_t*& buffer, uint8_t paylo
     uint8_t fcHigh = *(buffer++);
     this->setFrameControl(fcLow, fcHigh);
 
-    // LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " <<
+    // DSME_LOG_INFO("RX " << this->destinationAddressLength() << " " << this->sourceAddressLength() << " " << this->hasDestinationPANId() << " " <<
     // this->hasSourcePANId() << " " << this->frameControl.panIDCompression);
 
     if(payloadLength < getSerializationLength()) {

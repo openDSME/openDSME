@@ -82,7 +82,7 @@ public:
             }
 
             EventEntry entry = history[p];
-            LOG_ERROR("t: " << entry.timestamp << " e:" << entry.event);
+            DSME_LOG_ERROR("t: " << entry.timestamp << " e:" << entry.event);
 
             ++p;
         }

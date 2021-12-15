@@ -111,7 +111,7 @@ void CAPLayer::sendDone(AckLayerResponse response, IDSMEMessage* msg) {
 }
 
 bool CAPLayer::pushMessage(IDSMEMessage* msg) {
-    LOG_DEBUG("push");
+    DSME_LOG_DEBUG("push");
 
     bool pushed = false;
 
@@ -161,7 +161,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
             return FSM_HANDLED;
         }
     } else if(event.signal == CSMAEvent::MSG_PUSHED) {
-        LOG_INFO("A CSMA message was pushed.");
+        DSME_LOG_INFO("A CSMA message was pushed.");
         DSME_ASSERT(!queue.empty());
         return transition(&CAPLayer::stateBackoff);
     } else if(event.signal == CSMAEvent::CCA_SUCCESS || event.signal == CSMAEvent::CCA_FAILURE) {
@@ -174,7 +174,7 @@ fsmReturnStatus CAPLayer::stateIdle(CSMAEvent& event) {
         return FSM_IGNORED;
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_ERROR((uint16_t)event.signal);
+            DSME_LOG_ERROR((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -199,7 +199,7 @@ fsmReturnStatus CAPLayer::stateBackoff(CSMAEvent& event) {
         }
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t)event.signal);
+            DSME_LOG_INFO((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -227,7 +227,7 @@ fsmReturnStatus CAPLayer::stateCCA(CSMAEvent& event) {
         }
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t)event.signal);
+            DSME_LOG_INFO((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -259,7 +259,7 @@ fsmReturnStatus CAPLayer::stateContention(CSMAEvent& event) {
     }
     else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t)event.signal);
+            DSME_LOG_INFO((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -298,7 +298,7 @@ fsmReturnStatus CAPLayer::stateSending(CSMAEvent& event) {
         return transition(&CAPLayer::stateIdle);
     } else {
         if(event.signal >= CSMAEvent::USER_SIGNAL_START) {
-            LOG_INFO((uint16_t)event.signal);
+            DSME_LOG_INFO((uint16_t)event.signal);
             DSME_ASSERT(false);
         }
         return FSM_IGNORED;
@@ -350,7 +350,7 @@ void CAPLayer::actionStartBackoffTimer() {
     } else {
         backoffExp = 2 + NB;
     }
-    
+
     const uint8_t maxBE = this->dsme.getMAC_PIB().macMaxBE;
     backoffExp = backoffExp <= maxBE ? backoffExp : maxBE;
 
@@ -362,7 +362,7 @@ void CAPLayer::actionStartBackoffTimer() {
     const uint32_t capPhaseLength = dsme.getMAC_PIB().helper.getFinalCAPSlot(0) * symbolsPerSlot;
     const uint32_t usableCapPhaseLength = capPhaseLength - blockedEnd;
     const uint32_t usableCapPhaseEnd = usableCapPhaseLength + symbolsPerSlot;
-    
+
 
     DSME_ATOMIC_BLOCK {
         const uint32_t now = this->dsme.getPlatform().getSymbolCounter();
@@ -380,7 +380,7 @@ void CAPLayer::actionStartBackoffTimer() {
             /* '-> after CAP */
             backoffFromCAPStart = backoff + usableCapPhaseLength;
         }
-        
+
         uint32_t backOffTimeLeft = backoffFromCAPStart;
 
         // Backoff period synchronisation
@@ -413,8 +413,8 @@ void CAPLayer::actionStartBackoffTimer() {
         const uint32_t timerEndTime = CAPStart + totalWaitTime;
         DSME_ASSERT(timerEndTime >= now + backoff);
         if(!this->dsme.isWithinCAP(timerEndTime, symbolsRequired())) {
-            LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
-            LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
+            DSME_LOG_INFO("Not within CAP-phase in superframe " << dsme.getCurrentSuperframe());
+            DSME_LOG_ERROR("now: " << now << ", CAPStart: " << CAPStart << ", totalWaitTime: " << totalWaitTime << ", symbolsRequired: " << symbolsRequired());
             DSME_ASSERT(false);
         }
         this->dsme.getEventDispatcher().setupCSMATimer(timerEndTime);
@@ -431,7 +431,7 @@ void CAPLayer::actionPopMessage(DataStatus::Data_Status status) {
 
     uint8_t transmissionAttempts = NR + 1;
 
-    LOG_DEBUG("pop 0x" << HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " "
+    DSME_LOG_DEBUG("pop 0x" << DSME_HEXOUT << msg->getHeader().getDestAddr().getShortAddress() << DSME_DECOUT << " " << (int16_t)status << " " << (uint16_t)totalNBs << " "
                        << (uint16_t)NR << " " << (uint16_t)NB << " " << (uint16_t)transmissionAttempts);
     dsme.getMessageDispatcher().onCSMASent(msg, status, totalNBs, transmissionAttempts);
 }

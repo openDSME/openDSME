@@ -112,19 +112,19 @@ DSMEAllocationCounterTable::iterator DSMEAllocationCounterTable::find(uint16_t s
 }
 
 void DSMEAllocationCounterTable::printChange(const char* type, uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, bool direction, uint16_t address) {
-    LOG_INFO_PREFIX;
-    LOG_INFO_PURE(DECOUT << type << " " << palId_id());
+    DSME_LOG_INFO_PREFIX;
+    DSME_LOG_INFO_PURE(DSME_DECOUT << type << " " << palId_id());
     if(direction == TX) {
-        LOG_INFO_PURE(">");
+        DSME_LOG_INFO_PURE(">");
     } else {
-        LOG_INFO_PURE("<");
+        DSME_LOG_INFO_PURE("<");
     }
-    LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << "," << (uint16_t)channel << LOG_ENDL);
+    DSME_LOG_INFO_PURE(address << " " << (uint16_t)(gtSlotID + 9) << "," << superframeID << "," << (uint16_t)channel << DSME_LOG_ENDL);
 }
 
 bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, uint8_t channel, Direction direction, uint16_t address, ACTState state) {
     if(state == ACTState::REMOVED) {
-        LOG_DEBUG("Slot to be REMOVED is not in ACT -> Do nothing.");
+        DSME_LOG_DEBUG("Slot to be REMOVED is not in ACT -> Do nothing.");
         // DSME_ASSERT(false);
         return true;
     }
@@ -147,11 +147,11 @@ bool DSMEAllocationCounterTable::add(uint16_t superframeID, uint8_t gtSlotID, ui
         int d = (direction == TX) ? 0 : 1;
         RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(address);
         if(numSlotIt == numAllocatedSlots[d].end()) {
-            LOG_DEBUG("Inserting 0x" << HEXOUT << address << DECOUT << " into numAllocatedSlots[" << d << ".");
+            DSME_LOG_DEBUG("Inserting 0x" << DSME_HEXOUT << address << DSME_DECOUT << " into numAllocatedSlots[" << d << ".");
             numAllocatedSlots[d].insert(1, address);
         } else {
             (*numSlotIt)++;
-            LOG_DEBUG("Incrementing slot count " << d << HEXOUT << " for 0x" << address << DECOUT << " (now at " << *numSlotIt << ").");
+            DSME_LOG_DEBUG("Incrementing slot count " << d << DSME_HEXOUT << " for 0x" << address << DSME_DECOUT << " (now at " << *numSlotIt << ").");
         }
 
         bitmap.set(getBitmapPosition(superframeID, gtSlotID), true);
@@ -178,7 +178,7 @@ void DSMEAllocationCounterTable::remove(DSMEAllocationCounterTable::iterator it)
     RBTree<uint16_t, uint16_t>::iterator numSlotIt = numAllocatedSlots[d].find(it->address);
     DSME_ASSERT(numSlotIt != numAllocatedSlots[d].end());
     (*numSlotIt)--;
-    LOG_DEBUG("Decrementing slot count for " << it->address << DECOUT << " (now at " << *numSlotIt << ").");
+    DSME_LOG_DEBUG("Decrementing slot count for " << it->address << DSME_DECOUT << " (now at " << *numSlotIt << ").");
     if((*numSlotIt) == 0) {
         numAllocatedSlots[d].remove(numSlotIt);
     }
@@ -240,24 +240,24 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
         // this calculation assumes there is always exactly one superframe in the subblock
         GTS gts(subBlock.getSubBlockIndex(), (*it) / numChannels, (*it) % numChannels);
 
-        LOG_DEBUG("search slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " (" << (uint16_t)gts.channel << ")");
+        DSME_LOG_DEBUG("search slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " (" << (uint16_t)gts.channel << ")");
         DSMEAllocationCounterTable::iterator actit = find(gts.superframeID, gts.slotID);
 
         if(actit != end()) {
             if((!useChannelOffset &&
                 (actit->getChannel() != gts.channel))) { // For channel hopping the channel is irrelevant because the channel offset is saved in the act
-                LOG_DEBUG("Request too late, GTS"
+                DSME_LOG_DEBUG("Request too late, GTS"
                           << "used on other channel (useChannelOffset: " << useChannelOffset << ")");
                 // DSME_ASSERT(false);
                 continue;
             }
             if(checkAddress && actit->getAddress() != deviceAddress) {
-                LOG_DEBUG("Request too late, GTS "
+                DSME_LOG_DEBUG("Request too late, GTS "
                           << "used towards other device");
                 continue;
             }
             if(!condition(*actit)) {
-                LOG_DEBUG("Request too late, GTS "
+                DSME_LOG_DEBUG("Request too late, GTS "
                           << "does not fulfill condition");
                 continue;
             }
@@ -272,16 +272,16 @@ void DSMEAllocationCounterTable::setACTState(DSMESABSpecification& subBlock, ACT
             /* '-> does not yet exist */
             if(deviceAddress != 0xFFFF) {
                 uint16_t channel = useChannelOffset ? channelOffset : gts.channel;
-                LOG_DEBUG("ch " << channelOffset << " " << gts.channel);
+                DSME_LOG_DEBUG("ch " << channelOffset << " " << gts.channel);
                 bool added = add(gts.superframeID, gts.slotID, channel, direction, deviceAddress, state);
                 DSME_ASSERT(added);
-                LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << channel << " as " << stateToString(state)
+                DSME_LOG_DEBUG("add slot " << (uint16_t)gts.slotID << " " << (uint16_t)gts.superframeID << " " << channel << " as " << stateToString(state)
                                       << " useChannelOffset: " << useChannelOffset << " nDirection: " << direction);
             } else {
                 /* setACTStateIfExists(...) was called */
             }
         } else {
-            LOG_DEBUG("set slot " << (uint16_t)actit->getGTSlotID() << " " << (uint16_t)actit->getSuperframeID() << " " << (uint16_t)actit->getChannel()
+            DSME_LOG_DEBUG("set slot " << (uint16_t)actit->getGTSlotID() << " " << (uint16_t)actit->getSuperframeID() << " " << (uint16_t)actit->getChannel()
                                   << " to " << stateToString(state));
             actit->setState(state);
         }

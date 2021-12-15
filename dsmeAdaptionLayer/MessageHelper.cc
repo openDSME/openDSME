@@ -89,10 +89,10 @@ void MessageHelper::startAssociation() {
             this->scanOrSyncInProgress = true;
             this->dsmeAdaptionLayer.getScanHelper().startScan();
         } else {
-            LOG_INFO("Scan already in progress.");
+            DSME_LOG_INFO("Scan already in progress.");
         }
     } else {
-        LOG_INFO("Association already in progress.");
+        DSME_LOG_INFO("Association already in progress.");
     }
 }
 
@@ -110,7 +110,7 @@ void MessageHelper::sendRetryBuffer() {
 }
 
 void MessageHelper::sendMessage(IDSMEMessage* msg) {
-    LOG_INFO("Sending DATA message");
+    DSME_LOG_INFO("Sending DATA message");
     sendMessageDown(msg, true);
 }
 
@@ -128,16 +128,16 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
 
     if(!this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord) {
         startAssociation();
-        LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
+        DSME_LOG_INFO("Discarding message for " << dst.getShortAddress() << ".");
         callback_confirm(msg, DataStatus::TRANSACTION_OVERFLOW);
         return;
     }
 
-    LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
+    DSME_LOG_DEBUG("Sending DATA message to " << dst.getShortAddress() << " via MCPS.");
 
     if(dst.getShortAddress() == this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress) {
         /* '-> loopback */
-        LOG_INFO("Loopback message received.");
+        DSME_LOG_INFO("Loopback message received.");
         receiveIndication(msg);
     } else {
         mcps_sap::DATA::request_parameters params;
@@ -179,9 +179,9 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
         if(params.gtsTx) {
             uint16_t srcAddr = this->dsmeAdaptionLayer.getMAC_PIB().macShortAddress;
             if(srcAddr == 0xfffe) {
-                LOG_ERROR("No short address allocated -> cannot request GTS!");
+                DSME_LOG_ERROR("No short address allocated -> cannot request GTS!");
             } else if(srcAddr == 0xffff) {
-                LOG_INFO("Association required before slot allocation.");
+                DSME_LOG_INFO("Association required before slot allocation.");
                 DSME_ASSERT(false);
             }
 
@@ -196,9 +196,9 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
                 this->dsmeAdaptionLayer.getGTSHelper().checkAllocationForPacket(dst.getShortAddress());
             }
 
-            LOG_DEBUG("Preparing transmission in CFP.");
+            DSME_LOG_DEBUG("Preparing transmission in CFP.");
         } else {
-            LOG_DEBUG("Preparing transmission in CAP.");
+            DSME_LOG_DEBUG("Preparing transmission in CAP.");
         }
 
         this->dsmeAdaptionLayer.getMCPS_SAP().getDATA().request(params);
@@ -207,7 +207,7 @@ void MessageHelper::sendMessageDown(IDSMEMessage* msg, bool newMessage) {
 }
 
 void MessageHelper::handleDataIndication(mcps_sap::DATA_indication_parameters& params) {
-    LOG_DEBUG("Received DATA message from MCPS.");
+    DSME_LOG_DEBUG("Received DATA message from MCPS.");
     this->dsmeAdaptionLayer.getGTSHelper().indicateReceivedMessage(params.msdu->getHeader().getSrcAddr().getShortAddress());
     receiveIndication(params.msdu);
     return;
@@ -229,7 +229,7 @@ bool MessageHelper::queueMessageIfPossible(IDSMEMessage* msg) {
 
         if(!oldestEntry->message->getCurrentlySending()) {
             uint32_t currentSymbolCounter = this->dsmeAdaptionLayer.getDSME().getPlatform().getSymbolCounter();
-            LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress() << ": Retry-Queue overflow ("
+            DSME_LOG_DEBUG("DROPPED->" << oldestEntry->message->getHeader().getDestAddr().getShortAddress() << ": Retry-Queue overflow ("
                                   << currentSymbolCounter - oldestEntry->initialSymbolCounter << " symbols old)");
             DSME_ASSERT(callback_confirm);
             callback_confirm(oldestEntry->message, DataStatus::Data_Status::INVALID_GTS); // TODO change if queue is used for retransmissions
@@ -246,7 +246,7 @@ bool MessageHelper::queueMessageIfPossible(IDSMEMessage* msg) {
 }
 
 void MessageHelper::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params) {
-    LOG_DEBUG("Received DATA confirm from MCPS");
+    DSME_LOG_DEBUG("Received DATA confirm from MCPS");
     IDSMEMessage* msg = params.msduHandle;
 
     DSME_ASSERT(msg->getCurrentlySending());
@@ -260,20 +260,20 @@ void MessageHelper::handleDataConfirm(mcps_sap::DATA_confirm_parameters& params)
                 }
 
                 // GTS slot not yet allocated
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
+                DSME_LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No GTS allocated + queue full");
             } else if(params.status == DataStatus::NO_ACK) {
                 // This should not happen, but might be the case for temporary inconsistent slots
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
+                DSME_LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": No ACK");
             } else if(params.status == DataStatus::CHANNEL_ACCESS_FAILURE) {
                 // This should not happen, but might be the case if a foreign packet is received and the phy is therefore busy
                 DSME_SIM_ASSERT(false);
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Channel Access Failure");
+                DSME_LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Channel Access Failure");
             } else if(params.status == DataStatus::TRANSACTION_OVERFLOW) {
                 // Queue is full
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
+                DSME_LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Queue full");
             } else if(params.status == DataStatus::TRANSACTION_EXPIRED) {
                 // Transaction expired, e.g. for RESET
-                LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
+                DSME_LOG_DEBUG("DROPPED->" << params.msduHandle->getHeader().getDestAddr().getShortAddress() << ": Expired");
             } else {
                 // Should not occur
                 DSME_ASSERT(false);
@@ -304,7 +304,7 @@ void MessageHelper::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
         this->dsmeAdaptionLayer.getAssociationHelper().associate(panDescriptor->coordPANId, panDescriptor->coordAddrMode, panDescriptor->coordAddress,
                                                                  panDescriptor->channelNumber);
     } else {
-        LOG_INFO("Trying scan again!");
+        DSME_LOG_INFO("Trying scan again!");
         this->dsmeAdaptionLayer.getScanHelper().startScan();
     }
     return;

@@ -56,7 +56,7 @@ void SYNC::request(request_parameters& params) {
     dsme.getPHY_PIB().phyCurrentChannel = params.channelNumber;
     dsme.getMAC_PIB().macSyncParentShortAddress = params.syncParentShortAddress;
     dsme.getMAC_PIB().macSyncParentSdIndex = params.syncParentSdIndex;
-    LOG_ERROR("SYNC " << params.syncParentSdIndex << " " << params.syncParentShortAddress);
+    DSME_LOG_ERROR("SYNC " << params.syncParentSdIndex << " " << params.syncParentShortAddress);
     dsme.startTrackingBeacons();
 }
 

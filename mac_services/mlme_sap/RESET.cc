@@ -53,7 +53,7 @@ RESET::RESET(DSMELayer& dsme) : dsme(dsme) {
 
 void RESET::request(request_parameters& params) {
     if(params.setDefaultPib) {
-        LOG_ERROR("Resetting the PIB is currently not supported.");
+        DSME_LOG_ERROR("Resetting the PIB is currently not supported.");
         DSME_ASSERT(false);
     }
 

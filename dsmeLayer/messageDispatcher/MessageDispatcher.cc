@@ -117,7 +117,7 @@ void MessageDispatcher::reset(void) {
 
 
 void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage* msg) {
-    LOG_DEBUG("sendDoneGTS");
+    DSME_LOG_DEBUG("sendDoneGTS");
 
     DSME_ASSERT(lastSendGTSNeighbor != neighborQueue.end());
     DSME_ASSERT(msg == neighborQueue.front(lastSendGTSNeighbor));
@@ -134,7 +134,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
         if(msg->getRetryCounter() < dsme.getMAC_PIB().macMaxFrameRetries) {
             msg->increaseRetryCounter();
             //finalizeGTSTransmission();
-            LOG_DEBUG("sendDoneGTS - retry");
+            DSME_LOG_DEBUG("sendDoneGTS - retry");
             return; // will stay at front of queue
         }
     }
@@ -163,7 +163,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
     switch(response) {
         case AckLayerResponse::NO_ACK_REQUESTED:
         case AckLayerResponse::ACK_SUCCESSFUL:
-            LOG_DEBUG("sendDoneGTS - success");
+            DSME_LOG_DEBUG("sendDoneGTS - success");
             params.status = DataStatus::SUCCESS;
             break;
         case AckLayerResponse::ACK_FAILED:
@@ -172,13 +172,13 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
             params.status = DataStatus::NO_ACK;
             break;
         case AckLayerResponse::SEND_FAILED:
-            LOG_DEBUG("SEND_FAILED during GTS");
+            DSME_LOG_DEBUG("SEND_FAILED during GTS");
             DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
             currentACTElement->incrementIdleCounter();
             params.status = DataStatus::CHANNEL_ACCESS_FAILURE;
             break;
         case AckLayerResponse::SEND_ABORTED:
-            LOG_DEBUG("SEND_ABORTED during GTS");
+            DSME_LOG_DEBUG("SEND_ABORTED during GTS");
             params.status = DataStatus::TRANSACTION_EXPIRED;
             break;
         default:
@@ -196,7 +196,7 @@ void MessageDispatcher::sendDoneGTS(enum AckLayerResponse response, IDSMEMessage
 }
 
 void MessageDispatcher::finalizeGTSTransmission() {
-    LOG_DEBUG("Finalizing transmission for " << this->currentACTElement->getGTSlotID() << " " << this->currentACTElement->getSuperframeID() << " " << this->currentACTElement->getChannel());
+    DSME_LOG_DEBUG("Finalizing transmission for " << this->currentACTElement->getGTSlotID() << " " << this->currentACTElement->getSuperframeID() << " " << this->currentACTElement->getChannel());
     transceiverOffIfAssociated();
     this->dsme.getEventDispatcher().stopIFSTimer();
     this->preparedMsg = nullptr;    // TODO correct here?
@@ -230,7 +230,7 @@ void MessageDispatcher::onCSMASent(IDSMEMessage* msg, DataStatus::Data_Status st
             MACCommand cmd;
             cmd.decapsulateFrom(msg);
 
-            LOG_DEBUG("cmdID " << (uint16_t)cmd.getCmdId());
+            DSME_LOG_DEBUG("cmdID " << (uint16_t)cmd.getCmdId());
 
             switch(cmd.getCmdId()) {
                 case ASSOCIATION_REQUEST:
@@ -276,28 +276,28 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
             totalSize += it->queueSize;
         }
-        LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
+        DSME_LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
         this->dsme.getPlatform().signalQueueLength(totalSize+1);
         return true;
     } else {
         /* queue full */
-        LOG_INFO("NeighborQueue is full!");
+        DSME_LOG_INFO("NeighborQueue is full!");
         numUpperPacketsDroppedFullQueue++;
         return false;
     }
 }
 
 bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
-    LOG_INFO("Inserting message into CAP queue.");
+    DSME_LOG_INFO("Inserting message into CAP queue.");
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
-        LOG_INFO("Message dropped due to missing association!");
+        DSME_LOG_INFO("Message dropped due to missing association!");
         // TODO document this behaviour
         // TODO send appropriate MCPS confirm or better remove this handling and implement TRANSACTION_EXPIRED
         return false;
     }
     if(!this->dsme.getCapLayer().pushMessage(msg)) {
-        LOG_INFO("CAP queue full!");
+        DSME_LOG_INFO("CAP queue full!");
         return false;
     }
     if(msg->getHeader().getFrameType() == IEEE802154eMACHeader::FrameType::COMMAND) {
@@ -311,7 +311,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
 
     switch(macHdr.getFrameType()) {
         case IEEE802154eMACHeader::FrameType::BEACON: {
-            LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << " " << dsme.getCurrentSuperframe() << ".");
+            DSME_LOG_INFO("BEACON from " << macHdr.getSrcAddr().getShortAddress() << " " << macHdr.getSrcPANId() << " " << dsme.getCurrentSuperframe() << ".");
             this->dsme.getBeaconManager().handleBeacon(msg);
             this->dsme.getPlatform().releaseMessage(msg);
             break;
@@ -322,46 +322,46 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
             cmd.decapsulateFrom(msg);
             switch(cmd.getCmdId()) {
                 case CommandFrameIdentifier::DSME_GTS_REQUEST:
-                    LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DSME-GTS-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getGTSManager().handleGTSRequest(msg);
                     break;
                 case CommandFrameIdentifier::DSME_GTS_REPLY:
-                    LOG_INFO("DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DSME-GTS-REPLY from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getGTSManager().handleGTSResponse(msg);
                     break;
                 case CommandFrameIdentifier::DSME_GTS_NOTIFY:
-                    LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DSME-GTS-NOTIFY from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getGTSManager().handleGTSNotify(msg);
                     break;
                 case CommandFrameIdentifier::ASSOCIATION_REQUEST:
-                    LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("ASSOCIATION-REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getAssociationManager().handleAssociationRequest(msg);
                     break;
                 case CommandFrameIdentifier::ASSOCIATION_RESPONSE:
-                    LOG_INFO("ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("ASSOCIATION-RESPONSE from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getAssociationManager().handleAssociationReply(msg);
                     break;
                 case CommandFrameIdentifier::DISASSOCIATION_NOTIFICATION:
-                    LOG_INFO("DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DISASSOCIATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getAssociationManager().handleDisassociationRequest(msg);
                     break;
                 case CommandFrameIdentifier::DATA_REQUEST:
                     /* Not implemented */
                     break;
                 case CommandFrameIdentifier::DSME_BEACON_ALLOCATION_NOTIFICATION:
-                    LOG_INFO("DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DSME-BEACON-ALLOCATION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getBeaconManager().handleBeaconAllocation(msg);
                     break;
                 case CommandFrameIdentifier::DSME_BEACON_COLLISION_NOTIFICATION:
-                    LOG_INFO("DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("DSME-BEACON-COLLISION-NOTIFICATION from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getBeaconManager().handleBeaconCollision(msg);
                     break;
                 case CommandFrameIdentifier::BEACON_REQUEST:
-                    LOG_INFO("BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
+                    DSME_LOG_INFO("BEACON_REQUEST from " << macHdr.getSrcAddr().getShortAddress() << ".");
                     dsme.getBeaconManager().handleBeaconRequest(msg);
                     break;
                 default:
-                    LOG_ERROR("Invalid cmd ID " << (uint16_t)cmd.getCmdId());
+                    DSME_LOG_ERROR("Invalid cmd ID " << (uint16_t)cmd.getCmdId());
                     // DSME_ASSERT(false);
             }
             dsme.getPlatform().releaseMessage(msg);
@@ -378,7 +378,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
         }
 
         default: {
-            LOG_ERROR((uint16_t)macHdr.getFrameType());
+            DSME_LOG_ERROR((uint16_t)macHdr.getFrameType());
             dsme.getPlatform().releaseMessage(msg);
         }
     }
@@ -395,7 +395,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
         } else {
             // Rarely happens, only if the sendDoneGTS is delayed
             // Then skip this preSlotEvent
-            LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
+            DSME_LOG_DEBUG("Previous slot did not finish until preslot event: slot " << (int)nextSlot << " SF " << (int)nextSuperframe);
             DSME_SIM_ASSERT(false);
             return false;
         }
@@ -466,7 +466,7 @@ uint8_t MessageDispatcher::nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t 
 
     uint8_t channel =
         this->dsme.getMAC_PIB().macHoppingSequenceList[(sdIndex * numGTSlots + slotId + channelOffset + ebsn) % hoppingSequenceLength];
-    LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex
+    DSME_LOG_INFO("Using channel " << channel << " - numGTSlots: " << numGTSlots << " EBSN: " << ebsn << " sdIndex: " << sdIndex
                               << " slot: " << slotId << " Superframe " << nextSuperframe << " channelOffset: " << channelOffset
                               << " Direction: " << currentACTElement->getDirection());
     return channel;
@@ -513,26 +513,26 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
                 /* '-> the neighbor associated with the current slot does not exist */
 
-                LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
-                LOG_ERROR("neighbor address: " << HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DECOUT);
+                DSME_LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                DSME_LOG_ERROR("neighbor address: " << DSME_HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DSME_DECOUT);
                 for(auto it : this->neighborQueue) {
-                    LOG_ERROR("neighbor address: " << HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
-                                                   << DECOUT);
+                    DSME_LOG_ERROR("neighbor address: " << DSME_HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
+                                                   << DSME_DECOUT);
                 }
                 DSME_ASSERT(false);
             }
 
             bool success = prepareNextMessageIfAny();
-            LOG_DEBUG(success);
+            DSME_LOG_DEBUG(success);
             if(success) {
                 /* '-> a message is queued for transmission */
                 success = sendPreparedMessage();
             }
-            LOG_DEBUG(success);
+            DSME_LOG_DEBUG(success);
 
             if(success == false) {
                 /* '-> no message to be sent */
-                LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
+                DSME_LOG_DEBUG("MessageDispatcher: Could not transmit any packet in GTS");
                 this->numUnusedTxGts++;
                 finalizeGTSTransmission();
             }
@@ -583,7 +583,7 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
         uint32_t duration = this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + ifsSymbols;
         // check if the remaining slot time is enough to transmit the prepared packet
         if(!this->dsme.isWithinTimeSlot(this->dsme.getPlatform().getSymbolCounter(), duration)) {
-            LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
+            DSME_LOG_DEBUG("No packet prepared (remaining slot time insufficient)");
             this->preparedMsg = nullptr; // reset value of pending Message
             result = false; // there is no enough time, no transmission will take place
         } else {
@@ -613,7 +613,7 @@ bool MessageDispatcher::sendPreparedMessage() {
         }
         return true;
     }
-    LOG_DEBUG("No packet sent (remaining slot time insufficient)");
+    DSME_LOG_DEBUG("No packet sent (remaining slot time insufficient)");
     return false;
 }
 

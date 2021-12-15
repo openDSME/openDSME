@@ -111,11 +111,11 @@ void GTSHelper::checkAllocationForPacket(uint16_t address) {
 
 void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
     if(decision.numSlot == 0) {
-        LOG_DEBUG("NO SCHEDULING ACTION");
+        DSME_LOG_DEBUG("NO SCHEDULING ACTION");
         DSME_ASSERT(decision.deviceAddress == IEEE802154MacAddress::NO_SHORT_ADDRESS);
         return;
     }
-    LOG_DEBUG("GTSHelper: performSchedulingAction");
+    DSME_LOG_DEBUG("GTSHelper: performSchedulingAction");
 
     if(decision.managementType == ManagementType::ALLOCATION) {
         checkAndAllocateGTS(decision);
@@ -130,7 +130,7 @@ void GTSHelper::performSchedulingAction(GTSSchedulingDecision decision) {
 void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     DSME_ATOMIC_BLOCK {
         if(gtsConfirmPending) {
-            LOG_INFO("GTS allocation still active (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+            DSME_LOG_INFO("GTS allocation still active (trying with 0x" << DSME_HEXOUT << decision.deviceAddress << DSME_DECOUT << ")");
             return;
         }
 
@@ -145,7 +145,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
     if(preferredGTS == GTS::UNDEFINED) {
-        LOG_ERROR("No free GTS found! (trying with 0x" << HEXOUT << decision.deviceAddress << DECOUT << ")");
+        DSME_LOG_ERROR("No free GTS found! (trying with 0x" << DSME_HEXOUT << decision.deviceAddress << DSME_DECOUT << ")");
         gtsConfirmPending = false;
         return;
     }
@@ -163,8 +163,8 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     params.dsmeSabSpecification.setSubBlockIndex(preferredGTS.superframeID);
     macDSMESAB.getOccupiedSubBlock(params.dsmeSabSpecification, preferredGTS.superframeID);
 
-    LOG_INFO("ALLOCATING slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " with 0x" << HEXOUT
-                                << params.deviceAddress << DECOUT << ".");
+    DSME_LOG_INFO("ALLOCATING slot " << preferredGTS.slotID << " " << preferredGTS.superframeID << " " << (uint16_t)preferredGTS.channel << " with 0x" << DSME_HEXOUT
+                                << params.deviceAddress << DSME_DECOUT << ".");
 
     /* mark all impossible slots that are in use in other channels, too */
     for(DSMEAllocationCounterTable::iterator it = macDSMEACT.begin(); it != macDSMEACT.end(); ++it) {
@@ -193,8 +193,8 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
     }
 
     if(toDeallocate != act.end()) {
-        LOG_INFO("DEALLOCATING slot " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << " with 0x" << HEXOUT
-                                      << toDeallocate->getAddress() << DECOUT);
+        DSME_LOG_INFO("DEALLOCATING slot " << toDeallocate->getSuperframeID() << "/" << toDeallocate->getGTSlotID() << " with 0x" << DSME_HEXOUT
+                                      << toDeallocate->getAddress() << DSME_DECOUT);
 
         DSMESABSpecification dsmeSABSpecification;
         uint8_t subBlockLengthBytes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getSubBlockLengthBytes(toDeallocate->getSuperframeID());
@@ -209,7 +209,7 @@ void GTSHelper::checkAndDeallocateSingeleGTS(uint16_t address) {
 }
 
 void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_parameters& params) {
-    LOG_INFO("COMM_STATUS indication handled.");
+    DSME_LOG_INFO("COMM_STATUS indication handled.");
 
     // TODO should we do anything here? especially for failures?
 
@@ -218,11 +218,11 @@ void GTSHelper::handleCOMM_STATUS_indication(mlme_sap::COMM_STATUS_indication_pa
 
 void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_parameters& params) {
     if(!this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord) {
-        LOG_INFO("Not associated, discarding incoming GTS request from " << params.deviceAddress << ".");
+        DSME_LOG_INFO("Not associated, discarding incoming GTS request from " << params.deviceAddress << ".");
         return;
     }
 
-    LOG_INFO("GTS request handled.");
+    DSME_LOG_INFO("GTS request handled.");
 
     mlme_sap::DSME_GTS::response_parameters responseParams;
     responseParams.deviceAddress = params.deviceAddress;
@@ -244,7 +244,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
-                LOG_ERROR("Unable to allocate GTS.");
+                DSME_LOG_ERROR("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;
@@ -316,7 +316,7 @@ void GTSHelper::sendDeallocationRequest(uint16_t address, Direction direction, D
 
     params.dsmeSabSpecification = sabSpecification;
 
-    LOG_INFO("Deallocating slot with " << params.deviceAddress << ".");
+    DSME_LOG_INFO("Deallocating slot with " << params.deviceAddress << ".");
 
     this->dsmeAdaptionLayer.getMLME_SAP().getDSME_GTS().request(params);
 
@@ -348,13 +348,13 @@ const char* printStatus(GTSStatus::GTS_Status status) {
 }
 
 void GTSHelper::handleDSME_GTS_confirm(mlme_sap::DSME_GTS_confirm_parameters& params) {
-    LOG_DEBUG("GTS confirmation handled (Status: " << printStatus(params.status) << ").");
+    DSME_LOG_DEBUG("GTS confirmation handled (Status: " << printStatus(params.status) << ").");
 
     // TODO handle channel access failure! retransmission?
 
     if(params.managementType == ManagementType::ALLOCATION) {
         gtsConfirmPending = false;
-        LOG_DEBUG("gtsConfirmPending = false");
+        DSME_LOG_DEBUG("gtsConfirmPending = false");
         if(params.status == GTSStatus::SUCCESS) {
             this->dsmeAdaptionLayer.getMessageHelper().sendRetryBuffer();
         }
@@ -393,7 +393,7 @@ GTS GTSHelper::getNextFreeGTS(uint16_t initialSuperframeID, uint8_t initialSlotI
         }
 
         uint8_t numGTSlots = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumGTSlots(gts.superframeID);
-        LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
+        DSME_LOG_INFO("Checking " << numGTSlots << " in superframe " << gts.superframeID);
         for(gts.slotID = initialSlotID % numGTSlots; slotsToCheck > 0; gts.slotID = (gts.slotID + 1) % numGTSlots) {
             if(!macDSMEACT.isAllocated(gts.superframeID, gts.slotID)) {
                 uint8_t startChannel = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % numChannels;

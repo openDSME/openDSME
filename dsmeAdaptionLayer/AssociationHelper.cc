@@ -110,7 +110,7 @@ void AssociationHelper::disassociate() {
 }
 
 void AssociationHelper::handleASSOCIATION_indication(mlme_sap::ASSOCIATE_indication_parameters& params) {
-    LOG_INFO("Association requested from 0x" << params.deviceAddress.getShortAddress() << ".");
+    DSME_LOG_INFO("Association requested from 0x" << params.deviceAddress.getShortAddress() << ".");
 
     mlme_sap::ASSOCIATE::response_parameters response_params;
     response_params.deviceAddress = params.deviceAddress;

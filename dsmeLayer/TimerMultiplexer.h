@@ -111,8 +111,7 @@ protected:
         if(nextEventSymbolCounter <= this->currentDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
-            LOG_ERROR("now:" << now << ", nextEvent: " << nextEventSymbolCounter << ", lastDispatch: " << this->lastDispatchSymbolCounter << ", Event "
-                             << (uint16_t)E);
+            DSME_LOG_ERROR("now:" << now << ",currentDispatchSymbolCounter: " << currentDispatchSymbolCounter << ", nextEvent: " << nextEventSymbolCounter << ", lastDispatch: " << this->lastDispatchSymbolCounter << ", Event " << (uint16_t)E);
             history.printEvents();
             DSME_ASSERT(false);
         }
@@ -151,7 +150,7 @@ protected:
 
         uint32_t now = _NOW;
         if(timer <= now) {
-            LOG_ERROR("now: " << now << " timer: " << timer);
+            DSME_LOG_ERROR("now: " << now << " timer: " << timer);
             DSME_ASSERT(false);
         }
 

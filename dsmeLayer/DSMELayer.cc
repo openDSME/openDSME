@@ -129,7 +129,7 @@ void DSMELayer::reset() {
 
 void DSMELayer::doReset() {
     DSME_ASSERT(resetPending);
-    LOG_ERROR("Performing a complete reset of the DSME MLME.");
+    DSME_LOG_ERROR("Performing a complete reset of the DSME MLME.");
 
     DSME_ATOMIC_BLOCK {
         this->ackLayer.reset();
@@ -198,11 +198,11 @@ void DSMELayer::slotEvent(int32_t lateness) {
     currentMultiSuperframe = nextMultiSuperframe;
 
     if(getMAC_PIB().macIsPANCoord) {
-        LOG_DEBUG(DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
+        DSME_LOG_DEBUG(DSME_DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
     }
 
     if(lateness > 100) { // TODO reduce
-        LOG_ERROR("lateness " << lateness);
+        DSME_LOG_ERROR("lateness " << lateness);
         DSME_ASSERT(false);
     }
 
@@ -293,7 +293,7 @@ bool DSMELayer::isWithinTimeSlot(uint32_t now, uint16_t duration) {
     uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot - PRE_EVENT_SHIFT;
 
     DSME_ASSERT(now >= timeSlotStart && now <= timeSlotEnd);
-    LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << now << ") <= duration ("
+    DSME_LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << now << ") <= duration ("
         << now+duration << ") <= slot end time (" << timeSlotEnd << ")");
 
     return now + duration <= timeSlotEnd;

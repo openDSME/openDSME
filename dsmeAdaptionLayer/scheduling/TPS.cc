@@ -73,8 +73,8 @@ void TPS::setUseMultiplePacketsPerGTS(bool useMultiplePackets) {
 }
 
 void TPS::multisuperframeEvent() {
-    if(!header) {
-        LOG_DEBUG("control"
+    if(false) {
+        DSME_LOG_DEBUG("control"
                   << ","
                   << "from"
                   << ","
@@ -113,10 +113,10 @@ void TPS::multisuperframeEvent() {
                 /* '-> calculate number of packets per slot with assumption of maximum packet size and maximum acknowledgement wait duration -> THIS CAN BE DONE MUCH BETTER */
         }
 
-        LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
+        DSME_LOG_DEBUG("Packets per slot: " << (int)packets_per_slot);
         float error = (data.avgIn / packets_per_slot) - slots;
-        LOG_DEBUG("TPS error: " << error);
-        LOG_DEBUG("TPS slots: " << (int)slots);
+        DSME_LOG_DEBUG("TPS error: " << error);
+        DSME_LOG_DEBUG("TPS slots: " << (int)slots);
 
         int8_t change = 0;
         if(useHysteresis) {
@@ -130,7 +130,7 @@ void TPS::multisuperframeEvent() {
         }
 
         data.slotTarget = slots + change;
-        LOG_DEBUG("TPS target: " << data.slotTarget);
+        DSME_LOG_DEBUG("TPS target: " << data.slotTarget);
 
         if(data.messagesInLastMultisuperframe == 0) {
             if(data.multisuperframesSinceLastPacket < 0xFFFE) {
@@ -144,8 +144,8 @@ void TPS::multisuperframeEvent() {
             data.slotTarget = 0;
         }
 
-        LOG_DEBUG("control"
-                  << ",0x" << HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DECOUT
+        DSME_LOG_DEBUG("control"
+                  << ",0x" << DSME_HEXOUT << this->dsmeAdaptionLayer.getDSME().getMAC_PIB().macShortAddress << ",0x" << data.address << "," << DSME_DECOUT
                   << data.messagesInLastMultisuperframe << "," << data.messagesOutLastMultisuperframe << "," << FLOAT_OUTPUT(data.avgIn) << ","
                   << (uint16_t)slots << "," << data.slotTarget << "," << data.multisuperframesSinceLastPacket);
 

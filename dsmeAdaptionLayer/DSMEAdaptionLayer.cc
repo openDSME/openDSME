@@ -141,7 +141,7 @@ void DSMEAdaptionLayer::sendMessage(IDSMEMessage* msg) {
 
 void DSMEAdaptionLayer::startAssociation() {
     if(!getMAC_PIB().macAssociatedPANCoord) {
-        LOG_DEBUG("Device is not associated with PAN.");
+        DSME_LOG_DEBUG("Device is not associated with PAN.");
         this->messageHelper.startAssociation();
     }
 }
@@ -162,19 +162,19 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
     this->messageHelper.handleScanAndSyncComplete(panDescriptor);
 
     if(panDescriptor != nullptr) {
-        LOG_INFO("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
+        DSME_LOG_INFO("PAN found on channel " << (uint16_t)panDescriptor->channelNumber << ", coordinator is " << panDescriptor->coordAddress.getShortAddress()
                                          << " on PAN " << panDescriptor->coordPANId << ".");
     } else {
-        LOG_DEBUG("Channel scan did not yield any PANs.");
+        DSME_LOG_DEBUG("Channel scan did not yield any PANs.");
     }
     return;
 }
 
 void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association_Status status) {
     if(status == AssociationStatus::SUCCESS) {
-        LOG_INFO("Association completed successfully.");
+        DSME_LOG_INFO("Association completed successfully.");
     } else {
-        LOG_ERROR("Association failed.");
+        DSME_LOG_ERROR("Association failed.");
     }
 
     this->messageHelper.handleAssociationComplete(status);
@@ -198,9 +198,9 @@ void DSMEAdaptionLayer::handleResetComplete(mlme_sap::RESET_confirm_parameters& 
 
 void DSMEAdaptionLayer::handleDisassociationComplete(DisassociationStatus::Disassociation_Status status) {
     if(status == DisassociationStatus::SUCCESS) {
-        LOG_DEBUG("Disassociation completed successfully.");
+        DSME_LOG_DEBUG("Disassociation completed successfully.");
     } else {
-        LOG_ERROR("Disassociation failed.");
+        DSME_LOG_ERROR("Disassociation failed.");
     }
 
     /*

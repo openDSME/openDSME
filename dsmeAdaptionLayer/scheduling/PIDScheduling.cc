@@ -87,15 +87,15 @@ void PIDScheduling::multisuperframeEvent() {
             data.slotTarget = 1;
         }
 
-        LOG_DEBUG_PREFIX;
-        LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
-        LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
-        LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
-        LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
-        LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
-        LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
-        LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
-        LOG_DEBUG_PURE(LOG_ENDL);
+        DSME_LOG_DEBUG_PREFIX;
+        DSME_LOG_DEBUG_PURE("Scheduling-Data->" << data.address);
+        DSME_LOG_DEBUG_PURE("; w: " << (const char*)(" ") << w);
+        DSME_LOG_DEBUG_PURE("; y: " << (const char*)(" ") << y);
+        DSME_LOG_DEBUG_PURE("; e: " << (const char*)(e < 0 ? "" : " ") << e);
+        DSME_LOG_DEBUG_PURE("; i: " << (const char*)(i < 0 ? "" : " ") << i);
+        DSME_LOG_DEBUG_PURE("; d: " << (const char*)(d < 0 ? "" : " ") << d);
+        DSME_LOG_DEBUG_PURE("; u: " << (const char*)(u < 0 ? "" : " ") << u);
+        DSME_LOG_DEBUG_PURE(DSME_LOG_ENDL);
 
         data.last_error = e;
         data.messagesInLastMultisuperframe = 0;

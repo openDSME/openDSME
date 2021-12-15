@@ -76,7 +76,7 @@ void AssociationManager::reset() {
 }
 
 void AssociationManager::sendAssociationRequest(DSMEAssociationRequestCmd& req, mlme_sap::ASSOCIATE::request_parameters& params) {
-    LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
+    DSME_LOG_INFO("Requesting association to " << params.coordAddress.getShortAddress() << ".");
 
     DSME_ATOMIC_BLOCK {
         if(this->actionPending) {
@@ -147,7 +147,7 @@ void AssociationManager::sendAssociationReply(DSMEAssociationResponseCmd& respon
         }
     }
 
-    LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
+    DSME_LOG_INFO("Replying to association request from " << deviceAddress.getShortAddress() << ".");
 
     IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
     response.prependTo(msg);
@@ -389,7 +389,7 @@ void AssociationManager::handleStartOfCFP(uint8_t superframe) {
             disassociate_params.status = DisassociationStatus::SUCCESS; /* According to the standard, all failures mean disassociation */
             this->dsme.getMLME_SAP().getDISASSOCIATE().notify_confirm(disassociate_params);
         } else {
-            LOG_ERROR((int)pendingAction);
+            DSME_LOG_ERROR((int)pendingAction);
             DSME_ASSERT(false);
         }
     }

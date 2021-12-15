@@ -101,12 +101,12 @@ private:
 public:
     void printLatenessHistogram() {
         for(uint8_t i = 0; i < EventTimers::TIMER_COUNT; ++i) {
-            LOG_ERROR_PREFIX;
-            LOG_ERROR_PURE(static_cast<uint16_t>(i) << ": ");
+            DSME_LOG_ERROR_PREFIX;
+            DSME_LOG_ERROR_PURE(static_cast<uint16_t>(i) << ": ");
             for(uint16_t j = 0; j < BIN_COUNT; ++j) {
-                LOG_ERROR_PURE(this->lateness_histogram[i][j] << ",");
+                DSME_LOG_ERROR_PURE(this->lateness_histogram[i][j] << ",");
             }
-            LOG_ERROR_PURE(LOG_ENDL);
+            DSME_LOG_ERROR_PURE(DSME_LOG_ENDL);
         }
         return;
     }

@@ -90,10 +90,10 @@ void ScanHelper::startScan() {
 
     uint16_t random_value = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % 128;
     if(((uint16_t) this->passiveScanCounter) > random_value) {
-        LOG_INFO("Initiating enhanced active scan");
+        DSME_LOG_INFO("Initiating enhanced active scan");
         params.scanType = ScanType::ENHANCEDACTIVESCAN;
     } else {
-        LOG_INFO("Initiating passive scan");
+        DSME_LOG_INFO("Initiating passive scan");
         params.scanType = ScanType::PASSIVE;
     }
     this->passiveScanCounter++;
@@ -109,10 +109,10 @@ void ScanHelper::startScan() {
 
 void ScanHelper::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_parameters& params) {
     if(params.lossReason == LossReason::BEACON_LOST) {
-        LOG_ERROR("Beacon tracking lost.");
+        DSME_LOG_ERROR("Beacon tracking lost.");
         // DSME_SIM_ASSERT(false); TODO
     } else {
-        LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
+        DSME_LOG_ERROR("Tracking lost for unsupported reason: " << (uint16_t)params.lossReason);
         DSME_ASSERT(false);
     }
 
@@ -127,7 +127,7 @@ void ScanHelper::handleSyncLossIndication(mlme_sap::SYNC_LOSS_indication_paramet
 
 void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indication_parameters& params) {
     if(!this->dsmeAdaptionLayer.getMAC_PIB().macAutoRequest) {
-        LOG_INFO("Beacon registered in upper layer.");
+        DSME_LOG_INFO("Beacon registered in upper layer.");
         this->recordedPanDescriptors.add(params.panDescriptor);
     }
 
@@ -143,7 +143,7 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
     }
 
     // TODO CROSS-LAYER-CALLS, no interface for this information
-    LOG_INFO("Checking whether to become a coordinator: "
+    DSME_LOG_INFO("Checking whether to become a coordinator: "
              << "isAssociated:" << this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord << ", isCoordinator:"
              << this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord << ", numHeardCoordinators:" << ((uint16_t)heardCoordinators.getLength()) << ".");
     if(this->dsmeAdaptionLayer.getMAC_PIB().macAssociatedPANCoord && !this->dsmeAdaptionLayer.getMAC_PIB().macIsCoord && heardCoordinators.getLength() < 2) {
@@ -153,7 +153,7 @@ void ScanHelper::handleBEACON_NOTIFY_indication(mlme_sap::BEACON_NOTIFY_indicati
             request_params.panCoordinator = false;
             // TODO: fill rest;
 
-            LOG_INFO("Turning into a coordinator now.");
+            DSME_LOG_INFO("Turning into a coordinator now.");
             this->dsmeAdaptionLayer.getMLME_SAP().getSTART().request(request_params);
 
             mlme_sap::START_confirm_parameters confirm_params;
