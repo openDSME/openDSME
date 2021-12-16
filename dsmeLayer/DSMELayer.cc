@@ -203,7 +203,8 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     if(lateness > 100) { // TODO reduce
         DSME_LOG_ERROR("lateness " << lateness);
-        DSME_ASSERT(false);
+        //DSME_ASSERT(false);
+        //return;
     }
 
     uint32_t currentSlotTime;

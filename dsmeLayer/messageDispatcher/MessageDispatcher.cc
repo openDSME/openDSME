@@ -378,7 +378,7 @@ void MessageDispatcher::receive(IDSMEMessage* msg) {
         }
 
         default: {
-            DSME_LOG_ERROR((uint16_t)macHdr.getFrameType());
+            DSME_LOG_ERROR("Invalid frame type " << (uint16_t)macHdr.getFrameType());
             dsme.getPlatform().releaseMessage(msg);
         }
     }
