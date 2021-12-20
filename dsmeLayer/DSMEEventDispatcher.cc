@@ -104,7 +104,7 @@ uint32_t DSMEEventDispatcher::setupSlotTimer(uint32_t lastSlotTime, uint8_t skip
         }
         DSMETimerMultiplexer::_startTimer<NEXT_SLOT>(next_slot_time, &DSMEEventDispatcher::fireSlotTimer);
         DSMETimerMultiplexer::_startTimer<NEXT_PRE_SLOT>(next_slot_time - PRE_EVENT_SHIFT, &DSMEEventDispatcher::firePreSlotTimer);
-        DSMETimerMultiplexer::_scheduleTimer();
+        //DSMETimerMultiplexer::_scheduleTimer();
     }
 
     return next_slot_time;

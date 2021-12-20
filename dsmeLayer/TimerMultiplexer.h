@@ -108,12 +108,18 @@ protected:
     inline void _startTimer(uint32_t nextEventSymbolCounter, handler_t handler) {
         this->history.addEvent(nextEventSymbolCounter, E);
 
+        if(nextEventSymbolCounter <= currentDispatchSymbolCounter) {
+            DSME_LOG_ERROR("RESETTING SYMBOL COUNTER");
+            currentDispatchSymbolCounter = _NOW;
+            lastDispatchSymbolCounter = _NOW;
+        }
+
         if(nextEventSymbolCounter <= this->currentDispatchSymbolCounter) {
             /* '-> an event was scheduled too far in the past */
             uint32_t now = _NOW;
             DSME_LOG_ERROR("now:" << now << ",currentDispatchSymbolCounter: " << currentDispatchSymbolCounter << ", nextEvent: " << nextEventSymbolCounter << ", lastDispatch: " << this->lastDispatchSymbolCounter << ", Event " << (uint16_t)E);
             history.printEvents();
-            DSME_ASSERT(false);
+            //DSME_ASSERT(false);
         }
 
         this->symbols_until[E] = nextEventSymbolCounter - this->lastDispatchSymbolCounter;

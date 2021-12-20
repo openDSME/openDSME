@@ -420,6 +420,7 @@ bool MessageDispatcher::handlePreSlotEvent(uint8_t nextSlot, uint8_t nextSuperfr
 
                 if(dsme.getMAC_PIB().macChannelDiversityMode == Channel_Diversity_Mode::CHANNEL_ADAPTATION) {
                     this->dsme.getPlatform().setChannelNumber(this->dsme.getMAC_PIB().helper.getChannels()[this->currentACTElement->getChannel()]);
+                    DSME_LOG_DEBUG("This should be our case");
                 } else {
                     uint8_t channel = nextHoppingSequenceChannel(nextSlot, nextSuperframe, nextMultiSuperframe);
                     this->dsme.getPlatform().setChannelNumber(channel);
@@ -473,6 +474,7 @@ uint8_t MessageDispatcher::nextHoppingSequenceChannel(uint8_t nextSlot, uint8_t 
 }
 
 bool MessageDispatcher::handleSlotEvent(uint8_t slot, uint8_t superframe, int32_t lateness) {
+    DSME_LOG_DEBUG("Slot event");
     if(slot > dsme.getMAC_PIB().helper.getFinalCAPSlot(superframe)) {
         handleGTS(lateness);
     }
