@@ -120,7 +120,7 @@ void DSMELayer::start() {
 
     /* start the timer initially */
     this->nextSlotTime = this->eventDispatcher.setupSlotTimer(this->platform->getSymbolCounter(), 0);
-    this->eventDispatcher.timerInterrupt();
+    //this->eventDispatcher.timerInterrupt();
 }
 
 void DSMELayer::reset() {
@@ -204,8 +204,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
 
     if(lateness > 200) { // TODO reduce
         DSME_LOG_ERROR("lateness " << lateness);
-        //DSME_ASSERT(false);
-        //return;
+        DSME_ASSERT(false);
     }
 
     uint32_t currentSlotTime;

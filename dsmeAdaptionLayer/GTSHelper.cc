@@ -98,9 +98,9 @@ void GTSHelper::handleStartOfCFP() {
     /* Check allocation at random superframe in multi-superframe */
     uint8_t num_superframes = this->dsmeAdaptionLayer.getMAC_PIB().helper.getNumberSuperframesPerMultiSuperframe();
     uint8_t random_frame = this->dsmeAdaptionLayer.getDSME().getPlatform().getRandom() % num_superframes;
-    //if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
-    performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
-    //}
+    if(this->dsmeAdaptionLayer.getDSME().getCurrentSuperframe() == random_frame) {
+        performSchedulingAction(this->gtsScheduling->getNextSchedulingAction());
+    }
     return;
 }
 

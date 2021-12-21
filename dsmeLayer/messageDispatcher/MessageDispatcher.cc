@@ -515,7 +515,7 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
             if(this->lastSendGTSNeighbor == this->neighborQueue.end()) {
                 /* '-> the neighbor associated with the current slot does not exist */
 
-                DSME_LOG_ERROR("neighborQueue.size: " << ((uint8_t) this->neighborQueue.getNumNeighbors()));
+                DSME_LOG_ERROR("neighborQueue.size: " << ((int) this->neighborQueue.getNumNeighbors()));
                 DSME_LOG_ERROR("neighbor address: " << DSME_HEXOUT << adr.a1() << ":" << adr.a2() << ":" << adr.a3() << ":" << adr.a4() << DSME_DECOUT);
                 for(auto it : this->neighborQueue) {
                     DSME_LOG_ERROR("neighbor address: " << DSME_HEXOUT << it.address.a1() << ":" << it.address.a2() << ":" << it.address.a3() << ":" << it.address.a4()
