@@ -276,7 +276,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
         for(NeighborQueue<MAX_NEIGHBORS>::iterator it = neighborQueue.begin(); it != neighborQueue.end(); ++it) {
             totalSize += it->queueSize;
         }
-        DSME_LOG_INFO("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
+        DSME_LOG_DEBUG("NeighborQueue is at " << totalSize << "/" << TOTAL_GTS_QUEUE_SIZE << ".");
         neighborQueue.pushBack(destIt, msg);
         this->dsme.getPlatform().signalQueueLength(totalSize+1);
         return true;
@@ -289,7 +289,7 @@ bool MessageDispatcher::sendInGTS(IDSMEMessage* msg, NeighborQueue<MAX_NEIGHBORS
 }
 
 bool MessageDispatcher::sendInCAP(IDSMEMessage* msg) {
-    DSME_LOG_INFO("Inserting message into CAP queue.");
+    DSME_LOG_DEBUG("Inserting message into CAP queue.");
     if(msg->getHeader().getSrcAddrMode() != EXTENDED_ADDRESS && !(this->dsme.getMAC_PIB().macAssociatedPANCoord)) {
         DSME_LOG_INFO("Message dropped due to missing association!");
         // TODO document this behaviour
@@ -596,7 +596,8 @@ bool MessageDispatcher::prepareNextMessageIfAny() {
 }
 
 bool MessageDispatcher::sendPreparedMessage() {
-    DSME_ASSERT(this->preparedMsg);
+    if(preparedMsg == nullptr)
+        return;
     DSME_ASSERT(this->dsme.getMAC_PIB().helper.getSymbolsPerSlot() >= this->preparedMsg->getTotalSymbols() + this->dsme.getMAC_PIB().helper.getAckWaitDuration() + 10 /* arbitrary processing delay */ + PRE_EVENT_SHIFT);
 
     uint8_t ifsSymbols = this->preparedMsg->getTotalSymbols() <= aMaxSIFSFrameSize ? const_redefines::macSIFSPeriod : const_redefines::macLIFSPeriod;

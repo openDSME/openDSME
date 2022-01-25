@@ -110,7 +110,7 @@ void MessageHelper::sendRetryBuffer() {
 }
 
 void MessageHelper::sendMessage(IDSMEMessage* msg) {
-    DSME_LOG_INFO("Sending DATA message");
+    DSME_LOG_DEBUG("Sending DATA message");
     sendMessageDown(msg, true);
 }
 
@@ -313,7 +313,7 @@ void MessageHelper::handleScanAndSyncComplete(PANDescriptor* panDescriptor) {
 void MessageHelper::handleAssociationComplete(AssociationStatus::Association_Status status) {
     this->associationInProgress = false;
     if(status != AssociationStatus::SUCCESS) {
-        startAssociation(); 
+        startAssociation();
     }
     return;
 }

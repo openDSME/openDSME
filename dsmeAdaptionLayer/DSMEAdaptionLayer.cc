@@ -172,7 +172,7 @@ void DSMEAdaptionLayer::handleScanAndSyncComplete(PANDescriptor* panDescriptor) 
 
 void DSMEAdaptionLayer::handleAssociationComplete(AssociationStatus::Association_Status status) {
     if(status == AssociationStatus::SUCCESS) {
-        DSME_LOG_INFO("Association completed successfully.");
+        DSME_LOG_ERROR("Association completed successfully.");
     } else {
         DSME_LOG_ERROR("Association failed.");
     }
