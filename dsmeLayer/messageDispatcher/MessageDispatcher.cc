@@ -485,8 +485,14 @@ bool MessageDispatcher::handleIFSEvent(int32_t lateness) {
     /* Neighbor and slot have to be valid at this point */
     DSME_ASSERT(this->lastSendGTSNeighbor != this->neighborQueue.end());
     DSME_ASSERT(this->currentACTElement != this->dsme.getMAC_PIB().macDSMEACT.end());
-    DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
-      == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
+    //DSME_ASSERT(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe() && this->currentACTElement->getGTSlotID()
+    //  == this->dsme.getCurrentSlot() - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1));
+    if(this->currentACTElement->getSuperframeID() == this->dsme.getCurrentSuperframe()
+        && this->currentACTElement->getGTSlotID()  == this->dsme.getCurrentSlot()
+        - (this->dsme.getMAC_PIB().helper.getFinalCAPSlot(this->dsme.getCurrentSuperframe())+1)) {
+            finalizeGTSTransmission();
+            return true;
+    }
 
     if(!sendPreparedMessage()) {
         finalizeGTSTransmission();
