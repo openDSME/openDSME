@@ -167,13 +167,21 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
         case GTSEvent::EXIT_SIGNAL:
             return FSM_IGNORED;
         case GTSEvent::MLME_REQUEST_ISSUED: {
-            preparePendingConfirm(event);
+
+	    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request initialized"); // STAT 
+            if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request initialized"); // STAT 
+            //if(event.management.type == ManagementType::DEALLOCATION) this->dsme.getPlatform().signalDeallocationScheduler(); // STAT 
+            
+	    preparePendingConfirm(event);
 
             IDSMEMessage* msg = dsme.getPlatform().getEmptyMessage();
 
             event.requestCmd.prependTo(msg);
 
             if(!sendGTSCommand(fsmId, msg, event.management, CommandFrameIdentifier::DSME_GTS_REQUEST, event.deviceAddr)) {
+
+		if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request failed transactionOverflow"); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request failed transactionOverflow"); // STAT  
                 dsme.getPlatform().releaseMessage(msg);
 
                 DSME_LOG_INFO("TRANSACTION_OVERFLOW");
@@ -244,14 +252,17 @@ fsmReturnStatus GTSManager::stateIdle(GTSEvent& event) {
                 if(it->getState() == INVALID || it->getState() == UNCONFIRMED || it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                     if(it->getState() == INVALID) {
                         DSME_LOG_INFO("DEALLOCATE: Due to state INVALID");
+			DSME_LOG_ERROR("Deallocation due to invalid");//SAT
                     } else if(it->getState() == UNCONFIRMED) {
                         if(hasBusyFsm()) {
                             continue;
                         }
                         DSME_LOG_INFO("DEALLOCATE: Due to state UNCONFIRMED");
+			DSME_LOG_ERROR("Deallocation due to unconfirmed");//SAT
                     } else if(it->getIdleCounter() > dsme.getMAC_PIB().macDSMEGTSExpirationTime) {
                         it->resetIdleCounter();
                         DSME_LOG_INFO("DEALLOCATE: Due to expiration");
+			DSME_LOG_ERROR("Deallocation due to expiration");//SAT
                     } else {
                         DSME_ASSERT(false);
                     }
@@ -311,6 +322,15 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
             DSME_ASSERT(event.cmdId == data[fsmId].cmdToSend);
 
             if(event.cmdId == DSME_GTS_NOTIFY) {
+
+                if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify success"); // STAT  
+                if(event.dataStatus == DataStatus::SUCCESS && event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify success"); // STAT  
+                if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify failed access failure"); // STAT  
+                if(event.dataStatus == DataStatus::CHANNEL_ACCESS_FAILURE && event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify failed access failure"); // STAT 
+                if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify failed transaction overflow"); // STAT 
+                if(event.dataStatus == DataStatus::TRANSACTION_EXPIRED && event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify failed transaction overflow"); // STAT
+
+
                 actUpdater.notifyDelivered(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
             } else if(event.cmdId == DSME_GTS_REQUEST) {
@@ -319,14 +339,21 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
 
                     switch(event.dataStatus) {
                         case DataStatus::NO_ACK:
+                            if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request failed noACK"); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request failed noACK"); // STAT  
+
                             actUpdater.requestNoAck(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::NO_ACK;
                             break;
                         case DataStatus::CHANNEL_ACCESS_FAILURE:
+			    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request failed access failure"); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request failed access failure"); // STAT  
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::CHANNEL_ACCESS_FAILURE;
                             break;
                         case DataStatus::TRANSACTION_EXPIRED:
+			    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request failed transactionOverflow"); // STAT 
+                            if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request failed transactionOverflow"); // STAT  
                             actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                             data[fsmId].pendingConfirm.status = GTSStatus::TRANSACTION_OVERFLOW; // TODO TRANSACTION_EXPIRED not available!
                             break;
@@ -338,6 +365,9 @@ fsmReturnStatus GTSManager::stateSending(GTSEvent& event) {
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
                     // REQUEST_SUCCESS
+		    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request sent successfully"); // STAT 
+                    if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request sent successfully"); // STAT  
+
                     data[fsmId].responsePartnerAddress = event.deviceAddr;
                     return transition(fsmId, &GTSManager::stateWaitForResponse);
                 }
@@ -471,6 +501,10 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
             this->dsme.getMLME_SAP().getDSME_GTS().notify_confirm(params);
 
             if(event.management.status == GTSStatus::SUCCESS) {
+
+		if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation response received"); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation response received"); // STAT 
+
                 /* the requesting node has to notify its one hop neighbors */
                 IDSMEMessage* msg_notify = dsme.getPlatform().getEmptyMessage();
                 event.replyNotifyCmd.setDestinationAddress(event.deviceAddr);
@@ -479,17 +513,28 @@ fsmReturnStatus GTSManager::stateWaitForResponse(GTSEvent& event) {
                                    IEEE802154MacAddress::SHORT_BROADCAST_ADDRESS)) {
                     // TODO should this be signaled to the upper layer?
                     DSME_LOG_INFO("NOTIFY could not be sent");
+                    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify failed transactionOverlow"); // STAT  
+                    if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify failed transactionOverlow"); // STAT
                     actUpdater.notifyAccessFailure(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr);
                     dsme.getPlatform().releaseMessage(msg_notify);
                     return transition(fsmId, &GTSManager::stateIdle);
                 } else {
+		    if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify initialized"); // STAT 
+                    if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify initialized"); // STAT 
+
                     return transition(fsmId, &GTSManager::stateSending);
                 }
             } else if(event.management.status == GTSStatus::NO_DATA) { // misuse NO_DATA to signal that the destination was busy
                 // actUpdater.requestAccessFailure(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
-                actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
+		if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation response failed timeOut"); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation response failed timeOut"); // STAT 
+                
+actUpdater.responseTimeout(event.requestCmd.getSABSpec(), event.management, event.deviceAddr);
                 return transition(fsmId, &GTSManager::stateIdle);
             } else {
+
+		if(event.management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation response failed denied"); // STAT 
+                if(event.management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation response failed denied"); // STAT 
                 DSME_ASSERT(event.management.status == GTSStatus::DENIED);
                 actUpdater.disapproved(event.replyNotifyCmd.getSABSpec(), event.management, event.deviceAddr, event.replyNotifyCmd.getChannelOffset());
                 return transition(fsmId, &GTSManager::stateIdle);
@@ -810,6 +855,11 @@ bool GTSManager::handleStartOfCFP(uint8_t superframe) {
 bool GTSManager::onCSMASent(IDSMEMessage* msg, CommandFrameIdentifier cmdId, DataStatus::Data_Status status, uint8_t numBackoffs) {
     GTSManagement management;
     management.decapsulateFrom(msg);
+
+    if(cmdId == DSME_GTS_REQUEST && management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation request backoff"); // STAT 
+    if(cmdId == DSME_GTS_REQUEST && management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation request backoff"); // STAT 
+    if(cmdId == DSME_GTS_NOTIFY && management.type == ManagementType::ALLOCATION) DSME_LOG_ERROR("Allocation notify backoff"); // SAT
+    if(cmdId == DSME_GTS_NOTIFY && management.type == ManagementType::DEALLOCATION) DSME_LOG_ERROR("Deallocation notify backoff"); // STAT
 
     bool returnStatus;
     if(management.type == ManagementType::DUPLICATED_ALLOCATION_NOTIFICATION) {
