@@ -293,7 +293,7 @@ bool DSMELayer::isWithinTimeSlot(uint32_t now, uint16_t duration) {
     uint32_t timeSlotStart = (symbolsSinceLastBeaconInterval / symbolsPerSlot) * symbolsPerSlot + this->beaconManager.getLastKnownBeaconIntervalStart();
     uint32_t timeSlotEnd = timeSlotStart + symbolsPerSlot - PRE_EVENT_SHIFT;
 
-    DSME_ASSERT(now >= timeSlotStart && now <= timeSlotEnd);
+    //DSME_ASSERT(now >= timeSlotStart && now <= timeSlotEnd);
     DSME_LOG_DEBUG("Checking isWithingTimeSlot: slot start time (" << timeSlotStart << ") <= current time (" << now << ") <= duration ("
         << now+duration << ") <= slot end time (" << timeSlotEnd << ")");
 

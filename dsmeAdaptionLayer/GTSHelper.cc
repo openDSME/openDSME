@@ -145,7 +145,7 @@ void GTSHelper::checkAndAllocateGTS(GTSSchedulingDecision decision) {
     GTS preferredGTS = getNextFreeGTS(decision.preferredSuperframeId, decision.preferredSlotId);
 
     if(preferredGTS == GTS::UNDEFINED) {
-        DSME_LOG_ERROR("No free GTS found! (trying with 0x" << DSME_HEXOUT << decision.deviceAddress << DSME_DECOUT << ")");
+        //DSME_LOG_ERROR("No free GTS found! (trying with 0x" << DSME_HEXOUT << decision.deviceAddress << DSME_DECOUT << ")");
         gtsConfirmPending = false;
         return;
     }
