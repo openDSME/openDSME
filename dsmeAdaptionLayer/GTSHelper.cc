@@ -244,7 +244,7 @@ void GTSHelper::handleDSME_GTS_indication(mlme_sap::DSME_GTS_indication_paramete
 
             responseParams.channelOffset = dsmeAdaptionLayer.getMAC_PIB().macChannelOffset;
             if(responseParams.dsmeSabSpecification.getSubBlock().isZero()) {
-                DSME_LOG_ERROR("Unable to allocate GTS.");
+                //DSME_LOG_ERROR("Unable to allocate GTS.");
                 responseParams.status = GTSStatus::DENIED;
             } else {
                 responseParams.status = GTSStatus::SUCCESS;
