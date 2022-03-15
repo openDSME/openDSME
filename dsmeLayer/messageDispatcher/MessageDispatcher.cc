@@ -514,7 +514,8 @@ void MessageDispatcher::handleGTS(int32_t lateness) {
         } else if(this->currentACTElement->getState() == VALID) {
             /* '-> if any messages are queued for this link, send one */
 
-            DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+            //DSME_ASSERT(this->lastSendGTSNeighbor == this->neighborQueue.end());
+            if(this->lastSendGTSNeighbor != this->neighborQueue.end()) return;
 
             IEEE802154MacAddress adr = IEEE802154MacAddress(this->currentACTElement->getAddress());
             this->lastSendGTSNeighbor = this->neighborQueue.findByAddress(IEEE802154MacAddress(this->currentACTElement->getAddress()));
