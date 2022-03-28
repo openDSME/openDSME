@@ -143,8 +143,8 @@ protected:
         uint32_t timer = this->lastDispatchSymbolCounter + symsUntilNextEvent;
 
         uint32_t currentSymCnt = _NOW;
-        if(timer < currentSymCnt + 5) {
-            timer = currentSymCnt + 5;
+        if(timer < currentSymCnt + 8) {
+            timer = currentSymCnt + 8;
         }
         _TIMER = timer;
 

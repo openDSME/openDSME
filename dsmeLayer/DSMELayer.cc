@@ -202,7 +202,7 @@ void DSMELayer::slotEvent(int32_t lateness) {
         DSME_LOG_DEBUG(DSME_DECOUT << currentSlot << " " << currentSuperframe << " " << currentMultiSuperframe);
     }
 
-    if(lateness > 200) { // TODO reduce
+    if(lateness > 300) { // TODO reduce
         DSME_LOG_ERROR("lateness " << lateness);
         DSME_ASSERT(false);
     }
